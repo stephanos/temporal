@@ -60,9 +60,6 @@ impl Environment {
     }
 
     pub(super) fn optional_type(&self, ty: &syn::Type) -> Result<Option<Type>> {
-        if self.bounded.is_empty() {
-            return Ok(None);
-        }
         let syn::Type::Path(path) = ty else { return Ok(None) };
         let names = path.path.segments.iter().map(|s| s.ident.to_string()).collect::<Vec<_>>();
         if !matches!(
@@ -115,9 +112,6 @@ impl Environment {
         expected: Option<&Type>,
         depth: usize,
     ) -> Result<Option<Expr>> {
-        if self.bounded.is_empty() {
-            return Ok(None);
-        }
         let names = path.path.segments.iter().map(|s| s.ident.to_string()).collect::<Vec<_>>();
         let name = names.join("::");
         if !matches!(
@@ -215,24 +209,37 @@ impl Environment {
         call: &syn::ExprCall,
         state: &Env,
         locals: &Env,
+        expected: Option<&Type>,
         depth: usize,
     ) -> Result<Option<Expr>> {
         let RustExpr::Path(path) = call.func.as_ref() else { return Ok(None) };
         let names = path.path.segments.iter().map(|s| s.ident.to_string()).collect::<Vec<_>>();
-        let Some(descriptor) = names.first().and_then(|name| self.bounded.get(name)) else {
+        let mut owner = path.path.clone();
+        if names.last().is_some_and(|name| name == "contains") {
+            owner.segments.pop();
+        }
+        let descriptor = self.bounded_descriptor(&owner, expected)?;
+        let Some(descriptor) = descriptor.as_ref() else {
             return Ok(None);
         };
         if path.qself.is_some()
-            || path.path.leading_colon.is_some()
-            || path.path.segments.iter().any(|s| !matches!(s.arguments, syn::PathArguments::None))
-            || locals.contains_key(&names[0])
+            || (!descriptor.name.starts_with("umpire_dsl::") && path.path.leading_colon.is_some())
+            || (!descriptor.name.starts_with("umpire_dsl::")
+                && path
+                    .path
+                    .segments
+                    .iter()
+                    .any(|s| !matches!(s.arguments, syn::PathArguments::None)))
+            || (path.path.leading_colon.is_none()
+                && (!descriptor.name.starts_with("umpire_dsl::") || path.path.segments.len() == 1)
+                && locals.contains_key(&names[0]))
         {
             return self.err(call, "bounded constructor requires the local nominal type");
         }
         let [argument] = call.args.iter().collect::<Vec<_>>()[..] else {
             return self.err(call, "bounded construction and contains require one backing value");
         };
-        if names.len() == 1 && descriptor.field.is_none() {
+        if names.last().is_none_or(|name| name != "contains") && descriptor.field.is_none() {
             let value =
                 self.expr(argument, state, locals, Some(&descriptor.backing_type()), depth)?;
             return Ok(Some(Expr {
@@ -240,7 +247,10 @@ impl Environment {
                 kind: ExprKind::Bounded(Box::new(value)),
             }));
         }
-        if names.len() == 2 && names[1] == "contains" {
+        if names.last().is_some_and(|name| name == "contains") {
+            if descriptor.name.starts_with("umpire_dsl::") {
+                return Ok(None);
+            }
             if self.helpers.contains_key(&format!("{}::contains", descriptor.name)) {
                 return self.err(call, "contains must be the generated bounded range predicate");
             }

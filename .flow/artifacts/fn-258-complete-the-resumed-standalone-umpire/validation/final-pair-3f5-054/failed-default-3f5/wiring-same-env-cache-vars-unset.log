@@ -1,0 +1,5 @@
+command: ["/bin/bash", "model/scripts/test-model-wiring.sh"]
+Cache override: {"UMPIRE_QUICK_CACHE": null, "UMPIRE_CACHE_DISABLE": null}
+Model recipe wiring controls passed (fake children; no execution evidence).
+
+exit: 0

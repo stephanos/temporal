@@ -1,0 +1,466 @@
+    Finished `test` profile [unoptimized] target(s) in 0.12s
+────────────
+ Nextest run ID ca3fa49a-c489-44bd-ab35-58ebf4e32bd2 with nextest profile: default
+    Starting 8 tests across 1 binary
+        PASS [   0.005s] (1/8) umpire-dsl-macros::fixtures parser_refusals::diagnostic_capture_keeps_duplicate_messages_at_distinct_locations
+  stdout ───
+
+    running 1 test
+    test parser_refusals::diagnostic_capture_keeps_duplicate_messages_at_distinct_locations ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 7 filtered out; finished in 0.00s
+
+
+        PASS [   0.005s] (2/8) umpire-dsl-macros::fixtures roots::tests::normalizes_facade_imports_through_groups_without_stripping_other_prefixes
+  stdout ───
+
+    running 1 test
+    test roots::tests::normalizes_facade_imports_through_groups_without_stripping_other_prefixes ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 7 filtered out; finished in 0.00s
+
+
+        PASS [   0.006s] (3/8) umpire-dsl-macros::fixtures roots::tests::normalizes_derive_paths_using_dependency_roots
+  stdout ───
+
+    running 1 test
+    test roots::tests::normalizes_derive_paths_using_dependency_roots ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 7 filtered out; finished in 0.00s
+
+
+        PASS [   0.014s] (4/8) umpire-dsl-macros::fixtures roots::dependency_roots::tests::resolves_absolute_roots_without_rewriting_qualified_caller_paths
+  stdout ───
+
+    running 1 test
+    test roots::dependency_roots::tests::resolves_absolute_roots_without_rewriting_qualified_caller_paths ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 7 filtered out; finished in 0.01s
+
+
+        PASS [   0.015s] (5/8) umpire-dsl-macros::fixtures parser_refusals::parser_refusals_preserve_messages_and_authored_locations
+  stdout ───
+
+    running 1 test
+    test parser_refusals::parser_refusals_preserve_messages_and_authored_locations ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 7 filtered out; finished in 0.01s
+
+
+        PASS [   0.129s] (6/8) umpire-dsl-macros::fixtures fixtures
+  stdout ───
+
+    running 1 test
+    test fixtures ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 7 filtered out; finished in 0.13s
+
+
+        SLOW [> 30.000s] (───) umpire-dsl-macros::fixtures refusals
+        SLOW [> 30.000s] (───) umpire-dsl-macros::fixtures private_state
+        PASS [  31.703s] (7/8) umpire-dsl-macros::fixtures private_state
+  stdout ───
+
+    running 1 test
+    test private_state ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 7 filtered out; finished in 31.70s
+
+  stderr ───
+       Compiling proc-macro2 v1.0.107
+       Compiling quote v1.0.47
+       Compiling unicode-ident v1.0.27
+       Compiling libc v0.2.191
+       Compiling prettyplease v0.3.0
+       Compiling syn v3.0.9
+       Compiling typenum v1.20.1
+       Compiling hybrid-array v0.4.15
+       Compiling getrandom v0.4.3
+       Compiling cfg-if v1.0.5
+       Compiling equivalent v1.0.3
+       Compiling rustix v1.1.5
+       Compiling smallvec v1.16.3
+       Compiling thiserror v2.0.21
+       Compiling umpire-ir-derive v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/ir/derive)
+       Compiling thiserror-impl v2.0.21
+       Compiling proc-macro-utils v0.10.0
+       Compiling winnow v1.0.4
+       Compiling hashbrown v0.17.1
+       Compiling linux-raw-sys v0.12.1
+       Compiling bitflags v2.13.2
+       Compiling indexmap v2.14.2
+       Compiling toml_parser v1.1.5+spec-1.1.0
+       Compiling manyhow-macros v0.14.1
+       Compiling umpire-ir v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/ir)
+       Compiling crypto-common v0.2.2
+       Compiling block-buffer v0.12.1
+       Compiling fastrand v2.5.0
+       Compiling bytemuck v1.25.2
+       Compiling once_cell v1.21.4
+       Compiling const-oid v0.10.2
+       Compiling toml_datetime v1.1.2+spec-1.1.0
+       Compiling toml_edit v0.25.17+spec-1.1.0
+       Compiling digest v0.11.3
+       Compiling tempfile v3.27.0
+       Compiling safe_arch v0.7.4
+       Compiling cpufeatures v0.3.1
+       Compiling heck v0.5.0
+       Compiling umpire-dsl-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/author/dsl/macros)
+       Compiling rand_core v0.9.5
+       Compiling rand_xoshiro v0.7.0
+       Compiling umpire-front v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/front)
+       Compiling sha2 v0.11.1
+       Compiling wide v0.7.33
+       Compiling proc-macro-crate v3.5.0
+       Compiling manyhow v0.14.1
+       Compiling imbl-sized-chunks v0.2.0
+       Compiling umpire-dsl v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/author/dsl)
+       Compiling foldhash v0.1.5
+       Compiling archery v1.2.3
+       Compiling imbl v7.0.2
+       Compiling hashbrown v0.15.5
+       Compiling umpire-backend-process v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/backends/process)
+       Compiling fixedbitset v0.5.7
+       Compiling umpire-checker v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/backends/native)
+       Compiling petgraph v0.8.3
+       Compiling umpire-tla v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/backends/tla)
+       Compiling console v0.16.6
+       Compiling rustc-hash v2.1.3
+       Compiling similar v2.7.0
+       Compiling insta v1.49.0
+       Compiling umpire-tlc v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/backends/tlc)
+       Compiling umpire-testing v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/dev/testing)
+       Compiling umpire-dsl-macros-tests v0.0.0 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/target/tests/trybuild/umpire-dsl-macros)
+        Finished `dev` profile [unoptimized] target(s) in 16.02s
+
+
+    test tests/pass/action_metadata.rs ... ok
+    test tests/pass/optional_facts.rs ... ok
+    test tests/pass/private_state.rs ... ok
+    test tests/pass/public_actor_private_state.rs ... ok
+
+
+
+        PASS [  40.681s] (8/8) umpire-dsl-macros::fixtures refusals
+  stdout ───
+
+    running 1 test
+    test refusals ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 7 filtered out; finished in 40.68s
+
+  stderr ───
+        Checking unicode-ident v1.0.27
+        Checking libc v0.2.191
+        Checking proc-macro2 v1.0.107
+        Checking quote v1.0.47
+        Checking typenum v1.20.1
+        Checking cfg-if v1.0.5
+        Checking equivalent v1.0.3
+        Checking linux-raw-sys v0.12.1
+        Checking hybrid-array v0.4.15
+        Checking bitflags v2.13.2
+        Checking rustix v1.1.5
+        Checking crypto-common v0.2.2
+        Checking block-buffer v0.12.1
+        Checking thiserror v2.0.21
+        Checking getrandom v0.4.3
+        Checking umpire-ir v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/ir)
+        Checking syn v3.0.9
+        Checking bytemuck v1.25.2
+        Checking fastrand v2.5.0
+        Checking hashbrown v0.17.1
+        Checking const-oid v0.10.2
+        Checking once_cell v1.21.4
+        Checking tempfile v3.27.0
+        Checking digest v0.11.3
+        Checking indexmap v2.14.2
+        Checking safe_arch v0.7.4
+        Checking cpufeatures v0.3.1
+        Checking rand_core v0.9.5
+        Checking rand_xoshiro v0.7.0
+        Checking prettyplease v0.3.0
+        Checking sha2 v0.11.1
+        Checking wide v0.7.33
+        Checking heck v0.5.0
+        Checking foldhash v0.1.5
+        Checking archery v1.2.3
+        Checking imbl-sized-chunks v0.2.0
+        Checking hashbrown v0.15.5
+        Checking imbl v7.0.2
+        Checking umpire-front v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/front)
+        Checking umpire-backend-process v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/backends/process)
+        Checking fixedbitset v0.5.7
+        Checking winnow v1.0.4
+        Checking smallvec v1.16.3
+        Checking umpire-dsl v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/author/dsl)
+        Checking umpire-tla v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/backends/tla)
+        Checking toml_parser v1.1.5+spec-1.1.0
+        Checking petgraph v0.8.3
+        Checking console v0.16.6
+        Checking rustc-hash v2.1.3
+        Checking similar v2.7.0
+        Checking toml_datetime v1.1.2+spec-1.1.0
+        Checking toml_edit v0.25.17+spec-1.1.0
+        Checking insta v1.49.0
+        Checking umpire-checker v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/backends/native)
+        Checking umpire-tlc v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/backends/tlc)
+        Checking proc-macro-crate v3.5.0
+        Checking umpire-testing v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/dev/testing)
+        Checking manyhow v0.14.1
+        Checking umpire-dsl-macros-tests v0.0.0 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/target/tests/trybuild/umpire-dsl-macros)
+        Finished `dev` profile [unoptimized] target(s) in 4.33s
+
+
+    test tests/ui/action_domain_item_type.rs ... ok
+    test tests/ui/action_domain_unbound.rs ... ok
+    test tests/ui/action_domain_world_mismatch.rs ... ok
+    test tests/ui/action_finite_missing.rs ... ok
+    test tests/ui/machine_mutable_aliased_helper.rs ... ok
+    test tests/ui/machine_mutable_const_helper.rs ... ok
+    test tests/ui/machine_mutable_local_helper.rs ... ok
+    test tests/ui/machine_mutable_local_projection.rs ... ok
+    test tests/ui/machine_mutable_nested_helper.rs ... ok
+    test tests/ui/machine_mutable_qualified_helper.rs ... ok
+    test tests/ui/machine_nonexhaustive_actor.rs ... ok
+    test tests/ui/machine_scope_actor.rs ... ok
+    test tests/ui/machine_stay_effect.rs ... ok
+    test tests/ui/machine_stay_helper.rs ... ok
+    test tests/ui/machine_unsafe_allowed.rs ... ok
+    test tests/ui/optional_facts_direct_reject.rs ... ok
+    test tests/ui/stay_outside_machine.rs ... ok
+    test tests/ui/world_starts_return.rs ... ok
+
+
+
+────────────
+     Summary [  40.682s] 8 tests run: 8 passed (2 slow), 0 skipped
+        PASS [   0.005s] (1/8) umpire-dsl-macros::fixtures parser_refusals::diagnostic_capture_keeps_duplicate_messages_at_distinct_locations
+  stdout ───
+
+    running 1 test
+    test parser_refusals::diagnostic_capture_keeps_duplicate_messages_at_distinct_locations ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 7 filtered out; finished in 0.00s
+
+
+        PASS [   0.005s] (2/8) umpire-dsl-macros::fixtures roots::tests::normalizes_facade_imports_through_groups_without_stripping_other_prefixes
+  stdout ───
+
+    running 1 test
+    test roots::tests::normalizes_facade_imports_through_groups_without_stripping_other_prefixes ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 7 filtered out; finished in 0.00s
+
+
+        PASS [   0.006s] (3/8) umpire-dsl-macros::fixtures roots::tests::normalizes_derive_paths_using_dependency_roots
+  stdout ───
+
+    running 1 test
+    test roots::tests::normalizes_derive_paths_using_dependency_roots ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 7 filtered out; finished in 0.00s
+
+
+        PASS [   0.014s] (4/8) umpire-dsl-macros::fixtures roots::dependency_roots::tests::resolves_absolute_roots_without_rewriting_qualified_caller_paths
+  stdout ───
+
+    running 1 test
+    test roots::dependency_roots::tests::resolves_absolute_roots_without_rewriting_qualified_caller_paths ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 7 filtered out; finished in 0.01s
+
+
+        PASS [   0.015s] (5/8) umpire-dsl-macros::fixtures parser_refusals::parser_refusals_preserve_messages_and_authored_locations
+  stdout ───
+
+    running 1 test
+    test parser_refusals::parser_refusals_preserve_messages_and_authored_locations ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 7 filtered out; finished in 0.01s
+
+
+        PASS [   0.129s] (6/8) umpire-dsl-macros::fixtures fixtures
+  stdout ───
+
+    running 1 test
+    test fixtures ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 7 filtered out; finished in 0.13s
+
+
+        SLOW [  31.703s] (7/8) umpire-dsl-macros::fixtures private_state
+  stdout ───
+
+    running 1 test
+    test private_state ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 7 filtered out; finished in 31.70s
+
+  stderr ───
+       Compiling proc-macro2 v1.0.107
+       Compiling quote v1.0.47
+       Compiling unicode-ident v1.0.27
+       Compiling libc v0.2.191
+       Compiling prettyplease v0.3.0
+       Compiling syn v3.0.9
+       Compiling typenum v1.20.1
+       Compiling hybrid-array v0.4.15
+       Compiling getrandom v0.4.3
+       Compiling cfg-if v1.0.5
+       Compiling equivalent v1.0.3
+       Compiling rustix v1.1.5
+       Compiling smallvec v1.16.3
+       Compiling thiserror v2.0.21
+       Compiling umpire-ir-derive v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/ir/derive)
+       Compiling thiserror-impl v2.0.21
+       Compiling proc-macro-utils v0.10.0
+       Compiling winnow v1.0.4
+       Compiling hashbrown v0.17.1
+       Compiling linux-raw-sys v0.12.1
+       Compiling bitflags v2.13.2
+       Compiling indexmap v2.14.2
+       Compiling toml_parser v1.1.5+spec-1.1.0
+       Compiling manyhow-macros v0.14.1
+       Compiling umpire-ir v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/ir)
+       Compiling crypto-common v0.2.2
+       Compiling block-buffer v0.12.1
+       Compiling fastrand v2.5.0
+       Compiling bytemuck v1.25.2
+       Compiling once_cell v1.21.4
+       Compiling const-oid v0.10.2
+       Compiling toml_datetime v1.1.2+spec-1.1.0
+       Compiling toml_edit v0.25.17+spec-1.1.0
+       Compiling digest v0.11.3
+       Compiling tempfile v3.27.0
+       Compiling safe_arch v0.7.4
+       Compiling cpufeatures v0.3.1
+       Compiling heck v0.5.0
+       Compiling umpire-dsl-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/author/dsl/macros)
+       Compiling rand_core v0.9.5
+       Compiling rand_xoshiro v0.7.0
+       Compiling umpire-front v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/front)
+       Compiling sha2 v0.11.1
+       Compiling wide v0.7.33
+       Compiling proc-macro-crate v3.5.0
+       Compiling manyhow v0.14.1
+       Compiling imbl-sized-chunks v0.2.0
+       Compiling umpire-dsl v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/author/dsl)
+       Compiling foldhash v0.1.5
+       Compiling archery v1.2.3
+       Compiling imbl v7.0.2
+       Compiling hashbrown v0.15.5
+       Compiling umpire-backend-process v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/backends/process)
+       Compiling fixedbitset v0.5.7
+       Compiling umpire-checker v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/backends/native)
+       Compiling petgraph v0.8.3
+       Compiling umpire-tla v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/backends/tla)
+       Compiling console v0.16.6
+       Compiling rustc-hash v2.1.3
+       Compiling similar v2.7.0
+       Compiling insta v1.49.0
+       Compiling umpire-tlc v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/backends/tlc)
+       Compiling umpire-testing v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/dev/testing)
+       Compiling umpire-dsl-macros-tests v0.0.0 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/target/tests/trybuild/umpire-dsl-macros)
+        Finished `dev` profile [unoptimized] target(s) in 16.02s
+
+
+    test tests/pass/action_metadata.rs ... ok
+    test tests/pass/optional_facts.rs ... ok
+    test tests/pass/private_state.rs ... ok
+    test tests/pass/public_actor_private_state.rs ... ok
+
+
+
+        SLOW [  40.681s] (8/8) umpire-dsl-macros::fixtures refusals
+  stdout ───
+
+    running 1 test
+    test refusals ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 7 filtered out; finished in 40.68s
+
+  stderr ───
+        Checking unicode-ident v1.0.27
+        Checking libc v0.2.191
+        Checking proc-macro2 v1.0.107
+        Checking quote v1.0.47
+        Checking typenum v1.20.1
+        Checking cfg-if v1.0.5
+        Checking equivalent v1.0.3
+        Checking linux-raw-sys v0.12.1
+        Checking hybrid-array v0.4.15
+        Checking bitflags v2.13.2
+        Checking rustix v1.1.5
+        Checking crypto-common v0.2.2
+        Checking block-buffer v0.12.1
+        Checking thiserror v2.0.21
+        Checking getrandom v0.4.3
+        Checking umpire-ir v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/ir)
+        Checking syn v3.0.9
+        Checking bytemuck v1.25.2
+        Checking fastrand v2.5.0
+        Checking hashbrown v0.17.1
+        Checking const-oid v0.10.2
+        Checking once_cell v1.21.4
+        Checking tempfile v3.27.0
+        Checking digest v0.11.3
+        Checking indexmap v2.14.2
+        Checking safe_arch v0.7.4
+        Checking cpufeatures v0.3.1
+        Checking rand_core v0.9.5
+        Checking rand_xoshiro v0.7.0
+        Checking prettyplease v0.3.0
+        Checking sha2 v0.11.1
+        Checking wide v0.7.33
+        Checking heck v0.5.0
+        Checking foldhash v0.1.5
+        Checking archery v1.2.3
+        Checking imbl-sized-chunks v0.2.0
+        Checking hashbrown v0.15.5
+        Checking imbl v7.0.2
+        Checking umpire-front v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/front)
+        Checking umpire-backend-process v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/backends/process)
+        Checking fixedbitset v0.5.7
+        Checking winnow v1.0.4
+        Checking smallvec v1.16.3
+        Checking umpire-dsl v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/author/dsl)
+        Checking umpire-tla v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/backends/tla)
+        Checking toml_parser v1.1.5+spec-1.1.0
+        Checking petgraph v0.8.3
+        Checking console v0.16.6
+        Checking rustc-hash v2.1.3
+        Checking similar v2.7.0
+        Checking toml_datetime v1.1.2+spec-1.1.0
+        Checking toml_edit v0.25.17+spec-1.1.0
+        Checking insta v1.49.0
+        Checking umpire-checker v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/backends/native)
+        Checking umpire-tlc v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/backends/tlc)
+        Checking proc-macro-crate v3.5.0
+        Checking umpire-testing v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/dev/testing)
+        Checking manyhow v0.14.1
+        Checking umpire-dsl-macros-tests v0.0.0 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/target/tests/trybuild/umpire-dsl-macros)
+        Finished `dev` profile [unoptimized] target(s) in 4.33s
+
+
+    test tests/ui/action_domain_item_type.rs ... ok
+    test tests/ui/action_domain_unbound.rs ... ok
+    test tests/ui/action_domain_world_mismatch.rs ... ok
+    test tests/ui/action_finite_missing.rs ... ok
+    test tests/ui/machine_mutable_aliased_helper.rs ... ok
+    test tests/ui/machine_mutable_const_helper.rs ... ok
+    test tests/ui/machine_mutable_local_helper.rs ... ok
+    test tests/ui/machine_mutable_local_projection.rs ... ok
+    test tests/ui/machine_mutable_nested_helper.rs ... ok
+    test tests/ui/machine_mutable_qualified_helper.rs ... ok
+    test tests/ui/machine_nonexhaustive_actor.rs ... ok
+    test tests/ui/machine_scope_actor.rs ... ok
+    test tests/ui/machine_stay_effect.rs ... ok
+    test tests/ui/machine_stay_helper.rs ... ok
+    test tests/ui/machine_unsafe_allowed.rs ... ok
+    test tests/ui/optional_facts_direct_reject.rs ... ok
+    test tests/ui/stay_outside_machine.rs ... ok
+    test tests/ui/world_starts_return.rs ... ok
+
+
+

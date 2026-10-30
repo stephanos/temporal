@@ -1,0 +1,2240 @@
+{
+  "samples": 510,
+  "maxima": {
+    "test_owners": 2,
+    "jvm_owners": 1,
+    "checker_jvms": 1,
+    "all_jvms": 1,
+    "aggregate_jvm_rss_bytes": 182255616
+  },
+  "java_processes": [
+    {
+      "pid": 538500,
+      "ppid": 538499,
+      "argv": [
+        "/home/agent/.local/share/mise/installs/java/temurin-27/bin/java",
+        "-Xmx512m",
+        "-cp",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/tla2tools-1.7.4.jar",
+        "tlc2.TLC",
+        "-h"
+      ],
+      "owner_case": "fixtures",
+      "kind": "tlc-discovery",
+      "heap_flags": [
+        "-Xmx512m"
+      ],
+      "rss_bytes": 13844480,
+      "first_seconds": 19.685245009000937,
+      "peak_rss_bytes": 44384256
+    },
+    {
+      "pid": 538522,
+      "ppid": 538521,
+      "argv": [
+        "/home/agent/.local/share/mise/installs/java/temurin-27/bin/java",
+        "-Xmx512m",
+        "-Duser.home=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-3XCjWb",
+        "-Djava.io.tmpdir=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-3XCjWb",
+        "-XX:+UseSerialGC",
+        "-Dtlc2.tool.fp.FPSet.impl=tlc2.tool.fp.MSBDiskFPSet",
+        "-cp",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/tla2tools-1.7.4.jar",
+        "tlc2.TLC",
+        "-tool",
+        "-workers",
+        "1",
+        "-fp",
+        "0",
+        "-cleanup",
+        "-checkpoint",
+        "0",
+        "-config",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-3XCjWb/Run.cfg",
+        "-metadir",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-3XCjWb/states",
+        "-dump",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-3XCjWb/explore.dump",
+        "Activity"
+      ],
+      "owner_case": "fixtures",
+      "kind": "tlc-checker",
+      "heap_flags": [
+        "-Xmx512m"
+      ],
+      "rss_bytes": 47710208,
+      "first_seconds": 19.83835284199995,
+      "peak_rss_bytes": 170688512
+    },
+    {
+      "pid": 538558,
+      "ppid": 538557,
+      "argv": [
+        "/home/agent/.local/share/mise/installs/java/temurin-27/bin/java",
+        "-Xmx512m",
+        "-Duser.home=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-fg0eqZ",
+        "-Djava.io.tmpdir=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-fg0eqZ",
+        "-XX:+UseSerialGC",
+        "-Dtlc2.tool.fp.FPSet.impl=tlc2.tool.fp.MSBDiskFPSet",
+        "-cp",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/tla2tools-1.7.4.jar",
+        "tlc2.TLC",
+        "-tool",
+        "-workers",
+        "1",
+        "-fp",
+        "0",
+        "-cleanup",
+        "-checkpoint",
+        "0",
+        "-config",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-fg0eqZ/Run.cfg",
+        "-metadir",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-fg0eqZ/states",
+        "-dump",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-fg0eqZ/batch.dump",
+        "Activity"
+      ],
+      "owner_case": "fixtures",
+      "kind": "tlc-checker",
+      "heap_flags": [
+        "-Xmx512m"
+      ],
+      "rss_bytes": 42532864,
+      "first_seconds": 20.716033050999613,
+      "peak_rss_bytes": 168853504
+    },
+    {
+      "pid": 538588,
+      "ppid": 538587,
+      "argv": [
+        "/home/agent/.local/share/mise/installs/java/temurin-27/bin/java",
+        "-Xmx512m",
+        "-Duser.home=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-trW9VL",
+        "-Djava.io.tmpdir=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-trW9VL",
+        "-XX:+UseSerialGC",
+        "-Dtlc2.tool.fp.FPSet.impl=tlc2.tool.fp.MSBDiskFPSet",
+        "-cp",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/tla2tools-1.7.4.jar",
+        "tlc2.TLC",
+        "-tool",
+        "-workers",
+        "1",
+        "-fp",
+        "0",
+        "-cleanup",
+        "-checkpoint",
+        "0",
+        "-config",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-trW9VL/Run.cfg",
+        "-metadir",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-trW9VL/states",
+        "-dump",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-trW9VL/explore.dump",
+        "Activity"
+      ],
+      "owner_case": "fixtures",
+      "kind": "tlc-checker",
+      "heap_flags": [
+        "-Xmx512m"
+      ],
+      "rss_bytes": 42663936,
+      "first_seconds": 21.59459284299919,
+      "peak_rss_bytes": 155500544
+    },
+    {
+      "pid": 538624,
+      "ppid": 538623,
+      "argv": [
+        "/home/agent/.local/share/mise/installs/java/temurin-27/bin/java",
+        "-Xmx512m",
+        "-Duser.home=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-Fjh23b",
+        "-Djava.io.tmpdir=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-Fjh23b",
+        "-XX:+UseSerialGC",
+        "-Dtlc2.tool.fp.FPSet.impl=tlc2.tool.fp.MSBDiskFPSet",
+        "-cp",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/tla2tools-1.7.4.jar",
+        "tlc2.TLC",
+        "-tool",
+        "-workers",
+        "1",
+        "-fp",
+        "0",
+        "-cleanup",
+        "-checkpoint",
+        "0",
+        "-config",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-Fjh23b/Run.cfg",
+        "-metadir",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-Fjh23b/states",
+        "-dump",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-Fjh23b/Progress_eventually_closed.dump",
+        "Activity"
+      ],
+      "owner_case": "fixtures",
+      "kind": "tlc-checker",
+      "heap_flags": [
+        "-Xmx512m"
+      ],
+      "rss_bytes": 42958848,
+      "first_seconds": 22.5727343439994,
+      "peak_rss_bytes": 182255616
+    },
+    {
+      "pid": 538655,
+      "ppid": 538654,
+      "argv": [
+        "/home/agent/.local/share/mise/installs/java/temurin-27/bin/java",
+        "-Xmx512m",
+        "-Duser.home=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-pWgaq2",
+        "-Djava.io.tmpdir=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-pWgaq2",
+        "-XX:+UseSerialGC",
+        "-Dtlc2.tool.fp.FPSet.impl=tlc2.tool.fp.MSBDiskFPSet",
+        "-cp",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/tla2tools-1.7.4.jar",
+        "tlc2.TLC",
+        "-tool",
+        "-workers",
+        "1",
+        "-fp",
+        "0",
+        "-cleanup",
+        "-checkpoint",
+        "0",
+        "-config",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-pWgaq2/Run.cfg",
+        "-metadir",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-pWgaq2/states",
+        "-dump",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-pWgaq2/explore.dump",
+        "Activity"
+      ],
+      "owner_case": "fixtures",
+      "kind": "tlc-checker",
+      "heap_flags": [
+        "-Xmx512m"
+      ],
+      "rss_bytes": 41222144,
+      "first_seconds": 23.649574302000474,
+      "peak_rss_bytes": 151846912
+    },
+    {
+      "pid": 538685,
+      "ppid": 538684,
+      "argv": [
+        "/home/agent/.local/share/mise/installs/java/temurin-27/bin/java",
+        "-Xmx512m",
+        "-Duser.home=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-Qam1tw",
+        "-Djava.io.tmpdir=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-Qam1tw",
+        "-XX:+UseSerialGC",
+        "-Dtlc2.tool.fp.FPSet.impl=tlc2.tool.fp.MSBDiskFPSet",
+        "-cp",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/tla2tools-1.7.4.jar",
+        "tlc2.TLC",
+        "-tool",
+        "-workers",
+        "1",
+        "-fp",
+        "0",
+        "-cleanup",
+        "-checkpoint",
+        "0",
+        "-config",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-Qam1tw/Run.cfg",
+        "-metadir",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-Qam1tw/states",
+        "-dump",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-Qam1tw/Progress_pending_retryable_failure_cancels.dump",
+        "Activity"
+      ],
+      "owner_case": "fixtures",
+      "kind": "tlc-checker",
+      "heap_flags": [
+        "-Xmx512m"
+      ],
+      "rss_bytes": 44826624,
+      "first_seconds": 24.518312469999728,
+      "peak_rss_bytes": 140820480
+    },
+    {
+      "pid": 538722,
+      "ppid": 538721,
+      "argv": [
+        "/home/agent/.local/share/mise/installs/java/temurin-27/bin/java",
+        "-Xmx512m",
+        "-Duser.home=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-63ASJk",
+        "-Djava.io.tmpdir=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-63ASJk",
+        "-XX:+UseSerialGC",
+        "-Dtlc2.tool.fp.FPSet.impl=tlc2.tool.fp.MSBDiskFPSet",
+        "-cp",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/tla2tools-1.7.4.jar",
+        "tlc2.TLC",
+        "-tool",
+        "-workers",
+        "1",
+        "-fp",
+        "0",
+        "-cleanup",
+        "-checkpoint",
+        "0",
+        "-config",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-63ASJk/Run.cfg",
+        "-metadir",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-63ASJk/states",
+        "-dump",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-63ASJk/explore.dump",
+        "Activity"
+      ],
+      "owner_case": "fixtures",
+      "kind": "tlc-checker",
+      "heap_flags": [
+        "-Xmx512m"
+      ],
+      "rss_bytes": 44105728,
+      "first_seconds": 25.39025530300023,
+      "peak_rss_bytes": 138526720
+    },
+    {
+      "pid": 538752,
+      "ppid": 538751,
+      "argv": [
+        "/home/agent/.local/share/mise/installs/java/temurin-27/bin/java",
+        "-Xmx512m",
+        "-Duser.home=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-hLujJu",
+        "-Djava.io.tmpdir=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-hLujJu",
+        "-XX:+UseSerialGC",
+        "-Dtlc2.tool.fp.FPSet.impl=tlc2.tool.fp.MSBDiskFPSet",
+        "-cp",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/tla2tools-1.7.4.jar",
+        "tlc2.TLC",
+        "-tool",
+        "-workers",
+        "1",
+        "-fp",
+        "0",
+        "-cleanup",
+        "-checkpoint",
+        "0",
+        "-config",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-hLujJu/Run.cfg",
+        "-metadir",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-hLujJu/states",
+        "-dump",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-hLujJu/Progress_pending_nonretryable_failure_fails.dump",
+        "Activity"
+      ],
+      "owner_case": "fixtures",
+      "kind": "tlc-checker",
+      "heap_flags": [
+        "-Xmx512m"
+      ],
+      "rss_bytes": 44990464,
+      "first_seconds": 26.26206930400076,
+      "peak_rss_bytes": 149143552
+    },
+    {
+      "pid": 538791,
+      "ppid": 538790,
+      "argv": [
+        "/home/agent/.local/share/mise/installs/java/temurin-27/bin/java",
+        "-Xmx512m",
+        "-Duser.home=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-GLi7MT",
+        "-Djava.io.tmpdir=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-GLi7MT",
+        "-XX:+UseSerialGC",
+        "-Dtlc2.tool.fp.FPSet.impl=tlc2.tool.fp.MSBDiskFPSet",
+        "-cp",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/tla2tools-1.7.4.jar",
+        "tlc2.TLC",
+        "-tool",
+        "-workers",
+        "1",
+        "-fp",
+        "0",
+        "-cleanup",
+        "-checkpoint",
+        "0",
+        "-config",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-GLi7MT/Run.cfg",
+        "-metadir",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-GLi7MT/states",
+        "-dump",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-GLi7MT/explore.dump",
+        "Activity"
+      ],
+      "owner_case": "fixtures",
+      "kind": "tlc-checker",
+      "heap_flags": [
+        "-Xmx512m"
+      ],
+      "rss_bytes": 48480256,
+      "first_seconds": 27.132632887,
+      "peak_rss_bytes": 164315136
+    },
+    {
+      "pid": 538821,
+      "ppid": 538820,
+      "argv": [
+        "/home/agent/.local/share/mise/installs/java/temurin-27/bin/java",
+        "-Xmx512m",
+        "-Duser.home=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-MNgbXa",
+        "-Djava.io.tmpdir=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-MNgbXa",
+        "-XX:+UseSerialGC",
+        "-Dtlc2.tool.fp.FPSet.impl=tlc2.tool.fp.MSBDiskFPSet",
+        "-cp",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/tla2tools-1.7.4.jar",
+        "tlc2.TLC",
+        "-tool",
+        "-workers",
+        "1",
+        "-fp",
+        "0",
+        "-cleanup",
+        "-checkpoint",
+        "0",
+        "-config",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-MNgbXa/Run.cfg",
+        "-metadir",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-MNgbXa/states",
+        "-dump",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-MNgbXa/Progress_ordinary_retry_rearms.dump",
+        "Activity"
+      ],
+      "owner_case": "fixtures",
+      "kind": "tlc-checker",
+      "heap_flags": [
+        "-Xmx512m"
+      ],
+      "rss_bytes": 48414720,
+      "first_seconds": 28.061517637999714,
+      "peak_rss_bytes": 150306816
+    },
+    {
+      "pid": 538858,
+      "ppid": 538857,
+      "argv": [
+        "/home/agent/.local/share/mise/installs/java/temurin-27/bin/java",
+        "-Xmx512m",
+        "-Duser.home=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-qnpiZf",
+        "-Djava.io.tmpdir=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-qnpiZf",
+        "-XX:+UseSerialGC",
+        "-Dtlc2.tool.fp.FPSet.impl=tlc2.tool.fp.MSBDiskFPSet",
+        "-cp",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/tla2tools-1.7.4.jar",
+        "tlc2.TLC",
+        "-tool",
+        "-workers",
+        "1",
+        "-fp",
+        "0",
+        "-cleanup",
+        "-checkpoint",
+        "0",
+        "-config",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-qnpiZf/Run.cfg",
+        "-metadir",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-qnpiZf/states",
+        "-dump",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-qnpiZf/explore.dump",
+        "Activity"
+      ],
+      "owner_case": "fixtures",
+      "kind": "tlc-checker",
+      "heap_flags": [
+        "-Xmx512m"
+      ],
+      "rss_bytes": 44449792,
+      "first_seconds": 28.99771747200066,
+      "peak_rss_bytes": 178978816
+    },
+    {
+      "pid": 538888,
+      "ppid": 538887,
+      "argv": [
+        "/home/agent/.local/share/mise/installs/java/temurin-27/bin/java",
+        "-Xmx512m",
+        "-Duser.home=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-XqQAqh",
+        "-Djava.io.tmpdir=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-XqQAqh",
+        "-XX:+UseSerialGC",
+        "-Dtlc2.tool.fp.FPSet.impl=tlc2.tool.fp.MSBDiskFPSet",
+        "-cp",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/tla2tools-1.7.4.jar",
+        "tlc2.TLC",
+        "-tool",
+        "-workers",
+        "1",
+        "-fp",
+        "0",
+        "-cleanup",
+        "-checkpoint",
+        "0",
+        "-config",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-XqQAqh/Run.cfg",
+        "-metadir",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-XqQAqh/states",
+        "-dump",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-XqQAqh/Progress_ordinary_retry_at_cap_fails.dump",
+        "Activity"
+      ],
+      "owner_case": "fixtures",
+      "kind": "tlc-checker",
+      "heap_flags": [
+        "-Xmx512m"
+      ],
+      "rss_bytes": 48070656,
+      "first_seconds": 29.94095834700056,
+      "peak_rss_bytes": 159596544
+    },
+    {
+      "pid": 538925,
+      "ppid": 538924,
+      "argv": [
+        "/home/agent/.local/share/mise/installs/java/temurin-27/bin/java",
+        "-Xmx512m",
+        "-Duser.home=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-S2ZJT1",
+        "-Djava.io.tmpdir=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-S2ZJT1",
+        "-XX:+UseSerialGC",
+        "-Dtlc2.tool.fp.FPSet.impl=tlc2.tool.fp.MSBDiskFPSet",
+        "-cp",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/tla2tools-1.7.4.jar",
+        "tlc2.TLC",
+        "-tool",
+        "-workers",
+        "1",
+        "-fp",
+        "0",
+        "-cleanup",
+        "-checkpoint",
+        "0",
+        "-config",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-S2ZJT1/Run.cfg",
+        "-metadir",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-S2ZJT1/states",
+        "-dump",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-S2ZJT1/explore.dump",
+        "Activity"
+      ],
+      "owner_case": "fixtures",
+      "kind": "tlc-checker",
+      "heap_flags": [
+        "-Xmx512m"
+      ],
+      "rss_bytes": 47169536,
+      "first_seconds": 30.839243513999463,
+      "peak_rss_bytes": 173228032
+    },
+    {
+      "pid": 538960,
+      "ppid": 538959,
+      "argv": [
+        "/home/agent/.local/share/mise/installs/java/temurin-27/bin/java",
+        "-Xmx512m",
+        "-Duser.home=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-BkFbH2",
+        "-Djava.io.tmpdir=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-BkFbH2",
+        "-XX:+UseSerialGC",
+        "-Dtlc2.tool.fp.FPSet.impl=tlc2.tool.fp.MSBDiskFPSet",
+        "-cp",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/tla2tools-1.7.4.jar",
+        "tlc2.TLC",
+        "-tool",
+        "-workers",
+        "1",
+        "-fp",
+        "0",
+        "-cleanup",
+        "-checkpoint",
+        "0",
+        "-config",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-BkFbH2/Run.cfg",
+        "-metadir",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-BkFbH2/states",
+        "-dump",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-BkFbH2/Progress_ordinary_nonretryable_failure_fails.dump",
+        "Activity"
+      ],
+      "owner_case": "fixtures",
+      "kind": "tlc-checker",
+      "heap_flags": [
+        "-Xmx512m"
+      ],
+      "rss_bytes": 43892736,
+      "first_seconds": 31.767797930999222,
+      "peak_rss_bytes": 158793728
+    },
+    {
+      "pid": 539033,
+      "ppid": 539032,
+      "argv": [
+        "/home/agent/.local/share/mise/installs/java/temurin-27/bin/java",
+        "-Xmx512m",
+        "-Duser.home=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-tMIsxw",
+        "-Djava.io.tmpdir=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-tMIsxw",
+        "-XX:+UseSerialGC",
+        "-Dtlc2.tool.fp.FPSet.impl=tlc2.tool.fp.MSBDiskFPSet",
+        "-cp",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/tla2tools-1.7.4.jar",
+        "tlc2.TLC",
+        "-tool",
+        "-workers",
+        "1",
+        "-fp",
+        "0",
+        "-cleanup",
+        "-checkpoint",
+        "0",
+        "-config",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-tMIsxw/Run.cfg",
+        "-metadir",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-tMIsxw/states",
+        "-dump",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-tMIsxw/explore.dump",
+        "Activity"
+      ],
+      "owner_case": "fixtures",
+      "kind": "tlc-checker",
+      "heap_flags": [
+        "-Xmx512m"
+      ],
+      "rss_bytes": 49594368,
+      "first_seconds": 32.85068326500004,
+      "peak_rss_bytes": 161103872
+    },
+    {
+      "pid": 539063,
+      "ppid": 539062,
+      "argv": [
+        "/home/agent/.local/share/mise/installs/java/temurin-27/bin/java",
+        "-Xmx512m",
+        "-Duser.home=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-i2zvHN",
+        "-Djava.io.tmpdir=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-i2zvHN",
+        "-XX:+UseSerialGC",
+        "-Dtlc2.tool.fp.FPSet.impl=tlc2.tool.fp.MSBDiskFPSet",
+        "-cp",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/tla2tools-1.7.4.jar",
+        "tlc2.TLC",
+        "-tool",
+        "-workers",
+        "1",
+        "-fp",
+        "0",
+        "-cleanup",
+        "-checkpoint",
+        "0",
+        "-config",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-i2zvHN/Run.cfg",
+        "-metadir",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-i2zvHN/states",
+        "-dump",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-i2zvHN/batch.dump",
+        "Activity"
+      ],
+      "owner_case": "fixtures",
+      "kind": "tlc-checker",
+      "heap_flags": [
+        "-Xmx512m"
+      ],
+      "rss_bytes": 43958272,
+      "first_seconds": 33.727488599000935,
+      "peak_rss_bytes": 179961856
+    },
+    {
+      "pid": 539093,
+      "ppid": 539092,
+      "argv": [
+        "/home/agent/.local/share/mise/installs/java/temurin-27/bin/java",
+        "-Xmx512m",
+        "-Duser.home=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-6mxMeY",
+        "-Djava.io.tmpdir=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-6mxMeY",
+        "-XX:+UseSerialGC",
+        "-Dtlc2.tool.fp.FPSet.impl=tlc2.tool.fp.MSBDiskFPSet",
+        "-cp",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/tla2tools-1.7.4.jar",
+        "tlc2.TLC",
+        "-tool",
+        "-workers",
+        "1",
+        "-fp",
+        "0",
+        "-cleanup",
+        "-checkpoint",
+        "0",
+        "-config",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-6mxMeY/Run.cfg",
+        "-metadir",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-6mxMeY/states",
+        "-dump",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-6mxMeY/explore.dump",
+        "Activity"
+      ],
+      "owner_case": "fixtures",
+      "kind": "tlc-checker",
+      "heap_flags": [
+        "-Xmx512m"
+      ],
+      "rss_bytes": 49610752,
+      "first_seconds": 34.61325839100027,
+      "peak_rss_bytes": 169541632
+    },
+    {
+      "pid": 539130,
+      "ppid": 539129,
+      "argv": [
+        "/home/agent/.local/share/mise/installs/java/temurin-27/bin/java",
+        "-Xmx512m",
+        "-Duser.home=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-1O0wtT",
+        "-Djava.io.tmpdir=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-1O0wtT",
+        "-XX:+UseSerialGC",
+        "-Dtlc2.tool.fp.FPSet.impl=tlc2.tool.fp.MSBDiskFPSet",
+        "-cp",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/tla2tools-1.7.4.jar",
+        "tlc2.TLC",
+        "-tool",
+        "-workers",
+        "1",
+        "-fp",
+        "0",
+        "-cleanup",
+        "-checkpoint",
+        "0",
+        "-config",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-1O0wtT/Run.cfg",
+        "-metadir",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-1O0wtT/states",
+        "-dump",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-1O0wtT/Progress_eventually_closed.dump",
+        "Activity"
+      ],
+      "owner_case": "fixtures",
+      "kind": "tlc-checker",
+      "heap_flags": [
+        "-Xmx512m"
+      ],
+      "rss_bytes": 47841280,
+      "first_seconds": 35.596424142000615,
+      "peak_rss_bytes": 166920192
+    },
+    {
+      "pid": 539161,
+      "ppid": 539160,
+      "argv": [
+        "/home/agent/.local/share/mise/installs/java/temurin-27/bin/java",
+        "-Xmx512m",
+        "-Duser.home=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-Pt3kbV",
+        "-Djava.io.tmpdir=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-Pt3kbV",
+        "-XX:+UseSerialGC",
+        "-Dtlc2.tool.fp.FPSet.impl=tlc2.tool.fp.MSBDiskFPSet",
+        "-cp",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/tla2tools-1.7.4.jar",
+        "tlc2.TLC",
+        "-tool",
+        "-workers",
+        "1",
+        "-fp",
+        "0",
+        "-cleanup",
+        "-checkpoint",
+        "0",
+        "-config",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-Pt3kbV/Run.cfg",
+        "-metadir",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-Pt3kbV/states",
+        "-dump",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-Pt3kbV/explore.dump",
+        "Activity"
+      ],
+      "owner_case": "fixtures",
+      "kind": "tlc-checker",
+      "heap_flags": [
+        "-Xmx512m"
+      ],
+      "rss_bytes": 40353792,
+      "first_seconds": 36.679532434000066,
+      "peak_rss_bytes": 160284672
+    },
+    {
+      "pid": 539198,
+      "ppid": 539197,
+      "argv": [
+        "/home/agent/.local/share/mise/installs/java/temurin-27/bin/java",
+        "-Xmx512m",
+        "-Duser.home=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-mswcX5",
+        "-Djava.io.tmpdir=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-mswcX5",
+        "-XX:+UseSerialGC",
+        "-Dtlc2.tool.fp.FPSet.impl=tlc2.tool.fp.MSBDiskFPSet",
+        "-cp",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/tla2tools-1.7.4.jar",
+        "tlc2.TLC",
+        "-tool",
+        "-workers",
+        "1",
+        "-fp",
+        "0",
+        "-cleanup",
+        "-checkpoint",
+        "0",
+        "-config",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-mswcX5/Run.cfg",
+        "-metadir",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-mswcX5/states",
+        "-dump",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-mswcX5/Progress_pending_retryable_failure_cancels.dump",
+        "Activity"
+      ],
+      "owner_case": "fixtures",
+      "kind": "tlc-checker",
+      "heap_flags": [
+        "-Xmx512m"
+      ],
+      "rss_bytes": 46104576,
+      "first_seconds": 37.55698422599926,
+      "peak_rss_bytes": 174768128
+    },
+    {
+      "pid": 539229,
+      "ppid": 539228,
+      "argv": [
+        "/home/agent/.local/share/mise/installs/java/temurin-27/bin/java",
+        "-Xmx512m",
+        "-Duser.home=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-V5vrVm",
+        "-Djava.io.tmpdir=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-V5vrVm",
+        "-XX:+UseSerialGC",
+        "-Dtlc2.tool.fp.FPSet.impl=tlc2.tool.fp.MSBDiskFPSet",
+        "-cp",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/tla2tools-1.7.4.jar",
+        "tlc2.TLC",
+        "-tool",
+        "-workers",
+        "1",
+        "-fp",
+        "0",
+        "-cleanup",
+        "-checkpoint",
+        "0",
+        "-config",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-V5vrVm/Run.cfg",
+        "-metadir",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-V5vrVm/states",
+        "-dump",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-V5vrVm/explore.dump",
+        "Activity"
+      ],
+      "owner_case": "fixtures",
+      "kind": "tlc-checker",
+      "heap_flags": [
+        "-Xmx512m"
+      ],
+      "rss_bytes": 46612480,
+      "first_seconds": 38.44109664300049,
+      "peak_rss_bytes": 151617536
+    },
+    {
+      "pid": 539265,
+      "ppid": 539264,
+      "argv": [
+        "/home/agent/.local/share/mise/installs/java/temurin-27/bin/java",
+        "-Xmx512m",
+        "-Duser.home=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-layqgN",
+        "-Djava.io.tmpdir=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-layqgN",
+        "-XX:+UseSerialGC",
+        "-Dtlc2.tool.fp.FPSet.impl=tlc2.tool.fp.MSBDiskFPSet",
+        "-cp",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/tla2tools-1.7.4.jar",
+        "tlc2.TLC",
+        "-tool",
+        "-workers",
+        "1",
+        "-fp",
+        "0",
+        "-cleanup",
+        "-checkpoint",
+        "0",
+        "-config",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-layqgN/Run.cfg",
+        "-metadir",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-layqgN/states",
+        "-dump",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-layqgN/Progress_pending_nonretryable_failure_fails.dump",
+        "Activity"
+      ],
+      "owner_case": "fixtures",
+      "kind": "tlc-checker",
+      "heap_flags": [
+        "-Xmx512m"
+      ],
+      "rss_bytes": 40615936,
+      "first_seconds": 39.26703239299968,
+      "peak_rss_bytes": 157958144
+    },
+    {
+      "pid": 539296,
+      "ppid": 539295,
+      "argv": [
+        "/home/agent/.local/share/mise/installs/java/temurin-27/bin/java",
+        "-Xmx512m",
+        "-Duser.home=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-ZZG6YX",
+        "-Djava.io.tmpdir=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-ZZG6YX",
+        "-XX:+UseSerialGC",
+        "-Dtlc2.tool.fp.FPSet.impl=tlc2.tool.fp.MSBDiskFPSet",
+        "-cp",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/tla2tools-1.7.4.jar",
+        "tlc2.TLC",
+        "-tool",
+        "-workers",
+        "1",
+        "-fp",
+        "0",
+        "-cleanup",
+        "-checkpoint",
+        "0",
+        "-config",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-ZZG6YX/Run.cfg",
+        "-metadir",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-ZZG6YX/states",
+        "-dump",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-ZZG6YX/explore.dump",
+        "Activity"
+      ],
+      "owner_case": "fixtures",
+      "kind": "tlc-checker",
+      "heap_flags": [
+        "-Xmx512m"
+      ],
+      "rss_bytes": 49905664,
+      "first_seconds": 40.209204393999244,
+      "peak_rss_bytes": 169885696
+    },
+    {
+      "pid": 539332,
+      "ppid": 539331,
+      "argv": [
+        "/home/agent/.local/share/mise/installs/java/temurin-27/bin/java",
+        "-Xmx512m",
+        "-Duser.home=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-2FHwu6",
+        "-Djava.io.tmpdir=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-2FHwu6",
+        "-XX:+UseSerialGC",
+        "-Dtlc2.tool.fp.FPSet.impl=tlc2.tool.fp.MSBDiskFPSet",
+        "-cp",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/tla2tools-1.7.4.jar",
+        "tlc2.TLC",
+        "-tool",
+        "-workers",
+        "1",
+        "-fp",
+        "0",
+        "-cleanup",
+        "-checkpoint",
+        "0",
+        "-config",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-2FHwu6/Run.cfg",
+        "-metadir",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-2FHwu6/states",
+        "-dump",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-2FHwu6/Progress_ordinary_retry_rearms.dump",
+        "Activity"
+      ],
+      "owner_case": "fixtures",
+      "kind": "tlc-checker",
+      "heap_flags": [
+        "-Xmx512m"
+      ],
+      "rss_bytes": 29573120,
+      "first_seconds": 41.16795472800004,
+      "peak_rss_bytes": 180338688
+    },
+    {
+      "pid": 539363,
+      "ppid": 539362,
+      "argv": [
+        "/home/agent/.local/share/mise/installs/java/temurin-27/bin/java",
+        "-Xmx512m",
+        "-Duser.home=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-BGA7xg",
+        "-Djava.io.tmpdir=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-BGA7xg",
+        "-XX:+UseSerialGC",
+        "-Dtlc2.tool.fp.FPSet.impl=tlc2.tool.fp.MSBDiskFPSet",
+        "-cp",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/tla2tools-1.7.4.jar",
+        "tlc2.TLC",
+        "-tool",
+        "-workers",
+        "1",
+        "-fp",
+        "0",
+        "-cleanup",
+        "-checkpoint",
+        "0",
+        "-config",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-BGA7xg/Run.cfg",
+        "-metadir",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-BGA7xg/states",
+        "-dump",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-BGA7xg/explore.dump",
+        "Activity"
+      ],
+      "owner_case": "fixtures",
+      "kind": "tlc-checker",
+      "heap_flags": [
+        "-Xmx512m"
+      ],
+      "rss_bytes": 37519360,
+      "first_seconds": 42.101607270000386,
+      "peak_rss_bytes": 177455104
+    },
+    {
+      "pid": 539399,
+      "ppid": 539398,
+      "argv": [
+        "/home/agent/.local/share/mise/installs/java/temurin-27/bin/java",
+        "-Xmx512m",
+        "-Duser.home=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-bc18Lv",
+        "-Djava.io.tmpdir=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-bc18Lv",
+        "-XX:+UseSerialGC",
+        "-Dtlc2.tool.fp.FPSet.impl=tlc2.tool.fp.MSBDiskFPSet",
+        "-cp",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/tla2tools-1.7.4.jar",
+        "tlc2.TLC",
+        "-tool",
+        "-workers",
+        "1",
+        "-fp",
+        "0",
+        "-cleanup",
+        "-checkpoint",
+        "0",
+        "-config",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-bc18Lv/Run.cfg",
+        "-metadir",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-bc18Lv/states",
+        "-dump",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-bc18Lv/Progress_ordinary_retry_at_cap_fails.dump",
+        "Activity"
+      ],
+      "owner_case": "fixtures",
+      "kind": "tlc-checker",
+      "heap_flags": [
+        "-Xmx512m"
+      ],
+      "rss_bytes": 49938432,
+      "first_seconds": 43.03736818700054,
+      "peak_rss_bytes": 177029120
+    },
+    {
+      "pid": 539430,
+      "ppid": 539429,
+      "argv": [
+        "/home/agent/.local/share/mise/installs/java/temurin-27/bin/java",
+        "-Xmx512m",
+        "-Duser.home=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-2NuDlT",
+        "-Djava.io.tmpdir=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-2NuDlT",
+        "-XX:+UseSerialGC",
+        "-Dtlc2.tool.fp.FPSet.impl=tlc2.tool.fp.MSBDiskFPSet",
+        "-cp",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/tla2tools-1.7.4.jar",
+        "tlc2.TLC",
+        "-tool",
+        "-workers",
+        "1",
+        "-fp",
+        "0",
+        "-cleanup",
+        "-checkpoint",
+        "0",
+        "-config",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-2NuDlT/Run.cfg",
+        "-metadir",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-2NuDlT/states",
+        "-dump",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-2NuDlT/explore.dump",
+        "Activity"
+      ],
+      "owner_case": "fixtures",
+      "kind": "tlc-checker",
+      "heap_flags": [
+        "-Xmx512m"
+      ],
+      "rss_bytes": 44122112,
+      "first_seconds": 43.92073868700027,
+      "peak_rss_bytes": 178307072
+    },
+    {
+      "pid": 539460,
+      "ppid": 539459,
+      "argv": [
+        "/home/agent/.local/share/mise/installs/java/temurin-27/bin/java",
+        "-Xmx512m",
+        "-Duser.home=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-aXXvoy",
+        "-Djava.io.tmpdir=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-aXXvoy",
+        "-XX:+UseSerialGC",
+        "-Dtlc2.tool.fp.FPSet.impl=tlc2.tool.fp.MSBDiskFPSet",
+        "-cp",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/tla2tools-1.7.4.jar",
+        "tlc2.TLC",
+        "-tool",
+        "-workers",
+        "1",
+        "-fp",
+        "0",
+        "-cleanup",
+        "-checkpoint",
+        "0",
+        "-config",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-aXXvoy/Run.cfg",
+        "-metadir",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-aXXvoy/states",
+        "-dump",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-aXXvoy/Progress_ordinary_nonretryable_failure_fails.dump",
+        "Activity"
+      ],
+      "owner_case": "fixtures",
+      "kind": "tlc-checker",
+      "heap_flags": [
+        "-Xmx512m"
+      ],
+      "rss_bytes": 43515904,
+      "first_seconds": 44.921411646000706,
+      "peak_rss_bytes": 179683328
+    }
+  ],
+  "peak_samples": [
+    {
+      "seconds": 19.47416471699944,
+      "test_owners": [
+        {
+          "pid": 538483,
+          "case": "fixtures"
+        }
+      ],
+      "jvms": [],
+      "counts": {
+        "test_owners": 1,
+        "jvm_owners": 0,
+        "checker_jvms": 0,
+        "all_jvms": 0,
+        "aggregate_jvm_rss_bytes": 0
+      }
+    },
+    {
+      "seconds": 19.685250758999246,
+      "test_owners": [
+        {
+          "pid": 538483,
+          "case": "fixtures"
+        },
+        {
+          "pid": 538499,
+          "case": "fixtures"
+        }
+      ],
+      "jvms": [
+        {
+          "pid": 538500,
+          "ppid": 538499,
+          "argv": [
+            "/home/agent/.local/share/mise/installs/java/temurin-27/bin/java",
+            "-Xmx512m",
+            "-cp",
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/tla2tools-1.7.4.jar",
+            "tlc2.TLC",
+            "-h"
+          ],
+          "owner_case": "fixtures",
+          "kind": "tlc-discovery",
+          "heap_flags": [
+            "-Xmx512m"
+          ],
+          "rss_bytes": 13844480
+        }
+      ],
+      "counts": {
+        "test_owners": 2,
+        "jvm_owners": 1,
+        "checker_jvms": 0,
+        "all_jvms": 1,
+        "aggregate_jvm_rss_bytes": 13844480
+      }
+    },
+    {
+      "seconds": 19.73637484199935,
+      "test_owners": [
+        {
+          "pid": 538483,
+          "case": "fixtures"
+        },
+        {
+          "pid": 538499,
+          "case": "fixtures"
+        }
+      ],
+      "jvms": [
+        {
+          "pid": 538500,
+          "ppid": 538499,
+          "argv": [
+            "/home/agent/.local/share/mise/installs/java/temurin-27/bin/java",
+            "-Xmx512m",
+            "-cp",
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/tla2tools-1.7.4.jar",
+            "tlc2.TLC",
+            "-h"
+          ],
+          "owner_case": "fixtures",
+          "kind": "tlc-discovery",
+          "heap_flags": [
+            "-Xmx512m"
+          ],
+          "rss_bytes": 44384256
+        }
+      ],
+      "counts": {
+        "test_owners": 2,
+        "jvm_owners": 1,
+        "checker_jvms": 0,
+        "all_jvms": 1,
+        "aggregate_jvm_rss_bytes": 44384256
+      }
+    },
+    {
+      "seconds": 19.838359384000796,
+      "test_owners": [
+        {
+          "pid": 538483,
+          "case": "fixtures"
+        },
+        {
+          "pid": 538521,
+          "case": "fixtures"
+        }
+      ],
+      "jvms": [
+        {
+          "pid": 538522,
+          "ppid": 538521,
+          "argv": [
+            "/home/agent/.local/share/mise/installs/java/temurin-27/bin/java",
+            "-Xmx512m",
+            "-Duser.home=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-3XCjWb",
+            "-Djava.io.tmpdir=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-3XCjWb",
+            "-XX:+UseSerialGC",
+            "-Dtlc2.tool.fp.FPSet.impl=tlc2.tool.fp.MSBDiskFPSet",
+            "-cp",
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/tla2tools-1.7.4.jar",
+            "tlc2.TLC",
+            "-tool",
+            "-workers",
+            "1",
+            "-fp",
+            "0",
+            "-cleanup",
+            "-checkpoint",
+            "0",
+            "-config",
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-3XCjWb/Run.cfg",
+            "-metadir",
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-3XCjWb/states",
+            "-dump",
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-3XCjWb/explore.dump",
+            "Activity"
+          ],
+          "owner_case": "fixtures",
+          "kind": "tlc-checker",
+          "heap_flags": [
+            "-Xmx512m"
+          ],
+          "rss_bytes": 47710208
+        }
+      ],
+      "counts": {
+        "test_owners": 2,
+        "jvm_owners": 1,
+        "checker_jvms": 1,
+        "all_jvms": 1,
+        "aggregate_jvm_rss_bytes": 47710208
+      }
+    },
+    {
+      "seconds": 19.88961596700028,
+      "test_owners": [
+        {
+          "pid": 538483,
+          "case": "fixtures"
+        },
+        {
+          "pid": 538521,
+          "case": "fixtures"
+        }
+      ],
+      "jvms": [
+        {
+          "pid": 538522,
+          "ppid": 538521,
+          "argv": [
+            "/home/agent/.local/share/mise/installs/java/temurin-27/bin/java",
+            "-Xmx512m",
+            "-Duser.home=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-3XCjWb",
+            "-Djava.io.tmpdir=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-3XCjWb",
+            "-XX:+UseSerialGC",
+            "-Dtlc2.tool.fp.FPSet.impl=tlc2.tool.fp.MSBDiskFPSet",
+            "-cp",
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/tla2tools-1.7.4.jar",
+            "tlc2.TLC",
+            "-tool",
+            "-workers",
+            "1",
+            "-fp",
+            "0",
+            "-cleanup",
+            "-checkpoint",
+            "0",
+            "-config",
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-3XCjWb/Run.cfg",
+            "-metadir",
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-3XCjWb/states",
+            "-dump",
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-3XCjWb/explore.dump",
+            "Activity"
+          ],
+          "owner_case": "fixtures",
+          "kind": "tlc-checker",
+          "heap_flags": [
+            "-Xmx512m"
+          ],
+          "rss_bytes": 52133888
+        }
+      ],
+      "counts": {
+        "test_owners": 2,
+        "jvm_owners": 1,
+        "checker_jvms": 1,
+        "all_jvms": 1,
+        "aggregate_jvm_rss_bytes": 52133888
+      }
+    },
+    {
+      "seconds": 19.94232842599922,
+      "test_owners": [
+        {
+          "pid": 538483,
+          "case": "fixtures"
+        },
+        {
+          "pid": 538521,
+          "case": "fixtures"
+        }
+      ],
+      "jvms": [
+        {
+          "pid": 538522,
+          "ppid": 538521,
+          "argv": [
+            "/home/agent/.local/share/mise/installs/java/temurin-27/bin/java",
+            "-Xmx512m",
+            "-Duser.home=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-3XCjWb",
+            "-Djava.io.tmpdir=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-3XCjWb",
+            "-XX:+UseSerialGC",
+            "-Dtlc2.tool.fp.FPSet.impl=tlc2.tool.fp.MSBDiskFPSet",
+            "-cp",
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/tla2tools-1.7.4.jar",
+            "tlc2.TLC",
+            "-tool",
+            "-workers",
+            "1",
+            "-fp",
+            "0",
+            "-cleanup",
+            "-checkpoint",
+            "0",
+            "-config",
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-3XCjWb/Run.cfg",
+            "-metadir",
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-3XCjWb/states",
+            "-dump",
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-3XCjWb/explore.dump",
+            "Activity"
+          ],
+          "owner_case": "fixtures",
+          "kind": "tlc-checker",
+          "heap_flags": [
+            "-Xmx512m"
+          ],
+          "rss_bytes": 64995328
+        }
+      ],
+      "counts": {
+        "test_owners": 2,
+        "jvm_owners": 1,
+        "checker_jvms": 1,
+        "all_jvms": 1,
+        "aggregate_jvm_rss_bytes": 64995328
+      }
+    },
+    {
+      "seconds": 19.9933039259995,
+      "test_owners": [
+        {
+          "pid": 538483,
+          "case": "fixtures"
+        },
+        {
+          "pid": 538521,
+          "case": "fixtures"
+        }
+      ],
+      "jvms": [
+        {
+          "pid": 538522,
+          "ppid": 538521,
+          "argv": [
+            "/home/agent/.local/share/mise/installs/java/temurin-27/bin/java",
+            "-Xmx512m",
+            "-Duser.home=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-3XCjWb",
+            "-Djava.io.tmpdir=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-3XCjWb",
+            "-XX:+UseSerialGC",
+            "-Dtlc2.tool.fp.FPSet.impl=tlc2.tool.fp.MSBDiskFPSet",
+            "-cp",
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/tla2tools-1.7.4.jar",
+            "tlc2.TLC",
+            "-tool",
+            "-workers",
+            "1",
+            "-fp",
+            "0",
+            "-cleanup",
+            "-checkpoint",
+            "0",
+            "-config",
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-3XCjWb/Run.cfg",
+            "-metadir",
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-3XCjWb/states",
+            "-dump",
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-3XCjWb/explore.dump",
+            "Activity"
+          ],
+          "owner_case": "fixtures",
+          "kind": "tlc-checker",
+          "heap_flags": [
+            "-Xmx512m"
+          ],
+          "rss_bytes": 69238784
+        }
+      ],
+      "counts": {
+        "test_owners": 2,
+        "jvm_owners": 1,
+        "checker_jvms": 1,
+        "all_jvms": 1,
+        "aggregate_jvm_rss_bytes": 69238784
+      }
+    },
+    {
+      "seconds": 20.0448842170008,
+      "test_owners": [
+        {
+          "pid": 538483,
+          "case": "fixtures"
+        },
+        {
+          "pid": 538521,
+          "case": "fixtures"
+        }
+      ],
+      "jvms": [
+        {
+          "pid": 538522,
+          "ppid": 538521,
+          "argv": [
+            "/home/agent/.local/share/mise/installs/java/temurin-27/bin/java",
+            "-Xmx512m",
+            "-Duser.home=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-3XCjWb",
+            "-Djava.io.tmpdir=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-3XCjWb",
+            "-XX:+UseSerialGC",
+            "-Dtlc2.tool.fp.FPSet.impl=tlc2.tool.fp.MSBDiskFPSet",
+            "-cp",
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/tla2tools-1.7.4.jar",
+            "tlc2.TLC",
+            "-tool",
+            "-workers",
+            "1",
+            "-fp",
+            "0",
+            "-cleanup",
+            "-checkpoint",
+            "0",
+            "-config",
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-3XCjWb/Run.cfg",
+            "-metadir",
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-3XCjWb/states",
+            "-dump",
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-3XCjWb/explore.dump",
+            "Activity"
+          ],
+          "owner_case": "fixtures",
+          "kind": "tlc-checker",
+          "heap_flags": [
+            "-Xmx512m"
+          ],
+          "rss_bytes": 87916544
+        }
+      ],
+      "counts": {
+        "test_owners": 2,
+        "jvm_owners": 1,
+        "checker_jvms": 1,
+        "all_jvms": 1,
+        "aggregate_jvm_rss_bytes": 87916544
+      }
+    },
+    {
+      "seconds": 20.096326467000836,
+      "test_owners": [
+        {
+          "pid": 538483,
+          "case": "fixtures"
+        },
+        {
+          "pid": 538521,
+          "case": "fixtures"
+        }
+      ],
+      "jvms": [
+        {
+          "pid": 538522,
+          "ppid": 538521,
+          "argv": [
+            "/home/agent/.local/share/mise/installs/java/temurin-27/bin/java",
+            "-Xmx512m",
+            "-Duser.home=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-3XCjWb",
+            "-Djava.io.tmpdir=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-3XCjWb",
+            "-XX:+UseSerialGC",
+            "-Dtlc2.tool.fp.FPSet.impl=tlc2.tool.fp.MSBDiskFPSet",
+            "-cp",
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/tla2tools-1.7.4.jar",
+            "tlc2.TLC",
+            "-tool",
+            "-workers",
+            "1",
+            "-fp",
+            "0",
+            "-cleanup",
+            "-checkpoint",
+            "0",
+            "-config",
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-3XCjWb/Run.cfg",
+            "-metadir",
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-3XCjWb/states",
+            "-dump",
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-3XCjWb/explore.dump",
+            "Activity"
+          ],
+          "owner_case": "fixtures",
+          "kind": "tlc-checker",
+          "heap_flags": [
+            "-Xmx512m"
+          ],
+          "rss_bytes": 119193600
+        }
+      ],
+      "counts": {
+        "test_owners": 2,
+        "jvm_owners": 1,
+        "checker_jvms": 1,
+        "all_jvms": 1,
+        "aggregate_jvm_rss_bytes": 119193600
+      }
+    },
+    {
+      "seconds": 20.149358384000152,
+      "test_owners": [
+        {
+          "pid": 538483,
+          "case": "fixtures"
+        },
+        {
+          "pid": 538521,
+          "case": "fixtures"
+        }
+      ],
+      "jvms": [
+        {
+          "pid": 538522,
+          "ppid": 538521,
+          "argv": [
+            "/home/agent/.local/share/mise/installs/java/temurin-27/bin/java",
+            "-Xmx512m",
+            "-Duser.home=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-3XCjWb",
+            "-Djava.io.tmpdir=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-3XCjWb",
+            "-XX:+UseSerialGC",
+            "-Dtlc2.tool.fp.FPSet.impl=tlc2.tool.fp.MSBDiskFPSet",
+            "-cp",
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/tla2tools-1.7.4.jar",
+            "tlc2.TLC",
+            "-tool",
+            "-workers",
+            "1",
+            "-fp",
+            "0",
+            "-cleanup",
+            "-checkpoint",
+            "0",
+            "-config",
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-3XCjWb/Run.cfg",
+            "-metadir",
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-3XCjWb/states",
+            "-dump",
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-3XCjWb/explore.dump",
+            "Activity"
+          ],
+          "owner_case": "fixtures",
+          "kind": "tlc-checker",
+          "heap_flags": [
+            "-Xmx512m"
+          ],
+          "rss_bytes": 129269760
+        }
+      ],
+      "counts": {
+        "test_owners": 2,
+        "jvm_owners": 1,
+        "checker_jvms": 1,
+        "all_jvms": 1,
+        "aggregate_jvm_rss_bytes": 129269760
+      }
+    },
+    {
+      "seconds": 20.200802134000696,
+      "test_owners": [
+        {
+          "pid": 538483,
+          "case": "fixtures"
+        },
+        {
+          "pid": 538521,
+          "case": "fixtures"
+        }
+      ],
+      "jvms": [
+        {
+          "pid": 538522,
+          "ppid": 538521,
+          "argv": [
+            "/home/agent/.local/share/mise/installs/java/temurin-27/bin/java",
+            "-Xmx512m",
+            "-Duser.home=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-3XCjWb",
+            "-Djava.io.tmpdir=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-3XCjWb",
+            "-XX:+UseSerialGC",
+            "-Dtlc2.tool.fp.FPSet.impl=tlc2.tool.fp.MSBDiskFPSet",
+            "-cp",
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/tla2tools-1.7.4.jar",
+            "tlc2.TLC",
+            "-tool",
+            "-workers",
+            "1",
+            "-fp",
+            "0",
+            "-cleanup",
+            "-checkpoint",
+            "0",
+            "-config",
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-3XCjWb/Run.cfg",
+            "-metadir",
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-3XCjWb/states",
+            "-dump",
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-3XCjWb/explore.dump",
+            "Activity"
+          ],
+          "owner_case": "fixtures",
+          "kind": "tlc-checker",
+          "heap_flags": [
+            "-Xmx512m"
+          ],
+          "rss_bytes": 142442496
+        }
+      ],
+      "counts": {
+        "test_owners": 2,
+        "jvm_owners": 1,
+        "checker_jvms": 1,
+        "all_jvms": 1,
+        "aggregate_jvm_rss_bytes": 142442496
+      }
+    },
+    {
+      "seconds": 20.253978134000135,
+      "test_owners": [
+        {
+          "pid": 538483,
+          "case": "fixtures"
+        },
+        {
+          "pid": 538521,
+          "case": "fixtures"
+        }
+      ],
+      "jvms": [
+        {
+          "pid": 538522,
+          "ppid": 538521,
+          "argv": [
+            "/home/agent/.local/share/mise/installs/java/temurin-27/bin/java",
+            "-Xmx512m",
+            "-Duser.home=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-3XCjWb",
+            "-Djava.io.tmpdir=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-3XCjWb",
+            "-XX:+UseSerialGC",
+            "-Dtlc2.tool.fp.FPSet.impl=tlc2.tool.fp.MSBDiskFPSet",
+            "-cp",
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/tla2tools-1.7.4.jar",
+            "tlc2.TLC",
+            "-tool",
+            "-workers",
+            "1",
+            "-fp",
+            "0",
+            "-cleanup",
+            "-checkpoint",
+            "0",
+            "-config",
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-3XCjWb/Run.cfg",
+            "-metadir",
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-3XCjWb/states",
+            "-dump",
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-3XCjWb/explore.dump",
+            "Activity"
+          ],
+          "owner_case": "fixtures",
+          "kind": "tlc-checker",
+          "heap_flags": [
+            "-Xmx512m"
+          ],
+          "rss_bytes": 146620416
+        }
+      ],
+      "counts": {
+        "test_owners": 2,
+        "jvm_owners": 1,
+        "checker_jvms": 1,
+        "all_jvms": 1,
+        "aggregate_jvm_rss_bytes": 146620416
+      }
+    },
+    {
+      "seconds": 20.30655684299927,
+      "test_owners": [
+        {
+          "pid": 538483,
+          "case": "fixtures"
+        },
+        {
+          "pid": 538521,
+          "case": "fixtures"
+        }
+      ],
+      "jvms": [
+        {
+          "pid": 538522,
+          "ppid": 538521,
+          "argv": [
+            "/home/agent/.local/share/mise/installs/java/temurin-27/bin/java",
+            "-Xmx512m",
+            "-Duser.home=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-3XCjWb",
+            "-Djava.io.tmpdir=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-3XCjWb",
+            "-XX:+UseSerialGC",
+            "-Dtlc2.tool.fp.FPSet.impl=tlc2.tool.fp.MSBDiskFPSet",
+            "-cp",
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/tla2tools-1.7.4.jar",
+            "tlc2.TLC",
+            "-tool",
+            "-workers",
+            "1",
+            "-fp",
+            "0",
+            "-cleanup",
+            "-checkpoint",
+            "0",
+            "-config",
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-3XCjWb/Run.cfg",
+            "-metadir",
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-3XCjWb/states",
+            "-dump",
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-3XCjWb/explore.dump",
+            "Activity"
+          ],
+          "owner_case": "fixtures",
+          "kind": "tlc-checker",
+          "heap_flags": [
+            "-Xmx512m"
+          ],
+          "rss_bytes": 153321472
+        }
+      ],
+      "counts": {
+        "test_owners": 2,
+        "jvm_owners": 1,
+        "checker_jvms": 1,
+        "all_jvms": 1,
+        "aggregate_jvm_rss_bytes": 153321472
+      }
+    },
+    {
+      "seconds": 20.358317759000784,
+      "test_owners": [
+        {
+          "pid": 538483,
+          "case": "fixtures"
+        },
+        {
+          "pid": 538521,
+          "case": "fixtures"
+        }
+      ],
+      "jvms": [
+        {
+          "pid": 538522,
+          "ppid": 538521,
+          "argv": [
+            "/home/agent/.local/share/mise/installs/java/temurin-27/bin/java",
+            "-Xmx512m",
+            "-Duser.home=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-3XCjWb",
+            "-Djava.io.tmpdir=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-3XCjWb",
+            "-XX:+UseSerialGC",
+            "-Dtlc2.tool.fp.FPSet.impl=tlc2.tool.fp.MSBDiskFPSet",
+            "-cp",
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/tla2tools-1.7.4.jar",
+            "tlc2.TLC",
+            "-tool",
+            "-workers",
+            "1",
+            "-fp",
+            "0",
+            "-cleanup",
+            "-checkpoint",
+            "0",
+            "-config",
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-3XCjWb/Run.cfg",
+            "-metadir",
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-3XCjWb/states",
+            "-dump",
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-3XCjWb/explore.dump",
+            "Activity"
+          ],
+          "owner_case": "fixtures",
+          "kind": "tlc-checker",
+          "heap_flags": [
+            "-Xmx512m"
+          ],
+          "rss_bytes": 168329216
+        }
+      ],
+      "counts": {
+        "test_owners": 2,
+        "jvm_owners": 1,
+        "checker_jvms": 1,
+        "all_jvms": 1,
+        "aggregate_jvm_rss_bytes": 168329216
+      }
+    },
+    {
+      "seconds": 20.409135301000788,
+      "test_owners": [
+        {
+          "pid": 538483,
+          "case": "fixtures"
+        },
+        {
+          "pid": 538521,
+          "case": "fixtures"
+        }
+      ],
+      "jvms": [
+        {
+          "pid": 538522,
+          "ppid": 538521,
+          "argv": [
+            "/home/agent/.local/share/mise/installs/java/temurin-27/bin/java",
+            "-Xmx512m",
+            "-Duser.home=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-3XCjWb",
+            "-Djava.io.tmpdir=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-3XCjWb",
+            "-XX:+UseSerialGC",
+            "-Dtlc2.tool.fp.FPSet.impl=tlc2.tool.fp.MSBDiskFPSet",
+            "-cp",
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/tla2tools-1.7.4.jar",
+            "tlc2.TLC",
+            "-tool",
+            "-workers",
+            "1",
+            "-fp",
+            "0",
+            "-cleanup",
+            "-checkpoint",
+            "0",
+            "-config",
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-3XCjWb/Run.cfg",
+            "-metadir",
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-3XCjWb/states",
+            "-dump",
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-3XCjWb/explore.dump",
+            "Activity"
+          ],
+          "owner_case": "fixtures",
+          "kind": "tlc-checker",
+          "heap_flags": [
+            "-Xmx512m"
+          ],
+          "rss_bytes": 170688512
+        }
+      ],
+      "counts": {
+        "test_owners": 2,
+        "jvm_owners": 1,
+        "checker_jvms": 1,
+        "all_jvms": 1,
+        "aggregate_jvm_rss_bytes": 170688512
+      }
+    },
+    {
+      "seconds": 23.08419134399992,
+      "test_owners": [
+        {
+          "pid": 538483,
+          "case": "fixtures"
+        },
+        {
+          "pid": 538623,
+          "case": "fixtures"
+        }
+      ],
+      "jvms": [
+        {
+          "pid": 538624,
+          "ppid": 538623,
+          "argv": [
+            "/home/agent/.local/share/mise/installs/java/temurin-27/bin/java",
+            "-Xmx512m",
+            "-Duser.home=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-Fjh23b",
+            "-Djava.io.tmpdir=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-Fjh23b",
+            "-XX:+UseSerialGC",
+            "-Dtlc2.tool.fp.FPSet.impl=tlc2.tool.fp.MSBDiskFPSet",
+            "-cp",
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/tla2tools-1.7.4.jar",
+            "tlc2.TLC",
+            "-tool",
+            "-workers",
+            "1",
+            "-fp",
+            "0",
+            "-cleanup",
+            "-checkpoint",
+            "0",
+            "-config",
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-Fjh23b/Run.cfg",
+            "-metadir",
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-Fjh23b/states",
+            "-dump",
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-Fjh23b/Progress_eventually_closed.dump",
+            "Activity"
+          ],
+          "owner_case": "fixtures",
+          "kind": "tlc-checker",
+          "heap_flags": [
+            "-Xmx512m"
+          ],
+          "rss_bytes": 175063040
+        }
+      ],
+      "counts": {
+        "test_owners": 2,
+        "jvm_owners": 1,
+        "checker_jvms": 1,
+        "all_jvms": 1,
+        "aggregate_jvm_rss_bytes": 175063040
+      }
+    },
+    {
+      "seconds": 23.13534171900028,
+      "test_owners": [
+        {
+          "pid": 538483,
+          "case": "fixtures"
+        },
+        {
+          "pid": 538623,
+          "case": "fixtures"
+        }
+      ],
+      "jvms": [
+        {
+          "pid": 538624,
+          "ppid": 538623,
+          "argv": [
+            "/home/agent/.local/share/mise/installs/java/temurin-27/bin/java",
+            "-Xmx512m",
+            "-Duser.home=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-Fjh23b",
+            "-Djava.io.tmpdir=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-Fjh23b",
+            "-XX:+UseSerialGC",
+            "-Dtlc2.tool.fp.FPSet.impl=tlc2.tool.fp.MSBDiskFPSet",
+            "-cp",
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/tla2tools-1.7.4.jar",
+            "tlc2.TLC",
+            "-tool",
+            "-workers",
+            "1",
+            "-fp",
+            "0",
+            "-cleanup",
+            "-checkpoint",
+            "0",
+            "-config",
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-Fjh23b/Run.cfg",
+            "-metadir",
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-Fjh23b/states",
+            "-dump",
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-Fjh23b/Progress_eventually_closed.dump",
+            "Activity"
+          ],
+          "owner_case": "fixtures",
+          "kind": "tlc-checker",
+          "heap_flags": [
+            "-Xmx512m"
+          ],
+          "rss_bytes": 179732480
+        }
+      ],
+      "counts": {
+        "test_owners": 2,
+        "jvm_owners": 1,
+        "checker_jvms": 1,
+        "all_jvms": 1,
+        "aggregate_jvm_rss_bytes": 179732480
+      }
+    },
+    {
+      "seconds": 23.18619559400031,
+      "test_owners": [
+        {
+          "pid": 538483,
+          "case": "fixtures"
+        },
+        {
+          "pid": 538623,
+          "case": "fixtures"
+        }
+      ],
+      "jvms": [
+        {
+          "pid": 538624,
+          "ppid": 538623,
+          "argv": [
+            "/home/agent/.local/share/mise/installs/java/temurin-27/bin/java",
+            "-Xmx512m",
+            "-Duser.home=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-Fjh23b",
+            "-Djava.io.tmpdir=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-Fjh23b",
+            "-XX:+UseSerialGC",
+            "-Dtlc2.tool.fp.FPSet.impl=tlc2.tool.fp.MSBDiskFPSet",
+            "-cp",
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/tla2tools-1.7.4.jar",
+            "tlc2.TLC",
+            "-tool",
+            "-workers",
+            "1",
+            "-fp",
+            "0",
+            "-cleanup",
+            "-checkpoint",
+            "0",
+            "-config",
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-Fjh23b/Run.cfg",
+            "-metadir",
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-Fjh23b/states",
+            "-dump",
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-Fjh23b/Progress_eventually_closed.dump",
+            "Activity"
+          ],
+          "owner_case": "fixtures",
+          "kind": "tlc-checker",
+          "heap_flags": [
+            "-Xmx512m"
+          ],
+          "rss_bytes": 180518912
+        }
+      ],
+      "counts": {
+        "test_owners": 2,
+        "jvm_owners": 1,
+        "checker_jvms": 1,
+        "all_jvms": 1,
+        "aggregate_jvm_rss_bytes": 180518912
+      }
+    },
+    {
+      "seconds": 23.237031094000486,
+      "test_owners": [
+        {
+          "pid": 538483,
+          "case": "fixtures"
+        },
+        {
+          "pid": 538623,
+          "case": "fixtures"
+        }
+      ],
+      "jvms": [
+        {
+          "pid": 538624,
+          "ppid": 538623,
+          "argv": [
+            "/home/agent/.local/share/mise/installs/java/temurin-27/bin/java",
+            "-Xmx512m",
+            "-Duser.home=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-Fjh23b",
+            "-Djava.io.tmpdir=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-Fjh23b",
+            "-XX:+UseSerialGC",
+            "-Dtlc2.tool.fp.FPSet.impl=tlc2.tool.fp.MSBDiskFPSet",
+            "-cp",
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/tla2tools-1.7.4.jar",
+            "tlc2.TLC",
+            "-tool",
+            "-workers",
+            "1",
+            "-fp",
+            "0",
+            "-cleanup",
+            "-checkpoint",
+            "0",
+            "-config",
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-Fjh23b/Run.cfg",
+            "-metadir",
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-Fjh23b/states",
+            "-dump",
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-Fjh23b/Progress_eventually_closed.dump",
+            "Activity"
+          ],
+          "owner_case": "fixtures",
+          "kind": "tlc-checker",
+          "heap_flags": [
+            "-Xmx512m"
+          ],
+          "rss_bytes": 180862976
+        }
+      ],
+      "counts": {
+        "test_owners": 2,
+        "jvm_owners": 1,
+        "checker_jvms": 1,
+        "all_jvms": 1,
+        "aggregate_jvm_rss_bytes": 180862976
+      }
+    },
+    {
+      "seconds": 23.28841021900007,
+      "test_owners": [
+        {
+          "pid": 538483,
+          "case": "fixtures"
+        },
+        {
+          "pid": 538623,
+          "case": "fixtures"
+        }
+      ],
+      "jvms": [
+        {
+          "pid": 538624,
+          "ppid": 538623,
+          "argv": [
+            "/home/agent/.local/share/mise/installs/java/temurin-27/bin/java",
+            "-Xmx512m",
+            "-Duser.home=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-Fjh23b",
+            "-Djava.io.tmpdir=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-Fjh23b",
+            "-XX:+UseSerialGC",
+            "-Dtlc2.tool.fp.FPSet.impl=tlc2.tool.fp.MSBDiskFPSet",
+            "-cp",
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/tla2tools-1.7.4.jar",
+            "tlc2.TLC",
+            "-tool",
+            "-workers",
+            "1",
+            "-fp",
+            "0",
+            "-cleanup",
+            "-checkpoint",
+            "0",
+            "-config",
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-Fjh23b/Run.cfg",
+            "-metadir",
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-Fjh23b/states",
+            "-dump",
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-Fjh23b/Progress_eventually_closed.dump",
+            "Activity"
+          ],
+          "owner_case": "fixtures",
+          "kind": "tlc-checker",
+          "heap_flags": [
+            "-Xmx512m"
+          ],
+          "rss_bytes": 181944320
+        }
+      ],
+      "counts": {
+        "test_owners": 2,
+        "jvm_owners": 1,
+        "checker_jvms": 1,
+        "all_jvms": 1,
+        "aggregate_jvm_rss_bytes": 181944320
+      }
+    },
+    {
+      "seconds": 23.340558260999387,
+      "test_owners": [
+        {
+          "pid": 538483,
+          "case": "fixtures"
+        },
+        {
+          "pid": 538623,
+          "case": "fixtures"
+        }
+      ],
+      "jvms": [
+        {
+          "pid": 538624,
+          "ppid": 538623,
+          "argv": [
+            "/home/agent/.local/share/mise/installs/java/temurin-27/bin/java",
+            "-Xmx512m",
+            "-Duser.home=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-Fjh23b",
+            "-Djava.io.tmpdir=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-Fjh23b",
+            "-XX:+UseSerialGC",
+            "-Dtlc2.tool.fp.FPSet.impl=tlc2.tool.fp.MSBDiskFPSet",
+            "-cp",
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/tla2tools-1.7.4.jar",
+            "tlc2.TLC",
+            "-tool",
+            "-workers",
+            "1",
+            "-fp",
+            "0",
+            "-cleanup",
+            "-checkpoint",
+            "0",
+            "-config",
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-Fjh23b/Run.cfg",
+            "-metadir",
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-Fjh23b/states",
+            "-dump",
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/build/tlc/run-Fjh23b/Progress_eventually_closed.dump",
+            "Activity"
+          ],
+          "owner_case": "fixtures",
+          "kind": "tlc-checker",
+          "heap_flags": [
+            "-Xmx512m"
+          ],
+          "rss_bytes": 182255616
+        }
+      ],
+      "counts": {
+        "test_owners": 2,
+        "jvm_owners": 1,
+        "checker_jvms": 1,
+        "all_jvms": 1,
+        "aggregate_jvm_rss_bytes": 182255616
+      }
+    }
+  ],
+  "rss_is_observed_not_a_hard_cap": true
+}

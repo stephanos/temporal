@@ -1,0 +1,75 @@
+{
+  "before": {
+    "sources": {
+      "temporal": "3f5f613578f2857b738a7792fad08f12b3ea0a41",
+      "umpire": "05473210b48c3db862f22051eb7154ce98258f98"
+    },
+    "target": "/home/agent/.cache/codex-build/fn258-final-pair-3f5-054",
+    "target_exists": true,
+    "free_bytes": 55124529152,
+    "additional_reservation_gib": 0,
+    "guest_sha256": "d171b91861dba54e9c73682fb17a5a317180dba4e7c5b6c1b09f46667b337f5d",
+    "workspace_sha256": "5e6ca8f10d627f4d5743ce4f9d2d49e12a67cb0172c3254f021f6c51ce3150db",
+    "step": "temporal-generation"
+  },
+  "after": {
+    "temporal": {
+      "head": "3f5f613578f2857b738a7792fad08f12b3ea0a41",
+      "status": ""
+    },
+    "umpire": {
+      "head": "05473210b48c3db862f22051eb7154ce98258f98",
+      "status": ""
+    }
+  },
+  "commands": [
+    {
+      "argv": [
+        "/bin/bash",
+        "/home/agent/.cache/codex-build/tmp/fn258-final-pair-3f5-054/temporal/model/scripts/proto-go.sh",
+        "temporal"
+      ],
+      "cwd": "/home/agent/.cache/codex-build/tmp/fn258-final-pair-3f5-054/temporal",
+      "started_unix": 1793199069.4074366,
+      "ended_unix": 1793199069.4336915,
+      "exit": 0,
+      "log": "/home/agent/.cache/codex-build/tmp/fn258-final-pair-3f5-054/execution-evidence/temporal-generation-1793199069407217111/00-temporal-generation.log",
+      "log_sha256": "9e098fde0a5491370e16c479c7ef74ba44d320f5c3057a7c9714d1f602b641fe",
+      "free_before": 55124520960,
+      "free_after": 55124516864
+    },
+    {
+      "argv": [
+        "/bin/bash",
+        "/home/agent/.cache/codex-build/tmp/fn258-final-pair-3f5-054/temporal/model/scripts/proto-go.sh",
+        "temporal",
+        "--check"
+      ],
+      "cwd": "/home/agent/.cache/codex-build/tmp/fn258-final-pair-3f5-054/temporal",
+      "started_unix": 1793199069.4339237,
+      "ended_unix": 1793199069.4673994,
+      "exit": 0,
+      "log": "/home/agent/.cache/codex-build/tmp/fn258-final-pair-3f5-054/execution-evidence/temporal-generation-1793199069407217111/01-temporal-generation.log",
+      "log_sha256": "640dac1cb62abe573067a0525fb781d134516680c5f6b375b26f3b294f18309a",
+      "free_before": 55124512768,
+      "free_after": 55124508672
+    },
+    {
+      "argv": [
+        "git",
+        "diff",
+        "--exit-code"
+      ],
+      "cwd": "/home/agent/.cache/codex-build/tmp/fn258-final-pair-3f5-054/temporal",
+      "started_unix": 1793199069.467822,
+      "ended_unix": 1793199069.518367,
+      "exit": 0,
+      "log": "/home/agent/.cache/codex-build/tmp/fn258-final-pair-3f5-054/execution-evidence/temporal-generation-1793199069407217111/02-temporal-generation.log",
+      "log_sha256": "dc4741df5ab41206427d59a3560531b9ce81ade1576129f5b292800f3e01b257",
+      "free_before": 55124504576,
+      "free_after": 55124500480
+    }
+  ],
+  "guest_sha256": "d171b91861dba54e9c73682fb17a5a317180dba4e7c5b6c1b09f46667b337f5d",
+  "scope": "Command receipts only; final acceptance/Flow state and proof recovery remain root-controlled."
+}

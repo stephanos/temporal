@@ -1,0 +1,12 @@
+{
+  "source": "user question reply in this conversation",
+  "question": "Approve changing the pending-cancellation failure and timeout outcomes to match the pinned standalone API, while preserving Canceled for scheduled cancellation and explicit worker acknowledgement?",
+  "answer": "Approve API-aligned correction (Recommended)",
+  "authority": "Explicit exception to prior no-further-Model-policy-changes boundary, limited to these cancellation outcome cells. Renew native/TLC evidence and contract provenance.",
+  "preserve": [
+    "Task15 nonpending timeout retry correction",
+    "Original atomic compatibility checkpoint",
+    "Unrelated independent Model policies"
+  ],
+  "timeout_representation": "Keep raw Start defaults separate from effective Model budgets; no silent defaulting/clamping or feature-Model absence-policy change."
+}

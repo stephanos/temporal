@@ -3,23 +3,31 @@ satisfies: [R2]
 ---
 # fn-253-reusable-deadline-countdowns-for-models.4 Front end: lower countdown calls in handlers, effects and claims
 
-Touches: [model/umpire/front/src/library.rs, model/umpire/front/src/body/**, model/umpire/front/src/shape.rs, model/umpire/front/tests/**]
 
 ## Description
 Admit `countdown::` calls where Models need them: assignments and conditions in `#[on]`/`#[effect]`, value-returning calls, and laws in `#[invariant]`/`#[postcondition]`. Lower them from `countdown.rs` source, with no recognition by name. The backends receive ordinary IR, so no emitter change is expected; if one is needed, record why.
 
 **Size:** M
-**Files:** `model/umpire/front/src/library.rs`, `body/{claim,expr,effects,optional,typer}.rs`, `shape.rs`, the front end's refusal goldens.
-**Touches:** [model/umpire/front/src/library.rs, model/umpire/front/src/body/**, model/umpire/front/src/shape.rs, model/umpire/front/tests/**]
+**Files:** `model/umpire/front/src/library.rs`, `body/{claim,expr,effects,optional,typer}.rs`, `shape.rs`, the front end's refusal goldens; `model/umpire/author/dsl/macros/src/lifted.rs` and `model/umpire/author/dsl/src/countdown.rs` for required native type/value plumbing.
+**Touches:** [model/umpire/front/src/library.rs, model/umpire/front/src/body/**, model/umpire/front/src/shape.rs, model/umpire/front/tests/**, model/umpire/author/dsl/macros/src/lifted.rs, model/umpire/author/dsl/src/countdown.rs, model/umpire/author/dsl/tests/**, model/umpire/author/dsl/macros/tests/ui/action_finite_missing.stderr, model/umpire/author/umpire/tests/consumer/src/lib.rs, model/umpire/backends/tla/src/values.rs]
 
 ### Approach
+- Consume .2's chosen representation and refusal-owner list before fixing the admission changes. The files above are investigation anchors. Source-local wrappers and imported library-owned const-generic wrappers require different type admission; `body/optional.rs` currently requires nongeneric source-local `Finite` types. Reanchor the affected front-end owners from the verdict rather than assuming expression lowering alone admits the chosen types.
 - Register `countdown.rs` beside `CLOSABLE` in `library.rs`; generalize the library lookup instead of copying it.
-- Extend `body/claim.rs:165`'s claim-statement path to expression position: bind arguments, inline the library body, keep the result typed as the Model's optional countdown.
+- Route handler, effect and claim expression calls through shared library-call dispatch, argument binding and result typing. Keep project-library registration generic; no Temporal-specific dispatch or duplicated countdown lowering paths.
+- Extend `body/claim.rs:165`'s claim-statement path to expression position: bind arguments, inline the library body, and preserve the configured/remaining nominal types and optional descriptors chosen in .2.
 - Unsupported forms refuse at their span: aliased or glob imports, qualified macro paths, nested Options and non-countdown arguments.
 - Add refusal golden rows for each new refusal.
 
+- Native compilation must exercise the imported types: decode canonical instantiated bounded names as typed Rust paths rather than treating them as identifiers (`author/dsl/macros/src/lifted.rs`), and implement the existing `IntoValue` contract for the shared countdown types (`author/dsl/src/countdown.rs`). Preserve ordinary IR/value representation and add focused regression coverage. These owners were identified during .4 investigation; they close its existing compile/admit contract, not a new backend feature.
+
+- Exercise generated decode with a real renamed facade-only consumer (`author/umpire/tests/consumer/src/lib.rs`); canonical qualified paths must remain absolute so existing dependency-root rewriting applies. Keep countdown export names independent of rustc type-name pretty-printing, including the maximal bound. Refresh only the inherited missing-Finite diagnostic implementor hints after the intentional shared Finite implementations, preserving the Opaque refusal (`author/dsl/macros/tests/ui/action_finite_missing.stderr`).
+
+- Backend schema integration discovered in review: qualified instantiated bounded names are nominal metadata, not emitted TLA identifiers. Update `backends/tla/src/values.rs` generically to accept qualified nominal type paths, retaining malformed-name checks and strict emitted enum/field/module identifiers. Add a real admitted, World-bound countdown Model emission/schema regression. This is validator compatibility with ordinary IR, not name-specific countdown lowering; full TLC agreement/mutants remain .5.
+
 ### Investigation targets
 **Required:**
+- `model/design/deadline-countdowns.md` — chosen representation and admission owners
 - `model/umpire/front/src/library.rs` — library source registration
 - `model/umpire/front/src/body/claim.rs` — current library-call lowering
 - `model/umpire/front/src/body/optional.rs` — optional typing
@@ -28,18 +36,27 @@ Admit `countdown::` calls where Models need them: assignments and conditions in 
 **Optional:**
 - `model/README.md` (fn-227.11 paragraph) — the closure-law lowering contract
 
-### Acceptance
+## Acceptance
 - [ ] A Model calling every `countdown` function and law compiles, is admitted, and the interpreter and TLC agree with native on it (proved in .5).
 - [ ] Each unsupported form refuses at its span with a refusal golden row.
 - [ ] No backend recognizes `countdown` by name.
 
-## Acceptance
-- [ ] TBD
-
 ## Done summary
-TBD
+Models can call countdown value functions and laws in handlers, effects and claims. The front end admits the imported bounded const-generic types and lowers authored library bodies into ordinary IR through shared call frames. Native exports and generated decode preserve canonical specializations, including maximum bounds and renamed facade-only consumers. Located refusal controls cover unsupported imports, argument kinds, bounds and call forms.
 
+The TLA schema needed a generic validator correction because qualified bounded type identities are metadata rather than emitted identifiers. The validator preserves old simple names, accepts qualified nominal paths and retains malformed-name and emitted-identifier checks. A real World-bound countdown Model now emits and validates its schema. Existing closure-law type arguments, diagnostics and Rust namespace behavior are preserved.
+
+Measured final verification on integrated bc26d214f598a87fd03ceed51943632588288ad5: 114 front/DSL/macros/consumer tests and 16 focused TLA values/phased/optional tests pass, with zero failures or ignored cases. Strict Clippy passes for all five affected packages; both native dev tool builds pass. The DSL WASI build also passed during this task. Real red/green regressions cover facade decode, schema refusal, imported-associated underflow and namespace collisions. The inherited missing-Finite UI hint list was updated narrowly while retaining the Opaque rejection.
+
+stage: impl-review - ran; three-axis first round NEEDS_WORK, followed by one fix pass and a single rereview SHIP from claude:claude-fable-5-1:high. Source parsing performance and unreachable malformed-descriptor hardening remain non-blocking observations.
+Tier: implementer - AGENTS.md gpt-6.1-sol at medium effort; actual worker model not reported.
+
+`make model-check` was attempted on integrated 58bfa28c09d7fb29e6061fd1f2ca2ed4db222ee3 and failed on the unchanged xtask gate-budget library's 94 strict-Clippy errors. The xtask source remains identical to bb8e406eff. Focused checks cover the subsequent review fixes; no full-gate pass is claimed and the paused budget task was not resumed.
+
+The shared countdown fixture, full native/interpreter/TLC agreement and refuting mutants remain fn-253.5. Final combined proof remains open. This closes task .4's admission and lowering scope, not the whole R2 requirement. Migration and broader milestone execution remain stopped.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: e7558fd88897824c81d7c4df8478552081e1b5cb, 58bfa28c09d7fb29e6061fd1f2ca2ed4db222ee3, a1ba00962907fd9b7103352c2b4bae43e89aaab6, d971757c92f1202ff0550ecdefc69ed9c55a292e, d4eb89de5bfcb6847abfd206d11d151dce16b95c, 315e37346ae3b423a4cefd97ec9c0c0fd2054b71, 8d2f1bd022a6fe93064c0f92576325598d786c7d, bc26d214f598a87fd03ceed51943632588288ad5
+- Tests: mise exec -- cargo test --manifest-path model/umpire/Cargo.toml -p umpire-front -p umpire-dsl -p umpire-dsl-macros -p umpire-author-consumer --locked, mise exec -- cargo test --manifest-path model/umpire/Cargo.toml -p umpire-tla --lib values::tests --locked, mise exec -- cargo test --manifest-path model/umpire/Cargo.toml -p umpire-tla --test main phased --locked, mise exec -- cargo test --manifest-path model/umpire/Cargo.toml -p umpire-tla --test main optional_ticks --locked, mise exec -- cargo clippy --manifest-path model/umpire/Cargo.toml -p umpire-front -p umpire-dsl -p umpire-dsl-macros -p umpire-author-consumer -p umpire-tla --all-targets --all-features --locked -- -D warnings, cd model/umpire && mise exec -- cargo build -p umpire-dsl --target wasm32-wasip1 --locked, env -u BASH_ENV CARGO_BUILD_JOBS=2 make model-check
 - PRs:

@@ -1,0 +1,18 @@
+{
+  "observed_at": "2026-10-28T05:12:23.114724+00:00",
+  "destination": "https://github.com/temporalio/umpire",
+  "app_probe": {
+    "tool": "github_search_repositories",
+    "query": "repo:temporalio/umpire",
+    "http_status": 422,
+    "result": "temporalio organization blocked by SAML SSO conditional access policy"
+  },
+  "cli_probe": {
+    "command": "gh api repos/temporalio/umpire",
+    "http_status": 401,
+    "result": "Bad credentials"
+  },
+  "destination_contents": "unknown",
+  "publication": "not attempted",
+  "local_preparation": "may proceed"
+}

@@ -1,0 +1,19 @@
+{
+  "source_files": {
+    "model/temporal/realization/tests/ui/supplemental_unregistered_api.rs": "c1be3251268a03f50797d91b938c2a00613d9aca66372d6647adb9ca3213c313",
+    "model/temporal/realization/tests/ui/supplemental_unregistered_api.stderr": "c164524b9e1193e7ff0a04fee082a49bfb89117d2cfd187bddec650ea8fe7c11",
+    "model/temporal/realization/tests/ui-pass/generated_api.rs": "846a96ef69da0d8ef63932dc0b09c389060df5c992f9bcde4ad4a399487de7a1",
+    "model/temporal/realization/tests/registry/fixture.rs": "43cae99994d0ab04345f31659048657f2aa6c954a4e7a6bf25052f26a0f4c1bb",
+    "model/temporal/realization/tests/registry/reach.rs": "a60b60b785854e2e39b09a62c69c7e1c16dcf2a853487300c1f5822cb5a0d334",
+    "model/temporal/realization/tests/registry/signature_model.rs": "de72fc7bdfa96c44deb704474085181457cd6a224158e963e994c846d1365043"
+  },
+  "expected_supplemental_test_count": 2,
+  "negative_case": "tests/ui/supplemental_unregistered_api.rs",
+  "positive_case": "tests/ui-pass/generated_api.rs",
+  "registry_runtime_expected_names": [
+    "evidence_decodes_actual_types_and_preserves_the_complete_checked_prefix",
+    "proposals_worker_rows_and_probe_baselines_use_one_current_typed_filler",
+    "reach::runtime_reach_admits_typed_roots_and_preserves_prefixes_and_refusals",
+    "typed_bootstrap_and_read_hooks_keep_correlation_outside_the_action_graph"
+  ]
+}

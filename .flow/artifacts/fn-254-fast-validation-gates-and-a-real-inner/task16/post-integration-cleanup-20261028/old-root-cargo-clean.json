@@ -1,0 +1,49 @@
+{
+  "recovery": {
+    "objects": 8,
+    "unique_objects": 8,
+    "archive_members": 69
+  },
+  "ownership": {
+    "owners": [],
+    "inaccessible_foreign_root_infrastructure": [
+      {
+        "pid": 10,
+        "uid": 0,
+        "comm": "socat",
+        "available_argv_target_prefix_match": false,
+        "unreadable_metadata": "unknown foreign infrastructure"
+      },
+      {
+        "pid": 542,
+        "uid": 0,
+        "comm": "dockerd",
+        "available_argv_target_prefix_match": false,
+        "unreadable_metadata": "unknown foreign infrastructure"
+      },
+      {
+        "pid": 557,
+        "uid": 0,
+        "comm": "containerd",
+        "available_argv_target_prefix_match": false,
+        "unreadable_metadata": "unknown foreign infrastructure"
+      }
+    ],
+    "checks": [
+      "cwd",
+      "exe",
+      "environment",
+      "open-fds-including-locks",
+      "memory-maps"
+    ]
+  },
+  "command": [
+    "/home/agent/.rustup/toolchains/1.99.1-aarch64-unknown-linux-gnu/bin/cargo",
+    "clean",
+    "--target-dir",
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321"
+  ],
+  "exit_code": 101,
+  "stdout": "",
+  "stderr": "error: cannot clean `/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321`: missing or invalid `CACHEDIR.TAG` file\n  |\n  = note: cleaning has been aborted to prevent accidental deletion of unrelated files\n"
+}

@@ -1,0 +1,19 @@
+{
+  "source_sha256": {
+    "model/umpire/Cargo.lock": "2b59c57448112c0d95210905d168b7f26327aab03eaf65160b7afff200bb8a95",
+    "model/umpire/dev/fixtures/Cargo.toml": "0adf1ca0cf899a67da8afb686af4e5a3afaaeb106e68548952df33fbc7c09a18",
+    "model/umpire/dev/testing/src/backend.rs": "1abf2cbcd83d5da4ce3913a39175aabf2ad5416e7d90477397cf855a59aaf572",
+    "model/umpire/dev/testing/src/backend_tests.rs": "5246aec165b2293919c598c2b223219b7d5a089cb06f3128a1a5067a052f4722",
+    "model/umpire/dev/fixtures/fixtures/countdowns/expected/Clock.cfg.snap": "83314ef9fce3662c3fdec9ba6341aee45d5e3042c4cff098a6296d7bb248fefc",
+    "model/umpire/dev/fixtures/fixtures/countdowns/expected/Clock.tla.snap": "0d50079d490bee03b2d07808121f2bab42aaa17b21beb0f9265fc30684e5879a",
+    "model/umpire/dev/fixtures/fixtures/countdowns/expected/lift.txt.snap": "daa500e6d747cd5ed479626aef0e0c35bcdf3abbb37050b34e6e77203bca9434",
+    "model/umpire/dev/fixtures/fixtures/countdowns/expected/report.txt.snap": "9f256bc5e51e4c815235c7543e5e35e68c43fc9b5e7c28f264e2132367818deb",
+    "model/umpire/dev/fixtures/fixtures/countdowns/expected/rows.txt.snap": "2f382b24b804151dac0cb314af97483f34bedd4215f13f9c7996a7d6933b88b9",
+    "model/umpire/dev/fixtures/fixtures/countdowns/expected/states.txt.snap": "9085f29ee25d82be8b3d01fe9fa2745ea180672d0b69c76864c3c3f6a7ae38e6",
+    "model/umpire/dev/fixtures/fixtures/countdowns/expected/tlc.txt.snap": "eb3a2ec994aff89a7e1a73a923e27b9dd1e585806efb7e53ccd9a83ca48e8d40",
+    "model/umpire/dev/fixtures/fixtures/countdowns/model.rs": "69e66091530514ab6323593718aa5d9f3dd6970f62b5b3d39c858bb66b227751",
+    "model/umpire/dev/fixtures/fixtures/countdowns/tests.rs": "c5b2764ddb91e8ef2e274971750505777d27383c783ecc2db3c7680ae773f3ac",
+    ".plans/UMPIRE_MODULES.md": "399d1d562f7e32342aa1891c0bc19c57985d90a96474ae32e0429ad493045821"
+  },
+  "original_proof": "Original reviewed candidate37aa5f678a; followup retains module-map exception and replace_once reuse corrections with new required-TLC proof. Original snapshots and semantic source unchanged."
+}

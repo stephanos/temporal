@@ -1,0 +1,49 @@
+{
+  "effort": "medium",
+  "findings": {
+    "backend": "codex",
+    "baseSha": "951c5516e9e7b3066e7e069adda9565cfd68844c",
+    "headSha": "afe1d2ad048dfaa082066281eda7371fc8a03e32",
+    "items": [
+      {
+        "anchor": {
+          "baseSha": "951c5516e9e7b3066e7e069adda9565cfd68844c",
+          "headSha": "afe1d2ad048dfaa082066281eda7371fc8a03e32",
+          "path": ".flow/tasks/fn-257-extract-the-standalone-umpire.7.md",
+          "side": "head",
+          "startLine": 11
+        },
+        "body": "FYI: these dependency-independent tasks overlap because task 3 declares `../umpire/`, which contains task 7\u2019s exported paths. The declarations force serial dispatch.",
+        "classification": "introduced",
+        "confidence": 100,
+        "firstSeenReceiptId": "review-ee867c21f8fd857735c37641f4a781d8988f79ab3dac8b14cc8ac4fb2f3a0426",
+        "id": "finding-dca29978456535b6029747017857298c",
+        "lastSeenReceiptId": "review-6db96895d74ea85d0cc6ca6828e0f09be5a9fee0711eddece2785d48877f4428",
+        "ordinal": 1,
+        "rIds": [
+          "R3",
+          "R4"
+        ],
+        "severity": "P2",
+        "status": "fixed",
+        "suggestion": "Narrow the declarations to actual ownership or explicitly record their ordering.",
+        "title": "FYI: these dependency-independent tasks overlap because task 3 declares `"
+      }
+    ],
+    "reviewKind": "plan",
+    "round": 2,
+    "schemaVersion": 1,
+    "sourceReceiptId": "review-6db96895d74ea85d0cc6ca6828e0f09be5a9fee0711eddece2785d48877f4428",
+    "supersedesReceiptId": "review-ee867c21f8fd857735c37641f4a781d8988f79ab3dac8b14cc8ac4fb2f3a0426"
+  },
+  "id": "fn-257-extract-the-standalone-umpire",
+  "mode": "codex",
+  "model": "gpt-6.1-sol",
+  "review": "Prior finding: fixed\n\nTask 3 now declares specific paths and explicitly reserves task 7\u2019s quick-command paths for task 7. Their Touches sets no longer overlap.\n\nNo new blockers identified. Test strategy, logging, dependency ordering and non-functional requirements remain intact.\n\nmaintainability:\n  duplication: none identified\n  structure: none identified\n\n```json\n{\"unaddressed\":[]}\n```\n\n<verdict>SHIP</verdict>\n",
+  "review_reservation_id": "7552ea7991fc49e8a62df238428ce518",
+  "session_id": "01a178cc-8b6f-7331-b376-f5b8f5a7d958",
+  "spec": "codex:gpt-6.1-sol:medium",
+  "timestamp": "2026-10-26T17:03:02.657429Z",
+  "type": "plan_review",
+  "verdict": "SHIP"
+}

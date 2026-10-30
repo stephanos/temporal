@@ -10,6 +10,7 @@ pub mod interpreted;
 include!(concat!(env!("OUT_DIR"), "/fixtures.rs"));
 include!(concat!(env!("OUT_DIR"), "/lifted.rs"));
 include!(concat!(env!("OUT_DIR"), "/interpreted.rs"));
+include!(concat!(env!("OUT_DIR"), "/cases.rs"));
 
 fn fixture_name(folder: &std::path::Path) -> Result<&str, Box<dyn std::error::Error>> {
     folder.file_name().and_then(|name| name.to_str()).ok_or_else(|| "invalid fixture folder".into())
@@ -48,8 +49,7 @@ fn render_tlc(
     Ok(files)
 }
 
-#[test]
-fn fixtures() -> umpire_testing::TestResult {
+fn run_fixture(name: &str) -> umpire_testing::TestResult {
     let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("fixtures");
     let required = std::env::var("UMPIRE_BACKENDS").as_deref() == Ok("require");
     if required {
@@ -64,11 +64,12 @@ fn fixtures() -> umpire_testing::TestResult {
             }
         }
     }
-    umpire_testing::run_at_skipping(
+    umpire_testing::run_fixture_at_skipping(
         &root,
         registered(),
         &[umpire_testing::CHECKER, umpire_testing::SUITE, LIFT, TLC],
         if required { &[] } else { &["tlc"] },
+        name,
     )
 }
 

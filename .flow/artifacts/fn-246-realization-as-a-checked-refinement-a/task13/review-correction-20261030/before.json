@@ -1,0 +1,17 @@
+{
+  "head": "ac7679cb09861c09e9b0a142d1eaffaa2c6035c0",
+  "initial_status": " M .flow/specs/fn-246-realization-as-a-checked-refinement-a.json\n",
+  "sha256": {
+    "model/temporal/shared/protocol/activity/model.rs": "4b503c12e7aaf35aeb8b54a445253458010f357febaa3fb1b4eab18fff187b64",
+    "model/temporal/shared/protocol/activity/parameters.rs": "ab2ad44e9cc42b6ebc51fcc6b2b16a75bb482fa1f5002962dff3700965ed343f",
+    "model/temporal/feature/activity/model.rs": "fd1d3e1e3fd393d84037c756819b3cb221b226831c395cc85f62eeaad80eb0bf",
+    "model/temporal/shared/protocol/activity/tests.rs": "3957106f3090f5da3730e7cc7083267ac9360059c9e75a88f0ab474c79207a7c",
+    "model/temporal/shared/protocol/activity/parameters_tests.rs": "d3a8d95f4e96b6521dce21e24a7510e0ba4e7c8faf4b5898de9152af276f9bdb",
+    "model/temporal/shared/protocol/activity/README.md": "7b3bf5cc63a0e900b1511f2010add118140587c95118650513974e4e332da47d",
+    "model/temporal/shared/protocol/activity/view.rs": "a74aafcd238c188ee5e4e3f23c071d7aeead36c9a305beaaf9f463094d4933ae",
+    "model/temporal/shared/protocol/activity/mod.rs": "8d51500b6bab4e49c4809c282185c787e352f2c1099843f8277336c4abff9a4c",
+    "model/temporal/realization/src/lib.rs": "87b679e7d49162c8c3f3d871a49e18f545e73984d87d5e908185aafa3564d353",
+    "model/temporal/hosts/go/umpire_temporal_guest.wasm": "8b9ea3c0b29ab0b0f727cf083027c9ad9a6886634d8ce8be25a84115e315be50",
+    "tools/canary/policy/production-canary.json": "0bfdbb37bd9e490e973596d9bf91d46965715f917ae813ca7121aba25c7dc0fe"
+  }
+}

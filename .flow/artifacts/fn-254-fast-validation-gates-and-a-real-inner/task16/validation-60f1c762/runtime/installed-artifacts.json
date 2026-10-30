@@ -1,0 +1,12 @@
+{
+  "tlc": {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/clean/build/mise-jars/data/installs/http-tlc/1.7.4/tla2tools.jar",
+    "bytes": 2274532,
+    "sha256": "936a262061c914694dfd669a543be24573c45d5aa0ff20a8b96b23d01e050e88"
+  },
+  "apalache": {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/clean/build/mise-jars/data/installs/http-apalache/0.62.4/lib/apalache.jar",
+    "bytes": 197019382,
+    "sha256": "e5223915507b65cc5f1638bd037ede60f8a4fc1644aff46355779f9b05df9262"
+  }
+}

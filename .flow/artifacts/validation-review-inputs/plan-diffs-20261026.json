@@ -1,0 +1,26 @@
+{
+  "at": "2026-10-26T21:28:22.470724+00:00",
+  "scope": "Lossless repack of idle generated plan-review Git diff views only. Source, reviews, task records and proof evidence retained.",
+  "restore": "gzip -dc <lossless_archive> > <original_path>; verify sha256 from this manifest",
+  "inputs": [
+    {
+      "original_path": ".flow/tmp/claude-review/umpire-fn253-review-951c551-eb881b0.diff",
+      "bytes": 214673178,
+      "sha256": "3b5e78569d3927f07b2d38cadafaa0b27d17472e64cc528a8ea760314d9e6f6c",
+      "lossless_archive": ".flow/artifacts/validation-review-inputs/3b5e78569d3927f07b2d38cadafaa0b27d17472e64cc528a8ea760314d9e6f6c.diff.gz"
+    },
+    {
+      "original_path": ".flow/tmp/claude-review/umpire-fn254-review-951c551-eb881b0.diff",
+      "bytes": 214673178,
+      "sha256": "3b5e78569d3927f07b2d38cadafaa0b27d17472e64cc528a8ea760314d9e6f6c",
+      "lossless_archive": ".flow/artifacts/validation-review-inputs/3b5e78569d3927f07b2d38cadafaa0b27d17472e64cc528a8ea760314d9e6f6c.diff.gz"
+    },
+    {
+      "original_path": ".flow/tmp/claude-review/umpire-fn255-review-951c551-eb881b0.diff",
+      "bytes": 214673178,
+      "sha256": "3b5e78569d3927f07b2d38cadafaa0b27d17472e64cc528a8ea760314d9e6f6c",
+      "lossless_archive": ".flow/artifacts/validation-review-inputs/3b5e78569d3927f07b2d38cadafaa0b27d17472e64cc528a8ea760314d9e6f6c.diff.gz"
+    }
+  ],
+  "compressed_bytes": 35162131
+}

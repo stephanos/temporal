@@ -1,0 +1,21 @@
+{
+  "axis": "contracts",
+  "parse_status": {
+    "status": "unparsed",
+    "reason": "invalid-anchor",
+    "block": 1
+  },
+  "backend": "claude",
+  "model": "claude-opus-5-5",
+  "effort": "high",
+  "session_id": "0a6804d4-b083-4182-a638-be7fe1b0181a",
+  "verdict": "NEEDS_WORK",
+  "failed": false,
+  "failure_class": null,
+  "failure_message": null,
+  "exit_code": 0,
+  "started_at": "2026-10-27T18:20:56.426185Z",
+  "finished_at": "2026-10-27T18:25:52.291783Z",
+  "review_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/review-fanout/69374ba736a74a3cbf466335e820aa75/contracts.review.md",
+  "output_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/review-fanout/69374ba736a74a3cbf466335e820aa75/contracts.out.txt"
+}

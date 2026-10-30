@@ -1,0 +1,5 @@
+$ /home/agent/.cache/codex-build/fn258-consumer/xtask-bootstrap/debug/xtask quick --workspace /home/agent/.cache/codex-build/tmp/fn258-pair/temporal/model --workspace /home/agent/.cache/codex-build/tmp/fn258-pair/umpire --map /home/agent/.cache/codex-build/tmp/fn258-pair/temporal/model/temporal/feature=umpire-temporal-tests --map /home/agent/.cache/codex-build/tmp/fn258-pair/temporal/model/temporal/feature=umpire-temporal --map /home/agent/.cache/codex-build/tmp/fn258-pair/temporal/model/temporal/feature=umpire-temporal-api --map /home/agent/.cache/codex-build/tmp/fn258-pair/temporal/model/temporal/feature=umpire-temporal-realization-macros --always umpire-temporal-tests --test-target umpire-temporal-tests=fixtures --test-filter umpire-temporal-tests=fixtures --base fn258-caller-base-must-not-exist --select-only
+xtask: quick BASE fn258-caller-base-must-not-exist in Git repository /home/agent/.cache/codex-build/tmp/fn258-pair/temporal: cd "/home/agent/.cache/codex-build/tmp/fn258-pair/temporal" && "git" "rev-parse" "--verify" "--end-of-options" "fn258-caller-base-must-not-exist^{commit}" failed: fatal: Needed a single revision
+
+
+exit: 1

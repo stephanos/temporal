@@ -1,0 +1,63 @@
+{
+  "success": true,
+  "type": "impl_review_fanout",
+  "phase": "dispatch",
+  "id": "fn-254-fast-validation-gates-and-a-real-inner.21",
+  "rid": "9317bd92f700472f9897d8e797ddac96",
+  "reservation_id": "9317bd92f700472f9897d8e797ddac96",
+  "standalone": false,
+  "dir": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/review-fanout/9317bd92f700472f9897d8e797ddac96",
+  "draws": [
+    {
+      "axis": "correctness",
+      "parse_status": {
+        "status": "parsed",
+        "reason": null,
+        "block": null
+      },
+      "verdict": "SHIP",
+      "failed": false,
+      "failure_class": null,
+      "failure_message": null,
+      "session_id": "516714fe-2373-4c3d-a419-ab467bdb36cc",
+      "model": "claude-fable-5-1",
+      "review_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/review-fanout/9317bd92f700472f9897d8e797ddac96/correctness.review.md",
+      "output_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/review-fanout/9317bd92f700472f9897d8e797ddac96/correctness.out.txt"
+    },
+    {
+      "axis": "contracts",
+      "parse_status": {
+        "status": "unparsed",
+        "reason": "invalid-enum",
+        "block": 1
+      },
+      "verdict": "SHIP",
+      "failed": false,
+      "failure_class": null,
+      "failure_message": null,
+      "session_id": "a25bef70-f43e-4e62-95b3-f41c06434e8c",
+      "model": "claude-fable-5-1",
+      "review_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/review-fanout/9317bd92f700472f9897d8e797ddac96/contracts.review.md",
+      "output_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/review-fanout/9317bd92f700472f9897d8e797ddac96/contracts.out.txt"
+    },
+    {
+      "axis": "integration",
+      "parse_status": {
+        "status": "parsed",
+        "reason": null,
+        "block": null
+      },
+      "verdict": "SHIP",
+      "failed": false,
+      "failure_class": null,
+      "failure_message": null,
+      "session_id": "b72eaa93-5714-45e0-b439-d7f761ee43f4",
+      "model": "claude-fable-5-1",
+      "review_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/review-fanout/9317bd92f700472f9897d8e797ddac96/integration.review.md",
+      "output_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/review-fanout/9317bd92f700472f9897d8e797ddac96/integration.out.txt"
+    }
+  ],
+  "failed_draws": 0,
+  "merged": false,
+  "next": "merge the surviving draws' findings, then run: flowctl claude impl-review-fanout-finalize --rid 9317bd92f700472f9897d8e797ddac96 --merge-plan <merge-plan.json>"
+}

@@ -1,0 +1,17 @@
+{
+  "command": [
+    "mise",
+    "exec",
+    "--",
+    "cargo",
+    "metadata",
+    "--locked",
+    "--format-version",
+    "1",
+    "--no-deps"
+  ],
+  "cwd": "/tmp/umpire-fn25417-standalone-8350ba8f/proof-zBSpnB/framework",
+  "exit": 0,
+  "seconds": 0.02042379199701827,
+  "stdout_sha256": "ebaa561c1c8e7d2fd0b418e8176a62651aae0f84acaacec0ef5cec74bae21a65"
+}

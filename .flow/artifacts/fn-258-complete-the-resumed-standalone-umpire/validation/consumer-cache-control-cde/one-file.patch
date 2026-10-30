@@ -1,0 +1,13 @@
+diff --git a/model/scripts/test-model-wiring.sh b/model/scripts/test-model-wiring.sh
+index f8b8818f74..8853cc431b 100644
+--- a/model/scripts/test-model-wiring.sh
++++ b/model/scripts/test-model-wiring.sh
+@@ -109,7 +109,7 @@ for action in fmt update; do
+   [ "$(wc -l < "$CONTROL_LOG" | tr -d ' ')" -eq 2 ]
+   head -1 "$CONTROL_LOG" | rg -q "framework\|.*\|$action\|"
+   if [ "$action" = update ]; then
+-    expected=$(printf 'temporal|%s|exec -- cargo run --manifest-path %s/model/Cargo.toml --package temporal-xtask --bin temporal-xtask --profile dev -- test-run|unset|unset' "$control" "$control")
++    expected=$(printf 'temporal|%s|exec -- cargo run --manifest-path %s/model/Cargo.toml --package temporal-xtask --bin temporal-xtask --profile dev -- test-run|%s|%s' "$control" "$control" "${UMPIRE_QUICK_CACHE-unset}" "${UMPIRE_CACHE_DISABLE-unset}")
+     [ "$(tail -1 "$CONTROL_LOG")" = "$expected" ]
+   fi
+   : > "$CONTROL_LOG"

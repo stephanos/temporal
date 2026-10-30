@@ -1,0 +1,20 @@
+[package]
+name = "countdown-admission-spike"
+version = "0.0.0"
+edition = "2024"
+publish = false
+[workspace]
+[dependencies]
+umpire-front = { path = "../../../model/umpire/front" }
+umpire-dsl = { path = "../../../model/umpire/author/dsl" }
+syn = { version = "3", features = ["full"] }
+proc-macro2 = { version = "1", features = ["span-locations"] }
+[[bin]]
+name = "countdown-admission-spike"
+path = "admission.rs"
+[[bin]]
+name = "native-model"
+path = "native-model.rs"
+[[bin]]
+name = "finite-example"
+path = "finite-example.rs"

@@ -1,0 +1,291 @@
+{
+  "observed_utc": "2026-10-28T05:27:13.610843+00:00",
+  "selected_processes": [
+    {
+      "pid": 3428312,
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad",
+      "environment": {
+        "CARGO_HOME": "/home/agent/.cargo",
+        "CARGO_TARGET_DIR": "/home/agent/.cache/codex-build/cargo-target",
+        "TMPDIR": "/home/agent/.cache/codex-build/tmp"
+      },
+      "command": "node /usr/local/share/npm-global/bin/codex --dangerously-bypass-approvals-and-sandbox --model gpt-6.1-sol --config model_reasoning_effort=\"medium\" "
+    },
+    {
+      "pid": 3428324,
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad",
+      "environment": {
+        "CARGO_HOME": "/home/agent/.cargo",
+        "CARGO_TARGET_DIR": "/home/agent/.cache/codex-build/cargo-target",
+        "TMPDIR": "/home/agent/.cache/codex-build/tmp"
+      },
+      "command": "/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/bin/codex --dangerously-bypass-approvals-and-sandbox --model gpt-6.1"
+    },
+    {
+      "pid": 3428645,
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire",
+      "environment": {
+        "CARGO_HOME": "/home/agent/.cargo",
+        "CARGO_TARGET_DIR": "/home/agent/.cache/codex-build/cargo-target",
+        "TMPDIR": "/home/agent/.cache/codex-build/tmp"
+      },
+      "command": "node /usr/local/share/npm-global/bin/codex --dangerously-bypass-approvals-and-sandbox --model gpt-6.1-sol --config model_reasoning_effort=\"medium\" "
+    },
+    {
+      "pid": 3428652,
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire",
+      "environment": {
+        "CARGO_HOME": "/home/agent/.cargo",
+        "CARGO_TARGET_DIR": "/home/agent/.cache/codex-build/cargo-target",
+        "TMPDIR": "/home/agent/.cache/codex-build/tmp"
+      },
+      "command": "/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/bin/codex --dangerously-bypass-approvals-and-sandbox --model gpt-6.1"
+    },
+    {
+      "pid": 3428848,
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad",
+      "environment": {
+        "CARGO_HOME": "/home/agent/.cargo",
+        "CARGO_TARGET_DIR": "/home/agent/.cache/codex-build/cargo-target",
+        "TMPDIR": "/home/agent/.cache/codex-build/tmp"
+      },
+      "command": "/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/bin/codex-code-mode-host "
+    },
+    {
+      "pid": 3428910,
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire",
+      "environment": {
+        "CARGO_HOME": "/home/agent/.cargo",
+        "CARGO_TARGET_DIR": "/home/agent/.cache/codex-build/cargo-target",
+        "TMPDIR": "/home/agent/.cache/codex-build/tmp"
+      },
+      "command": "/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/bin/codex-code-mode-host "
+    },
+    {
+      "pid": 3475334,
+      "cwd": "/home/agent/wt/fn253-3-resume",
+      "environment": {
+        "CARGO_HOME": "/home/agent/.cargo",
+        "CARGO_TARGET_DIR": "/home/agent/.cache/codex-build/cargo-target",
+        "TMPDIR": "/home/agent/.cache/codex-build/tmp"
+      },
+      "command": "/bin/bash -lc cd /home/agent/wt/fn253-3-resume && mkdir -p /Users/stephan/Workspace/skunkworks/gomad/.flow/artifacts/fn-253/resume-stage-reuse && CARGO_TARGET_DIR=/home/agent/.cache/codex-build/cargo-"
+    },
+    {
+      "pid": 3475348,
+      "cwd": "/home/agent/wt/fn253-3-resume",
+      "environment": {
+        "CARGO_HOME": "/home/agent/.cargo",
+        "CARGO_TARGET_DIR": "/home/agent/.cache/codex-build/cargo-target",
+        "TMPDIR": "/home/agent/.cache/codex-build/tmp"
+      },
+      "command": "/home/agent/.local/share/mise/installs/aqua-nextest-rs-nextest-cargo-nextest/0.9.149/cargo-nextest nextest run --manifest-path rust/Cargo.toml --release --locked -p gomad -E test(cycle::) "
+    },
+    {
+      "pid": 3475419,
+      "cwd": "/home/agent/wt/fn253-3-resume",
+      "environment": {
+        "CARGO_HOME": "/home/agent/.cargo",
+        "CARGO_TARGET_DIR": "/home/agent/.cache/codex-build/cargo-target",
+        "TMPDIR": "/home/agent/.cache/codex-build/tmp"
+      },
+      "command": "/home/agent/.rustup/toolchains/1.99.1-aarch64-unknown-linux-gnu/bin/cargo --color=auto test --manifest-path rust/Cargo.toml --no-run --message-format json-render-diagnostics --package gomad --release "
+    },
+    {
+      "pid": 3501649,
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal",
+      "environment": {
+        "CARGO_TARGET_DIR": "/home/agent/.cache/codex-build/cargo-target",
+        "CARGO_HOME": "/home/agent/.cargo",
+        "TMPDIR": "/home/agent/.cache/codex-build/tmp"
+      },
+      "command": "python3 /home/agent/.codex/scripts/flowctl.py claude impl-review-fanout fn-258.1 --base 05051b84a1 --receipt .flow/tmp/impl-review-fn2581.json --focus Task1 only: renewed immutable inventory, complete"
+    },
+    {
+      "pid": 3502784,
+      "cwd": "/home/agent/wt/fn253-3-resume/rust",
+      "environment": {
+        "CARGO_HOME": "/home/agent/.cargo",
+        "CARGO_TARGET_DIR": "/home/agent/.cache/codex-build/cargo-target",
+        "TMPDIR": "/home/agent/.cache/codex-build/tmp"
+      },
+      "command": "/home/agent/.rustup/toolchains/1.99.1-aarch64-unknown-linux-gnu/bin/rustc --crate-name allocation_receiving --edition=2024 gomad/tests/allocation_receiving.rs --error-format=json --json=diagnostic-ren"
+    },
+    {
+      "pid": 3504363,
+      "cwd": "/home/agent/wt/fn253-3-resume/rust",
+      "environment": {
+        "CARGO_HOME": "/home/agent/.cargo",
+        "CARGO_TARGET_DIR": "/home/agent/.cache/codex-build/cargo-target",
+        "TMPDIR": "/home/agent/.cache/codex-build/tmp"
+      },
+      "command": "/home/agent/.rustup/toolchains/1.99.1-aarch64-unknown-linux-gnu/bin/rustc --crate-name cycle_custody_owner --edition=2024 gomad/src/cycle/custody/owner_fixture.rs --error-format=json --json=diagnostic"
+    },
+    {
+      "pid": 3506120,
+      "cwd": "/home/agent/.cache/codex-build/tmp/fn258-pair/temporal",
+      "environment": {
+        "CARGO_TARGET_DIR": "/home/agent/.cache/codex-build/cargo-target",
+        "CARGO_HOME": "/home/agent/.cargo",
+        "TMPDIR": "/home/agent/.cache/codex-build/tmp"
+      },
+      "command": "/bin/bash -c unset BASH_ENV\ncd /home/agent/.cache/codex-build/tmp/fn258-pair/umpire && git fetch origin && git checkout --detach ac79114a9ad43a9d9fc2a022d07406d217878760\ncd /home/agent/.cache/codex-bu"
+    },
+    {
+      "pid": 3506150,
+      "cwd": "/home/agent/.cache/codex-build/tmp/fn258-pair/temporal/model",
+      "environment": {
+        "CARGO_TARGET_DIR": "/home/agent/.cache/codex-build/fn258-consumer",
+        "CARGO_HOME": "/home/agent/.cargo",
+        "TMPDIR": "/home/agent/.cache/codex-build/tmp"
+      },
+      "command": "/bin/bash /home/agent/.cache/codex-build/tmp/fn258-pair/umpire/scripts/guest-freshness.sh umpire-temporal-guest /home/agent/.cache/codex-build/tmp/fn258-pair/temporal/model/temporal/hosts/go/umpire_te"
+    },
+    {
+      "pid": 3506160,
+      "cwd": "/home/agent/.cache/codex-build/tmp/fn258-pair/umpire",
+      "environment": {
+        "CARGO_TARGET_DIR": "/home/agent/.cache/codex-build/fn258-consumer",
+        "CARGO_HOME": "/home/agent/.cargo",
+        "TMPDIR": "/home/agent/.cache/codex-build/tmp"
+      },
+      "command": "/bin/bash /home/agent/.cache/codex-build/tmp/fn258-pair/umpire/scripts/xtask.sh "
+    },
+    {
+      "pid": 3506166,
+      "cwd": "/home/agent/.cache/codex-build/tmp/fn258-pair/umpire",
+      "environment": {
+        "CARGO_TARGET_DIR": "/home/agent/.cache/codex-build/fn258-consumer",
+        "CARGO_HOME": "/home/agent/.cargo",
+        "TMPDIR": "/home/agent/.cache/codex-build/tmp"
+      },
+      "command": "/bin/bash /home/agent/.cache/codex-build/tmp/fn258-pair/umpire/scripts/xtask.sh "
+    },
+    {
+      "pid": 3506167,
+      "cwd": "/home/agent/.cache/codex-build/tmp/fn258-pair/umpire",
+      "environment": {
+        "CARGO_HOME": "/home/agent/.cargo",
+        "CARGO_TARGET_DIR": "/home/agent/.cache/codex-build/fn258-consumer",
+        "TMPDIR": "/home/agent/.cache/codex-build/tmp"
+      },
+      "command": "/home/agent/.rustup/toolchains/1.99.1-aarch64-unknown-linux-gnu/bin/cargo build --locked -p xtask --bin xtask -p umpire-guest-driver --bin umpire-guest-driver --profile dev --target-dir /home/agent/.c"
+    },
+    {
+      "pid": 3506459,
+      "cwd": "/home/agent/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rustix-1.1.5",
+      "environment": {
+        "CARGO_HOME": "/home/agent/.cargo",
+        "CARGO_TARGET_DIR": "/home/agent/.cache/codex-build/fn258-consumer",
+        "TMPDIR": "/home/agent/.cache/codex-build/tmp"
+      },
+      "command": "/home/agent/.rustup/toolchains/1.99.1-aarch64-unknown-linux-gnu/bin/rustc --crate-name rustix --edition=2021 /home/agent/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rustix-1.1.5/src/lib.rs --"
+    },
+    {
+      "pid": 3506546,
+      "cwd": "/home/agent/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde_derive-1.0.229",
+      "environment": {
+        "CARGO_HOME": "/home/agent/.cargo",
+        "CARGO_TARGET_DIR": "/home/agent/.cache/codex-build/fn258-consumer",
+        "TMPDIR": "/home/agent/.cache/codex-build/tmp"
+      },
+      "command": "/home/agent/.rustup/toolchains/1.99.1-aarch64-unknown-linux-gnu/bin/rustc --crate-name serde_derive --edition=2021 /home/agent/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde_derive-1.0.229"
+    },
+    {
+      "pid": 3506615,
+      "cwd": "/home/agent/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tempfile-3.27.0",
+      "environment": {
+        "CARGO_HOME": "/home/agent/.cargo",
+        "CARGO_TARGET_DIR": "/home/agent/.cache/codex-build/fn258-consumer",
+        "TMPDIR": "/home/agent/.cache/codex-build/tmp"
+      },
+      "command": "/home/agent/.rustup/toolchains/1.99.1-aarch64-unknown-linux-gnu/bin/rustc --crate-name tempfile --edition=2021 /home/agent/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tempfile-3.27.0/src/lib."
+    },
+    {
+      "pid": 3506628,
+      "cwd": "/home/agent/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/toml_datetime-1.1.2+spec-1.1.0",
+      "environment": {
+        "CARGO_HOME": "/home/agent/.cargo",
+        "CARGO_TARGET_DIR": "/home/agent/.cache/codex-build/fn258-consumer",
+        "TMPDIR": "/home/agent/.cache/codex-build/tmp"
+      },
+      "command": "/home/agent/.rustup/toolchains/1.99.1-aarch64-unknown-linux-gnu/bin/rustc --crate-name toml_datetime --edition=2024 /home/agent/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/toml_datetime-1.1.2"
+    }
+  ],
+  "fn258_cwd_env_fd_users": [
+    {
+      "pid": 3506120,
+      "cwd": "/home/agent/.cache/codex-build/tmp/fn258-pair/temporal",
+      "matches": [
+        "/home/agent/.cache/codex-build/tmp/fn258-pair/temporal"
+      ]
+    },
+    {
+      "pid": 3506150,
+      "cwd": "/home/agent/.cache/codex-build/tmp/fn258-pair/temporal/model",
+      "matches": [
+        "/home/agent/.cache/codex-build/tmp/fn258-pair/temporal/model",
+        "/home/agent/.cache/codex-build/fn258-consumer",
+        "/home/agent/.cache/codex-build/tmp/fn258-pair/umpire/scripts/guest-freshness.sh"
+      ]
+    },
+    {
+      "pid": 3506160,
+      "cwd": "/home/agent/.cache/codex-build/tmp/fn258-pair/umpire",
+      "matches": [
+        "/home/agent/.cache/codex-build/tmp/fn258-pair/umpire",
+        "/home/agent/.cache/codex-build/fn258-consumer",
+        "/home/agent/.cache/codex-build/tmp/fn258-pair/umpire/scripts/xtask.sh"
+      ]
+    },
+    {
+      "pid": 3506166,
+      "cwd": "/home/agent/.cache/codex-build/tmp/fn258-pair/umpire",
+      "matches": [
+        "/home/agent/.cache/codex-build/tmp/fn258-pair/umpire",
+        "/home/agent/.cache/codex-build/fn258-consumer"
+      ]
+    },
+    {
+      "pid": 3506167,
+      "cwd": "/home/agent/.cache/codex-build/tmp/fn258-pair/umpire",
+      "matches": [
+        "/home/agent/.cache/codex-build/tmp/fn258-pair/umpire",
+        "/home/agent/.cache/codex-build/fn258-consumer",
+        "/home/agent/.cache/codex-build/fn258-consumer/xtask-bootstrap/debug/.cargo-build-lock",
+        "/home/agent/.cache/codex-build/fn258-consumer/xtask-bootstrap/debug/.cargo-lock",
+        "/home/agent/.cache/codex-build/fn258-consumer/xtask-bootstrap/debug/.cargo-artifact-lock"
+      ]
+    },
+    {
+      "pid": 3506459,
+      "cwd": "/home/agent/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rustix-1.1.5",
+      "matches": [
+        "/home/agent/.cache/codex-build/fn258-consumer"
+      ]
+    },
+    {
+      "pid": 3506546,
+      "cwd": "/home/agent/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde_derive-1.0.229",
+      "matches": [
+        "/home/agent/.cache/codex-build/fn258-consumer"
+      ]
+    },
+    {
+      "pid": 3506615,
+      "cwd": "/home/agent/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tempfile-3.27.0",
+      "matches": [
+        "/home/agent/.cache/codex-build/fn258-consumer",
+        "/home/agent/.cache/codex-build/fn258-consumer/xtask-bootstrap/debug/deps/tempfile-6a4436171743a79e.tempfile.dfc6258264e3547e-cgu.0.rcgu.o"
+      ]
+    },
+    {
+      "pid": 3506628,
+      "cwd": "/home/agent/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/toml_datetime-1.1.2+spec-1.1.0",
+      "matches": [
+        "/home/agent/.cache/codex-build/fn258-consumer"
+      ]
+    }
+  ],
+  "limitation": "Instantaneous Linux /proc observation, no ownership guarantee for future workers. Recheck before cleanup. Shared cargo-target actively used by independent gomad session; parent cache and codex-build/tmp protected."
+}

@@ -18,13 +18,13 @@ claims about their own observation prefixes.
 
 From the framework root, run `mise exec -- cargo test -p umpire-reference-kettle`.
 Build its guest from the same root with
-`bash scripts/guest.sh umpire-kettle-guest target/wasm32-wasip1/guest/umpire_kettle_guest.wasm`.
+`mise exec -- cargo xtask guest umpire-kettle-guest target/wasm32-wasip1/guest/umpire_kettle_guest.wasm`.
 
 The Go server, native/wasm parity and live host tests live here in module
 `umpire.local/kettle`, with generated API under `gen/kettle/v1`. Its `go.mod`
 replaces `umpire.local/model` with `../../hosts/go`; it imports the transport
 from `umpire.local/model/host`. Regenerate with
-`bash scripts/proto-go.sh kettle` at the framework root; `--check` verifies
+`mise exec -- cargo xtask proto-go kettle` at the framework root; `--check` verifies
 the pinned protoc 29.5, protoc-gen-go v1.36.6 and protoc-gen-go-grpc v1.3.0 output.
 The host test requires the built guest and fails if it is missing.
 

@@ -1,0 +1,40 @@
+{
+  "scope": "Only these exact hash-verified raw logs are excluded from git diff --check; all source and other artifacts remain checked.",
+  "files": [
+    {
+      "path": ".flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/task12/count-producers-20261028/fn25412-count-collectors-green.log",
+      "sha256": "3ad6ca137ee7ccbf1ccff42418450a1b090cf57020ed6d134c64d8f6445b0fe5",
+      "reason": "Exact retained tool stdout/stderr: terminal blank line or interleaved stderr trailing spaces. Bytes are preserved."
+    },
+    {
+      "path": ".flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/task12/count-producers-20261028/fn25412-count-native-package-final.log",
+      "sha256": "6ac1a05821a70fdebd743d1175846d8b877502d591f1135ea7e5c487c2623068",
+      "reason": "Exact retained tool stdout/stderr: terminal blank line or interleaved stderr trailing spaces. Bytes are preserved."
+    },
+    {
+      "path": ".flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/task12/count-producers-20261028/fn25412-count-process-package-final.log",
+      "sha256": "befc64242ef28a97202f7c0bb778ffd006dba022bacc0879ff3da6ffe02bc321",
+      "reason": "Exact retained tool stdout/stderr: terminal blank line or interleaved stderr trailing spaces. Bytes are preserved."
+    },
+    {
+      "path": ".flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/task12/count-producers-20261028/fn25412-go-environment-relay-red.log",
+      "sha256": "b365788eb3c08bb265ba45dd1ebfcb1f2802d321a58c276a16c39ec3fe94c0d2",
+      "reason": "Exact retained tool stdout/stderr: terminal blank line or interleaved stderr trailing spaces. Bytes are preserved."
+    },
+    {
+      "path": ".flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/task12/count-producers-20261028/fn25412-scheduled-go-controls-green.log",
+      "sha256": "a3275b6350f61f28ee1cd565a060bd2523a52ef4e307d227125353903994d61d",
+      "reason": "Exact retained tool stdout/stderr: terminal blank line or interleaved stderr trailing spaces. Bytes are preserved."
+    },
+    {
+      "path": ".flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/task12/count-producers-20261028/fn25412-system-go-controls-green.log",
+      "sha256": "87db713b0e9eb3b3cb8a182afa47be045bdc33ae24f9ca05c7f28abba0e15e6b",
+      "reason": "Exact retained tool stdout/stderr: terminal blank line or interleaved stderr trailing spaces. Bytes are preserved."
+    },
+    {
+      "path": ".flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/task12/count-producers-20261028/fn25412-tlc-native-package-2.log",
+      "sha256": "bc479e4743425e6e70305bda4260143d7125d8994c495e1c077152f124adebad",
+      "reason": "Exact retained tool stdout/stderr: terminal blank line or interleaved stderr trailing spaces. Bytes are preserved."
+    }
+  ]
+}

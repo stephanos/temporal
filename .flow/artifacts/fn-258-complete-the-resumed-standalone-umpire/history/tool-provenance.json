@@ -1,0 +1,27 @@
+{
+  "git_version": "git version 2.53.0",
+  "filter_module": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn257-tool/git_filter_repo.py",
+  "filter_module_sha256": "67447413e273fc76809289111748870b6f6072f08b17efe94863a92d810b7d94",
+  "scripts_sha256": {
+    "refresh-checkpoint-proof.py": "b79237ee31172b351e3e7a80d9b110ae622a1f4d457795a4e321c0c3276b0dbc",
+    "verify-export.py": "dd76733fa2d712b778ec570df84ffade2d9d4920bd40261010c84bf6095fea49",
+    "checkpoint-controls.py": "cd4ff02661429da385e5f3c2237aa403a1157462de1a94bdbd50c6e96af0fe6e",
+    "export-history.py": "c63c31b855dcdd458a4b110cab40d2c5f970558c14bab514c239814ae67ac975",
+    "verify-history-provenance.py": "6158288f51fcae2bd86d105684d58dba64e2f15618f3bf3bb01d9a200d0686e6",
+    "prepare-history-map.py": "fc05d15009fbf67955b226566c649f5539845f943daee8d8d5e4b57963fcdc71",
+    "capture-preservation.py": "abb2c1b9c005ae4139d7c316fb41dd41c5591a688103c6c698be6be33a48d090",
+    "run-controls.py": "592190590b3461ec4faf5f4ada5ca4dbb1f536b458ff5e2a5dd5290cf9147625"
+  },
+  "current_manifest_sha256": "a29ea7017bf9138701d1580e1a466071a1c151b849526a55648484b27175a2c3",
+  "history_map_sha256": "3499c1cc7e0c26f87dbb148cf6f0f830360811f4260b64e4a8c195e657860ffa",
+  "history_map_reproduced_identically": true,
+  "commit_map_reproduced_identically": true,
+  "clone_commands": [
+    "git clone --no-local --revision=ac60daaf47d2513b41eeff612f0e2758d33e186d temporal temporal/.flow/tmp/fn258-history-final-export",
+    "git clone --no-local --revision=ac60daaf47d2513b41eeff612f0e2758d33e186d temporal temporal/.flow/tmp/fn258-history-final-repro"
+  ],
+  "evidence_generation": "refresh-checkpoint-proof.py; all assertions and strict integrity reads must pass before current summaries are written",
+  "regression_controls": "checkpoint-controls.py --source temporal --export temporal/.flow/tmp/fn258-history-recovery --synthetic <new-isolated-path>",
+  "existing_controls": "run-controls.py --source temporal --export temporal/.flow/tmp/fn258-history-export --synthetic <new-isolated-path>",
+  "superseded": "review-before/ contains archived pre-review evidence and the old verifier regression fixture; not current acceptance evidence."
+}

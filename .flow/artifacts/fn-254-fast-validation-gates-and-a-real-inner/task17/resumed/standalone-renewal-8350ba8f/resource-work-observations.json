@@ -1,0 +1,23 @@
+{
+  "event_counts": {
+    "tlc-finish": 836,
+    "tlc-attempt": 836,
+    "tests-finish": 1,
+    "tests-begin": 1
+  },
+  "tlc_confirmed": 752,
+  "tlc_unconfirmed": 84,
+  "observations_complete": true,
+  "sample_interval_seconds": 0.5,
+  "sampled_peak_java_processes": 4,
+  "sampled_peak_total_java_rss_kib": 392640,
+  "java_samples_with_lease_or_lifecycle_environment": 0,
+  "heap_arguments": [
+    "-Xmx512m"
+  ],
+  "cleanup": {
+    "live": {},
+    "all_observed_owned_pids_absent": true
+  },
+  "limitation": "Polling is observational; negative launch controls prevent aggregate TLC counts from becoming known. Separate actual confirmed/unconfirmed evidence retained."
+}

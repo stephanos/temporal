@@ -276,3 +276,23 @@ fn metadata(tools: &Path, workspace: &Path, cargo_home: &Path) -> Result<Vec<u8>
     }
     Ok(metadata.stdout)
 }
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn invalid_guest_arguments_are_refused_before_tool_discovery() {
+        for (arguments, freshness) in [
+            (vec![], false),
+            (vec!["crate"], false),
+            (vec!["crate", "output", "--bogus"], false),
+            (vec!["crate", "output", "--check", "surplus"], false),
+            (vec!["crate", "output", "--check"], true),
+        ] {
+            let arguments = arguments.into_iter().map(std::ffi::OsString::from).collect::<Vec<_>>();
+            let Err(error) = super::run(&arguments, freshness) else {
+                panic!("invalid guest arguments were accepted: {arguments:?}");
+            };
+            assert!(error.to_string().contains("usage:"), "{error}");
+        }
+    }
+}

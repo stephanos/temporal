@@ -1,0 +1,61 @@
+{
+  "base": "ac7679cb09861c09e9b0a142d1eaffaa2c6035c0",
+  "review_receipt": "84ae82cf883e4da28a372d6dc57cb9eb",
+  "changed_files": [
+    "model/temporal/shared/protocol/activity/README.md",
+    "model/temporal/shared/protocol/activity/parameters_tests.rs",
+    "model/temporal/shared/protocol/activity/tests.rs",
+    "model/temporal/shared/protocol/activity/view.rs"
+  ],
+  "production_sources_byte_identical": {
+    "model/temporal/shared/protocol/activity/model.rs": "4b503c12e7aaf35aeb8b54a445253458010f357febaa3fb1b4eab18fff187b64",
+    "model/temporal/shared/protocol/activity/parameters.rs": "ab2ad44e9cc42b6ebc51fcc6b2b16a75bb482fa1f5002962dff3700965ed343f",
+    "model/temporal/feature/activity/model.rs": "fd1d3e1e3fd393d84037c756819b3cb221b226831c395cc85f62eeaad80eb0bf"
+  },
+  "results": {
+    "fixtures-native.log": {
+      "exit_code": 0,
+      "result": "62passed/2inherited ignores/2.53s; before import-only rustfmt wrap",
+      "sha256": "47289560b29f7a9e1b1ae0cdc0aba712f86670d9119ff1eadd00121ad10084f8"
+    },
+    "fixtures-native-final.log": {
+      "exit_code": 0,
+      "result": "62passed/2inherited ignores/2.32s; final source",
+      "sha256": "0b91152df8fc8a3cf935c700a0bdab21f1578a6147853956aceae44847d191eb"
+    },
+    "protocol-required.log": {
+      "exit_code": 0,
+      "result": "22passed/0failed/59.62s; INSTA_UPDATE=no",
+      "sha256": "2fdc030ee6acfb118e194b9621ca5bc64644a87b6f0b5890dfec7e8a2e03e07b"
+    },
+    "clippy.log": {
+      "exit_code": 0,
+      "result": "strict focused all-target Clippy13.53s",
+      "sha256": "078838280d48fbceb66dd4ccee67fc03d7367ddac874888def888275d286167f"
+    },
+    "fmt-focused.log": {
+      "exit_code": 1,
+      "result": "Initial public import needed rustfmt wrapping; corrected without semantic changes",
+      "sha256": "3d3b76f219243d1a9d34f56f58fe39ddec175ebedf0dbc8597677387aab248a7"
+    },
+    "fmt-focused-renewed.log": {
+      "exit_code": 0,
+      "result": "Focused formatting check passed",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "guest-freshness.log": {
+      "exit_code": 0,
+      "result": "Current changed-input guest check passed39.92s",
+      "sha256": "17d4e1955cff814d265ab5e5db81d9c703402549aa1cb7063b2cf9befa57fb99"
+    }
+  },
+  "scope_reports_byte_identical_to_retained_proof": {
+    "protocol-scopes.txt": true,
+    "protocol-mutants.txt": true
+  },
+  "proof_scope": "12 complete protocol Worlds,4096state bound,432states/2506edges across scopes,192own-law agreements,20source-mutant disagreements unchanged. Native parameter/schema/export/None-zero negatives now use public production parameters module.",
+  "retained_proofs": "retained-feature-proof-reuse.json",
+  "guest_applicability": "guest-applicability.json",
+  "pending": "Root focused follow-up review, commit, integration and Flow closure.",
+  "mutations": "Only four listed protocol files; no feature README/Model/parameters production/expected snapshots/MILESTONES edits. No commits or Flow mutation. Root-owned preexisting Flow review JSON preserved."
+}

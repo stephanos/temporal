@@ -1,0 +1,43 @@
+{
+  "accepted_real_proof_source": "c5189bd35d36e0e404c0980cb986bdc970d4b8af",
+  "post_review_source_head": "192dd9ceb200fc5ccae45f90b4083b825f1ce133",
+  "changed_source_files": [
+    ".github/workflows/umpire.yml",
+    "model/dev/xtask/src/gate.rs",
+    "model/dev/xtask/src/main.rs",
+    "model/dev/xtask/tests/main.rs",
+    "model/scripts/test-model-wiring.sh",
+    "model/umpire/dev/xtask/src/gate.rs",
+    "model/umpire/dev/xtask/src/main.rs",
+    "model/umpire/dev/xtask/tests/gate_wiring.rs"
+  ],
+  "unchanged_boundaries": [
+    "Makefile",
+    "mise.toml",
+    "model/umpire/mise.toml",
+    "model/umpire/dev/xtask/src/gate/tasks.toml",
+    "model/umpire/dev/xtask/src/gate/scheduler.rs",
+    "model/umpire/dev/xtask/src/gate/work_counts.rs",
+    "model/umpire/dev/xtask/src/gate/standalone.rs",
+    "model/umpire/backends/process",
+    "model/umpire/backends/tlc",
+    "model/umpire/dev/guest-driver",
+    "model/temporal",
+    "model/Cargo.lock",
+    "model/umpire/Cargo.lock"
+  ],
+  "real_proof": "../../final-c5189bd3/summary.json",
+  "review_delta_coverage": {
+    "CI": "../ci/summary.json",
+    "required_optional_setup": "../apalache/verification.json",
+    "fmt_and_private_supervision": "../supervision/evidence.json",
+    "joined": "checks.json"
+  },
+  "reuse_scope": "Retain accepted real standalone/Activity evidence on its exact c518 source. No post-fix full-suite or new current full inventory claim. Graph, leaf selection/count producers, guest-driver and Model semantic inputs did not change. Focused public runtime controls verify changed setup/formatting/private scratch paths; final broad model gates remain task8.",
+  "remaining": [
+    "Follow-up implementation review",
+    "Go/mixed-control unknown count admission in task12",
+    "Final combined gates and performance targets in task8",
+    "Owner-deferred Darwin execution"
+  ]
+}

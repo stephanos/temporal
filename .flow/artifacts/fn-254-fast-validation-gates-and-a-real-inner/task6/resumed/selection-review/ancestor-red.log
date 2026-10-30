@@ -1,0 +1,24 @@
+   Compiling xtask v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/dev/xtask)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.95s
+     Running unittests src/lib.rs (.flow/tmp/fn2546-selection-review/target/debug/deps/xtask-3c22467feee5d72b)
+
+running 1 test
+test quick::tests::metadata_named_checkout_ancestors_do_not_hide_external_build_inputs ... FAILED
+
+failures:
+
+---- quick::tests::metadata_named_checkout_ancestors_do_not_hide_external_build_inputs stdout ----
+
+thread 'quick::tests::metadata_named_checkout_ancestors_do_not_hide_external_build_inputs' (135316) panicked at dev/xtask/src/quick/tests.rs:449:9:
+assertion `left == right` failed: /tmp/.flow/candidate/proto/api.binpb
+  left: {"fixtures"}
+ right: {"activity", "fixtures", "other"}
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    quick::tests::metadata_named_checkout_ancestors_do_not_hide_external_build_inputs
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 30 filtered out; finished in 0.00s
+
+error: test failed, to rerun pass `-p xtask --lib`

@@ -1,0 +1,19 @@
+    Checking winnow v1.0.4
+    Checking linux-raw-sys v0.12.1
+    Checking rustix v1.1.5
+    Checking toml_parser v1.1.5+spec-1.1.0
+    Checking toml_datetime v1.1.2+spec-1.1.0
+    Checking simd-adler32 v0.3.10
+    Checking adler2 v2.0.1
+    Checking tempfile v3.27.0
+    Checking miniz_oxide v0.9.1
+    Checking toml v1.1.8+spec-1.1.0
+    Checking serde v1.0.229
+    Checking thiserror v2.0.21
+    Checking crc32fast v1.5.3
+    Checking filetime v0.2.29
+    Checking tar v0.4.46
+    Checking flate2 v1.1.10
+    Checking umpire-guest-driver v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/dev/guest-driver)
+    Checking xtask v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/dev/xtask)
+    Finished `dev` profile [unoptimized] target(s) in 2.89s

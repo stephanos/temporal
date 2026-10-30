@@ -1,0 +1,15 @@
+{
+  "argv": [
+    "git",
+    "diff",
+    "--exit-code"
+  ],
+  "cwd": "/home/agent/.cache/codex-build/tmp/fn258-final-pair-3f5-054/temporal",
+  "started_unix": 1793199069.467822,
+  "ended_unix": 1793199069.518367,
+  "exit": 0,
+  "log": "/home/agent/.cache/codex-build/tmp/fn258-final-pair-3f5-054/execution-evidence/temporal-generation-1793199069407217111/02-temporal-generation.log",
+  "log_sha256": "dc4741df5ab41206427d59a3560531b9ce81ade1576129f5b292800f3e01b257",
+  "free_before": 55124504576,
+  "free_after": 55124500480
+}

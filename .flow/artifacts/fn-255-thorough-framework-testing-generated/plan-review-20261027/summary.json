@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "kind": "plan-review-renewal",
+  "spec": "fn-255-thorough-framework-testing-generated",
+  "verdict": "SHIP",
+  "backend": "claude:claude-opus-5-5:high",
+  "writer_family": "Codex",
+  "reviewer_family": "Claude",
+  "rounds": [
+    "round1/receipt.json",
+    "round2/receipt.json"
+  ],
+  "findings_fixed": 7,
+  "runtime_acceptance": false,
+  "implementation_completed": false,
+  "budget_gate": "Tasks .2-.6 are explicitly Flow-blocked until committed fn254.12 closure and task bounds admission; same-spec dependency CLI rejects cross-spec task IDs.",
+  "source_preparation": "Retained candidates remain unvalidated and unintegrated; inventories are evidence of source only.",
+  "advisories": [
+    "Admit initial bounds before calibration probes; recalibrate from measured baselines without a second authority.",
+    "Implement dev/miri-control as a genuinely isolated workspace, with its own [workspace] table or root exclusion."
+  ],
+  "checks": [
+    "flowctl validate --spec fn-255-thorough-framework-testing-generated --json",
+    "Candidate source hashes verified; corpus exact membership/digests/static caps verified; no builds run."
+  ],
+  "maintainability_annotation": "Append reviewer advisory per skill maintainability-pointer.md, then restore the backend SHIP status as that reference explicitly requires; no implementation/acceptance change."
+}

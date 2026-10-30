@@ -1,0 +1,923 @@
+{
+  "sha256_binpb": "bffa378900b6910683f45e89c72e3d89c96b8bc9ee1da3de2eba1394c01b2d17",
+  "model_hash": "c83e883a38647cdc988ace1b32efbccd546a4a1f2acbe10d53485e7d8438c4cc",
+  "worker": {
+    "kind": "raw",
+    "version": "1",
+    "namespace": "TestTestpilotModelSliceThroughUmpire-26faa0a6-5bef-4b7b-832b-bad641d08a67",
+    "taskQueue": "umpire-slice-bb8b12d5-f505-430e-a7e7-86c093b06288"
+  },
+  "verdict": {
+    "explained": {
+      "termination": "TERMINATION_PROPOSAL_BUDGET",
+      "limit": "7"
+    }
+  },
+  "event_count": 21,
+  "flattened_steps": [
+    "Worker::Poll(1) Accepted",
+    "Worker::RespondCompleted Accepted",
+    "Worker::Poll(1) Accepted",
+    "Worker::RespondCompleted Accepted",
+    "Worker::Poll(1) Accepted",
+    "Worker::RespondCompleted Accepted",
+    "Client::Cancel Rejected(NotFound)",
+    "Worker::Poll(1) Accepted",
+    "Worker::RespondCompleted Accepted",
+    "Client::Cancel Rejected(NotFound)",
+    "Worker::Poll(1) Accepted",
+    "Worker::RespondCompleted Accepted",
+    "Client::Cancel Rejected(NotFound)",
+    "Client::Cancel Rejected(NotFound)",
+    "Worker::Poll(1) Accepted",
+    "Worker::RespondCompleted Accepted",
+    "Client::Cancel Rejected(NotFound)",
+    "Client::Cancel Rejected(NotFound)",
+    "Worker::Poll(1) Accepted",
+    "Worker::RespondCompleted Accepted",
+    "Client::Cancel Rejected(NotFound)",
+    "Client::Cancel Rejected(NotFound)",
+    "Client::Cancel Rejected(NotFound)",
+    "Worker::Poll(1) Accepted",
+    "Worker::RespondCompleted Accepted",
+    "Client::Cancel Rejected(NotFound)",
+    "Client::Cancel Rejected(NotFound)",
+    "Client::Cancel Rejected(NotFound)",
+    "Worker::Poll(1) Accepted",
+    "Worker::RespondCompleted Accepted",
+    "Client::Cancel Rejected(NotFound)",
+    "Client::Cancel Rejected(NotFound)",
+    "Client::Cancel Rejected(NotFound)",
+    "Client::Cancel Rejected(NotFound)",
+    "Worker::Poll(1) Accepted",
+    "Worker::RespondCompleted Accepted",
+    "Client::Cancel Rejected(NotFound)",
+    "Client::Cancel Rejected(NotFound)",
+    "Client::Cancel Rejected(NotFound)",
+    "Client::Cancel Rejected(NotFound)",
+    "Worker::Poll(1) Accepted",
+    "Worker::RespondCompleted Accepted",
+    "Client::Cancel Rejected(NotFound)",
+    "Client::Cancel Rejected(NotFound)",
+    "Client::Cancel Rejected(NotFound)",
+    "Client::Cancel Rejected(NotFound)",
+    "Client::Cancel Rejected(NotFound)"
+  ],
+  "original_judgment_path": [
+    "Worker::Poll(1) Accepted",
+    "Worker::RespondCompleted Accepted",
+    "Worker::Poll(1) Accepted",
+    "Worker::RespondCompleted Accepted",
+    "Worker::Poll(1) Accepted",
+    "Worker::RespondCompleted Accepted",
+    "Client::Cancel Rejected(NotFound)",
+    "Worker::Poll(1) Accepted",
+    "Worker::RespondCompleted Accepted",
+    "Client::Cancel Rejected(NotFound)",
+    "Worker::Poll(1) Accepted",
+    "Worker::RespondCompleted Accepted",
+    "Client::Cancel Rejected(NotFound)",
+    "Worker::Poll(1) Accepted",
+    "Worker::RespondCompleted Accepted",
+    "Client::Cancel Rejected(NotFound)",
+    "Worker::Poll(1) Accepted",
+    "Worker::RespondCompleted Accepted",
+    "Client::Cancel Rejected(NotFound)",
+    "Worker::Poll(1) Accepted",
+    "Worker::RespondCompleted Accepted",
+    "Client::Cancel Rejected(NotFound)",
+    "Worker::Poll(1) Accepted",
+    "Worker::RespondCompleted Accepted",
+    "Client::Cancel Rejected(NotFound)",
+    "Worker::Poll(1) Accepted",
+    "Worker::RespondCompleted Accepted",
+    "Client::Cancel Rejected(NotFound)",
+    "Worker::Poll(1) Accepted",
+    "Worker::RespondCompleted Accepted",
+    "Client::Cancel Rejected(NotFound)"
+  ],
+  "final_witness": [
+    [
+      "Worker::Poll(1)",
+      "Accepted"
+    ],
+    [
+      "Worker::RespondCompleted",
+      "Accepted"
+    ],
+    [
+      "Client::Cancel",
+      "Rejected(NotFound)"
+    ],
+    [
+      "Client::Cancel",
+      "Rejected(NotFound)"
+    ],
+    [
+      "Client::Cancel",
+      "Rejected(NotFound)"
+    ],
+    [
+      "Client::Cancel",
+      "Rejected(NotFound)"
+    ],
+    [
+      "Client::Cancel",
+      "Rejected(NotFound)"
+    ]
+  ],
+  "events": [
+    {
+      "sequence": "0",
+      "request": "0",
+      "driverEvent": "0",
+      "kind": "reset"
+    },
+    {
+      "sequence": "1",
+      "request": "1",
+      "driverEvent": "0",
+      "kind": "proposal"
+    },
+    {
+      "sequence": "2",
+      "request": "1",
+      "driverEvent": "1",
+      "kind": "judgment",
+      "observation": [
+        {
+          "method": "StartActivityExecution",
+          "request": {
+            "@type": "type.googleapis.com/temporal.api.workflowservice.v1.StartActivityExecutionRequest",
+            "namespace": "TestTestpilotModelSliceThroughUmpire-26faa0a6-5bef-4b7b-832b-bad641d08a67",
+            "requestId": "bccdfd9c-96a1-4897-97e4-a26fa4bd44f2",
+            "activityId": "umpire-slice-849067ad-4bb7-4eb0-84a8-3b0b734c07f2",
+            "activityType": {
+              "name": "ModelSlice"
+            },
+            "taskQueue": {
+              "name": "umpire-slice-bb8b12d5-f505-430e-a7e7-86c093b06288"
+            },
+            "startToCloseTimeout": "20s",
+            "retryPolicy": {
+              "initialInterval": "1s",
+              "maximumInterval": "1s",
+              "maximumAttempts": 2
+            },
+            "input": {
+              "payloads": [
+                {
+                  "metadata": {
+                    "encoding": "YmluYXJ5L3BsYWlu"
+                  },
+                  "data": "YXBwbGljYXRpb24taW5wdXQ="
+                }
+              ]
+            },
+            "idReusePolicy": "ACTIVITY_ID_REUSE_POLICY_ALLOW_DUPLICATE",
+            "header": {
+              "fields": {
+                "umpire-scenario": {
+                  "metadata": {
+                    "encoding": "YmluYXJ5L3BsYWlu"
+                  },
+                  "data": "Q29tcGxldGU="
+                }
+              }
+            }
+          },
+          "error": null,
+          "info": {},
+          "outcome": null
+        }
+      ],
+      "response": {
+        "explained": {}
+      }
+    },
+    {
+      "sequence": "3",
+      "request": "2",
+      "driverEvent": "0",
+      "kind": "proposal"
+    },
+    {
+      "sequence": "4",
+      "request": "2",
+      "driverEvent": "1",
+      "kind": "judgment",
+      "observation": [
+        {
+          "method": "DescribeActivityExecution",
+          "request": {
+            "@type": "type.googleapis.com/temporal.api.workflowservice.v1.DescribeActivityExecutionRequest",
+            "namespace": "TestTestpilotModelSliceThroughUmpire-26faa0a6-5bef-4b7b-832b-bad641d08a67",
+            "activityId": "umpire-slice-849067ad-4bb7-4eb0-84a8-3b0b734c07f2",
+            "runId": "01a17617-dc5c-7515-ab8c-4c7dc1ea4519",
+            "includeOutcome": true,
+            "includeLastFailure": true
+          },
+          "error": null,
+          "info": {
+            "attempt": 1,
+            "status": "ACTIVITY_EXECUTION_STATUS_RUNNING",
+            "runState": "PENDING_ACTIVITY_STATE_SCHEDULED",
+            "stateTransitionCount": "1"
+          },
+          "outcome": null
+        }
+      ],
+      "response": {
+        "explained": {},
+        "continuePolling": true
+      }
+    },
+    {
+      "sequence": "5",
+      "request": "2",
+      "driverEvent": "2",
+      "kind": "judgment",
+      "observation": [
+        {
+          "method": "DescribeActivityExecution",
+          "request": {
+            "@type": "type.googleapis.com/temporal.api.workflowservice.v1.DescribeActivityExecutionRequest",
+            "namespace": "TestTestpilotModelSliceThroughUmpire-26faa0a6-5bef-4b7b-832b-bad641d08a67",
+            "activityId": "umpire-slice-849067ad-4bb7-4eb0-84a8-3b0b734c07f2",
+            "runId": "01a17617-dc5c-7515-ab8c-4c7dc1ea4519",
+            "includeOutcome": true,
+            "includeLastFailure": true
+          },
+          "error": null,
+          "info": {
+            "attempt": 1,
+            "status": "ACTIVITY_EXECUTION_STATUS_COMPLETED",
+            "lastWorkerIdentity": "umpire-raw",
+            "stateTransitionCount": "3",
+            "lastStartedTime": "2026-10-26T02:43:57.676739696Z",
+            "lastAttemptCompleteTime": "2026-10-26T02:43:57.677919363Z"
+          },
+          "outcome": {
+            "result": {
+              "payloads": [
+                {
+                  "metadata": {
+                    "encoding": "YmluYXJ5L3BsYWlu"
+                  },
+                  "data": "Q29tcGxldGU="
+                }
+              ]
+            }
+          }
+        }
+      ],
+      "response": {
+        "explained": {
+          "steps": [
+            "Worker::Poll(1)",
+            "Worker::RespondCompleted"
+          ],
+          "outcomes": [
+            "Accepted",
+            "Accepted"
+          ]
+        }
+      }
+    },
+    {
+      "sequence": "6",
+      "request": "3",
+      "driverEvent": "0",
+      "kind": "proposal"
+    },
+    {
+      "sequence": "7",
+      "request": "3",
+      "driverEvent": "1",
+      "kind": "judgment",
+      "observation": [
+        {
+          "acknowledged": [
+            {
+              "method": "RequestCancelActivityExecution",
+              "request": {
+                "@type": "type.googleapis.com/temporal.api.workflowservice.v1.RequestCancelActivityExecutionRequest",
+                "namespace": "TestTestpilotModelSliceThroughUmpire-26faa0a6-5bef-4b7b-832b-bad641d08a67",
+                "activityId": "umpire-slice-849067ad-4bb7-4eb0-84a8-3b0b734c07f2",
+                "runId": "01a17617-dc5c-7515-ab8c-4c7dc1ea4519"
+              },
+              "error": {
+                "code": 5,
+                "message": "activity not found for ID: umpire-slice-849067ad-4bb7-4eb0-84a8-3b0b734c07f2"
+              },
+              "info": {},
+              "outcome": null
+            }
+          ]
+        },
+        {
+          "current": [
+            {
+              "method": "DescribeActivityExecution",
+              "request": {
+                "@type": "type.googleapis.com/temporal.api.workflowservice.v1.DescribeActivityExecutionRequest",
+                "namespace": "TestTestpilotModelSliceThroughUmpire-26faa0a6-5bef-4b7b-832b-bad641d08a67",
+                "activityId": "umpire-slice-849067ad-4bb7-4eb0-84a8-3b0b734c07f2",
+                "runId": "01a17617-dc5c-7515-ab8c-4c7dc1ea4519",
+                "includeOutcome": true,
+                "includeLastFailure": true
+              },
+              "error": null,
+              "info": {
+                "attempt": 1,
+                "status": "ACTIVITY_EXECUTION_STATUS_COMPLETED",
+                "lastWorkerIdentity": "umpire-raw",
+                "stateTransitionCount": "3",
+                "lastStartedTime": "2026-10-26T02:43:57.676739696Z",
+                "lastAttemptCompleteTime": "2026-10-26T02:43:57.677919363Z"
+              },
+              "outcome": {
+                "result": {
+                  "payloads": [
+                    {
+                      "metadata": {
+                        "encoding": "YmluYXJ5L3BsYWlu"
+                      },
+                      "data": "Q29tcGxldGU="
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      ],
+      "response": {
+        "explained": {
+          "steps": [
+            "Worker::Poll(1)",
+            "Worker::RespondCompleted"
+          ],
+          "outcomes": [
+            "Accepted",
+            "Accepted"
+          ]
+        },
+        "continuePolling": true
+      }
+    },
+    {
+      "sequence": "8",
+      "request": "3",
+      "driverEvent": "2",
+      "kind": "judgment",
+      "observation": [
+        {
+          "method": "RequestCancelActivityExecution",
+          "request": {
+            "@type": "type.googleapis.com/temporal.api.workflowservice.v1.RequestCancelActivityExecutionRequest",
+            "namespace": "TestTestpilotModelSliceThroughUmpire-26faa0a6-5bef-4b7b-832b-bad641d08a67",
+            "activityId": "umpire-slice-849067ad-4bb7-4eb0-84a8-3b0b734c07f2",
+            "runId": "01a17617-dc5c-7515-ab8c-4c7dc1ea4519"
+          },
+          "error": {
+            "code": 5,
+            "message": "activity not found for ID: umpire-slice-849067ad-4bb7-4eb0-84a8-3b0b734c07f2"
+          },
+          "info": {},
+          "outcome": null
+        }
+      ],
+      "response": {
+        "explained": {
+          "steps": [
+            "Worker::Poll(1)",
+            "Worker::RespondCompleted",
+            "Client::Cancel"
+          ],
+          "outcomes": [
+            "Accepted",
+            "Accepted",
+            "Rejected(NotFound)"
+          ]
+        }
+      }
+    },
+    {
+      "sequence": "9",
+      "request": "4",
+      "driverEvent": "0",
+      "kind": "proposal"
+    },
+    {
+      "sequence": "10",
+      "request": "4",
+      "driverEvent": "1",
+      "kind": "judgment",
+      "observation": [
+        {
+          "acknowledged": [
+            {
+              "method": "RequestCancelActivityExecution",
+              "request": {
+                "@type": "type.googleapis.com/temporal.api.workflowservice.v1.RequestCancelActivityExecutionRequest",
+                "namespace": "TestTestpilotModelSliceThroughUmpire-26faa0a6-5bef-4b7b-832b-bad641d08a67",
+                "activityId": "umpire-slice-849067ad-4bb7-4eb0-84a8-3b0b734c07f2",
+                "runId": "01a17617-dc5c-7515-ab8c-4c7dc1ea4519"
+              },
+              "error": {
+                "code": 5,
+                "message": "activity not found for ID: umpire-slice-849067ad-4bb7-4eb0-84a8-3b0b734c07f2"
+              },
+              "info": {},
+              "outcome": null
+            }
+          ]
+        },
+        {
+          "current": [
+            {
+              "method": "DescribeActivityExecution",
+              "request": {
+                "@type": "type.googleapis.com/temporal.api.workflowservice.v1.DescribeActivityExecutionRequest",
+                "namespace": "TestTestpilotModelSliceThroughUmpire-26faa0a6-5bef-4b7b-832b-bad641d08a67",
+                "activityId": "umpire-slice-849067ad-4bb7-4eb0-84a8-3b0b734c07f2",
+                "runId": "01a17617-dc5c-7515-ab8c-4c7dc1ea4519",
+                "includeOutcome": true,
+                "includeLastFailure": true
+              },
+              "error": null,
+              "info": {
+                "attempt": 1,
+                "status": "ACTIVITY_EXECUTION_STATUS_COMPLETED",
+                "lastWorkerIdentity": "umpire-raw",
+                "stateTransitionCount": "3",
+                "lastStartedTime": "2026-10-26T02:43:57.676739696Z",
+                "lastAttemptCompleteTime": "2026-10-26T02:43:57.677919363Z"
+              },
+              "outcome": {
+                "result": {
+                  "payloads": [
+                    {
+                      "metadata": {
+                        "encoding": "YmluYXJ5L3BsYWlu"
+                      },
+                      "data": "Q29tcGxldGU="
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      ],
+      "response": {
+        "explained": {
+          "steps": [
+            "Worker::Poll(1)",
+            "Worker::RespondCompleted",
+            "Client::Cancel"
+          ],
+          "outcomes": [
+            "Accepted",
+            "Accepted",
+            "Rejected(NotFound)"
+          ]
+        },
+        "continuePolling": true
+      }
+    },
+    {
+      "sequence": "11",
+      "request": "4",
+      "driverEvent": "2",
+      "kind": "judgment",
+      "observation": [
+        {
+          "method": "RequestCancelActivityExecution",
+          "request": {
+            "@type": "type.googleapis.com/temporal.api.workflowservice.v1.RequestCancelActivityExecutionRequest",
+            "namespace": "TestTestpilotModelSliceThroughUmpire-26faa0a6-5bef-4b7b-832b-bad641d08a67",
+            "activityId": "umpire-slice-849067ad-4bb7-4eb0-84a8-3b0b734c07f2",
+            "runId": "01a17617-dc5c-7515-ab8c-4c7dc1ea4519"
+          },
+          "error": {
+            "code": 5,
+            "message": "activity not found for ID: umpire-slice-849067ad-4bb7-4eb0-84a8-3b0b734c07f2"
+          },
+          "info": {},
+          "outcome": null
+        }
+      ],
+      "response": {
+        "explained": {
+          "steps": [
+            "Worker::Poll(1)",
+            "Worker::RespondCompleted",
+            "Client::Cancel",
+            "Client::Cancel"
+          ],
+          "outcomes": [
+            "Accepted",
+            "Accepted",
+            "Rejected(NotFound)",
+            "Rejected(NotFound)"
+          ]
+        }
+      }
+    },
+    {
+      "sequence": "12",
+      "request": "5",
+      "driverEvent": "0",
+      "kind": "proposal"
+    },
+    {
+      "sequence": "13",
+      "request": "5",
+      "driverEvent": "1",
+      "kind": "judgment",
+      "observation": [
+        {
+          "acknowledged": [
+            {
+              "method": "RequestCancelActivityExecution",
+              "request": {
+                "@type": "type.googleapis.com/temporal.api.workflowservice.v1.RequestCancelActivityExecutionRequest",
+                "namespace": "TestTestpilotModelSliceThroughUmpire-26faa0a6-5bef-4b7b-832b-bad641d08a67",
+                "activityId": "umpire-slice-849067ad-4bb7-4eb0-84a8-3b0b734c07f2",
+                "runId": "01a17617-dc5c-7515-ab8c-4c7dc1ea4519"
+              },
+              "error": {
+                "code": 5,
+                "message": "activity not found for ID: umpire-slice-849067ad-4bb7-4eb0-84a8-3b0b734c07f2"
+              },
+              "info": {},
+              "outcome": null
+            }
+          ]
+        },
+        {
+          "current": [
+            {
+              "method": "DescribeActivityExecution",
+              "request": {
+                "@type": "type.googleapis.com/temporal.api.workflowservice.v1.DescribeActivityExecutionRequest",
+                "namespace": "TestTestpilotModelSliceThroughUmpire-26faa0a6-5bef-4b7b-832b-bad641d08a67",
+                "activityId": "umpire-slice-849067ad-4bb7-4eb0-84a8-3b0b734c07f2",
+                "runId": "01a17617-dc5c-7515-ab8c-4c7dc1ea4519",
+                "includeOutcome": true,
+                "includeLastFailure": true
+              },
+              "error": null,
+              "info": {
+                "attempt": 1,
+                "status": "ACTIVITY_EXECUTION_STATUS_COMPLETED",
+                "lastWorkerIdentity": "umpire-raw",
+                "stateTransitionCount": "3",
+                "lastStartedTime": "2026-10-26T02:43:57.676739696Z",
+                "lastAttemptCompleteTime": "2026-10-26T02:43:57.677919363Z"
+              },
+              "outcome": {
+                "result": {
+                  "payloads": [
+                    {
+                      "metadata": {
+                        "encoding": "YmluYXJ5L3BsYWlu"
+                      },
+                      "data": "Q29tcGxldGU="
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      ],
+      "response": {
+        "explained": {
+          "steps": [
+            "Worker::Poll(1)",
+            "Worker::RespondCompleted",
+            "Client::Cancel",
+            "Client::Cancel"
+          ],
+          "outcomes": [
+            "Accepted",
+            "Accepted",
+            "Rejected(NotFound)",
+            "Rejected(NotFound)"
+          ]
+        },
+        "continuePolling": true
+      }
+    },
+    {
+      "sequence": "14",
+      "request": "5",
+      "driverEvent": "2",
+      "kind": "judgment",
+      "observation": [
+        {
+          "method": "RequestCancelActivityExecution",
+          "request": {
+            "@type": "type.googleapis.com/temporal.api.workflowservice.v1.RequestCancelActivityExecutionRequest",
+            "namespace": "TestTestpilotModelSliceThroughUmpire-26faa0a6-5bef-4b7b-832b-bad641d08a67",
+            "activityId": "umpire-slice-849067ad-4bb7-4eb0-84a8-3b0b734c07f2",
+            "runId": "01a17617-dc5c-7515-ab8c-4c7dc1ea4519"
+          },
+          "error": {
+            "code": 5,
+            "message": "activity not found for ID: umpire-slice-849067ad-4bb7-4eb0-84a8-3b0b734c07f2"
+          },
+          "info": {},
+          "outcome": null
+        }
+      ],
+      "response": {
+        "explained": {
+          "steps": [
+            "Worker::Poll(1)",
+            "Worker::RespondCompleted",
+            "Client::Cancel",
+            "Client::Cancel",
+            "Client::Cancel"
+          ],
+          "outcomes": [
+            "Accepted",
+            "Accepted",
+            "Rejected(NotFound)",
+            "Rejected(NotFound)",
+            "Rejected(NotFound)"
+          ]
+        }
+      }
+    },
+    {
+      "sequence": "15",
+      "request": "6",
+      "driverEvent": "0",
+      "kind": "proposal"
+    },
+    {
+      "sequence": "16",
+      "request": "6",
+      "driverEvent": "1",
+      "kind": "judgment",
+      "observation": [
+        {
+          "acknowledged": [
+            {
+              "method": "RequestCancelActivityExecution",
+              "request": {
+                "@type": "type.googleapis.com/temporal.api.workflowservice.v1.RequestCancelActivityExecutionRequest",
+                "namespace": "TestTestpilotModelSliceThroughUmpire-26faa0a6-5bef-4b7b-832b-bad641d08a67",
+                "activityId": "umpire-slice-849067ad-4bb7-4eb0-84a8-3b0b734c07f2",
+                "runId": "01a17617-dc5c-7515-ab8c-4c7dc1ea4519"
+              },
+              "error": {
+                "code": 5,
+                "message": "activity not found for ID: umpire-slice-849067ad-4bb7-4eb0-84a8-3b0b734c07f2"
+              },
+              "info": {},
+              "outcome": null
+            }
+          ]
+        },
+        {
+          "current": [
+            {
+              "method": "DescribeActivityExecution",
+              "request": {
+                "@type": "type.googleapis.com/temporal.api.workflowservice.v1.DescribeActivityExecutionRequest",
+                "namespace": "TestTestpilotModelSliceThroughUmpire-26faa0a6-5bef-4b7b-832b-bad641d08a67",
+                "activityId": "umpire-slice-849067ad-4bb7-4eb0-84a8-3b0b734c07f2",
+                "runId": "01a17617-dc5c-7515-ab8c-4c7dc1ea4519",
+                "includeOutcome": true,
+                "includeLastFailure": true
+              },
+              "error": null,
+              "info": {
+                "attempt": 1,
+                "status": "ACTIVITY_EXECUTION_STATUS_COMPLETED",
+                "lastWorkerIdentity": "umpire-raw",
+                "stateTransitionCount": "3",
+                "lastStartedTime": "2026-10-26T02:43:57.676739696Z",
+                "lastAttemptCompleteTime": "2026-10-26T02:43:57.677919363Z"
+              },
+              "outcome": {
+                "result": {
+                  "payloads": [
+                    {
+                      "metadata": {
+                        "encoding": "YmluYXJ5L3BsYWlu"
+                      },
+                      "data": "Q29tcGxldGU="
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      ],
+      "response": {
+        "explained": {
+          "steps": [
+            "Worker::Poll(1)",
+            "Worker::RespondCompleted",
+            "Client::Cancel",
+            "Client::Cancel",
+            "Client::Cancel"
+          ],
+          "outcomes": [
+            "Accepted",
+            "Accepted",
+            "Rejected(NotFound)",
+            "Rejected(NotFound)",
+            "Rejected(NotFound)"
+          ]
+        },
+        "continuePolling": true
+      }
+    },
+    {
+      "sequence": "17",
+      "request": "6",
+      "driverEvent": "2",
+      "kind": "judgment",
+      "observation": [
+        {
+          "method": "RequestCancelActivityExecution",
+          "request": {
+            "@type": "type.googleapis.com/temporal.api.workflowservice.v1.RequestCancelActivityExecutionRequest",
+            "namespace": "TestTestpilotModelSliceThroughUmpire-26faa0a6-5bef-4b7b-832b-bad641d08a67",
+            "activityId": "umpire-slice-849067ad-4bb7-4eb0-84a8-3b0b734c07f2",
+            "runId": "01a17617-dc5c-7515-ab8c-4c7dc1ea4519"
+          },
+          "error": {
+            "code": 5,
+            "message": "activity not found for ID: umpire-slice-849067ad-4bb7-4eb0-84a8-3b0b734c07f2"
+          },
+          "info": {},
+          "outcome": null
+        }
+      ],
+      "response": {
+        "explained": {
+          "steps": [
+            "Worker::Poll(1)",
+            "Worker::RespondCompleted",
+            "Client::Cancel",
+            "Client::Cancel",
+            "Client::Cancel",
+            "Client::Cancel"
+          ],
+          "outcomes": [
+            "Accepted",
+            "Accepted",
+            "Rejected(NotFound)",
+            "Rejected(NotFound)",
+            "Rejected(NotFound)",
+            "Rejected(NotFound)"
+          ]
+        }
+      }
+    },
+    {
+      "sequence": "18",
+      "request": "7",
+      "driverEvent": "0",
+      "kind": "proposal"
+    },
+    {
+      "sequence": "19",
+      "request": "7",
+      "driverEvent": "1",
+      "kind": "judgment",
+      "observation": [
+        {
+          "acknowledged": [
+            {
+              "method": "RequestCancelActivityExecution",
+              "request": {
+                "@type": "type.googleapis.com/temporal.api.workflowservice.v1.RequestCancelActivityExecutionRequest",
+                "namespace": "TestTestpilotModelSliceThroughUmpire-26faa0a6-5bef-4b7b-832b-bad641d08a67",
+                "activityId": "umpire-slice-849067ad-4bb7-4eb0-84a8-3b0b734c07f2",
+                "runId": "01a17617-dc5c-7515-ab8c-4c7dc1ea4519"
+              },
+              "error": {
+                "code": 5,
+                "message": "activity not found for ID: umpire-slice-849067ad-4bb7-4eb0-84a8-3b0b734c07f2"
+              },
+              "info": {},
+              "outcome": null
+            }
+          ]
+        },
+        {
+          "current": [
+            {
+              "method": "DescribeActivityExecution",
+              "request": {
+                "@type": "type.googleapis.com/temporal.api.workflowservice.v1.DescribeActivityExecutionRequest",
+                "namespace": "TestTestpilotModelSliceThroughUmpire-26faa0a6-5bef-4b7b-832b-bad641d08a67",
+                "activityId": "umpire-slice-849067ad-4bb7-4eb0-84a8-3b0b734c07f2",
+                "runId": "01a17617-dc5c-7515-ab8c-4c7dc1ea4519",
+                "includeOutcome": true,
+                "includeLastFailure": true
+              },
+              "error": null,
+              "info": {
+                "attempt": 1,
+                "status": "ACTIVITY_EXECUTION_STATUS_COMPLETED",
+                "lastWorkerIdentity": "umpire-raw",
+                "stateTransitionCount": "3",
+                "lastStartedTime": "2026-10-26T02:43:57.676739696Z",
+                "lastAttemptCompleteTime": "2026-10-26T02:43:57.677919363Z"
+              },
+              "outcome": {
+                "result": {
+                  "payloads": [
+                    {
+                      "metadata": {
+                        "encoding": "YmluYXJ5L3BsYWlu"
+                      },
+                      "data": "Q29tcGxldGU="
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      ],
+      "response": {
+        "explained": {
+          "steps": [
+            "Worker::Poll(1)",
+            "Worker::RespondCompleted",
+            "Client::Cancel",
+            "Client::Cancel",
+            "Client::Cancel",
+            "Client::Cancel"
+          ],
+          "outcomes": [
+            "Accepted",
+            "Accepted",
+            "Rejected(NotFound)",
+            "Rejected(NotFound)",
+            "Rejected(NotFound)",
+            "Rejected(NotFound)"
+          ]
+        },
+        "continuePolling": true
+      }
+    },
+    {
+      "sequence": "20",
+      "request": "7",
+      "driverEvent": "2",
+      "kind": "judgment",
+      "observation": [
+        {
+          "method": "RequestCancelActivityExecution",
+          "request": {
+            "@type": "type.googleapis.com/temporal.api.workflowservice.v1.RequestCancelActivityExecutionRequest",
+            "namespace": "TestTestpilotModelSliceThroughUmpire-26faa0a6-5bef-4b7b-832b-bad641d08a67",
+            "activityId": "umpire-slice-849067ad-4bb7-4eb0-84a8-3b0b734c07f2",
+            "runId": "01a17617-dc5c-7515-ab8c-4c7dc1ea4519"
+          },
+          "error": {
+            "code": 5,
+            "message": "activity not found for ID: umpire-slice-849067ad-4bb7-4eb0-84a8-3b0b734c07f2"
+          },
+          "info": {},
+          "outcome": null
+        }
+      ],
+      "response": {
+        "explained": {
+          "steps": [
+            "Worker::Poll(1)",
+            "Worker::RespondCompleted",
+            "Client::Cancel",
+            "Client::Cancel",
+            "Client::Cancel",
+            "Client::Cancel",
+            "Client::Cancel"
+          ],
+          "outcomes": [
+            "Accepted",
+            "Accepted",
+            "Rejected(NotFound)",
+            "Rejected(NotFound)",
+            "Rejected(NotFound)",
+            "Rejected(NotFound)",
+            "Rejected(NotFound)"
+          ]
+        }
+      }
+    }
+  ]
+}

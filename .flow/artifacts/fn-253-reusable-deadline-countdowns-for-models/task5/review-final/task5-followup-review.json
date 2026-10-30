@@ -1,0 +1,31 @@
+{
+  "success": true,
+  "type": "impl_review_fanout",
+  "phase": "dispatch",
+  "id": "fn-253-reusable-deadline-countdowns-for-models.5",
+  "rid": "b11a07b1efbe4d179d9507228245a916",
+  "reservation_id": "b11a07b1efbe4d179d9507228245a916",
+  "standalone": false,
+  "dir": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/review-fanout/b11a07b1efbe4d179d9507228245a916",
+  "draws": [
+    {
+      "axis": "contracts",
+      "parse_status": {
+        "status": "parsed",
+        "reason": null,
+        "block": null
+      },
+      "verdict": "SHIP",
+      "failed": false,
+      "failure_class": null,
+      "failure_message": null,
+      "session_id": "b9f24d27-8863-496f-a9ab-3b5ffd8708f4",
+      "model": "claude-fable-5-1",
+      "review_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/review-fanout/b11a07b1efbe4d179d9507228245a916/contracts.review.md",
+      "output_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/review-fanout/b11a07b1efbe4d179d9507228245a916/contracts.out.txt"
+    }
+  ],
+  "failed_draws": 0,
+  "merged": false,
+  "next": "merge the surviving draws' findings, then run: flowctl claude impl-review-fanout-finalize --rid b11a07b1efbe4d179d9507228245a916 --merge-plan <merge-plan.json>"
+}

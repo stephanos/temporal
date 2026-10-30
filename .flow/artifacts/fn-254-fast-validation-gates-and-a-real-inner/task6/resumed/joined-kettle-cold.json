@@ -1,0 +1,25 @@
+{
+  "command": [
+    "mise",
+    "exec",
+    "--",
+    "cargo",
+    "xtask",
+    "quick"
+  ],
+  "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire",
+  "started_utc": "2026-10-26T21:11:13.534329+00:00",
+  "environment": {
+    "CARGO_TARGET_DIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/target",
+    "TMPDIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/tmp",
+    "CARGO_INCREMENTAL": "0",
+    "CARGO_BUILD_JOBS": "2",
+    "RUST_TEST_THREADS": "2",
+    "MISE_TRUSTED_CONFIG_PATHS": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate:/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/target"
+  },
+  "BASH_ENV": "removed",
+  "exit_code": 0,
+  "elapsed_seconds": 254.8582435379999,
+  "log_sha256": "0f4f7f6c931ccc5ba5856b72b4cca284cbf71c86020cf00a9cf0ea3702aee9c2",
+  "free_bytes": 33653608448
+}

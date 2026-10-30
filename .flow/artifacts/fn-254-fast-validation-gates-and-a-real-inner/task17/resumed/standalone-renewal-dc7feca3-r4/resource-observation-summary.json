@@ -1,0 +1,13 @@
+{
+  "observation_interval_seconds": 0.5,
+  "samples": 98,
+  "sampled_peak_java_processes": 3,
+  "java_samples_with_lease_or_lifecycle_environment": 0,
+  "unique_java_pids": 86,
+  "sampled_peak_total_java_rss_kib": 258176,
+  "heap_arguments": [
+    "-Xmx512m"
+  ],
+  "all_observed_owned_pids_absent": true,
+  "limitation": "Polling is observational and is not a hard process or RSS peak proof; failed standalone did not finish suite."
+}

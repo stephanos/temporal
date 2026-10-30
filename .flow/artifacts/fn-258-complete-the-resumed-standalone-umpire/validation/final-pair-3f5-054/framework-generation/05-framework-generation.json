@@ -1,0 +1,15 @@
+{
+  "argv": [
+    "git",
+    "diff",
+    "--exit-code"
+  ],
+  "cwd": "/home/agent/.cache/codex-build/tmp/fn258-final-pair-3f5-054/umpire",
+  "started_unix": 1793199069.3011103,
+  "ended_unix": 1793199069.3062077,
+  "exit": 0,
+  "log": "/home/agent/.cache/codex-build/tmp/fn258-final-pair-3f5-054/execution-evidence/framework-generation-1793199068195925444/05-framework-generation.log",
+  "log_sha256": "55aa2135082b231e4a9b19ef26bffd35c52862f086e8a5d9df865420c2e6f9a8",
+  "free_before": 55124545536,
+  "free_after": 55124541440
+}

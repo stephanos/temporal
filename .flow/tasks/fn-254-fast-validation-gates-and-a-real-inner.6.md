@@ -44,10 +44,40 @@ Keep actual activity quick checks, native/interpreter selection, hit/miss/invali
 - [ ] Cache controls exercise every effective input, corruption/interruption/concurrent publication and failure exclusion; inherited enablement cannot make `model-validate` read a cache. Selection controls cover rename/delete/global inputs and cross-workspace reverse dependencies.
 - [ ] Warm `model-quick` after an activity edit is under 60 s, or the miss is reported with its cause.
 
+## Throughput handoff
+
+The correct five-consumer content-edit workload passed in 444.027 s, with 388.875 s in realization tests and 14 TLC cache hits/zero executions. Preserve this complete coverage and report the 60 s miss. .5 owns compiler-case batching/reuse and fixture granularity; .17 owns nextest reuse and stage scheduling. Earlier approximately 20 s runs omitted consumers and remain historical incomplete coverage. Neither lower test selection nor a cache-only argument satisfies the inner-loop contract.
+
 ## Done summary
-TBD
+Implemented affected-package quick validation and bounded raw TLC artifact caching with current decoder replay, complete configuration keys, atomic publication, corruption/concurrency controls and authoritative full-gate bypass. Verified sibling configurations cache after complete module assembly; refuted/error configurations remain fresh. Identity work is shared per invocation and refreshed between calls; strict cache-root refusals retain their cause.
+
+All real activity source consumers and shared Kettle consumers are selected. Test-only Kettle readers retain full package tests without unrelated reverse expansion. Known metadata/prose is reported ignored; workspace README/docs, package/mapping ownership, explicit globals and unknown external build inputs remain conservative, including checkouts beneath .flow.
+
+Current controls: 16 quick tests, 12 cache tests, strict focused clippy/format, red/green selection and publication controls. Real Kettle module cold/warm: 4.593/1.591 s; warm verified siblings hit and negative claim executes fresh. Complete six-consumer shipping Kettle edit: 254.858/129.783 s cold/warm, 60 fixture tests passed and one ignored, native/interpreter agreement retained; final cdfd3720c8 select-only confirms the exact same six consumers with dirty Flow evidence ignored. Locks unchanged and isolated source restored clean. Joined/source/artifact hashes verified in task6/resumed.
+
+The 60 s target is missed honestly: warm fixture stage 99.527 s and TLA tests 20.229 s dominate. The retained complete five-consumer activity workload remains 444.027 s (388.875 s realization tests); the Kettle measurement does not replace it. .5/.17 own subsequent throughput improvements. Full model-check/model-validate and joined final measurements remain .8 obligations under owner cadence; they were not reported green here. Retained source-projected guest/cache/input proof remains applicable; current cache changes have renewed focused and real-TLC evidence.
+
+stage: impl-review - ran (three-lens NEEDS_WORK, fixed, re-review SHIP; fresh README follow-up SHIP, model: claude-fable-5-1 high). The optional P3 additional nested-workspace assertion had no failing scenario and was omitted at the evidence gate.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
+## Source preparation checkpoint (2026-10-26)
+
+The retained review identifies an additional shared-source consumer outside the Temporal
+feature mapping: `sample_kettle/model.rs` is read directly by `umpire-reference-kettle`,
+`umpire-suite`, `umpire-tla` and `umpire-apalache`. The reference's reverse dependent is
+`umpire-kettle-guest`. Bring the source-selection seed prepared in .17 (`836242a09a`)
+into this task without the nextest/compiler-only changes, expanding it to the other
+three direct consumers found in fresh source review. The regression graph requires
+all six affected packages, excludes an unrelated package, and selects only the fixture
+package for its tests-only edit. Deleted Model paths use the same selection.
+
+This is source preparation under the current no-new-validation instruction. The new
+control and the real Kettle content-edit path still require execution when validation
+resumes; retained Temporal and cache evidence does not prove this correction. Keep the
+task open and reconcile this overlapping hunk when integrating .17. The three retained
+SHIP draws were not finalized; their abandoned reservation is not a completed review.
 
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 80870b1695, 413bd2c351, d0469357c1, cb9bedfce8, c88fdc5506, 0c83ab3d1e, cdfd3720c8
+- Tests: mise exec -- cargo test --locked -p xtask --lib quick:: (16 passed), mise exec -- cargo test --locked -p umpire-tlc --lib cache -- --nocapture (12 passed), strict focused cargo clippy and cargo fmt for xtask and umpire-tlc, task6/resumed/cache-review-kettle.py (real TLC cold/warm module proof), task6/resumed/joined-validate.py (six-consumer shipping quick cold/warm), task6/resumed/joined-final-selection.py (final source and dirty Flow selection), retained consumer-fix/proof.json and quick-proof.json source-projected complete activity/cache/bypass/guest proof
 - PRs:

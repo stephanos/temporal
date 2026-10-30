@@ -1,0 +1,7 @@
+$ make -C /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2583-consumers model-fmt
+make: Entering directory '/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2583-consumers'
+missing sibling Umpire checkout at /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/umpire; place umpire beside the Temporal checkout
+make: *** [Makefile:1281: model-fmt] Error 1
+make: Leaving directory '/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2583-consumers'
+
+exit: 2

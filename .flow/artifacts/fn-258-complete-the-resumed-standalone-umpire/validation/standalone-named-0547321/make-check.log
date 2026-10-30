@@ -1,0 +1,322 @@
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.14s
+backend modes: UMPIRE_BACKENDS=skip (default) UMPIRE_APALACHE=skip (default)
+[gate:retired-names] $ exec "$UMPIRE_GATE_EXECUTABLE" gate --scheduled-stage retired-names
+[gate:fmt] $ exec "$UMPIRE_GATE_EXECUTABLE" gate --scheduled-stage fmt
+[gate:proto-tools] $ exec "$UMPIRE_GATE_EXECUTABLE" gate --scheduled-stage proto-tools
+[gate:proto-tools] Finished in 69.4ms
+[gate:timing-controls] $ exec "$UMPIRE_GATE_EXECUTABLE" gate --scheduled-stage timing-controls
+[gate:timing-controls] guest wiring controls: five guests, two native reports, caller paths and child failures passed (fake builders)
+[gate:timing-controls] Finished in 449.3ms
+[gate:protobuf-controls] $ exec "$UMPIRE_GATE_EXECUTABLE" gate --scheduled-stage protobuf-controls
+[gate:protobuf-controls] proto-go controls: selectors, pins, freshness, symlinks, failures and cleanup passed
+[gate:protobuf-controls] Finished in 1.01s
+[gate:protobuf-freshness] $ exec "$UMPIRE_GATE_EXECUTABLE" gate --scheduled-stage protobuf-freshness
+[gate:fmt] Finished in 1.69s
+[gate:protobuf-freshness] Finished in 224.1ms
+[gate:kettle-protobuf-freshness] $ exec "$UMPIRE_GATE_EXECUTABLE" gate --scheduled-stage kettle-protobuf-freshness
+[gate:kettle-protobuf-freshness] Finished in 236.0ms
+[gate:capability-controls] $ exec "$UMPIRE_GATE_EXECUTABLE" gate --scheduled-stage capability-controls
+[gate:capability-controls] capability controls: both core policies reject filesystem, clock and thread APIs/types
+[gate:capability-controls] unsafe controls: safe target roots reject overrides; deny requires a local allowance
+[gate:capability-controls] Finished in 1.16s
+[gate:source-boundary] $ exec "$UMPIRE_GATE_EXECUTABLE" gate --scheduled-stage source-boundary
+[gate:retired-names] Finished in 3.38s
+[gate:source-boundary] Finished in 866.7ms
+[gate:clippy] $ exec "$UMPIRE_GATE_EXECUTABLE" gate --scheduled-stage clippy
+[gate:clippy]     Checking umpire-checker v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout/backends/native)
+[gate:clippy]     Checking umpire-runtime v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout/protocol/runtime)
+[gate:clippy]    Compiling umpire-catalog-syntax v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout/catalog/syntax)
+[gate:clippy]    Compiling umpire-catalog-macros v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout/catalog/macros)
+[gate:clippy]     Checking umpire-catalog v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout/catalog)
+[gate:clippy]     Checking umpire-testing v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout/dev/testing)
+[gate:clippy]     Checking umpire-suite v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout/author/suite)
+[gate:clippy]     Checking umpire v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout/author/umpire)
+[gate:clippy]    Compiling umpire-catalog-build v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout/catalog/build)
+[gate:clippy]    Compiling umpire-reference-kettle v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout/reference/kettle)
+[gate:clippy]     Checking umpire-apalache v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout/backends/apalache)
+[gate:clippy]     Checking umpire-dsl-macros v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout/author/dsl/macros)
+[gate:clippy]     Checking umpire-fixtures v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout/dev/fixtures)
+[gate:clippy]     Checking umpire-kettle-guest v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout/reference/kettle/guest)
+[gate:clippy]     Checking umpire-author-consumer v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout/author/umpire/tests/consumer)
+[gate:clippy]     Checking umpire-dsl v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout/author/dsl)
+[gate:clippy]     Checking umpire-tla v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout/backends/tla)
+[gate:clippy]     Checking umpire-tlc v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout/backends/tlc)
+[gate:clippy]     Checking umpire-caught-panic-guest v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout/protocol/runtime/guests/caught-panic)
+[gate:clippy]     Checking umpire-overflow-guest v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout/protocol/runtime/guests/overflow)
+[gate:clippy]     Checking umpire-control-guest v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout/protocol/runtime/guests/control)
+[gate:clippy]     Checking umpire-stock-guest v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout/protocol/runtime/guests/stock)
+[gate:clippy]     Finished `dev` profile [unoptimized + debuginfo] target(s) in 16.99s
+[gate:clippy] Finished in 17.10s
+[gate:docs] $ exec "$UMPIRE_GATE_EXECUTABLE" gate --scheduled-stage docs
+[gate:docs] Finished in 7.01s
+[gate:tests] $ exec "$UMPIRE_GATE_EXECUTABLE" gate --scheduled-stage tests
+[gate:tests]    Compiling umpire-checker v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout/backends/native)
+[gate:tests]    Compiling umpire-runtime v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout/protocol/runtime)
+[gate:tests]    Compiling umpire-catalog-syntax v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout/catalog/syntax)
+[gate:tests]    Compiling umpire-catalog-macros v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout/catalog/macros)
+[gate:tests]    Compiling umpire-catalog v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout/catalog)
+[gate:tests]    Compiling umpire-testing v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout/dev/testing)
+[gate:tests]    Compiling umpire-suite v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout/author/suite)
+[gate:tests]    Compiling umpire v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout/author/umpire)
+[gate:tests]    Compiling umpire-catalog-build v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout/catalog/build)
+[gate:tests]    Compiling umpire-reference-kettle v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout/reference/kettle)
+[gate:tests]    Compiling umpire-apalache v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout/backends/apalache)
+[gate:tests]    Compiling umpire-author-consumer v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout/author/umpire/tests/consumer)
+[gate:tests]    Compiling umpire-fixtures v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout/dev/fixtures)
+[gate:tests]    Compiling umpire-dsl-macros v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout/author/dsl/macros)
+[gate:tests]    Compiling umpire-kettle-guest v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout/reference/kettle/guest)
+[gate:tests]    Compiling umpire-dsl v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout/author/dsl)
+[gate:tests]    Compiling umpire-tla v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout/backends/tla)
+[gate:tests]    Compiling umpire-tlc v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout/backends/tlc)
+[gate:tests]    Compiling umpire-caught-panic-guest v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout/protocol/runtime/guests/caught-panic)
+[gate:tests]    Compiling umpire-overflow-guest v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout/protocol/runtime/guests/overflow)
+[gate:tests]    Compiling umpire-stock-guest v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout/protocol/runtime/guests/stock)
+[gate:tests]    Compiling umpire-control-guest v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout/protocol/runtime/guests/control)
+[gate:tests]     Finished `test` profile [unoptimized + debuginfo] target(s) in 1m 23s
+[gate:tests]    Compiling umpire-reference-kettle v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout/reference/kettle)
+[gate:tests]    Compiling umpire-kettle-guest v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout/reference/kettle/guest)
+[gate:tests]     Finished `test` profile [unoptimized + debuginfo] target(s) in 3.78s
+[gate:tests] ────────────
+[gate:tests]  Nextest run ID 08eb1466-1913-49b9-8c45-984561f56cf8 with nextest profile: default
+[gate:tests]     Starting 908 tests across 69 binaries (2 tests skipped)
+[gate:tests]         SLOW [> 30.000s] (───────) xtask::main gate_wiring::full_dispatch_stops_at_every_failed_leaf_in_both_modes
+[gate:tests] ────────────
+[gate:tests]      Summary [  69.749s] 908 tests run: 908 passed (1 slow), 2 skipped
+[gate:tests]         SLOW [  30.932s] (908/908) xtask::main gate_wiring::full_dispatch_stops_at_every_failed_leaf_in_both_modes
+[gate:tests] 
+[gate:tests] running 0 tests
+[gate:tests] 
+[gate:tests] test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+[gate:tests] 
+[gate:tests] 
+[gate:tests] running 0 tests
+[gate:tests] 
+[gate:tests] test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+[gate:tests] 
+[gate:tests] 
+[gate:tests] running 0 tests
+[gate:tests] 
+[gate:tests] test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+[gate:tests] 
+[gate:tests] 
+[gate:tests] running 0 tests
+[gate:tests] 
+[gate:tests] test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+[gate:tests] 
+[gate:tests] 
+[gate:tests] running 1 test
+[gate:tests] .
+[gate:tests] test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+[gate:tests] 
+[gate:tests] 
+[gate:tests] running 1 test
+[gate:tests] .
+[gate:tests] test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+[gate:tests] 
+[gate:tests] all doctests ran in 0.19s; merged doctests compilation took 0.17s
+[gate:tests] 
+[gate:tests] running 0 tests
+[gate:tests] 
+[gate:tests] test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+[gate:tests] 
+[gate:tests] 
+[gate:tests] running 0 tests
+[gate:tests] 
+[gate:tests] test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+[gate:tests] 
+[gate:tests] 
+[gate:tests] running 0 tests
+[gate:tests] 
+[gate:tests] test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+[gate:tests] 
+[gate:tests] 
+[gate:tests] running 0 tests
+[gate:tests] 
+[gate:tests] test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+[gate:tests] 
+[gate:tests] 
+[gate:tests] running 0 tests
+[gate:tests] 
+[gate:tests] test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+[gate:tests] 
+[gate:tests] 
+[gate:tests] running 0 tests
+[gate:tests] 
+[gate:tests] test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+[gate:tests] 
+[gate:tests] 
+[gate:tests] running 0 tests
+[gate:tests] 
+[gate:tests] test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+[gate:tests] 
+[gate:tests] 
+[gate:tests] running 0 tests
+[gate:tests] 
+[gate:tests] test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+[gate:tests] 
+[gate:tests] 
+[gate:tests] running 0 tests
+[gate:tests] 
+[gate:tests] test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+[gate:tests] 
+[gate:tests] 
+[gate:tests] running 0 tests
+[gate:tests] 
+[gate:tests] test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+[gate:tests] 
+[gate:tests] 
+[gate:tests] running 0 tests
+[gate:tests] 
+[gate:tests] test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+[gate:tests] 
+[gate:tests] 
+[gate:tests] running 1 test
+[gate:tests] .
+[gate:tests] test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+[gate:tests] 
+[gate:tests] 
+[gate:tests] running 1 test
+[gate:tests] i
+[gate:tests] test result: ok. 0 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.00s
+[gate:tests] 
+[gate:tests] 
+[gate:tests] running 1 test
+[gate:tests] .
+[gate:tests] test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.05s
+[gate:tests] 
+[gate:tests] all doctests ran in 0.17s; merged doctests compilation took 0.11s
+[gate:tests] 
+[gate:tests] running 0 tests
+[gate:tests] 
+[gate:tests] test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+[gate:tests] 
+[gate:tests] 
+[gate:tests] running 0 tests
+[gate:tests] 
+[gate:tests] test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+[gate:tests] 
+[gate:tests] 
+[gate:tests] running 0 tests
+[gate:tests] 
+[gate:tests] test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+[gate:tests] 
+[gate:tests] 
+[gate:tests] running 0 tests
+[gate:tests] 
+[gate:tests] test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+[gate:tests] 
+[gate:tests] Finished in 166.28s
+[gate:wasm32-wasip1] $ exec "$UMPIRE_GATE_EXECUTABLE" gate --scheduled-stage wasm32-wasip1
+[gate:wasm32-wasip1] Finished in 277.1ms
+[gate:core-wasm-clippy] $ exec "$UMPIRE_GATE_EXECUTABLE" gate --scheduled-stage core-wasm-clippy
+[gate:core-wasm-clippy]     Checking umpire-checker v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout/backends/native)
+[gate:core-wasm-clippy]     Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.15s
+[gate:core-wasm-clippy] Finished in 229.9ms
+[gate:wasm-guest] $ exec "$UMPIRE_GATE_EXECUTABLE" gate --scheduled-stage wasm-guest
+[gate:wasm-guest]     Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.02s
+[gate:wasm-guest]     Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.02s
+[gate:wasm-guest] warning: unstable feature specified for `-Ctarget-feature`: `exception-handling`
+[gate:wasm-guest]   |
+[gate:wasm-guest]   = note: this feature is not stably supported; its behavior can change in the future
+[gate:wasm-guest] 
+[gate:wasm-guest] warning: `umpire-dsl` (lib) generated 1 warning
+[gate:wasm-guest]    Compiling umpire-checker v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout/backends/native)
+[gate:wasm-guest] warning: `umpire-checker` (lib) generated 1 warning (1 duplicate)
+[gate:wasm-guest]    Compiling umpire-runtime v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout/protocol/runtime)
+[gate:wasm-guest] warning: `umpire-runtime` (lib) generated 1 warning (1 duplicate)
+[gate:wasm-guest]    Compiling umpire-stock-guest v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout/protocol/runtime/guests/stock)
+[gate:wasm-guest] warning: `umpire-stock-guest` (lib) generated 1 warning (1 duplicate)
+[gate:wasm-guest]     Finished `guest` profile [optimized] target(s) in 2.57s
+[gate:wasm-guest]     Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.02s
+[gate:wasm-guest]     Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.02s
+[gate:wasm-guest]    Compiling umpire-checker v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout/backends/native)
+[gate:wasm-guest]    Compiling umpire-runtime v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout/protocol/runtime)
+[gate:wasm-guest]    Compiling umpire-catalog-syntax v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout/catalog/syntax)
+[gate:wasm-guest] warning: unstable feature specified for `-Ctarget-feature`: `exception-handling`
+[gate:wasm-guest]   |
+[gate:wasm-guest]   = note: this feature is not stably supported; its behavior can change in the future
+[gate:wasm-guest] 
+[gate:wasm-guest] warning: `umpire-dsl` (lib) generated 1 warning
+[gate:wasm-guest] warning: `umpire-checker` (lib) generated 1 warning (1 duplicate)
+[gate:wasm-guest] warning: `umpire-runtime` (lib) generated 1 warning (1 duplicate)
+[gate:wasm-guest]    Compiling umpire-catalog-macros v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout/catalog/macros)
+[gate:wasm-guest]    Compiling umpire-catalog-build v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout/catalog/build)
+[gate:wasm-guest]    Compiling umpire-reference-kettle v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout/reference/kettle)
+[gate:wasm-guest]    Compiling umpire-catalog v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout/catalog)
+[gate:wasm-guest] warning: `umpire-catalog` (lib) generated 1 warning (1 duplicate)
+[gate:wasm-guest]    Compiling umpire-suite v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout/author/suite)
+[gate:wasm-guest] warning: `umpire-suite` (lib) generated 1 warning (1 duplicate)
+[gate:wasm-guest]    Compiling umpire v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout/author/umpire)
+[gate:wasm-guest] warning: `umpire` (lib) generated 1 warning (1 duplicate)
+[gate:wasm-guest] warning: `umpire-reference-kettle` (lib) generated 1 warning (1 duplicate)
+[gate:wasm-guest]    Compiling umpire-kettle-guest v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout/reference/kettle/guest)
+[gate:wasm-guest] warning: `umpire-kettle-guest` (lib) generated 1 warning (1 duplicate)
+[gate:wasm-guest]     Finished `guest` profile [optimized] target(s) in 17.73s
+[gate:wasm-guest]     Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.02s
+[gate:wasm-guest]     Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.02s
+[gate:wasm-guest] warning: unstable feature specified for `-Ctarget-feature`: `exception-handling`
+[gate:wasm-guest]   |
+[gate:wasm-guest]   = note: this feature is not stably supported; its behavior can change in the future
+[gate:wasm-guest] 
+[gate:wasm-guest] warning: `umpire-dsl` (lib) generated 1 warning
+[gate:wasm-guest] warning: `umpire-checker` (lib) generated 1 warning (1 duplicate)
+[gate:wasm-guest] warning: `umpire-runtime` (lib) generated 1 warning (1 duplicate)
+[gate:wasm-guest]    Compiling umpire-control-guest v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout/protocol/runtime/guests/control)
+[gate:wasm-guest] warning: `umpire-control-guest` (lib) generated 1 warning (1 duplicate)
+[gate:wasm-guest]     Finished `guest` profile [optimized] target(s) in 1.55s
+[gate:wasm-guest]     Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.02s
+[gate:wasm-guest]     Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.02s
+[gate:wasm-guest] warning: unstable feature specified for `-Ctarget-feature`: `exception-handling`
+[gate:wasm-guest]   |
+[gate:wasm-guest]   = note: this feature is not stably supported; its behavior can change in the future
+[gate:wasm-guest] 
+[gate:wasm-guest] warning: `umpire-dsl` (lib) generated 1 warning
+[gate:wasm-guest] warning: `umpire-checker` (lib) generated 1 warning (1 duplicate)
+[gate:wasm-guest] warning: `umpire-runtime` (lib) generated 1 warning (1 duplicate)
+[gate:wasm-guest]    Compiling umpire-caught-panic-guest v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout/protocol/runtime/guests/caught-panic)
+[gate:wasm-guest] warning: `umpire-caught-panic-guest` (lib) generated 1 warning (1 duplicate)
+[gate:wasm-guest]     Finished `guest` profile [optimized] target(s) in 1.72s
+[gate:wasm-guest]     Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.02s
+[gate:wasm-guest]     Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.02s
+[gate:wasm-guest] warning: unstable feature specified for `-Ctarget-feature`: `exception-handling`
+[gate:wasm-guest]   |
+[gate:wasm-guest]   = note: this feature is not stably supported; its behavior can change in the future
+[gate:wasm-guest] 
+[gate:wasm-guest] warning: `umpire-dsl` (lib) generated 1 warning
+[gate:wasm-guest] warning: `umpire-checker` (lib) generated 1 warning (1 duplicate)
+[gate:wasm-guest] warning: `umpire-runtime` (lib) generated 1 warning (1 duplicate)
+[gate:wasm-guest]    Compiling umpire-overflow-guest v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout/protocol/runtime/guests/overflow)
+[gate:wasm-guest] warning: `umpire-overflow-guest` (lib) generated 1 warning (1 duplicate)
+[gate:wasm-guest]     Finished `guest` profile [optimized] target(s) in 1.76s
+[gate:wasm-guest]    Compiling umpire-checker v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout/backends/native)
+[gate:wasm-guest]    Compiling umpire-runtime v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout/protocol/runtime)
+[gate:wasm-guest]    Compiling umpire-caught-panic-guest v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout/protocol/runtime/guests/caught-panic)
+[gate:wasm-guest]     Finished `guest` profile [optimized] target(s) in 4.36s
+[gate:wasm-guest]      Running `/home/agent/.cache/codex-build/fn258-standalone-0547321/guest/panic-control-reports /home/agent/.cache/codex-build/fn258-standalone-0547321/panic-native`
+[gate:wasm-guest] 
+[gate:wasm-guest] thread 'main' (3916649) panicked at protocol/runtime/guests/caught-panic/src/bin/../../../../tests/support/../../../../backends/native/tests/support/mod.rs:84:38:
+[gate:wasm-guest] broken heater
+[gate:wasm-guest] note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+[gate:wasm-guest] 
+[gate:wasm-guest] thread 'main' (3916649) panicked at protocol/runtime/guests/caught-panic/src/bin/../../../../tests/support/../../../../backends/native/tests/support/mod.rs:87:53:
+[gate:wasm-guest] attempt to add with overflow
+[gate:wasm-guest]    Compiling umpire-control-guest v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout/protocol/runtime/guests/control)
+[gate:wasm-guest]     Finished `guest` profile [optimized] target(s) in 2.82s
+[gate:wasm-guest]      Running `/home/agent/.cache/codex-build/fn258-standalone-0547321/guest/current-contract-reports /home/agent/.cache/codex-build/fn258-standalone-0547321/current-contract-native`
+[gate:wasm-guest] Finished in 34.87s
+[gate:go-host] $ exec "$UMPIRE_GATE_EXECUTABLE" gate --scheduled-stage go-host
+[gate:go-host] ?   	github.com/temporalio/umpire/hosts/go/gen/umpire/annotations/v1	[no test files]
+[gate:go-host] ?   	github.com/temporalio/umpire/hosts/go/gen/umpire/model/v1	[no test files]
+[gate:go-host] ?   	github.com/temporalio/umpire/hosts/go/gen/umpire/realization/v1	[no test files]
+[gate:go-host] ?   	github.com/temporalio/umpire/hosts/go/gen/umpire/run/v1	[no test files]
+[gate:go-host] ok  	github.com/temporalio/umpire/hosts/go/host	0.347s
+[gate:go-host] ok  	github.com/temporalio/umpire/hosts/go/runner	2.071s
+[gate:go-host] ok  	github.com/temporalio/umpire/hosts/go/snapshot	0.002s
+[gate:go-host] Finished in 4.23s
+[gate:kettle-go-host] $ exec "$UMPIRE_GATE_EXECUTABLE" gate --scheduled-stage kettle-go-host
+[gate:kettle-go-host] ok  	github.com/temporalio/umpire/reference/kettle	38.112s
+[gate:kettle-go-host] ?   	github.com/temporalio/umpire/reference/kettle/gen/kettle/v1	[no test files]
+[gate:kettle-go-host] Finished in 38.54s
+[gate:standalone] $ exec "$UMPIRE_GATE_EXECUTABLE" gate --scheduled-stage standalone
+[gate:standalone] Finished in 34.6ms
+Finished in 272.65s

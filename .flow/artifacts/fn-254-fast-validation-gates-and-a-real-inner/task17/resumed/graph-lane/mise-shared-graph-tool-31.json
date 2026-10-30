@@ -1,0 +1,3241 @@
+{
+  "scope": "Actual mise include/metadata-override/dependency execution with tool-only Python leaf stand-ins; NOT native gate, model, standalone, build or suite evidence. No Cargo/Go/JVM launched.",
+  "version": "2026.10.11 linux-arm64 (2026-10-15)",
+  "source_sha256": {
+    "mise.toml": "4ab74ce93a5940fa65aa9c0dff31e41071bf8f98c511eca39cac939d692ee1fc",
+    "model/umpire/mise.toml": "17e680c4d4ce2aa8c2a01c006ea58c4b07405f7e18bdbebfe43dd72eba7b0ec0",
+    "model/umpire/dev/xtask/src/gate/tasks.toml": "348ddfdd3d7384476f85acbcd72dc32ce875f70e3066f65d2bd751b815d9a5b8"
+  },
+  "results": {
+    "combined": {
+      "leaf_events": [
+        {
+          "UMPIRE_GATE_STAGE": "fmt",
+          "UMPIRE_GATE_SCOPE": "framework",
+          "UMPIRE_TOOL_ROOT": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire",
+          "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire",
+          "start": 15776.540543979,
+          "end": 15776.581391146
+        },
+        {
+          "UMPIRE_GATE_STAGE": "retired-names",
+          "UMPIRE_GATE_SCOPE": "temporal",
+          "UMPIRE_TOOL_ROOT": null,
+          "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model",
+          "start": 15776.540409188,
+          "end": 15776.586329688
+        },
+        {
+          "UMPIRE_GATE_STAGE": "fmt",
+          "UMPIRE_GATE_SCOPE": "temporal",
+          "UMPIRE_TOOL_ROOT": null,
+          "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model",
+          "start": 15776.540875521,
+          "end": 15776.587837354
+        },
+        {
+          "UMPIRE_GATE_STAGE": "retired-names",
+          "UMPIRE_GATE_SCOPE": "framework",
+          "UMPIRE_TOOL_ROOT": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire",
+          "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire",
+          "start": 15776.540472854,
+          "end": 15776.587832021
+        },
+        {
+          "UMPIRE_GATE_STAGE": "proto-tools",
+          "UMPIRE_GATE_SCOPE": "framework",
+          "UMPIRE_TOOL_ROOT": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire",
+          "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire",
+          "start": 15776.597953563,
+          "end": 15776.645964521
+        },
+        {
+          "UMPIRE_GATE_STAGE": "timing-controls",
+          "UMPIRE_GATE_SCOPE": "framework",
+          "UMPIRE_TOOL_ROOT": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire",
+          "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire",
+          "start": 15776.661344521,
+          "end": 15776.711421813
+        },
+        {
+          "UMPIRE_GATE_STAGE": "protobuf-controls",
+          "UMPIRE_GATE_SCOPE": "framework",
+          "UMPIRE_TOOL_ROOT": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire",
+          "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire",
+          "start": 15776.728954479,
+          "end": 15776.776173396
+        },
+        {
+          "UMPIRE_GATE_STAGE": "protobuf-freshness",
+          "UMPIRE_GATE_SCOPE": "framework",
+          "UMPIRE_TOOL_ROOT": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire",
+          "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire",
+          "start": 15776.794759771,
+          "end": 15776.83731773
+        },
+        {
+          "UMPIRE_GATE_STAGE": "kettle-protobuf-freshness",
+          "UMPIRE_GATE_SCOPE": "framework",
+          "UMPIRE_TOOL_ROOT": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire",
+          "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire",
+          "start": 15776.854736813,
+          "end": 15776.904496521
+        },
+        {
+          "UMPIRE_GATE_STAGE": "capability-controls",
+          "UMPIRE_GATE_SCOPE": "framework",
+          "UMPIRE_TOOL_ROOT": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire",
+          "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire",
+          "start": 15776.920555855,
+          "end": 15776.961389396
+        },
+        {
+          "UMPIRE_GATE_STAGE": "source-boundary",
+          "UMPIRE_GATE_SCOPE": "framework",
+          "UMPIRE_TOOL_ROOT": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire",
+          "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire",
+          "start": 15776.977482521,
+          "end": 15777.017933521
+        },
+        {
+          "UMPIRE_GATE_STAGE": "clippy",
+          "UMPIRE_GATE_SCOPE": "framework",
+          "UMPIRE_TOOL_ROOT": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire",
+          "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire",
+          "start": 15777.034170105,
+          "end": 15777.084243688
+        },
+        {
+          "UMPIRE_GATE_STAGE": "docs",
+          "UMPIRE_GATE_SCOPE": "framework",
+          "UMPIRE_TOOL_ROOT": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire",
+          "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire",
+          "start": 15777.100414938,
+          "end": 15777.140523438
+        },
+        {
+          "UMPIRE_GATE_STAGE": "tests",
+          "UMPIRE_GATE_SCOPE": "framework",
+          "UMPIRE_TOOL_ROOT": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire",
+          "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire",
+          "start": 15777.157185855,
+          "end": 15777.197387063
+        },
+        {
+          "UMPIRE_GATE_STAGE": "wasm32-wasip1",
+          "UMPIRE_GATE_SCOPE": "framework",
+          "UMPIRE_TOOL_ROOT": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire",
+          "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire",
+          "start": 15777.211877646,
+          "end": 15777.252036146
+        },
+        {
+          "UMPIRE_GATE_STAGE": "core-wasm-clippy",
+          "UMPIRE_GATE_SCOPE": "framework",
+          "UMPIRE_TOOL_ROOT": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire",
+          "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire",
+          "start": 15777.266311563,
+          "end": 15777.309354938
+        },
+        {
+          "UMPIRE_GATE_STAGE": "wasm-guest",
+          "UMPIRE_GATE_SCOPE": "framework",
+          "UMPIRE_TOOL_ROOT": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire",
+          "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire",
+          "start": 15777.326310271,
+          "end": 15777.366602063
+        },
+        {
+          "UMPIRE_GATE_STAGE": "temporal-prerequisites",
+          "UMPIRE_GATE_SCOPE": "temporal",
+          "UMPIRE_TOOL_ROOT": null,
+          "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model",
+          "start": 15777.381516355,
+          "end": 15777.427335605
+        },
+        {
+          "UMPIRE_GATE_STAGE": "temporal-guest-freshness",
+          "UMPIRE_GATE_SCOPE": "temporal",
+          "UMPIRE_TOOL_ROOT": null,
+          "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model",
+          "start": 15777.442309688,
+          "end": 15777.492391063
+        },
+        {
+          "UMPIRE_GATE_STAGE": "timing-controls",
+          "UMPIRE_GATE_SCOPE": "temporal",
+          "UMPIRE_TOOL_ROOT": null,
+          "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model",
+          "start": 15777.509261021,
+          "end": 15777.549804897
+        },
+        {
+          "UMPIRE_GATE_STAGE": "source-boundary",
+          "UMPIRE_GATE_SCOPE": "temporal",
+          "UMPIRE_TOOL_ROOT": null,
+          "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model",
+          "start": 15777.566937188,
+          "end": 15777.609442313
+        },
+        {
+          "UMPIRE_GATE_STAGE": "protobuf-controls",
+          "UMPIRE_GATE_SCOPE": "temporal",
+          "UMPIRE_TOOL_ROOT": null,
+          "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model",
+          "start": 15777.626422397,
+          "end": 15777.673059438
+        },
+        {
+          "UMPIRE_GATE_STAGE": "temporal-protobuf-freshness",
+          "UMPIRE_GATE_SCOPE": "temporal",
+          "UMPIRE_TOOL_ROOT": null,
+          "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model",
+          "start": 15777.689623522,
+          "end": 15777.736217438
+        },
+        {
+          "UMPIRE_GATE_STAGE": "clippy",
+          "UMPIRE_GATE_SCOPE": "temporal",
+          "UMPIRE_TOOL_ROOT": null,
+          "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model",
+          "start": 15777.751653272,
+          "end": 15777.801726355
+        },
+        {
+          "UMPIRE_GATE_STAGE": "docs",
+          "UMPIRE_GATE_SCOPE": "temporal",
+          "UMPIRE_TOOL_ROOT": null,
+          "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model",
+          "start": 15777.81761623,
+          "end": 15777.861343897
+        },
+        {
+          "UMPIRE_GATE_STAGE": "tests",
+          "UMPIRE_GATE_SCOPE": "temporal",
+          "UMPIRE_TOOL_ROOT": null,
+          "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model",
+          "start": 15777.876853188,
+          "end": 15777.92177198
+        },
+        {
+          "UMPIRE_GATE_STAGE": "wasm-guest",
+          "UMPIRE_GATE_SCOPE": "temporal",
+          "UMPIRE_TOOL_ROOT": null,
+          "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model",
+          "start": 15777.93845248,
+          "end": 15777.98375873
+        },
+        {
+          "UMPIRE_GATE_STAGE": "go-host",
+          "UMPIRE_GATE_SCOPE": "framework",
+          "UMPIRE_TOOL_ROOT": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire",
+          "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire",
+          "start": 15778.002640772,
+          "end": 15778.048730813
+        },
+        {
+          "UMPIRE_GATE_STAGE": "kettle-go-host",
+          "UMPIRE_GATE_SCOPE": "framework",
+          "UMPIRE_TOOL_ROOT": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire",
+          "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire",
+          "start": 15778.069488772,
+          "end": 15778.117062147
+        },
+        {
+          "UMPIRE_GATE_STAGE": "standalone",
+          "UMPIRE_GATE_SCOPE": "framework",
+          "UMPIRE_TOOL_ROOT": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire",
+          "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire",
+          "start": 15778.139379397,
+          "end": 15778.180703855
+        },
+        {
+          "UMPIRE_GATE_STAGE": "temporal-go-host",
+          "UMPIRE_GATE_SCOPE": "temporal",
+          "UMPIRE_TOOL_ROOT": null,
+          "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model",
+          "start": 15778.200208688,
+          "end": 15778.244073397
+        }
+      ],
+      "overlapping_stand_in_pairs": [
+        [
+          "framework/fmt",
+          "temporal/retired-names"
+        ],
+        [
+          "framework/fmt",
+          "temporal/fmt"
+        ],
+        [
+          "framework/fmt",
+          "framework/retired-names"
+        ],
+        [
+          "temporal/retired-names",
+          "temporal/fmt"
+        ],
+        [
+          "temporal/retired-names",
+          "framework/retired-names"
+        ],
+        [
+          "temporal/fmt",
+          "framework/retired-names"
+        ]
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed",
+      "inventory": [
+        {
+          "name": "gate:all",
+          "aliases": [],
+          "description": "Admitted framework gate, including the required standalone control",
+          "source": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire/dev/xtask/src/gate/tasks.toml",
+          "config_sources": [
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire/dev/xtask/src/gate/tasks.toml"
+          ],
+          "depends": [
+            "gate:standalone"
+          ],
+          "daemons": null,
+          "secrets": [],
+          "depends_post": [],
+          "wait_for": [],
+          "env": [],
+          "dir": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed",
+          "hide": false,
+          "global": false,
+          "raw": false,
+          "interactive": false,
+          "sources": [],
+          "outputs": [],
+          "shell": null,
+          "quiet": false,
+          "silent": false,
+          "tools": {},
+          "usage": "",
+          "timeout": null,
+          "run": [],
+          "args": [],
+          "file": null
+        },
+        {
+          "name": "gate:capability-controls",
+          "aliases": [],
+          "description": "",
+          "source": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire/dev/xtask/src/gate/tasks.toml",
+          "config_sources": [
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire/dev/xtask/src/gate/tasks.toml"
+          ],
+          "depends": [
+            "gate:kettle-protobuf-freshness"
+          ],
+          "daemons": null,
+          "secrets": [],
+          "depends_post": [],
+          "wait_for": [],
+          "env": [
+            "UMPIRE_GATE_STAGE=capability-controls",
+            "UMPIRE_GATE_ORDER=3",
+            "UMPIRE_TOOL_ROOT={{env.UMPIRE_FRAMEWORK_ROOT}}",
+            "UMPIRE_GATE_SCOPE=framework"
+          ],
+          "dir": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire",
+          "hide": false,
+          "global": false,
+          "raw": false,
+          "interactive": false,
+          "sources": [],
+          "outputs": [],
+          "shell": null,
+          "quiet": false,
+          "silent": false,
+          "tools": {},
+          "usage": "",
+          "timeout": null,
+          "run": [
+            "exec \"$UMPIRE_GATE_EXECUTABLE\" gate --scheduled-stage capability-controls"
+          ],
+          "args": [],
+          "file": null
+        },
+        {
+          "name": "gate:child",
+          "aliases": [],
+          "description": "Complete framework gate without recursive standalone copying",
+          "source": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire/dev/xtask/src/gate/tasks.toml",
+          "config_sources": [
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire/dev/xtask/src/gate/tasks.toml"
+          ],
+          "depends": [
+            "gate:retired-names",
+            "gate:fmt",
+            "gate:kettle-go-host"
+          ],
+          "daemons": null,
+          "secrets": [],
+          "depends_post": [],
+          "wait_for": [],
+          "env": [],
+          "dir": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed",
+          "hide": false,
+          "global": false,
+          "raw": false,
+          "interactive": false,
+          "sources": [],
+          "outputs": [],
+          "shell": null,
+          "quiet": false,
+          "silent": false,
+          "tools": {},
+          "usage": "",
+          "timeout": null,
+          "run": [],
+          "args": [],
+          "file": null
+        },
+        {
+          "name": "gate:clippy",
+          "aliases": [],
+          "description": "",
+          "source": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire/dev/xtask/src/gate/tasks.toml",
+          "config_sources": [
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire/dev/xtask/src/gate/tasks.toml"
+          ],
+          "depends": [
+            "gate:source-boundary",
+            "gate:kettle-protobuf-freshness"
+          ],
+          "daemons": null,
+          "secrets": [],
+          "depends_post": [],
+          "wait_for": [],
+          "env": [
+            "UMPIRE_GATE_STAGE=clippy",
+            "UMPIRE_GATE_ORDER=9",
+            "UMPIRE_TOOL_ROOT={{env.UMPIRE_FRAMEWORK_ROOT}}",
+            "UMPIRE_GATE_SCOPE=framework"
+          ],
+          "dir": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire",
+          "hide": false,
+          "global": false,
+          "raw": false,
+          "interactive": false,
+          "sources": [],
+          "outputs": [],
+          "shell": null,
+          "quiet": false,
+          "silent": false,
+          "tools": {},
+          "usage": "",
+          "timeout": null,
+          "run": [
+            "exec \"$UMPIRE_GATE_EXECUTABLE\" gate --scheduled-stage clippy"
+          ],
+          "args": [],
+          "file": null
+        },
+        {
+          "name": "gate:core-wasm-clippy",
+          "aliases": [],
+          "description": "",
+          "source": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire/dev/xtask/src/gate/tasks.toml",
+          "config_sources": [
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire/dev/xtask/src/gate/tasks.toml"
+          ],
+          "depends": [
+            "gate:wasm32-wasip1"
+          ],
+          "daemons": null,
+          "secrets": [],
+          "depends_post": [],
+          "wait_for": [],
+          "env": [
+            "UMPIRE_GATE_STAGE=core-wasm-clippy",
+            "UMPIRE_GATE_ORDER=13",
+            "UMPIRE_TOOL_ROOT={{env.UMPIRE_FRAMEWORK_ROOT}}",
+            "UMPIRE_GATE_SCOPE=framework"
+          ],
+          "dir": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire",
+          "hide": false,
+          "global": false,
+          "raw": false,
+          "interactive": false,
+          "sources": [],
+          "outputs": [],
+          "shell": null,
+          "quiet": false,
+          "silent": false,
+          "tools": {},
+          "usage": "",
+          "timeout": null,
+          "run": [
+            "exec \"$UMPIRE_GATE_EXECUTABLE\" gate --scheduled-stage core-wasm-clippy"
+          ],
+          "args": [],
+          "file": null
+        },
+        {
+          "name": "gate:docs",
+          "aliases": [],
+          "description": "",
+          "source": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire/dev/xtask/src/gate/tasks.toml",
+          "config_sources": [
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire/dev/xtask/src/gate/tasks.toml"
+          ],
+          "depends": [
+            "gate:clippy"
+          ],
+          "daemons": null,
+          "secrets": [],
+          "depends_post": [],
+          "wait_for": [],
+          "env": [
+            "UMPIRE_GATE_STAGE=docs",
+            "UMPIRE_GATE_ORDER=10",
+            "UMPIRE_TOOL_ROOT={{env.UMPIRE_FRAMEWORK_ROOT}}",
+            "UMPIRE_GATE_SCOPE=framework"
+          ],
+          "dir": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire",
+          "hide": false,
+          "global": false,
+          "raw": false,
+          "interactive": false,
+          "sources": [],
+          "outputs": [],
+          "shell": null,
+          "quiet": false,
+          "silent": false,
+          "tools": {},
+          "usage": "",
+          "timeout": null,
+          "run": [
+            "exec \"$UMPIRE_GATE_EXECUTABLE\" gate --scheduled-stage docs"
+          ],
+          "args": [],
+          "file": null
+        },
+        {
+          "name": "gate:fmt",
+          "aliases": [],
+          "description": "",
+          "source": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire/dev/xtask/src/gate/tasks.toml",
+          "config_sources": [
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire/dev/xtask/src/gate/tasks.toml"
+          ],
+          "depends": [],
+          "daemons": null,
+          "secrets": [],
+          "depends_post": [],
+          "wait_for": [],
+          "env": [
+            "UMPIRE_GATE_STAGE=fmt",
+            "UMPIRE_GATE_ORDER=8",
+            "UMPIRE_TOOL_ROOT={{env.UMPIRE_FRAMEWORK_ROOT}}",
+            "UMPIRE_GATE_SCOPE=framework"
+          ],
+          "dir": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire",
+          "hide": false,
+          "global": false,
+          "raw": false,
+          "interactive": false,
+          "sources": [],
+          "outputs": [],
+          "shell": null,
+          "quiet": false,
+          "silent": false,
+          "tools": {},
+          "usage": "",
+          "timeout": null,
+          "run": [
+            "exec \"$UMPIRE_GATE_EXECUTABLE\" gate --scheduled-stage fmt"
+          ],
+          "args": [],
+          "file": null
+        },
+        {
+          "name": "gate:go-host",
+          "aliases": [],
+          "description": "",
+          "source": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire/dev/xtask/src/gate/tasks.toml",
+          "config_sources": [
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire/dev/xtask/src/gate/tasks.toml",
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/mise.toml"
+          ],
+          "depends": [
+            "gate:wasm-guest"
+          ],
+          "daemons": null,
+          "secrets": [],
+          "depends_post": [],
+          "wait_for": [
+            "model:wasm-guest"
+          ],
+          "env": [
+            "UMPIRE_GATE_STAGE=go-host",
+            "UMPIRE_GATE_ORDER=15",
+            "UMPIRE_TOOL_ROOT={{env.UMPIRE_FRAMEWORK_ROOT}}",
+            "UMPIRE_GATE_SCOPE=framework"
+          ],
+          "dir": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire",
+          "hide": false,
+          "global": false,
+          "raw": false,
+          "interactive": false,
+          "sources": [],
+          "outputs": [],
+          "shell": null,
+          "quiet": false,
+          "silent": false,
+          "tools": {},
+          "usage": "",
+          "timeout": null,
+          "run": [
+            "exec \"$UMPIRE_GATE_EXECUTABLE\" gate --scheduled-stage go-host"
+          ],
+          "args": [],
+          "file": null
+        },
+        {
+          "name": "gate:kettle-go-host",
+          "aliases": [],
+          "description": "",
+          "source": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire/dev/xtask/src/gate/tasks.toml",
+          "config_sources": [
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire/dev/xtask/src/gate/tasks.toml"
+          ],
+          "depends": [
+            "gate:go-host",
+            "gate:kettle-protobuf-freshness"
+          ],
+          "daemons": null,
+          "secrets": [],
+          "depends_post": [],
+          "wait_for": [],
+          "env": [
+            "UMPIRE_GATE_STAGE=kettle-go-host",
+            "UMPIRE_GATE_ORDER=16",
+            "UMPIRE_TOOL_ROOT={{env.UMPIRE_FRAMEWORK_ROOT}}",
+            "UMPIRE_GATE_SCOPE=framework"
+          ],
+          "dir": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire",
+          "hide": false,
+          "global": false,
+          "raw": false,
+          "interactive": false,
+          "sources": [],
+          "outputs": [],
+          "shell": null,
+          "quiet": false,
+          "silent": false,
+          "tools": {},
+          "usage": "",
+          "timeout": null,
+          "run": [
+            "exec \"$UMPIRE_GATE_EXECUTABLE\" gate --scheduled-stage kettle-go-host"
+          ],
+          "args": [],
+          "file": null
+        },
+        {
+          "name": "gate:kettle-protobuf-freshness",
+          "aliases": [],
+          "description": "",
+          "source": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire/dev/xtask/src/gate/tasks.toml",
+          "config_sources": [
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire/dev/xtask/src/gate/tasks.toml"
+          ],
+          "depends": [
+            "gate:protobuf-freshness"
+          ],
+          "daemons": null,
+          "secrets": [],
+          "depends_post": [],
+          "wait_for": [],
+          "env": [
+            "UMPIRE_GATE_STAGE=kettle-protobuf-freshness",
+            "UMPIRE_GATE_ORDER=7",
+            "UMPIRE_TOOL_ROOT={{env.UMPIRE_FRAMEWORK_ROOT}}",
+            "UMPIRE_GATE_SCOPE=framework"
+          ],
+          "dir": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire",
+          "hide": false,
+          "global": false,
+          "raw": false,
+          "interactive": false,
+          "sources": [],
+          "outputs": [],
+          "shell": null,
+          "quiet": false,
+          "silent": false,
+          "tools": {},
+          "usage": "",
+          "timeout": null,
+          "run": [
+            "exec \"$UMPIRE_GATE_EXECUTABLE\" gate --scheduled-stage kettle-protobuf-freshness"
+          ],
+          "args": [],
+          "file": null
+        },
+        {
+          "name": "gate:proto-tools",
+          "aliases": [],
+          "description": "",
+          "source": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire/dev/xtask/src/gate/tasks.toml",
+          "config_sources": [
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire/dev/xtask/src/gate/tasks.toml"
+          ],
+          "depends": [],
+          "daemons": null,
+          "secrets": [],
+          "depends_post": [],
+          "wait_for": [],
+          "env": [
+            "UMPIRE_GATE_STAGE=proto-tools",
+            "UMPIRE_GATE_ORDER=0",
+            "UMPIRE_TOOL_ROOT={{env.UMPIRE_FRAMEWORK_ROOT}}",
+            "UMPIRE_GATE_SCOPE=framework"
+          ],
+          "dir": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire",
+          "hide": false,
+          "global": false,
+          "raw": false,
+          "interactive": false,
+          "sources": [],
+          "outputs": [],
+          "shell": null,
+          "quiet": false,
+          "silent": false,
+          "tools": {},
+          "usage": "",
+          "timeout": null,
+          "run": [
+            "exec \"$UMPIRE_GATE_EXECUTABLE\" gate --scheduled-stage proto-tools"
+          ],
+          "args": [],
+          "file": null
+        },
+        {
+          "name": "gate:protobuf-controls",
+          "aliases": [],
+          "description": "",
+          "source": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire/dev/xtask/src/gate/tasks.toml",
+          "config_sources": [
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire/dev/xtask/src/gate/tasks.toml"
+          ],
+          "depends": [
+            "gate:proto-tools",
+            "gate:timing-controls"
+          ],
+          "daemons": null,
+          "secrets": [],
+          "depends_post": [],
+          "wait_for": [],
+          "env": [
+            "UMPIRE_GATE_STAGE=protobuf-controls",
+            "UMPIRE_GATE_ORDER=5",
+            "UMPIRE_TOOL_ROOT={{env.UMPIRE_FRAMEWORK_ROOT}}",
+            "UMPIRE_GATE_SCOPE=framework"
+          ],
+          "dir": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire",
+          "hide": false,
+          "global": false,
+          "raw": false,
+          "interactive": false,
+          "sources": [],
+          "outputs": [],
+          "shell": null,
+          "quiet": false,
+          "silent": false,
+          "tools": {},
+          "usage": "",
+          "timeout": null,
+          "run": [
+            "exec \"$UMPIRE_GATE_EXECUTABLE\" gate --scheduled-stage protobuf-controls"
+          ],
+          "args": [],
+          "file": null
+        },
+        {
+          "name": "gate:protobuf-freshness",
+          "aliases": [],
+          "description": "",
+          "source": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire/dev/xtask/src/gate/tasks.toml",
+          "config_sources": [
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire/dev/xtask/src/gate/tasks.toml"
+          ],
+          "depends": [
+            "gate:protobuf-controls"
+          ],
+          "daemons": null,
+          "secrets": [],
+          "depends_post": [],
+          "wait_for": [],
+          "env": [
+            "UMPIRE_GATE_STAGE=protobuf-freshness",
+            "UMPIRE_GATE_ORDER=6",
+            "UMPIRE_TOOL_ROOT={{env.UMPIRE_FRAMEWORK_ROOT}}",
+            "UMPIRE_GATE_SCOPE=framework"
+          ],
+          "dir": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire",
+          "hide": false,
+          "global": false,
+          "raw": false,
+          "interactive": false,
+          "sources": [],
+          "outputs": [],
+          "shell": null,
+          "quiet": false,
+          "silent": false,
+          "tools": {},
+          "usage": "",
+          "timeout": null,
+          "run": [
+            "exec \"$UMPIRE_GATE_EXECUTABLE\" gate --scheduled-stage protobuf-freshness"
+          ],
+          "args": [],
+          "file": null
+        },
+        {
+          "name": "gate:retired-names",
+          "aliases": [],
+          "description": "",
+          "source": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire/dev/xtask/src/gate/tasks.toml",
+          "config_sources": [
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire/dev/xtask/src/gate/tasks.toml"
+          ],
+          "depends": [],
+          "daemons": null,
+          "secrets": [],
+          "depends_post": [],
+          "wait_for": [],
+          "env": [
+            "UMPIRE_GATE_STAGE=retired-names",
+            "UMPIRE_GATE_ORDER=1",
+            "UMPIRE_TOOL_ROOT={{env.UMPIRE_FRAMEWORK_ROOT}}",
+            "UMPIRE_GATE_SCOPE=framework"
+          ],
+          "dir": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire",
+          "hide": false,
+          "global": false,
+          "raw": false,
+          "interactive": false,
+          "sources": [],
+          "outputs": [],
+          "shell": null,
+          "quiet": false,
+          "silent": false,
+          "tools": {},
+          "usage": "",
+          "timeout": null,
+          "run": [
+            "exec \"$UMPIRE_GATE_EXECUTABLE\" gate --scheduled-stage retired-names"
+          ],
+          "args": [],
+          "file": null
+        },
+        {
+          "name": "gate:source-boundary",
+          "aliases": [],
+          "description": "",
+          "source": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire/dev/xtask/src/gate/tasks.toml",
+          "config_sources": [
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire/dev/xtask/src/gate/tasks.toml"
+          ],
+          "depends": [
+            "gate:capability-controls"
+          ],
+          "daemons": null,
+          "secrets": [],
+          "depends_post": [],
+          "wait_for": [],
+          "env": [
+            "UMPIRE_GATE_STAGE=source-boundary",
+            "UMPIRE_GATE_ORDER=4",
+            "UMPIRE_TOOL_ROOT={{env.UMPIRE_FRAMEWORK_ROOT}}",
+            "UMPIRE_GATE_SCOPE=framework"
+          ],
+          "dir": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire",
+          "hide": false,
+          "global": false,
+          "raw": false,
+          "interactive": false,
+          "sources": [],
+          "outputs": [],
+          "shell": null,
+          "quiet": false,
+          "silent": false,
+          "tools": {},
+          "usage": "",
+          "timeout": null,
+          "run": [
+            "exec \"$UMPIRE_GATE_EXECUTABLE\" gate --scheduled-stage source-boundary"
+          ],
+          "args": [],
+          "file": null
+        },
+        {
+          "name": "gate:standalone",
+          "aliases": [],
+          "description": "",
+          "source": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire/dev/xtask/src/gate/tasks.toml",
+          "config_sources": [
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire/dev/xtask/src/gate/tasks.toml"
+          ],
+          "depends": [
+            "gate:child"
+          ],
+          "daemons": null,
+          "secrets": [],
+          "depends_post": [],
+          "wait_for": [],
+          "env": [
+            "UMPIRE_GATE_STAGE=standalone",
+            "UMPIRE_GATE_ORDER=17",
+            "UMPIRE_TOOL_ROOT={{env.UMPIRE_FRAMEWORK_ROOT}}",
+            "UMPIRE_GATE_SCOPE=framework"
+          ],
+          "dir": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire",
+          "hide": false,
+          "global": false,
+          "raw": false,
+          "interactive": false,
+          "sources": [],
+          "outputs": [],
+          "shell": null,
+          "quiet": false,
+          "silent": false,
+          "tools": {},
+          "usage": "",
+          "timeout": null,
+          "run": [
+            "exec \"$UMPIRE_GATE_EXECUTABLE\" gate --scheduled-stage standalone"
+          ],
+          "args": [],
+          "file": null
+        },
+        {
+          "name": "gate:tests",
+          "aliases": [],
+          "description": "",
+          "source": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire/dev/xtask/src/gate/tasks.toml",
+          "config_sources": [
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire/dev/xtask/src/gate/tasks.toml"
+          ],
+          "depends": [
+            "gate:docs"
+          ],
+          "daemons": null,
+          "secrets": [],
+          "depends_post": [],
+          "wait_for": [],
+          "env": [
+            "UMPIRE_GATE_STAGE=tests",
+            "UMPIRE_GATE_ORDER=11",
+            "UMPIRE_TOOL_ROOT={{env.UMPIRE_FRAMEWORK_ROOT}}",
+            "UMPIRE_GATE_SCOPE=framework"
+          ],
+          "dir": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire",
+          "hide": false,
+          "global": false,
+          "raw": false,
+          "interactive": false,
+          "sources": [],
+          "outputs": [],
+          "shell": null,
+          "quiet": false,
+          "silent": false,
+          "tools": {},
+          "usage": "",
+          "timeout": null,
+          "run": [
+            "exec \"$UMPIRE_GATE_EXECUTABLE\" gate --scheduled-stage tests"
+          ],
+          "args": [],
+          "file": null
+        },
+        {
+          "name": "gate:timing-controls",
+          "aliases": [],
+          "description": "",
+          "source": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire/dev/xtask/src/gate/tasks.toml",
+          "config_sources": [
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire/dev/xtask/src/gate/tasks.toml"
+          ],
+          "depends": [
+            "gate:proto-tools"
+          ],
+          "daemons": null,
+          "secrets": [],
+          "depends_post": [],
+          "wait_for": [],
+          "env": [
+            "UMPIRE_GATE_STAGE=timing-controls",
+            "UMPIRE_GATE_ORDER=2",
+            "UMPIRE_TOOL_ROOT={{env.UMPIRE_FRAMEWORK_ROOT}}",
+            "UMPIRE_GATE_SCOPE=framework"
+          ],
+          "dir": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire",
+          "hide": false,
+          "global": false,
+          "raw": false,
+          "interactive": false,
+          "sources": [],
+          "outputs": [],
+          "shell": null,
+          "quiet": false,
+          "silent": false,
+          "tools": {},
+          "usage": "",
+          "timeout": null,
+          "run": [
+            "exec \"$UMPIRE_GATE_EXECUTABLE\" gate --scheduled-stage timing-controls"
+          ],
+          "args": [],
+          "file": null
+        },
+        {
+          "name": "gate:wasm-guest",
+          "aliases": [],
+          "description": "",
+          "source": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire/dev/xtask/src/gate/tasks.toml",
+          "config_sources": [
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire/dev/xtask/src/gate/tasks.toml"
+          ],
+          "depends": [
+            "gate:core-wasm-clippy"
+          ],
+          "daemons": null,
+          "secrets": [],
+          "depends_post": [],
+          "wait_for": [],
+          "env": [
+            "UMPIRE_GATE_STAGE=wasm-guest",
+            "UMPIRE_GATE_ORDER=14",
+            "UMPIRE_TOOL_ROOT={{env.UMPIRE_FRAMEWORK_ROOT}}",
+            "UMPIRE_GATE_SCOPE=framework"
+          ],
+          "dir": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire",
+          "hide": false,
+          "global": false,
+          "raw": false,
+          "interactive": false,
+          "sources": [],
+          "outputs": [],
+          "shell": null,
+          "quiet": false,
+          "silent": false,
+          "tools": {},
+          "usage": "",
+          "timeout": null,
+          "run": [
+            "exec \"$UMPIRE_GATE_EXECUTABLE\" gate --scheduled-stage wasm-guest"
+          ],
+          "args": [],
+          "file": null
+        },
+        {
+          "name": "gate:wasm32-wasip1",
+          "aliases": [],
+          "description": "",
+          "source": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire/dev/xtask/src/gate/tasks.toml",
+          "config_sources": [
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire/dev/xtask/src/gate/tasks.toml"
+          ],
+          "depends": [
+            "gate:tests"
+          ],
+          "daemons": null,
+          "secrets": [],
+          "depends_post": [],
+          "wait_for": [],
+          "env": [
+            "UMPIRE_GATE_STAGE=wasm32-wasip1",
+            "UMPIRE_GATE_ORDER=12",
+            "UMPIRE_TOOL_ROOT={{env.UMPIRE_FRAMEWORK_ROOT}}",
+            "UMPIRE_GATE_SCOPE=framework"
+          ],
+          "dir": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire",
+          "hide": false,
+          "global": false,
+          "raw": false,
+          "interactive": false,
+          "sources": [],
+          "outputs": [],
+          "shell": null,
+          "quiet": false,
+          "silent": false,
+          "tools": {},
+          "usage": "",
+          "timeout": null,
+          "run": [
+            "exec \"$UMPIRE_GATE_EXECUTABLE\" gate --scheduled-stage wasm32-wasip1"
+          ],
+          "args": [],
+          "file": null
+        },
+        {
+          "name": "model:all",
+          "aliases": [],
+          "description": "Admitted combined framework and Temporal gate",
+          "source": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/mise.toml",
+          "config_sources": [
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/mise.toml"
+          ],
+          "depends": [
+            "gate:all",
+            "model:retired-names",
+            "model:fmt",
+            "model:temporal-go-host"
+          ],
+          "daemons": null,
+          "secrets": [],
+          "depends_post": [],
+          "wait_for": [],
+          "env": [],
+          "dir": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed",
+          "hide": false,
+          "global": false,
+          "raw": false,
+          "interactive": false,
+          "sources": [],
+          "outputs": [],
+          "shell": null,
+          "quiet": false,
+          "silent": false,
+          "tools": {},
+          "usage": "",
+          "timeout": null,
+          "run": [],
+          "args": [],
+          "file": null
+        },
+        {
+          "name": "model:clippy",
+          "aliases": [],
+          "description": "",
+          "source": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/mise.toml",
+          "config_sources": [
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/mise.toml"
+          ],
+          "depends": [
+            "model:temporal-protobuf-freshness"
+          ],
+          "daemons": null,
+          "secrets": [],
+          "depends_post": [],
+          "wait_for": [],
+          "env": [
+            "UMPIRE_GATE_STAGE=clippy",
+            "UMPIRE_GATE_ORDER=8",
+            "UMPIRE_GATE_SCOPE=temporal"
+          ],
+          "dir": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model",
+          "hide": false,
+          "global": false,
+          "raw": false,
+          "interactive": false,
+          "sources": [],
+          "outputs": [],
+          "shell": null,
+          "quiet": false,
+          "silent": false,
+          "tools": {},
+          "usage": "",
+          "timeout": null,
+          "run": [
+            "exec \"$UMPIRE_TEMPORAL_GATE_EXECUTABLE\" gate --scheduled-stage clippy"
+          ],
+          "args": [],
+          "file": null
+        },
+        {
+          "name": "model:docs",
+          "aliases": [],
+          "description": "",
+          "source": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/mise.toml",
+          "config_sources": [
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/mise.toml"
+          ],
+          "depends": [
+            "model:clippy"
+          ],
+          "daemons": null,
+          "secrets": [],
+          "depends_post": [],
+          "wait_for": [],
+          "env": [
+            "UMPIRE_GATE_STAGE=docs",
+            "UMPIRE_GATE_ORDER=9",
+            "UMPIRE_GATE_SCOPE=temporal"
+          ],
+          "dir": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model",
+          "hide": false,
+          "global": false,
+          "raw": false,
+          "interactive": false,
+          "sources": [],
+          "outputs": [],
+          "shell": null,
+          "quiet": false,
+          "silent": false,
+          "tools": {},
+          "usage": "",
+          "timeout": null,
+          "run": [
+            "exec \"$UMPIRE_TEMPORAL_GATE_EXECUTABLE\" gate --scheduled-stage docs"
+          ],
+          "args": [],
+          "file": null
+        },
+        {
+          "name": "model:fmt",
+          "aliases": [],
+          "description": "",
+          "source": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/mise.toml",
+          "config_sources": [
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/mise.toml"
+          ],
+          "depends": [],
+          "daemons": null,
+          "secrets": [],
+          "depends_post": [],
+          "wait_for": [],
+          "env": [
+            "UMPIRE_GATE_STAGE=fmt",
+            "UMPIRE_GATE_ORDER=7",
+            "UMPIRE_GATE_SCOPE=temporal"
+          ],
+          "dir": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model",
+          "hide": false,
+          "global": false,
+          "raw": false,
+          "interactive": false,
+          "sources": [],
+          "outputs": [],
+          "shell": null,
+          "quiet": false,
+          "silent": false,
+          "tools": {},
+          "usage": "",
+          "timeout": null,
+          "run": [
+            "exec \"$UMPIRE_TEMPORAL_GATE_EXECUTABLE\" gate --scheduled-stage fmt"
+          ],
+          "args": [],
+          "file": null
+        },
+        {
+          "name": "model:protobuf-controls",
+          "aliases": [],
+          "description": "",
+          "source": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/mise.toml",
+          "config_sources": [
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/mise.toml"
+          ],
+          "depends": [
+            "model:source-boundary"
+          ],
+          "daemons": null,
+          "secrets": [],
+          "depends_post": [],
+          "wait_for": [],
+          "env": [
+            "UMPIRE_GATE_STAGE=protobuf-controls",
+            "UMPIRE_GATE_ORDER=5",
+            "UMPIRE_GATE_SCOPE=temporal"
+          ],
+          "dir": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model",
+          "hide": false,
+          "global": false,
+          "raw": false,
+          "interactive": false,
+          "sources": [],
+          "outputs": [],
+          "shell": null,
+          "quiet": false,
+          "silent": false,
+          "tools": {},
+          "usage": "",
+          "timeout": null,
+          "run": [
+            "exec \"$UMPIRE_TEMPORAL_GATE_EXECUTABLE\" gate --scheduled-stage protobuf-controls"
+          ],
+          "args": [],
+          "file": null
+        },
+        {
+          "name": "model:retired-names",
+          "aliases": [],
+          "description": "",
+          "source": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/mise.toml",
+          "config_sources": [
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/mise.toml"
+          ],
+          "depends": [],
+          "daemons": null,
+          "secrets": [],
+          "depends_post": [],
+          "wait_for": [],
+          "env": [
+            "UMPIRE_GATE_STAGE=retired-names",
+            "UMPIRE_GATE_ORDER=2",
+            "UMPIRE_GATE_SCOPE=temporal"
+          ],
+          "dir": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model",
+          "hide": false,
+          "global": false,
+          "raw": false,
+          "interactive": false,
+          "sources": [],
+          "outputs": [],
+          "shell": null,
+          "quiet": false,
+          "silent": false,
+          "tools": {},
+          "usage": "",
+          "timeout": null,
+          "run": [
+            "exec \"$UMPIRE_TEMPORAL_GATE_EXECUTABLE\" gate --scheduled-stage retired-names"
+          ],
+          "args": [],
+          "file": null
+        },
+        {
+          "name": "model:source-boundary",
+          "aliases": [],
+          "description": "",
+          "source": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/mise.toml",
+          "config_sources": [
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/mise.toml"
+          ],
+          "depends": [
+            "model:timing-controls"
+          ],
+          "daemons": null,
+          "secrets": [],
+          "depends_post": [],
+          "wait_for": [],
+          "env": [
+            "UMPIRE_GATE_STAGE=source-boundary",
+            "UMPIRE_GATE_ORDER=4",
+            "UMPIRE_GATE_SCOPE=temporal"
+          ],
+          "dir": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model",
+          "hide": false,
+          "global": false,
+          "raw": false,
+          "interactive": false,
+          "sources": [],
+          "outputs": [],
+          "shell": null,
+          "quiet": false,
+          "silent": false,
+          "tools": {},
+          "usage": "",
+          "timeout": null,
+          "run": [
+            "exec \"$UMPIRE_TEMPORAL_GATE_EXECUTABLE\" gate --scheduled-stage source-boundary"
+          ],
+          "args": [],
+          "file": null
+        },
+        {
+          "name": "model:temporal-go-host",
+          "aliases": [],
+          "description": "",
+          "source": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/mise.toml",
+          "config_sources": [
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/mise.toml"
+          ],
+          "depends": [
+            "model:wasm-guest",
+            "gate:standalone"
+          ],
+          "daemons": null,
+          "secrets": [],
+          "depends_post": [],
+          "wait_for": [],
+          "env": [
+            "UMPIRE_GATE_STAGE=temporal-go-host",
+            "UMPIRE_GATE_ORDER=12",
+            "UMPIRE_GATE_SCOPE=temporal"
+          ],
+          "dir": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model",
+          "hide": false,
+          "global": false,
+          "raw": false,
+          "interactive": false,
+          "sources": [],
+          "outputs": [],
+          "shell": null,
+          "quiet": false,
+          "silent": false,
+          "tools": {},
+          "usage": "",
+          "timeout": null,
+          "run": [
+            "exec \"$UMPIRE_TEMPORAL_GATE_EXECUTABLE\" gate --scheduled-stage temporal-go-host"
+          ],
+          "args": [],
+          "file": null
+        },
+        {
+          "name": "model:temporal-guest-freshness",
+          "aliases": [],
+          "description": "",
+          "source": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/mise.toml",
+          "config_sources": [
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/mise.toml"
+          ],
+          "depends": [
+            "model:temporal-prerequisites"
+          ],
+          "daemons": null,
+          "secrets": [],
+          "depends_post": [],
+          "wait_for": [],
+          "env": [
+            "UMPIRE_GATE_STAGE=temporal-guest-freshness",
+            "UMPIRE_GATE_ORDER=1",
+            "UMPIRE_GATE_SCOPE=temporal"
+          ],
+          "dir": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model",
+          "hide": false,
+          "global": false,
+          "raw": false,
+          "interactive": false,
+          "sources": [],
+          "outputs": [],
+          "shell": null,
+          "quiet": false,
+          "silent": false,
+          "tools": {},
+          "usage": "",
+          "timeout": null,
+          "run": [
+            "exec \"$UMPIRE_TEMPORAL_GATE_EXECUTABLE\" gate --scheduled-stage temporal-guest-freshness"
+          ],
+          "args": [],
+          "file": null
+        },
+        {
+          "name": "model:temporal-prerequisites",
+          "aliases": [],
+          "description": "",
+          "source": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/mise.toml",
+          "config_sources": [
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/mise.toml"
+          ],
+          "depends": [
+            "gate:wasm-guest"
+          ],
+          "daemons": null,
+          "secrets": [],
+          "depends_post": [],
+          "wait_for": [],
+          "env": [
+            "UMPIRE_GATE_STAGE=temporal-prerequisites",
+            "UMPIRE_GATE_ORDER=0",
+            "UMPIRE_GATE_SCOPE=temporal"
+          ],
+          "dir": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model",
+          "hide": false,
+          "global": false,
+          "raw": false,
+          "interactive": false,
+          "sources": [],
+          "outputs": [],
+          "shell": null,
+          "quiet": false,
+          "silent": false,
+          "tools": {},
+          "usage": "",
+          "timeout": null,
+          "run": [
+            "exec \"$UMPIRE_TEMPORAL_GATE_EXECUTABLE\" gate --scheduled-stage temporal-prerequisites"
+          ],
+          "args": [],
+          "file": null
+        },
+        {
+          "name": "model:temporal-protobuf-freshness",
+          "aliases": [],
+          "description": "",
+          "source": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/mise.toml",
+          "config_sources": [
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/mise.toml"
+          ],
+          "depends": [
+            "model:protobuf-controls"
+          ],
+          "daemons": null,
+          "secrets": [],
+          "depends_post": [],
+          "wait_for": [],
+          "env": [
+            "UMPIRE_GATE_STAGE=temporal-protobuf-freshness",
+            "UMPIRE_GATE_ORDER=6",
+            "UMPIRE_GATE_SCOPE=temporal"
+          ],
+          "dir": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model",
+          "hide": false,
+          "global": false,
+          "raw": false,
+          "interactive": false,
+          "sources": [],
+          "outputs": [],
+          "shell": null,
+          "quiet": false,
+          "silent": false,
+          "tools": {},
+          "usage": "",
+          "timeout": null,
+          "run": [
+            "exec \"$UMPIRE_TEMPORAL_GATE_EXECUTABLE\" gate --scheduled-stage temporal-protobuf-freshness"
+          ],
+          "args": [],
+          "file": null
+        },
+        {
+          "name": "model:tests",
+          "aliases": [],
+          "description": "",
+          "source": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/mise.toml",
+          "config_sources": [
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/mise.toml"
+          ],
+          "depends": [
+            "model:docs"
+          ],
+          "daemons": null,
+          "secrets": [],
+          "depends_post": [],
+          "wait_for": [],
+          "env": [
+            "UMPIRE_GATE_STAGE=tests",
+            "UMPIRE_GATE_ORDER=10",
+            "UMPIRE_GATE_SCOPE=temporal"
+          ],
+          "dir": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model",
+          "hide": false,
+          "global": false,
+          "raw": false,
+          "interactive": false,
+          "sources": [],
+          "outputs": [],
+          "shell": null,
+          "quiet": false,
+          "silent": false,
+          "tools": {},
+          "usage": "",
+          "timeout": null,
+          "run": [
+            "exec \"$UMPIRE_TEMPORAL_GATE_EXECUTABLE\" gate --scheduled-stage tests"
+          ],
+          "args": [],
+          "file": null
+        },
+        {
+          "name": "model:timing-controls",
+          "aliases": [],
+          "description": "",
+          "source": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/mise.toml",
+          "config_sources": [
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/mise.toml"
+          ],
+          "depends": [
+            "model:temporal-guest-freshness"
+          ],
+          "daemons": null,
+          "secrets": [],
+          "depends_post": [],
+          "wait_for": [],
+          "env": [
+            "UMPIRE_GATE_STAGE=timing-controls",
+            "UMPIRE_GATE_ORDER=3",
+            "UMPIRE_GATE_SCOPE=temporal"
+          ],
+          "dir": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model",
+          "hide": false,
+          "global": false,
+          "raw": false,
+          "interactive": false,
+          "sources": [],
+          "outputs": [],
+          "shell": null,
+          "quiet": false,
+          "silent": false,
+          "tools": {},
+          "usage": "",
+          "timeout": null,
+          "run": [
+            "exec \"$UMPIRE_TEMPORAL_GATE_EXECUTABLE\" gate --scheduled-stage timing-controls"
+          ],
+          "args": [],
+          "file": null
+        },
+        {
+          "name": "model:wasm-guest",
+          "aliases": [],
+          "description": "",
+          "source": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/mise.toml",
+          "config_sources": [
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/mise.toml"
+          ],
+          "depends": [
+            "model:tests"
+          ],
+          "daemons": null,
+          "secrets": [],
+          "depends_post": [],
+          "wait_for": [],
+          "env": [
+            "UMPIRE_GATE_STAGE=wasm-guest",
+            "UMPIRE_GATE_ORDER=11",
+            "UMPIRE_GATE_SCOPE=temporal"
+          ],
+          "dir": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model",
+          "hide": false,
+          "global": false,
+          "raw": false,
+          "interactive": false,
+          "sources": [],
+          "outputs": [],
+          "shell": null,
+          "quiet": false,
+          "silent": false,
+          "tools": {},
+          "usage": "",
+          "timeout": null,
+          "run": [
+            "exec \"$UMPIRE_TEMPORAL_GATE_EXECUTABLE\" gate --scheduled-stage wasm-guest"
+          ],
+          "args": [],
+          "file": null
+        }
+      ],
+      "selected_stage_ids": {
+        "framework/capability-controls": "gate:capability-controls",
+        "framework/clippy": "gate:clippy",
+        "framework/core-wasm-clippy": "gate:core-wasm-clippy",
+        "framework/docs": "gate:docs",
+        "framework/fmt": "gate:fmt",
+        "framework/go-host": "gate:go-host",
+        "framework/kettle-go-host": "gate:kettle-go-host",
+        "framework/kettle-protobuf-freshness": "gate:kettle-protobuf-freshness",
+        "framework/proto-tools": "gate:proto-tools",
+        "framework/protobuf-controls": "gate:protobuf-controls",
+        "framework/protobuf-freshness": "gate:protobuf-freshness",
+        "framework/retired-names": "gate:retired-names",
+        "framework/source-boundary": "gate:source-boundary",
+        "framework/standalone": "gate:standalone",
+        "framework/tests": "gate:tests",
+        "framework/timing-controls": "gate:timing-controls",
+        "framework/wasm-guest": "gate:wasm-guest",
+        "framework/wasm32-wasip1": "gate:wasm32-wasip1",
+        "temporal/clippy": "model:clippy",
+        "temporal/docs": "model:docs",
+        "temporal/fmt": "model:fmt",
+        "temporal/protobuf-controls": "model:protobuf-controls",
+        "temporal/retired-names": "model:retired-names",
+        "temporal/source-boundary": "model:source-boundary",
+        "temporal/temporal-go-host": "model:temporal-go-host",
+        "temporal/temporal-guest-freshness": "model:temporal-guest-freshness",
+        "temporal/temporal-prerequisites": "model:temporal-prerequisites",
+        "temporal/temporal-protobuf-freshness": "model:temporal-protobuf-freshness",
+        "temporal/tests": "model:tests",
+        "temporal/timing-controls": "model:timing-controls",
+        "temporal/wasm-guest": "model:wasm-guest"
+      },
+      "reachable_tasks": [
+        "gate:all",
+        "gate:capability-controls",
+        "gate:child",
+        "gate:clippy",
+        "gate:core-wasm-clippy",
+        "gate:docs",
+        "gate:fmt",
+        "gate:go-host",
+        "gate:kettle-go-host",
+        "gate:kettle-protobuf-freshness",
+        "gate:proto-tools",
+        "gate:protobuf-controls",
+        "gate:protobuf-freshness",
+        "gate:retired-names",
+        "gate:source-boundary",
+        "gate:standalone",
+        "gate:tests",
+        "gate:timing-controls",
+        "gate:wasm-guest",
+        "gate:wasm32-wasip1",
+        "model:all",
+        "model:clippy",
+        "model:docs",
+        "model:fmt",
+        "model:protobuf-controls",
+        "model:retired-names",
+        "model:source-boundary",
+        "model:temporal-go-host",
+        "model:temporal-guest-freshness",
+        "model:temporal-prerequisites",
+        "model:temporal-protobuf-freshness",
+        "model:tests",
+        "model:timing-controls",
+        "model:wasm-guest"
+      ],
+      "run": [
+        "/home/agent/.local/bin/mise",
+        "run",
+        "--force",
+        "--skip-tools",
+        "--task-cache",
+        "off",
+        "--jobs",
+        "4",
+        "model:all"
+      ],
+      "exit": 0,
+      "seconds": 1.7494401260009909,
+      "stdout": "",
+      "stderr": "[model:retired-names] $ exec \"$UMPIRE_TEMPORAL_GATE_EXECUTABLE\" gate --scheduled-stage retired-names\n[model:fmt] $ exec \"$UMPIRE_TEMPORAL_GATE_EXECUTABLE\" gate --scheduled-stage fmt\n[gate:retired-names] $ exec \"$UMPIRE_GATE_EXECUTABLE\" gate --scheduled-stage retired-names\n[gate:fmt] $ exec \"$UMPIRE_GATE_EXECUTABLE\" gate --scheduled-stage fmt\n[gate:fmt] Finished in 54.6ms\n[gate:proto-tools] $ exec \"$UMPIRE_GATE_EXECUTABLE\" gate --scheduled-stage proto-tools\n[model:retired-names] Finished in 60.3ms\n[model:fmt] Finished in 61.4ms\n[gate:retired-names] Finished in 60.9ms\n[gate:proto-tools] Finished in 62.1ms\n[gate:timing-controls] $ exec \"$UMPIRE_GATE_EXECUTABLE\" gate --scheduled-stage timing-controls\n[gate:timing-controls] Finished in 64.1ms\n[gate:protobuf-controls] $ exec \"$UMPIRE_GATE_EXECUTABLE\" gate --scheduled-stage protobuf-controls\n[gate:protobuf-controls] Finished in 62.7ms\n[gate:protobuf-freshness] $ exec \"$UMPIRE_GATE_EXECUTABLE\" gate --scheduled-stage protobuf-freshness\n[gate:protobuf-freshness] Finished in 58.1ms\n[gate:kettle-protobuf-freshness] $ exec \"$UMPIRE_GATE_EXECUTABLE\" gate --scheduled-stage kettle-protobuf-freshness\n[gate:kettle-protobuf-freshness] Finished in 64.8ms\n[gate:capability-controls] $ exec \"$UMPIRE_GATE_EXECUTABLE\" gate --scheduled-stage capability-controls\n[gate:capability-controls] Finished in 54.7ms\n[gate:source-boundary] $ exec \"$UMPIRE_GATE_EXECUTABLE\" gate --scheduled-stage source-boundary\n[gate:source-boundary] Finished in 54.7ms\n[gate:clippy] $ exec \"$UMPIRE_GATE_EXECUTABLE\" gate --scheduled-stage clippy\n[gate:clippy] Finished in 64.0ms\n[gate:docs] $ exec \"$UMPIRE_GATE_EXECUTABLE\" gate --scheduled-stage docs\n[gate:docs] Finished in 54.8ms\n[gate:tests] $ exec \"$UMPIRE_GATE_EXECUTABLE\" gate --scheduled-stage tests\n[gate:tests] Finished in 53.8ms\n[gate:wasm32-wasip1] $ exec \"$UMPIRE_GATE_EXECUTABLE\" gate --scheduled-stage wasm32-wasip1\n[gate:wasm32-wasip1] Finished in 53.1ms\n[gate:core-wasm-clippy] $ exec \"$UMPIRE_GATE_EXECUTABLE\" gate --scheduled-stage core-wasm-clippy\n[gate:core-wasm-clippy] Finished in 55.7ms\n[gate:wasm-guest] $ exec \"$UMPIRE_GATE_EXECUTABLE\" gate --scheduled-stage wasm-guest\n[gate:wasm-guest] Finished in 54.7ms\n[model:temporal-prerequisites] $ exec \"$UMPIRE_TEMPORAL_GATE_EXECUTABLE\" gate --scheduled-stage temporal-prerequisites\n[model:temporal-prerequisites] Finished in 58.8ms\n[model:temporal-guest-freshness] $ exec \"$UMPIRE_TEMPORAL_GATE_EXECUTABLE\" gate --scheduled-stage temporal-guest-freshness\n[model:temporal-guest-freshness] Finished in 63.6ms\n[model:timing-controls] $ exec \"$UMPIRE_TEMPORAL_GATE_EXECUTABLE\" gate --scheduled-stage timing-controls\n[model:timing-controls] Finished in 54.9ms\n[model:source-boundary] $ exec \"$UMPIRE_TEMPORAL_GATE_EXECUTABLE\" gate --scheduled-stage source-boundary\n[model:source-boundary] Finished in 57.6ms\n[model:protobuf-controls] $ exec \"$UMPIRE_TEMPORAL_GATE_EXECUTABLE\" gate --scheduled-stage protobuf-controls\n[model:protobuf-controls] Finished in 61.3ms\n[model:temporal-protobuf-freshness] $ exec \"$UMPIRE_TEMPORAL_GATE_EXECUTABLE\" gate --scheduled-stage temporal-protobuf-freshness\n[model:temporal-protobuf-freshness] Finished in 60.6ms\n[model:clippy] $ exec \"$UMPIRE_TEMPORAL_GATE_EXECUTABLE\" gate --scheduled-stage clippy\n[model:clippy] Finished in 63.6ms\n[model:docs] $ exec \"$UMPIRE_TEMPORAL_GATE_EXECUTABLE\" gate --scheduled-stage docs\n[model:docs] Finished in 57.4ms\n[model:tests] $ exec \"$UMPIRE_TEMPORAL_GATE_EXECUTABLE\" gate --scheduled-stage tests\n[model:tests] Finished in 58.5ms\n[model:wasm-guest] $ exec \"$UMPIRE_TEMPORAL_GATE_EXECUTABLE\" gate --scheduled-stage wasm-guest\n[model:wasm-guest] Finished in 60.5ms\n[gate:go-host] $ exec \"$UMPIRE_GATE_EXECUTABLE\" gate --scheduled-stage go-host\n[gate:go-host] Finished in 63.2ms\n[gate:kettle-go-host] $ exec \"$UMPIRE_GATE_EXECUTABLE\" gate --scheduled-stage kettle-go-host\n[gate:kettle-go-host] Finished in 65.0ms\n[gate:standalone] $ exec \"$UMPIRE_GATE_EXECUTABLE\" gate --scheduled-stage standalone\n[gate:standalone] Finished in 58.5ms\n[model:temporal-go-host] $ exec \"$UMPIRE_TEMPORAL_GATE_EXECUTABLE\" gate --scheduled-stage temporal-go-host\n[model:temporal-go-host] Finished in 60.3ms\nFinished in 1.72s\n"
+    },
+    "framework": {
+      "leaf_events": [
+        {
+          "UMPIRE_GATE_STAGE": "proto-tools",
+          "UMPIRE_GATE_SCOPE": "framework",
+          "UMPIRE_TOOL_ROOT": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire",
+          "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire",
+          "start": 15778.319123439,
+          "end": 15778.361502272
+        },
+        {
+          "UMPIRE_GATE_STAGE": "fmt",
+          "UMPIRE_GATE_SCOPE": "framework",
+          "UMPIRE_TOOL_ROOT": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire",
+          "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire",
+          "start": 15778.319088855,
+          "end": 15778.361553439
+        },
+        {
+          "UMPIRE_GATE_STAGE": "retired-names",
+          "UMPIRE_GATE_SCOPE": "framework",
+          "UMPIRE_TOOL_ROOT": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire",
+          "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire",
+          "start": 15778.318991439,
+          "end": 15778.361584105
+        },
+        {
+          "UMPIRE_GATE_STAGE": "timing-controls",
+          "UMPIRE_GATE_SCOPE": "framework",
+          "UMPIRE_TOOL_ROOT": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire",
+          "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire",
+          "start": 15778.37819298,
+          "end": 15778.428274355
+        },
+        {
+          "UMPIRE_GATE_STAGE": "protobuf-controls",
+          "UMPIRE_GATE_SCOPE": "framework",
+          "UMPIRE_TOOL_ROOT": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire",
+          "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire",
+          "start": 15778.444734189,
+          "end": 15778.489099522
+        },
+        {
+          "UMPIRE_GATE_STAGE": "protobuf-freshness",
+          "UMPIRE_GATE_SCOPE": "framework",
+          "UMPIRE_TOOL_ROOT": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire",
+          "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire",
+          "start": 15778.505794814,
+          "end": 15778.549314564
+        },
+        {
+          "UMPIRE_GATE_STAGE": "kettle-protobuf-freshness",
+          "UMPIRE_GATE_SCOPE": "framework",
+          "UMPIRE_TOOL_ROOT": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire",
+          "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire",
+          "start": 15778.569130439,
+          "end": 15778.60931748
+        },
+        {
+          "UMPIRE_GATE_STAGE": "capability-controls",
+          "UMPIRE_GATE_SCOPE": "framework",
+          "UMPIRE_TOOL_ROOT": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire",
+          "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire",
+          "start": 15778.627298105,
+          "end": 15778.677376647
+        },
+        {
+          "UMPIRE_GATE_STAGE": "source-boundary",
+          "UMPIRE_GATE_SCOPE": "framework",
+          "UMPIRE_TOOL_ROOT": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire",
+          "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire",
+          "start": 15778.695653064,
+          "end": 15778.737357105
+        },
+        {
+          "UMPIRE_GATE_STAGE": "clippy",
+          "UMPIRE_GATE_SCOPE": "framework",
+          "UMPIRE_TOOL_ROOT": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire",
+          "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire",
+          "start": 15778.758443397,
+          "end": 15778.798767105
+        },
+        {
+          "UMPIRE_GATE_STAGE": "docs",
+          "UMPIRE_GATE_SCOPE": "framework",
+          "UMPIRE_TOOL_ROOT": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire",
+          "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire",
+          "start": 15778.817088147,
+          "end": 15778.860051814
+        },
+        {
+          "UMPIRE_GATE_STAGE": "tests",
+          "UMPIRE_GATE_SCOPE": "framework",
+          "UMPIRE_TOOL_ROOT": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire",
+          "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire",
+          "start": 15778.877758189,
+          "end": 15778.921951814
+        },
+        {
+          "UMPIRE_GATE_STAGE": "wasm32-wasip1",
+          "UMPIRE_GATE_SCOPE": "framework",
+          "UMPIRE_TOOL_ROOT": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire",
+          "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire",
+          "start": 15778.940229939,
+          "end": 15778.985360189
+        },
+        {
+          "UMPIRE_GATE_STAGE": "core-wasm-clippy",
+          "UMPIRE_GATE_SCOPE": "framework",
+          "UMPIRE_TOOL_ROOT": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire",
+          "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire",
+          "start": 15779.002287939,
+          "end": 15779.045516522
+        },
+        {
+          "UMPIRE_GATE_STAGE": "wasm-guest",
+          "UMPIRE_GATE_SCOPE": "framework",
+          "UMPIRE_TOOL_ROOT": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire",
+          "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire",
+          "start": 15779.061419606,
+          "end": 15779.103588231
+        },
+        {
+          "UMPIRE_GATE_STAGE": "go-host",
+          "UMPIRE_GATE_SCOPE": "framework",
+          "UMPIRE_TOOL_ROOT": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire",
+          "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire",
+          "start": 15779.118462606,
+          "end": 15779.161333564
+        },
+        {
+          "UMPIRE_GATE_STAGE": "kettle-go-host",
+          "UMPIRE_GATE_SCOPE": "framework",
+          "UMPIRE_TOOL_ROOT": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire",
+          "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire",
+          "start": 15779.178450022,
+          "end": 15779.221299522
+        }
+      ],
+      "overlapping_stand_in_pairs": [
+        [
+          "framework/proto-tools",
+          "framework/fmt"
+        ],
+        [
+          "framework/proto-tools",
+          "framework/retired-names"
+        ],
+        [
+          "framework/fmt",
+          "framework/retired-names"
+        ]
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire",
+      "inventory": [
+        {
+          "name": "gate:all",
+          "aliases": [],
+          "description": "Admitted framework gate, including the required standalone control",
+          "source": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire/dev/xtask/src/gate/tasks.toml",
+          "config_sources": [
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire/dev/xtask/src/gate/tasks.toml"
+          ],
+          "depends": [
+            "gate:standalone"
+          ],
+          "daemons": null,
+          "secrets": [],
+          "depends_post": [],
+          "wait_for": [],
+          "env": [],
+          "dir": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire",
+          "hide": false,
+          "global": false,
+          "raw": false,
+          "interactive": false,
+          "sources": [],
+          "outputs": [],
+          "shell": null,
+          "quiet": false,
+          "silent": false,
+          "tools": {},
+          "usage": "",
+          "timeout": null,
+          "run": [],
+          "args": [],
+          "file": null
+        },
+        {
+          "name": "gate:capability-controls",
+          "aliases": [],
+          "description": "",
+          "source": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire/dev/xtask/src/gate/tasks.toml",
+          "config_sources": [
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire/dev/xtask/src/gate/tasks.toml"
+          ],
+          "depends": [
+            "gate:kettle-protobuf-freshness"
+          ],
+          "daemons": null,
+          "secrets": [],
+          "depends_post": [],
+          "wait_for": [],
+          "env": [
+            "UMPIRE_GATE_STAGE=capability-controls",
+            "UMPIRE_GATE_ORDER=3",
+            "UMPIRE_TOOL_ROOT={{env.UMPIRE_FRAMEWORK_ROOT}}",
+            "UMPIRE_GATE_SCOPE=framework"
+          ],
+          "dir": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire",
+          "hide": false,
+          "global": false,
+          "raw": false,
+          "interactive": false,
+          "sources": [],
+          "outputs": [],
+          "shell": null,
+          "quiet": false,
+          "silent": false,
+          "tools": {},
+          "usage": "",
+          "timeout": null,
+          "run": [
+            "exec \"$UMPIRE_GATE_EXECUTABLE\" gate --scheduled-stage capability-controls"
+          ],
+          "args": [],
+          "file": null
+        },
+        {
+          "name": "gate:child",
+          "aliases": [],
+          "description": "Complete framework gate without recursive standalone copying",
+          "source": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire/dev/xtask/src/gate/tasks.toml",
+          "config_sources": [
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire/dev/xtask/src/gate/tasks.toml"
+          ],
+          "depends": [
+            "gate:retired-names",
+            "gate:fmt",
+            "gate:kettle-go-host"
+          ],
+          "daemons": null,
+          "secrets": [],
+          "depends_post": [],
+          "wait_for": [],
+          "env": [],
+          "dir": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire",
+          "hide": false,
+          "global": false,
+          "raw": false,
+          "interactive": false,
+          "sources": [],
+          "outputs": [],
+          "shell": null,
+          "quiet": false,
+          "silent": false,
+          "tools": {},
+          "usage": "",
+          "timeout": null,
+          "run": [],
+          "args": [],
+          "file": null
+        },
+        {
+          "name": "gate:clippy",
+          "aliases": [],
+          "description": "",
+          "source": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire/dev/xtask/src/gate/tasks.toml",
+          "config_sources": [
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire/dev/xtask/src/gate/tasks.toml"
+          ],
+          "depends": [
+            "gate:source-boundary",
+            "gate:kettle-protobuf-freshness"
+          ],
+          "daemons": null,
+          "secrets": [],
+          "depends_post": [],
+          "wait_for": [],
+          "env": [
+            "UMPIRE_GATE_STAGE=clippy",
+            "UMPIRE_GATE_ORDER=9",
+            "UMPIRE_TOOL_ROOT={{env.UMPIRE_FRAMEWORK_ROOT}}",
+            "UMPIRE_GATE_SCOPE=framework"
+          ],
+          "dir": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire",
+          "hide": false,
+          "global": false,
+          "raw": false,
+          "interactive": false,
+          "sources": [],
+          "outputs": [],
+          "shell": null,
+          "quiet": false,
+          "silent": false,
+          "tools": {},
+          "usage": "",
+          "timeout": null,
+          "run": [
+            "exec \"$UMPIRE_GATE_EXECUTABLE\" gate --scheduled-stage clippy"
+          ],
+          "args": [],
+          "file": null
+        },
+        {
+          "name": "gate:core-wasm-clippy",
+          "aliases": [],
+          "description": "",
+          "source": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire/dev/xtask/src/gate/tasks.toml",
+          "config_sources": [
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire/dev/xtask/src/gate/tasks.toml"
+          ],
+          "depends": [
+            "gate:wasm32-wasip1"
+          ],
+          "daemons": null,
+          "secrets": [],
+          "depends_post": [],
+          "wait_for": [],
+          "env": [
+            "UMPIRE_GATE_STAGE=core-wasm-clippy",
+            "UMPIRE_GATE_ORDER=13",
+            "UMPIRE_TOOL_ROOT={{env.UMPIRE_FRAMEWORK_ROOT}}",
+            "UMPIRE_GATE_SCOPE=framework"
+          ],
+          "dir": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire",
+          "hide": false,
+          "global": false,
+          "raw": false,
+          "interactive": false,
+          "sources": [],
+          "outputs": [],
+          "shell": null,
+          "quiet": false,
+          "silent": false,
+          "tools": {},
+          "usage": "",
+          "timeout": null,
+          "run": [
+            "exec \"$UMPIRE_GATE_EXECUTABLE\" gate --scheduled-stage core-wasm-clippy"
+          ],
+          "args": [],
+          "file": null
+        },
+        {
+          "name": "gate:docs",
+          "aliases": [],
+          "description": "",
+          "source": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire/dev/xtask/src/gate/tasks.toml",
+          "config_sources": [
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire/dev/xtask/src/gate/tasks.toml"
+          ],
+          "depends": [
+            "gate:clippy"
+          ],
+          "daemons": null,
+          "secrets": [],
+          "depends_post": [],
+          "wait_for": [],
+          "env": [
+            "UMPIRE_GATE_STAGE=docs",
+            "UMPIRE_GATE_ORDER=10",
+            "UMPIRE_TOOL_ROOT={{env.UMPIRE_FRAMEWORK_ROOT}}",
+            "UMPIRE_GATE_SCOPE=framework"
+          ],
+          "dir": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire",
+          "hide": false,
+          "global": false,
+          "raw": false,
+          "interactive": false,
+          "sources": [],
+          "outputs": [],
+          "shell": null,
+          "quiet": false,
+          "silent": false,
+          "tools": {},
+          "usage": "",
+          "timeout": null,
+          "run": [
+            "exec \"$UMPIRE_GATE_EXECUTABLE\" gate --scheduled-stage docs"
+          ],
+          "args": [],
+          "file": null
+        },
+        {
+          "name": "gate:fmt",
+          "aliases": [],
+          "description": "",
+          "source": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire/dev/xtask/src/gate/tasks.toml",
+          "config_sources": [
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire/dev/xtask/src/gate/tasks.toml"
+          ],
+          "depends": [],
+          "daemons": null,
+          "secrets": [],
+          "depends_post": [],
+          "wait_for": [],
+          "env": [
+            "UMPIRE_GATE_STAGE=fmt",
+            "UMPIRE_GATE_ORDER=8",
+            "UMPIRE_TOOL_ROOT={{env.UMPIRE_FRAMEWORK_ROOT}}",
+            "UMPIRE_GATE_SCOPE=framework"
+          ],
+          "dir": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire",
+          "hide": false,
+          "global": false,
+          "raw": false,
+          "interactive": false,
+          "sources": [],
+          "outputs": [],
+          "shell": null,
+          "quiet": false,
+          "silent": false,
+          "tools": {},
+          "usage": "",
+          "timeout": null,
+          "run": [
+            "exec \"$UMPIRE_GATE_EXECUTABLE\" gate --scheduled-stage fmt"
+          ],
+          "args": [],
+          "file": null
+        },
+        {
+          "name": "gate:go-host",
+          "aliases": [],
+          "description": "",
+          "source": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire/dev/xtask/src/gate/tasks.toml",
+          "config_sources": [
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire/dev/xtask/src/gate/tasks.toml"
+          ],
+          "depends": [
+            "gate:wasm-guest"
+          ],
+          "daemons": null,
+          "secrets": [],
+          "depends_post": [],
+          "wait_for": [],
+          "env": [
+            "UMPIRE_GATE_STAGE=go-host",
+            "UMPIRE_GATE_ORDER=15",
+            "UMPIRE_TOOL_ROOT={{env.UMPIRE_FRAMEWORK_ROOT}}",
+            "UMPIRE_GATE_SCOPE=framework"
+          ],
+          "dir": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire",
+          "hide": false,
+          "global": false,
+          "raw": false,
+          "interactive": false,
+          "sources": [],
+          "outputs": [],
+          "shell": null,
+          "quiet": false,
+          "silent": false,
+          "tools": {},
+          "usage": "",
+          "timeout": null,
+          "run": [
+            "exec \"$UMPIRE_GATE_EXECUTABLE\" gate --scheduled-stage go-host"
+          ],
+          "args": [],
+          "file": null
+        },
+        {
+          "name": "gate:kettle-go-host",
+          "aliases": [],
+          "description": "",
+          "source": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire/dev/xtask/src/gate/tasks.toml",
+          "config_sources": [
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire/dev/xtask/src/gate/tasks.toml"
+          ],
+          "depends": [
+            "gate:go-host",
+            "gate:kettle-protobuf-freshness"
+          ],
+          "daemons": null,
+          "secrets": [],
+          "depends_post": [],
+          "wait_for": [],
+          "env": [
+            "UMPIRE_GATE_STAGE=kettle-go-host",
+            "UMPIRE_GATE_ORDER=16",
+            "UMPIRE_TOOL_ROOT={{env.UMPIRE_FRAMEWORK_ROOT}}",
+            "UMPIRE_GATE_SCOPE=framework"
+          ],
+          "dir": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire",
+          "hide": false,
+          "global": false,
+          "raw": false,
+          "interactive": false,
+          "sources": [],
+          "outputs": [],
+          "shell": null,
+          "quiet": false,
+          "silent": false,
+          "tools": {},
+          "usage": "",
+          "timeout": null,
+          "run": [
+            "exec \"$UMPIRE_GATE_EXECUTABLE\" gate --scheduled-stage kettle-go-host"
+          ],
+          "args": [],
+          "file": null
+        },
+        {
+          "name": "gate:kettle-protobuf-freshness",
+          "aliases": [],
+          "description": "",
+          "source": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire/dev/xtask/src/gate/tasks.toml",
+          "config_sources": [
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire/dev/xtask/src/gate/tasks.toml"
+          ],
+          "depends": [
+            "gate:protobuf-freshness"
+          ],
+          "daemons": null,
+          "secrets": [],
+          "depends_post": [],
+          "wait_for": [],
+          "env": [
+            "UMPIRE_GATE_STAGE=kettle-protobuf-freshness",
+            "UMPIRE_GATE_ORDER=7",
+            "UMPIRE_TOOL_ROOT={{env.UMPIRE_FRAMEWORK_ROOT}}",
+            "UMPIRE_GATE_SCOPE=framework"
+          ],
+          "dir": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire",
+          "hide": false,
+          "global": false,
+          "raw": false,
+          "interactive": false,
+          "sources": [],
+          "outputs": [],
+          "shell": null,
+          "quiet": false,
+          "silent": false,
+          "tools": {},
+          "usage": "",
+          "timeout": null,
+          "run": [
+            "exec \"$UMPIRE_GATE_EXECUTABLE\" gate --scheduled-stage kettle-protobuf-freshness"
+          ],
+          "args": [],
+          "file": null
+        },
+        {
+          "name": "gate:proto-tools",
+          "aliases": [],
+          "description": "",
+          "source": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire/dev/xtask/src/gate/tasks.toml",
+          "config_sources": [
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire/dev/xtask/src/gate/tasks.toml"
+          ],
+          "depends": [],
+          "daemons": null,
+          "secrets": [],
+          "depends_post": [],
+          "wait_for": [],
+          "env": [
+            "UMPIRE_GATE_STAGE=proto-tools",
+            "UMPIRE_GATE_ORDER=0",
+            "UMPIRE_TOOL_ROOT={{env.UMPIRE_FRAMEWORK_ROOT}}",
+            "UMPIRE_GATE_SCOPE=framework"
+          ],
+          "dir": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire",
+          "hide": false,
+          "global": false,
+          "raw": false,
+          "interactive": false,
+          "sources": [],
+          "outputs": [],
+          "shell": null,
+          "quiet": false,
+          "silent": false,
+          "tools": {},
+          "usage": "",
+          "timeout": null,
+          "run": [
+            "exec \"$UMPIRE_GATE_EXECUTABLE\" gate --scheduled-stage proto-tools"
+          ],
+          "args": [],
+          "file": null
+        },
+        {
+          "name": "gate:protobuf-controls",
+          "aliases": [],
+          "description": "",
+          "source": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire/dev/xtask/src/gate/tasks.toml",
+          "config_sources": [
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire/dev/xtask/src/gate/tasks.toml"
+          ],
+          "depends": [
+            "gate:proto-tools",
+            "gate:timing-controls"
+          ],
+          "daemons": null,
+          "secrets": [],
+          "depends_post": [],
+          "wait_for": [],
+          "env": [
+            "UMPIRE_GATE_STAGE=protobuf-controls",
+            "UMPIRE_GATE_ORDER=5",
+            "UMPIRE_TOOL_ROOT={{env.UMPIRE_FRAMEWORK_ROOT}}",
+            "UMPIRE_GATE_SCOPE=framework"
+          ],
+          "dir": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire",
+          "hide": false,
+          "global": false,
+          "raw": false,
+          "interactive": false,
+          "sources": [],
+          "outputs": [],
+          "shell": null,
+          "quiet": false,
+          "silent": false,
+          "tools": {},
+          "usage": "",
+          "timeout": null,
+          "run": [
+            "exec \"$UMPIRE_GATE_EXECUTABLE\" gate --scheduled-stage protobuf-controls"
+          ],
+          "args": [],
+          "file": null
+        },
+        {
+          "name": "gate:protobuf-freshness",
+          "aliases": [],
+          "description": "",
+          "source": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire/dev/xtask/src/gate/tasks.toml",
+          "config_sources": [
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire/dev/xtask/src/gate/tasks.toml"
+          ],
+          "depends": [
+            "gate:protobuf-controls"
+          ],
+          "daemons": null,
+          "secrets": [],
+          "depends_post": [],
+          "wait_for": [],
+          "env": [
+            "UMPIRE_GATE_STAGE=protobuf-freshness",
+            "UMPIRE_GATE_ORDER=6",
+            "UMPIRE_TOOL_ROOT={{env.UMPIRE_FRAMEWORK_ROOT}}",
+            "UMPIRE_GATE_SCOPE=framework"
+          ],
+          "dir": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire",
+          "hide": false,
+          "global": false,
+          "raw": false,
+          "interactive": false,
+          "sources": [],
+          "outputs": [],
+          "shell": null,
+          "quiet": false,
+          "silent": false,
+          "tools": {},
+          "usage": "",
+          "timeout": null,
+          "run": [
+            "exec \"$UMPIRE_GATE_EXECUTABLE\" gate --scheduled-stage protobuf-freshness"
+          ],
+          "args": [],
+          "file": null
+        },
+        {
+          "name": "gate:retired-names",
+          "aliases": [],
+          "description": "",
+          "source": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire/dev/xtask/src/gate/tasks.toml",
+          "config_sources": [
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire/dev/xtask/src/gate/tasks.toml"
+          ],
+          "depends": [],
+          "daemons": null,
+          "secrets": [],
+          "depends_post": [],
+          "wait_for": [],
+          "env": [
+            "UMPIRE_GATE_STAGE=retired-names",
+            "UMPIRE_GATE_ORDER=1",
+            "UMPIRE_TOOL_ROOT={{env.UMPIRE_FRAMEWORK_ROOT}}",
+            "UMPIRE_GATE_SCOPE=framework"
+          ],
+          "dir": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire",
+          "hide": false,
+          "global": false,
+          "raw": false,
+          "interactive": false,
+          "sources": [],
+          "outputs": [],
+          "shell": null,
+          "quiet": false,
+          "silent": false,
+          "tools": {},
+          "usage": "",
+          "timeout": null,
+          "run": [
+            "exec \"$UMPIRE_GATE_EXECUTABLE\" gate --scheduled-stage retired-names"
+          ],
+          "args": [],
+          "file": null
+        },
+        {
+          "name": "gate:source-boundary",
+          "aliases": [],
+          "description": "",
+          "source": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire/dev/xtask/src/gate/tasks.toml",
+          "config_sources": [
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire/dev/xtask/src/gate/tasks.toml"
+          ],
+          "depends": [
+            "gate:capability-controls"
+          ],
+          "daemons": null,
+          "secrets": [],
+          "depends_post": [],
+          "wait_for": [],
+          "env": [
+            "UMPIRE_GATE_STAGE=source-boundary",
+            "UMPIRE_GATE_ORDER=4",
+            "UMPIRE_TOOL_ROOT={{env.UMPIRE_FRAMEWORK_ROOT}}",
+            "UMPIRE_GATE_SCOPE=framework"
+          ],
+          "dir": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire",
+          "hide": false,
+          "global": false,
+          "raw": false,
+          "interactive": false,
+          "sources": [],
+          "outputs": [],
+          "shell": null,
+          "quiet": false,
+          "silent": false,
+          "tools": {},
+          "usage": "",
+          "timeout": null,
+          "run": [
+            "exec \"$UMPIRE_GATE_EXECUTABLE\" gate --scheduled-stage source-boundary"
+          ],
+          "args": [],
+          "file": null
+        },
+        {
+          "name": "gate:standalone",
+          "aliases": [],
+          "description": "",
+          "source": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire/dev/xtask/src/gate/tasks.toml",
+          "config_sources": [
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire/dev/xtask/src/gate/tasks.toml"
+          ],
+          "depends": [
+            "gate:child"
+          ],
+          "daemons": null,
+          "secrets": [],
+          "depends_post": [],
+          "wait_for": [],
+          "env": [
+            "UMPIRE_GATE_STAGE=standalone",
+            "UMPIRE_GATE_ORDER=17",
+            "UMPIRE_TOOL_ROOT={{env.UMPIRE_FRAMEWORK_ROOT}}",
+            "UMPIRE_GATE_SCOPE=framework"
+          ],
+          "dir": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire",
+          "hide": false,
+          "global": false,
+          "raw": false,
+          "interactive": false,
+          "sources": [],
+          "outputs": [],
+          "shell": null,
+          "quiet": false,
+          "silent": false,
+          "tools": {},
+          "usage": "",
+          "timeout": null,
+          "run": [
+            "exec \"$UMPIRE_GATE_EXECUTABLE\" gate --scheduled-stage standalone"
+          ],
+          "args": [],
+          "file": null
+        },
+        {
+          "name": "gate:tests",
+          "aliases": [],
+          "description": "",
+          "source": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire/dev/xtask/src/gate/tasks.toml",
+          "config_sources": [
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire/dev/xtask/src/gate/tasks.toml"
+          ],
+          "depends": [
+            "gate:docs"
+          ],
+          "daemons": null,
+          "secrets": [],
+          "depends_post": [],
+          "wait_for": [],
+          "env": [
+            "UMPIRE_GATE_STAGE=tests",
+            "UMPIRE_GATE_ORDER=11",
+            "UMPIRE_TOOL_ROOT={{env.UMPIRE_FRAMEWORK_ROOT}}",
+            "UMPIRE_GATE_SCOPE=framework"
+          ],
+          "dir": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire",
+          "hide": false,
+          "global": false,
+          "raw": false,
+          "interactive": false,
+          "sources": [],
+          "outputs": [],
+          "shell": null,
+          "quiet": false,
+          "silent": false,
+          "tools": {},
+          "usage": "",
+          "timeout": null,
+          "run": [
+            "exec \"$UMPIRE_GATE_EXECUTABLE\" gate --scheduled-stage tests"
+          ],
+          "args": [],
+          "file": null
+        },
+        {
+          "name": "gate:timing-controls",
+          "aliases": [],
+          "description": "",
+          "source": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire/dev/xtask/src/gate/tasks.toml",
+          "config_sources": [
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire/dev/xtask/src/gate/tasks.toml"
+          ],
+          "depends": [
+            "gate:proto-tools"
+          ],
+          "daemons": null,
+          "secrets": [],
+          "depends_post": [],
+          "wait_for": [],
+          "env": [
+            "UMPIRE_GATE_STAGE=timing-controls",
+            "UMPIRE_GATE_ORDER=2",
+            "UMPIRE_TOOL_ROOT={{env.UMPIRE_FRAMEWORK_ROOT}}",
+            "UMPIRE_GATE_SCOPE=framework"
+          ],
+          "dir": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire",
+          "hide": false,
+          "global": false,
+          "raw": false,
+          "interactive": false,
+          "sources": [],
+          "outputs": [],
+          "shell": null,
+          "quiet": false,
+          "silent": false,
+          "tools": {},
+          "usage": "",
+          "timeout": null,
+          "run": [
+            "exec \"$UMPIRE_GATE_EXECUTABLE\" gate --scheduled-stage timing-controls"
+          ],
+          "args": [],
+          "file": null
+        },
+        {
+          "name": "gate:wasm-guest",
+          "aliases": [],
+          "description": "",
+          "source": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire/dev/xtask/src/gate/tasks.toml",
+          "config_sources": [
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire/dev/xtask/src/gate/tasks.toml"
+          ],
+          "depends": [
+            "gate:core-wasm-clippy"
+          ],
+          "daemons": null,
+          "secrets": [],
+          "depends_post": [],
+          "wait_for": [],
+          "env": [
+            "UMPIRE_GATE_STAGE=wasm-guest",
+            "UMPIRE_GATE_ORDER=14",
+            "UMPIRE_TOOL_ROOT={{env.UMPIRE_FRAMEWORK_ROOT}}",
+            "UMPIRE_GATE_SCOPE=framework"
+          ],
+          "dir": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire",
+          "hide": false,
+          "global": false,
+          "raw": false,
+          "interactive": false,
+          "sources": [],
+          "outputs": [],
+          "shell": null,
+          "quiet": false,
+          "silent": false,
+          "tools": {},
+          "usage": "",
+          "timeout": null,
+          "run": [
+            "exec \"$UMPIRE_GATE_EXECUTABLE\" gate --scheduled-stage wasm-guest"
+          ],
+          "args": [],
+          "file": null
+        },
+        {
+          "name": "gate:wasm32-wasip1",
+          "aliases": [],
+          "description": "",
+          "source": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire/dev/xtask/src/gate/tasks.toml",
+          "config_sources": [
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire/dev/xtask/src/gate/tasks.toml"
+          ],
+          "depends": [
+            "gate:tests"
+          ],
+          "daemons": null,
+          "secrets": [],
+          "depends_post": [],
+          "wait_for": [],
+          "env": [
+            "UMPIRE_GATE_STAGE=wasm32-wasip1",
+            "UMPIRE_GATE_ORDER=12",
+            "UMPIRE_TOOL_ROOT={{env.UMPIRE_FRAMEWORK_ROOT}}",
+            "UMPIRE_GATE_SCOPE=framework"
+          ],
+          "dir": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire",
+          "hide": false,
+          "global": false,
+          "raw": false,
+          "interactive": false,
+          "sources": [],
+          "outputs": [],
+          "shell": null,
+          "quiet": false,
+          "silent": false,
+          "tools": {},
+          "usage": "",
+          "timeout": null,
+          "run": [
+            "exec \"$UMPIRE_GATE_EXECUTABLE\" gate --scheduled-stage wasm32-wasip1"
+          ],
+          "args": [],
+          "file": null
+        },
+        {
+          "name": "model:all",
+          "aliases": [],
+          "description": "Admitted combined framework and Temporal gate",
+          "source": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/mise.toml",
+          "config_sources": [
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/mise.toml"
+          ],
+          "depends": [
+            "gate:all",
+            "model:retired-names",
+            "model:fmt",
+            "model:temporal-go-host"
+          ],
+          "daemons": null,
+          "secrets": [],
+          "depends_post": [],
+          "wait_for": [],
+          "env": [],
+          "dir": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed",
+          "hide": false,
+          "global": false,
+          "raw": false,
+          "interactive": false,
+          "sources": [],
+          "outputs": [],
+          "shell": null,
+          "quiet": false,
+          "silent": false,
+          "tools": {},
+          "usage": "",
+          "timeout": null,
+          "run": [],
+          "args": [],
+          "file": null
+        },
+        {
+          "name": "model:clippy",
+          "aliases": [],
+          "description": "",
+          "source": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/mise.toml",
+          "config_sources": [
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/mise.toml"
+          ],
+          "depends": [
+            "model:temporal-protobuf-freshness"
+          ],
+          "daemons": null,
+          "secrets": [],
+          "depends_post": [],
+          "wait_for": [],
+          "env": [
+            "UMPIRE_GATE_STAGE=clippy",
+            "UMPIRE_GATE_ORDER=8",
+            "UMPIRE_GATE_SCOPE=temporal"
+          ],
+          "dir": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model",
+          "hide": false,
+          "global": false,
+          "raw": false,
+          "interactive": false,
+          "sources": [],
+          "outputs": [],
+          "shell": null,
+          "quiet": false,
+          "silent": false,
+          "tools": {},
+          "usage": "",
+          "timeout": null,
+          "run": [
+            "exec \"$UMPIRE_TEMPORAL_GATE_EXECUTABLE\" gate --scheduled-stage clippy"
+          ],
+          "args": [],
+          "file": null
+        },
+        {
+          "name": "model:docs",
+          "aliases": [],
+          "description": "",
+          "source": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/mise.toml",
+          "config_sources": [
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/mise.toml"
+          ],
+          "depends": [
+            "model:clippy"
+          ],
+          "daemons": null,
+          "secrets": [],
+          "depends_post": [],
+          "wait_for": [],
+          "env": [
+            "UMPIRE_GATE_STAGE=docs",
+            "UMPIRE_GATE_ORDER=9",
+            "UMPIRE_GATE_SCOPE=temporal"
+          ],
+          "dir": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model",
+          "hide": false,
+          "global": false,
+          "raw": false,
+          "interactive": false,
+          "sources": [],
+          "outputs": [],
+          "shell": null,
+          "quiet": false,
+          "silent": false,
+          "tools": {},
+          "usage": "",
+          "timeout": null,
+          "run": [
+            "exec \"$UMPIRE_TEMPORAL_GATE_EXECUTABLE\" gate --scheduled-stage docs"
+          ],
+          "args": [],
+          "file": null
+        },
+        {
+          "name": "model:fmt",
+          "aliases": [],
+          "description": "",
+          "source": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/mise.toml",
+          "config_sources": [
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/mise.toml"
+          ],
+          "depends": [],
+          "daemons": null,
+          "secrets": [],
+          "depends_post": [],
+          "wait_for": [],
+          "env": [
+            "UMPIRE_GATE_STAGE=fmt",
+            "UMPIRE_GATE_ORDER=7",
+            "UMPIRE_GATE_SCOPE=temporal"
+          ],
+          "dir": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model",
+          "hide": false,
+          "global": false,
+          "raw": false,
+          "interactive": false,
+          "sources": [],
+          "outputs": [],
+          "shell": null,
+          "quiet": false,
+          "silent": false,
+          "tools": {},
+          "usage": "",
+          "timeout": null,
+          "run": [
+            "exec \"$UMPIRE_TEMPORAL_GATE_EXECUTABLE\" gate --scheduled-stage fmt"
+          ],
+          "args": [],
+          "file": null
+        },
+        {
+          "name": "model:protobuf-controls",
+          "aliases": [],
+          "description": "",
+          "source": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/mise.toml",
+          "config_sources": [
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/mise.toml"
+          ],
+          "depends": [
+            "model:source-boundary"
+          ],
+          "daemons": null,
+          "secrets": [],
+          "depends_post": [],
+          "wait_for": [],
+          "env": [
+            "UMPIRE_GATE_STAGE=protobuf-controls",
+            "UMPIRE_GATE_ORDER=5",
+            "UMPIRE_GATE_SCOPE=temporal"
+          ],
+          "dir": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model",
+          "hide": false,
+          "global": false,
+          "raw": false,
+          "interactive": false,
+          "sources": [],
+          "outputs": [],
+          "shell": null,
+          "quiet": false,
+          "silent": false,
+          "tools": {},
+          "usage": "",
+          "timeout": null,
+          "run": [
+            "exec \"$UMPIRE_TEMPORAL_GATE_EXECUTABLE\" gate --scheduled-stage protobuf-controls"
+          ],
+          "args": [],
+          "file": null
+        },
+        {
+          "name": "model:retired-names",
+          "aliases": [],
+          "description": "",
+          "source": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/mise.toml",
+          "config_sources": [
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/mise.toml"
+          ],
+          "depends": [],
+          "daemons": null,
+          "secrets": [],
+          "depends_post": [],
+          "wait_for": [],
+          "env": [
+            "UMPIRE_GATE_STAGE=retired-names",
+            "UMPIRE_GATE_ORDER=2",
+            "UMPIRE_GATE_SCOPE=temporal"
+          ],
+          "dir": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model",
+          "hide": false,
+          "global": false,
+          "raw": false,
+          "interactive": false,
+          "sources": [],
+          "outputs": [],
+          "shell": null,
+          "quiet": false,
+          "silent": false,
+          "tools": {},
+          "usage": "",
+          "timeout": null,
+          "run": [
+            "exec \"$UMPIRE_TEMPORAL_GATE_EXECUTABLE\" gate --scheduled-stage retired-names"
+          ],
+          "args": [],
+          "file": null
+        },
+        {
+          "name": "model:source-boundary",
+          "aliases": [],
+          "description": "",
+          "source": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/mise.toml",
+          "config_sources": [
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/mise.toml"
+          ],
+          "depends": [
+            "model:timing-controls"
+          ],
+          "daemons": null,
+          "secrets": [],
+          "depends_post": [],
+          "wait_for": [],
+          "env": [
+            "UMPIRE_GATE_STAGE=source-boundary",
+            "UMPIRE_GATE_ORDER=4",
+            "UMPIRE_GATE_SCOPE=temporal"
+          ],
+          "dir": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model",
+          "hide": false,
+          "global": false,
+          "raw": false,
+          "interactive": false,
+          "sources": [],
+          "outputs": [],
+          "shell": null,
+          "quiet": false,
+          "silent": false,
+          "tools": {},
+          "usage": "",
+          "timeout": null,
+          "run": [
+            "exec \"$UMPIRE_TEMPORAL_GATE_EXECUTABLE\" gate --scheduled-stage source-boundary"
+          ],
+          "args": [],
+          "file": null
+        },
+        {
+          "name": "model:temporal-go-host",
+          "aliases": [],
+          "description": "",
+          "source": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/mise.toml",
+          "config_sources": [
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/mise.toml"
+          ],
+          "depends": [
+            "model:wasm-guest",
+            "gate:standalone"
+          ],
+          "daemons": null,
+          "secrets": [],
+          "depends_post": [],
+          "wait_for": [],
+          "env": [
+            "UMPIRE_GATE_STAGE=temporal-go-host",
+            "UMPIRE_GATE_ORDER=12",
+            "UMPIRE_GATE_SCOPE=temporal"
+          ],
+          "dir": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model",
+          "hide": false,
+          "global": false,
+          "raw": false,
+          "interactive": false,
+          "sources": [],
+          "outputs": [],
+          "shell": null,
+          "quiet": false,
+          "silent": false,
+          "tools": {},
+          "usage": "",
+          "timeout": null,
+          "run": [
+            "exec \"$UMPIRE_TEMPORAL_GATE_EXECUTABLE\" gate --scheduled-stage temporal-go-host"
+          ],
+          "args": [],
+          "file": null
+        },
+        {
+          "name": "model:temporal-guest-freshness",
+          "aliases": [],
+          "description": "",
+          "source": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/mise.toml",
+          "config_sources": [
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/mise.toml"
+          ],
+          "depends": [
+            "model:temporal-prerequisites"
+          ],
+          "daemons": null,
+          "secrets": [],
+          "depends_post": [],
+          "wait_for": [],
+          "env": [
+            "UMPIRE_GATE_STAGE=temporal-guest-freshness",
+            "UMPIRE_GATE_ORDER=1",
+            "UMPIRE_GATE_SCOPE=temporal"
+          ],
+          "dir": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model",
+          "hide": false,
+          "global": false,
+          "raw": false,
+          "interactive": false,
+          "sources": [],
+          "outputs": [],
+          "shell": null,
+          "quiet": false,
+          "silent": false,
+          "tools": {},
+          "usage": "",
+          "timeout": null,
+          "run": [
+            "exec \"$UMPIRE_TEMPORAL_GATE_EXECUTABLE\" gate --scheduled-stage temporal-guest-freshness"
+          ],
+          "args": [],
+          "file": null
+        },
+        {
+          "name": "model:temporal-prerequisites",
+          "aliases": [],
+          "description": "",
+          "source": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/mise.toml",
+          "config_sources": [
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/mise.toml"
+          ],
+          "depends": [
+            "gate:wasm-guest"
+          ],
+          "daemons": null,
+          "secrets": [],
+          "depends_post": [],
+          "wait_for": [],
+          "env": [
+            "UMPIRE_GATE_STAGE=temporal-prerequisites",
+            "UMPIRE_GATE_ORDER=0",
+            "UMPIRE_GATE_SCOPE=temporal"
+          ],
+          "dir": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model",
+          "hide": false,
+          "global": false,
+          "raw": false,
+          "interactive": false,
+          "sources": [],
+          "outputs": [],
+          "shell": null,
+          "quiet": false,
+          "silent": false,
+          "tools": {},
+          "usage": "",
+          "timeout": null,
+          "run": [
+            "exec \"$UMPIRE_TEMPORAL_GATE_EXECUTABLE\" gate --scheduled-stage temporal-prerequisites"
+          ],
+          "args": [],
+          "file": null
+        },
+        {
+          "name": "model:temporal-protobuf-freshness",
+          "aliases": [],
+          "description": "",
+          "source": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/mise.toml",
+          "config_sources": [
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/mise.toml"
+          ],
+          "depends": [
+            "model:protobuf-controls"
+          ],
+          "daemons": null,
+          "secrets": [],
+          "depends_post": [],
+          "wait_for": [],
+          "env": [
+            "UMPIRE_GATE_STAGE=temporal-protobuf-freshness",
+            "UMPIRE_GATE_ORDER=6",
+            "UMPIRE_GATE_SCOPE=temporal"
+          ],
+          "dir": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model",
+          "hide": false,
+          "global": false,
+          "raw": false,
+          "interactive": false,
+          "sources": [],
+          "outputs": [],
+          "shell": null,
+          "quiet": false,
+          "silent": false,
+          "tools": {},
+          "usage": "",
+          "timeout": null,
+          "run": [
+            "exec \"$UMPIRE_TEMPORAL_GATE_EXECUTABLE\" gate --scheduled-stage temporal-protobuf-freshness"
+          ],
+          "args": [],
+          "file": null
+        },
+        {
+          "name": "model:tests",
+          "aliases": [],
+          "description": "",
+          "source": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/mise.toml",
+          "config_sources": [
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/mise.toml"
+          ],
+          "depends": [
+            "model:docs"
+          ],
+          "daemons": null,
+          "secrets": [],
+          "depends_post": [],
+          "wait_for": [],
+          "env": [
+            "UMPIRE_GATE_STAGE=tests",
+            "UMPIRE_GATE_ORDER=10",
+            "UMPIRE_GATE_SCOPE=temporal"
+          ],
+          "dir": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model",
+          "hide": false,
+          "global": false,
+          "raw": false,
+          "interactive": false,
+          "sources": [],
+          "outputs": [],
+          "shell": null,
+          "quiet": false,
+          "silent": false,
+          "tools": {},
+          "usage": "",
+          "timeout": null,
+          "run": [
+            "exec \"$UMPIRE_TEMPORAL_GATE_EXECUTABLE\" gate --scheduled-stage tests"
+          ],
+          "args": [],
+          "file": null
+        },
+        {
+          "name": "model:timing-controls",
+          "aliases": [],
+          "description": "",
+          "source": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/mise.toml",
+          "config_sources": [
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/mise.toml"
+          ],
+          "depends": [
+            "model:temporal-guest-freshness"
+          ],
+          "daemons": null,
+          "secrets": [],
+          "depends_post": [],
+          "wait_for": [],
+          "env": [
+            "UMPIRE_GATE_STAGE=timing-controls",
+            "UMPIRE_GATE_ORDER=3",
+            "UMPIRE_GATE_SCOPE=temporal"
+          ],
+          "dir": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model",
+          "hide": false,
+          "global": false,
+          "raw": false,
+          "interactive": false,
+          "sources": [],
+          "outputs": [],
+          "shell": null,
+          "quiet": false,
+          "silent": false,
+          "tools": {},
+          "usage": "",
+          "timeout": null,
+          "run": [
+            "exec \"$UMPIRE_TEMPORAL_GATE_EXECUTABLE\" gate --scheduled-stage timing-controls"
+          ],
+          "args": [],
+          "file": null
+        },
+        {
+          "name": "model:wasm-guest",
+          "aliases": [],
+          "description": "",
+          "source": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/mise.toml",
+          "config_sources": [
+            "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/mise.toml"
+          ],
+          "depends": [
+            "model:tests"
+          ],
+          "daemons": null,
+          "secrets": [],
+          "depends_post": [],
+          "wait_for": [],
+          "env": [
+            "UMPIRE_GATE_STAGE=wasm-guest",
+            "UMPIRE_GATE_ORDER=11",
+            "UMPIRE_GATE_SCOPE=temporal"
+          ],
+          "dir": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model",
+          "hide": false,
+          "global": false,
+          "raw": false,
+          "interactive": false,
+          "sources": [],
+          "outputs": [],
+          "shell": null,
+          "quiet": false,
+          "silent": false,
+          "tools": {},
+          "usage": "",
+          "timeout": null,
+          "run": [
+            "exec \"$UMPIRE_TEMPORAL_GATE_EXECUTABLE\" gate --scheduled-stage wasm-guest"
+          ],
+          "args": [],
+          "file": null
+        }
+      ],
+      "selected_stage_ids": {
+        "framework/capability-controls": "gate:capability-controls",
+        "framework/clippy": "gate:clippy",
+        "framework/core-wasm-clippy": "gate:core-wasm-clippy",
+        "framework/docs": "gate:docs",
+        "framework/fmt": "gate:fmt",
+        "framework/go-host": "gate:go-host",
+        "framework/kettle-go-host": "gate:kettle-go-host",
+        "framework/kettle-protobuf-freshness": "gate:kettle-protobuf-freshness",
+        "framework/proto-tools": "gate:proto-tools",
+        "framework/protobuf-controls": "gate:protobuf-controls",
+        "framework/protobuf-freshness": "gate:protobuf-freshness",
+        "framework/retired-names": "gate:retired-names",
+        "framework/source-boundary": "gate:source-boundary",
+        "framework/standalone": "gate:standalone",
+        "framework/tests": "gate:tests",
+        "framework/timing-controls": "gate:timing-controls",
+        "framework/wasm-guest": "gate:wasm-guest",
+        "framework/wasm32-wasip1": "gate:wasm32-wasip1"
+      },
+      "reachable_tasks": [
+        "gate:capability-controls",
+        "gate:child",
+        "gate:clippy",
+        "gate:core-wasm-clippy",
+        "gate:docs",
+        "gate:fmt",
+        "gate:go-host",
+        "gate:kettle-go-host",
+        "gate:kettle-protobuf-freshness",
+        "gate:proto-tools",
+        "gate:protobuf-controls",
+        "gate:protobuf-freshness",
+        "gate:retired-names",
+        "gate:source-boundary",
+        "gate:tests",
+        "gate:timing-controls",
+        "gate:wasm-guest",
+        "gate:wasm32-wasip1"
+      ],
+      "run": [
+        "/home/agent/.local/bin/mise",
+        "run",
+        "--force",
+        "--skip-tools",
+        "--task-cache",
+        "off",
+        "--jobs",
+        "4",
+        "gate:child"
+      ],
+      "exit": 0,
+      "seconds": 0.95109416699961,
+      "stdout": "",
+      "stderr": "[gate:retired-names] $ exec \"$UMPIRE_GATE_EXECUTABLE\" gate --scheduled-stage retired-names\n[gate:fmt] $ exec \"$UMPIRE_GATE_EXECUTABLE\" gate --scheduled-stage fmt\n[gate:proto-tools] $ exec \"$UMPIRE_GATE_EXECUTABLE\" gate --scheduled-stage proto-tools\n[gate:retired-names] Finished in 57.7ms\n[gate:proto-tools] Finished in 57.6ms\n[gate:fmt] Finished in 57.8ms\n[gate:timing-controls] $ exec \"$UMPIRE_GATE_EXECUTABLE\" gate --scheduled-stage timing-controls\n[gate:timing-controls] Finished in 64.2ms\n[gate:protobuf-controls] $ exec \"$UMPIRE_GATE_EXECUTABLE\" gate --scheduled-stage protobuf-controls\n[gate:protobuf-controls] Finished in 57.9ms\n[gate:protobuf-freshness] $ exec \"$UMPIRE_GATE_EXECUTABLE\" gate --scheduled-stage protobuf-freshness\n[gate:protobuf-freshness] Finished in 58.6ms\n[gate:kettle-protobuf-freshness] $ exec \"$UMPIRE_GATE_EXECUTABLE\" gate --scheduled-stage kettle-protobuf-freshness\n[gate:kettle-protobuf-freshness] Finished in 55.7ms\n[gate:capability-controls] $ exec \"$UMPIRE_GATE_EXECUTABLE\" gate --scheduled-stage capability-controls\n[gate:capability-controls] Finished in 65.1ms\n[gate:source-boundary] $ exec \"$UMPIRE_GATE_EXECUTABLE\" gate --scheduled-stage source-boundary\n[gate:source-boundary] Finished in 57.0ms\n[gate:clippy] $ exec \"$UMPIRE_GATE_EXECUTABLE\" gate --scheduled-stage clippy\n[gate:clippy] Finished in 57.8ms\n[gate:docs] $ exec \"$UMPIRE_GATE_EXECUTABLE\" gate --scheduled-stage docs\n[gate:docs] Finished in 58.8ms\n[gate:tests] $ exec \"$UMPIRE_GATE_EXECUTABLE\" gate --scheduled-stage tests\n[gate:tests] Finished in 59.2ms\n[gate:wasm32-wasip1] $ exec \"$UMPIRE_GATE_EXECUTABLE\" gate --scheduled-stage wasm32-wasip1\n[gate:wasm32-wasip1] Finished in 60.2ms\n[gate:core-wasm-clippy] $ exec \"$UMPIRE_GATE_EXECUTABLE\" gate --scheduled-stage core-wasm-clippy\n[gate:core-wasm-clippy] Finished in 57.4ms\n[gate:wasm-guest] $ exec \"$UMPIRE_GATE_EXECUTABLE\" gate --scheduled-stage wasm-guest\n[gate:wasm-guest] Finished in 55.6ms\n[gate:go-host] $ exec \"$UMPIRE_GATE_EXECUTABLE\" gate --scheduled-stage go-host\n[gate:go-host] Finished in 55.8ms\n[gate:kettle-go-host] $ exec \"$UMPIRE_GATE_EXECUTABLE\" gate --scheduled-stage kettle-go-host\n[gate:kettle-go-host] Finished in 57.2ms\nFinished in 922.1ms\n"
+    }
+  }
+}

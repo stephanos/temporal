@@ -12,5 +12,5 @@
   "spec_path": ".flow/tasks/fn-256-retire-the-scala-era-build-and-go.2.md",
   "status": "todo",
   "title": "Delete the archived Scala Make targets and the scala-cli pin; mark model/archived read-only",
-  "updated_at": "2026-10-25T22:48:01.414394Z"
+  "updated_at": "2026-10-26T05:37:41.089183Z"
 }

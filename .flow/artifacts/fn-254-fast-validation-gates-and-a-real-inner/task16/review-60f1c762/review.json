@@ -1,0 +1,184 @@
+{
+  "base": "f0a82c7a969ec6fd1717a73f98536d3b9c6fe8ee",
+  "draws": [
+    {
+      "axis": "correctness",
+      "failed": false,
+      "model": "claude-fable-5-1",
+      "session_id": "5a338041-0e1b-47d7-a2e3-e088be87ab57",
+      "verdict": "SHIP"
+    },
+    {
+      "axis": "contracts",
+      "failed": false,
+      "model": "claude-fable-5-1",
+      "session_id": "dca60c2e-1fb3-4397-a27e-aec01cdf04b2",
+      "verdict": "SHIP"
+    },
+    {
+      "axis": "integration",
+      "failed": false,
+      "model": "claude-fable-5-1",
+      "session_id": "6cc60a50-b46a-4453-8851-7ae12e17528e",
+      "verdict": "SHIP"
+    }
+  ],
+  "effort": "high",
+  "findings": {
+    "backend": "claude",
+    "baseSha": "f0a82c7a969ec6fd1717a73f98536d3b9c6fe8ee",
+    "headSha": "60f1c762a618d32478b58ae4e79c151f4355aeb3",
+    "items": [
+      {
+        "anchor": {
+          "baseSha": "f0a82c7a969ec6fd1717a73f98536d3b9c6fe8ee",
+          "headSha": "60f1c762a618d32478b58ae4e79c151f4355aeb3",
+          "path": "model/umpire/backends/process/src/support.rs",
+          "side": "head",
+          "startLine": 182
+        },
+        "body": "Checker routes to Running::spawn while Orchestration routes to spawn_with_policy, but Running::spawn delegates to spawn_with_policy with Checker; both arms reach the same effective operation.",
+        "classification": "introduced",
+        "confidence": 100,
+        "firstSeenReceiptId": "review-456f99283c656527b6b634886acb2e159f586202523c9b691eab8a62130d2ea8",
+        "id": "finding-14defa50b62208cf77a718aa7f022f26",
+        "lastSeenReceiptId": "review-456f99283c656527b6b634886acb2e159f586202523c9b691eab8a62130d2ea8",
+        "ordinal": 3,
+        "rIds": [],
+        "severity": "P2",
+        "status": "open",
+        "suggestion": "Use one spawn_with_policy call.",
+        "title": "Policy dispatch adds a behaviorally redundant branch"
+      },
+      {
+        "anchor": {
+          "baseSha": "f0a82c7a969ec6fd1717a73f98536d3b9c6fe8ee",
+          "headSha": "60f1c762a618d32478b58ae4e79c151f4355aeb3",
+          "path": "model/umpire/backends/process/src/tool_provider.rs",
+          "side": "head",
+          "startLine": 21
+        },
+        "body": "JarTool selectors/install paths, backend version pins, installer SHA literals and mise declarations repeat the same current release identities. They agree now, but a future partial version/hash bump can pass existing controls and fail discovery or admission.",
+        "classification": "introduced",
+        "confidence": 75,
+        "firstSeenReceiptId": "review-456f99283c656527b6b634886acb2e159f586202523c9b691eab8a62130d2ea8",
+        "id": "finding-ffd5ccf4acf8121a241e41a01fdf83b8",
+        "lastSeenReceiptId": "review-456f99283c656527b6b634886acb2e159f586202523c9b691eab8a62130d2ea8",
+        "ordinal": 1,
+        "rIds": [],
+        "severity": "P2",
+        "status": "open",
+        "suggestion": "Derive runtime selectors from shared pins and/or add a focused Rust-to-mise drift control.",
+        "title": "Release identities are mirrored without a drift control"
+      },
+      {
+        "anchor": {
+          "baseSha": "f0a82c7a969ec6fd1717a73f98536d3b9c6fe8ee",
+          "headSha": "60f1c762a618d32478b58ae4e79c151f4355aeb3",
+          "path": "model/umpire/dev/xtask/src/gate/standalone.rs",
+          "side": "head",
+          "startLine": 418
+        },
+        "body": "Standalone setup already builds native tools, then fetch-tlc.sh delegates through xtask.sh to the xtask-bootstrap target and may compile that closure again. Reviewers flag the additional fixed setup cost as nonblocking while final timings remain assigned to task8.",
+        "classification": "introduced",
+        "confidence": 75,
+        "firstSeenReceiptId": "review-456f99283c656527b6b634886acb2e159f586202523c9b691eab8a62130d2ea8",
+        "id": "finding-87417b0c771a0abf06a182ccf906e572",
+        "lastSeenReceiptId": "review-456f99283c656527b6b634886acb2e159f586202523c9b691eab8a62130d2ea8",
+        "ordinal": 5,
+        "rIds": [
+          "R7"
+        ],
+        "severity": "P2",
+        "status": "open",
+        "suggestion": "Call the already-built native fetch command in standalone setup instead of the shell bridge; preserve the clean environment and final provider.",
+        "title": "Standalone TLC setup invokes a second native-tool bootstrap"
+      },
+      {
+        "anchor": {
+          "baseSha": "f0a82c7a969ec6fd1717a73f98536d3b9c6fe8ee",
+          "headSha": "60f1c762a618d32478b58ae4e79c151f4355aeb3",
+          "path": "model/umpire/backends/process/src/tool_provider.rs",
+          "side": "head",
+          "startLine": 49
+        },
+        "body": "The contained-path helper is reused for mise-tools configuration; missing config files receive a missing pinned jar message, and TLC may append a fetch hint that cannot restore absent source configuration.",
+        "classification": "introduced",
+        "confidence": 100,
+        "firstSeenReceiptId": "review-456f99283c656527b6b634886acb2e159f586202523c9b691eab8a62130d2ea8",
+        "id": "finding-64a5be2e3df6a70404435d258d135de0",
+        "lastSeenReceiptId": "review-456f99283c656527b6b634886acb2e159f586202523c9b691eab8a62130d2ea8",
+        "ordinal": 2,
+        "rIds": [],
+        "severity": "P3",
+        "status": "open",
+        "suggestion": "Use a provider-configuration-specific diagnostic.",
+        "title": "Missing configuration receives a missing-JAR diagnostic"
+      },
+      {
+        "anchor": {
+          "baseSha": "f0a82c7a969ec6fd1717a73f98536d3b9c6fe8ee",
+          "headSha": "60f1c762a618d32478b58ae4e79c151f4355aeb3",
+          "path": "model/umpire/backends/process/src/jar.rs",
+          "side": "head",
+          "startLine": 69
+        },
+        "body": "The legacy PinnedJar::admit path and new provider path keep similar containment walkers, while the former currently has only in-tree test callers.",
+        "classification": "introduced",
+        "confidence": 100,
+        "firstSeenReceiptId": "review-456f99283c656527b6b634886acb2e159f586202523c9b691eab8a62130d2ea8",
+        "id": "finding-69413c7d8278695ff19d2e1e2baf57c2",
+        "lastSeenReceiptId": "review-456f99283c656527b6b634886acb2e159f586202523c9b691eab8a62130d2ea8",
+        "ordinal": 4,
+        "rIds": [],
+        "severity": "P3",
+        "status": "open",
+        "suggestion": "Consider consolidating admission without breaking any retained public contract.",
+        "title": "Two contained-path walkers remain after provider replacement"
+      },
+      {
+        "anchor": {
+          "baseSha": "f0a82c7a969ec6fd1717a73f98536d3b9c6fe8ee",
+          "headSha": "60f1c762a618d32478b58ae4e79c151f4355aeb3",
+          "path": "model/umpire/backends/process/src/jar.rs",
+          "side": "head",
+          "startLine": 21
+        },
+        "body": "The admit_mise doc describes resolving then retaining admission, while actual operation admits the contained regular file and SHA before exact mise where resolution, pinned Java and the version probe; the model README omits the resolution step.",
+        "classification": "introduced",
+        "confidence": 100,
+        "firstSeenReceiptId": "review-456f99283c656527b6b634886acb2e159f586202523c9b691eab8a62130d2ea8",
+        "id": "finding-1019e3d3419a6f03f0d55c770ca84bdc",
+        "lastSeenReceiptId": "review-456f99283c656527b6b634886acb2e159f586202523c9b691eab8a62130d2ea8",
+        "ordinal": 6,
+        "rIds": [],
+        "severity": "P3",
+        "status": "open",
+        "suggestion": "Describe the actual admission order.",
+        "title": "Admission-order documentation is imprecise"
+      }
+    ],
+    "reviewKind": "implementation",
+    "round": 1,
+    "schemaVersion": 1,
+    "sourceReceiptId": "review-456f99283c656527b6b634886acb2e159f586202523c9b691eab8a62130d2ea8"
+  },
+  "focus": "Review the frozen provider diff only: exact TLC1.7.4/Apalache0.62.4 mise assets and hashes, isolated jar context, opt-in and no-auto-install contracts, runtime regular-file/no-symlink/hash admission, concurrency/interruption/cleanup and .17 custody, caller/backend status, changed UTF8/path-list contract, standalone path renewal. Current green proof and historical-material reuse are retained at /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/task16/validation-60f1c762/summary.json and control-mapping.json and input-reuse.json; new watchdog terminal evidence is resumed-watchdog/watchdog-result.json in that same directory. Exact60f new standalone passed17stages,914discovered911executed3ignored with unchangedsource and cleanup; historical267/16/5 controls are labeled historical, not substituted currentfullproof. Broad task8 timings and Darwin runtime deferred. Assess concrete task-scope defects; do not reopen migration, which is owner-deferred. Writer Codex; configured reviewer Claude different family.",
+  "id": "fn-254-fast-validation-gates-and-a-real-inner.16",
+  "introduced_count": 6,
+  "mode": "claude",
+  "model": "claude-fable-5-1",
+  "pre_existing_count": 0,
+  "review": "Coordinator format repair and duplicate collapse only. All three raw reviewer verdicts are SHIP; raw reports remain authoritative. Reviewers read source and call sites; sandbox access to main-checkout runtime artifacts was denied, so runtime evidence was independently verified by the conductor.\n\n## Issue 1\n- **Severity**: P2\n- **Title**: Release identities are mirrored without a drift control\n- **Confidence**: 75\n- **Classification**: introduced\n- **Problem**: JarTool selectors/install paths, backend version pins, installer SHA literals and mise declarations repeat the same current release identities. They agree now, but a future partial version/hash bump can pass existing controls and fail discovery or admission.\n- **Suggestion**: Derive runtime selectors from shared pins and/or add a focused Rust-to-mise drift control.\n- **File:Line**: model/umpire/backends/process/src/tool_provider.rs:21\n- **R-IDs**: []\n\n## Issue 2\n- **Severity**: P3\n- **Title**: Missing configuration receives a missing-JAR diagnostic\n- **Confidence**: 100\n- **Classification**: introduced\n- **Problem**: The contained-path helper is reused for mise-tools configuration; missing config files receive a missing pinned jar message, and TLC may append a fetch hint that cannot restore absent source configuration.\n- **Suggestion**: Use a provider-configuration-specific diagnostic.\n- **File:Line**: model/umpire/backends/process/src/tool_provider.rs:49\n- **R-IDs**: []\n\n## Issue 3\n- **Severity**: P2\n- **Title**: Policy dispatch adds a behaviorally redundant branch\n- **Confidence**: 100\n- **Classification**: introduced\n- **Problem**: Checker routes to Running::spawn while Orchestration routes to spawn_with_policy, but Running::spawn delegates to spawn_with_policy with Checker; both arms reach the same effective operation.\n- **Suggestion**: Use one spawn_with_policy call.\n- **File:Line**: model/umpire/backends/process/src/support.rs:182\n- **R-IDs**: []\n\n## Issue 4\n- **Severity**: P3\n- **Title**: Two contained-path walkers remain after provider replacement\n- **Confidence**: 100\n- **Classification**: introduced\n- **Problem**: The legacy PinnedJar::admit path and new provider path keep similar containment walkers, while the former currently has only in-tree test callers.\n- **Suggestion**: Consider consolidating admission without breaking any retained public contract.\n- **File:Line**: model/umpire/backends/process/src/jar.rs:69\n- **R-IDs**: []\n\n## Issue 5\n- **Severity**: P2\n- **Title**: Standalone TLC setup invokes a second native-tool bootstrap\n- **Confidence**: 75\n- **Classification**: introduced\n- **Problem**: Standalone setup already builds native tools, then fetch-tlc.sh delegates through xtask.sh to the xtask-bootstrap target and may compile that closure again. Reviewers flag the additional fixed setup cost as nonblocking while final timings remain assigned to task8.\n- **Suggestion**: Call the already-built native fetch command in standalone setup instead of the shell bridge; preserve the clean environment and final provider.\n- **File:Line**: model/umpire/dev/xtask/src/gate/standalone.rs:418\n- **R-IDs**: R7\n\n## Issue 6\n- **Severity**: P3\n- **Title**: Admission-order documentation is imprecise\n- **Confidence**: 100\n- **Classification**: introduced\n- **Problem**: The admit_mise doc describes resolving then retaining admission, while actual operation admits the contained regular file and SHA before exact mise where resolution, pinned Java and the version probe; the model README omits the resolution step.\n- **Suggestion**: Describe the actual admission order.\n- **File:Line**: model/umpire/backends/process/src/jar.rs:21\n- **R-IDs**: []\n\n```json\n{\"classification_counts\": {\"introduced\": 6, \"pre_existing\": 0}, \"unaddressed\": [], \"suppressed_count\": {\"25\": 6}}\n```\n\n<verdict>SHIP</verdict>\n",
+  "review_reservation_id": "d56cefa991c84615bd07f20be7556d9b",
+  "rid": "d56cefa991c84615bd07f20be7556d9b",
+  "session_id": "5a338041-0e1b-47d7-a2e3-e088be87ab57",
+  "spec": "claude:claude-fable-5-1:high",
+  "suppressed_count": {
+    "25": 6
+  },
+  "timestamp": "2026-10-28T17:14:52.024151Z",
+  "type": "impl_review",
+  "unaddressed": [],
+  "verdict": "SHIP"
+}

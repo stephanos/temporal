@@ -1,0 +1,37 @@
+{
+  "owner_instruction": "stop after inflight tasks",
+  "persistent_goal": "cleared by owner",
+  "source_head_before_checkpoint": "a32397f997ef886257f867b5df145641bb33de5b",
+  "standalone": {
+    "run": false,
+    "reason": "Prepared runner import failed at Path(__file__).resolve().parents[6] before snapshots, observer, Popen or any build.",
+    "production_output_created": false,
+    "owned_live_pids": []
+  },
+  "leases": "All released; all workers stopped.",
+  "task17": "Open; standalone renewal and final implementation review remain. No completion claim.",
+  "macos": "Validation deferred by direct owner instruction; no acceptance claim.",
+  "prepared_files": {
+    "run.py": {
+      "original": "/tmp/fn25417-standalone-control/run.py",
+      "retained": ".flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/task17/resumed/owner-stop-checkpoint/prepared-run.py",
+      "sha256": "ffed652038c1112b501004cfd169ba64723bb09fb488dbcbad73f6d7e4f8c43e",
+      "status": "prepared only; never reached gate launch"
+    },
+    "observer.py": {
+      "original": "/tmp/fn25417-standalone-control/observer.py",
+      "retained": ".flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/task17/resumed/owner-stop-checkpoint/prepared-observer.py",
+      "sha256": "e97ed64b323631397d8d33a932d228177e7aff8989aa23d785518a1bb15d90a1",
+      "status": "prepared only; never reached gate launch"
+    }
+  },
+  "current_quick_seconds": {
+    "kettle": 173.14224591600214,
+    "activity_first": 354.645,
+    "activity_warm": 321.299
+  },
+  "target_seconds": 60,
+  "target_met": false,
+  "recovery_summary": ".flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/task17/resumed/proof-cache-reclamation/summary.json",
+  "next_resumption": "Repair the unexecuted standalone control runner root-path assumption, renew real standalone proof on current source, then run final implementation review before Task17 closure. Do not start downstream milestones without owner resumption."
+}

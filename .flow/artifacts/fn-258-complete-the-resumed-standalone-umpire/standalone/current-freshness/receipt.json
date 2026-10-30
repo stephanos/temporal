@@ -1,0 +1,56 @@
+{
+  "head": "05473210b48c3db862f22051eb7154ce98258f98",
+  "tree": "46829511b6d582b40f3fa5095f42bdf980c7d466",
+  "result": "pass",
+  "commands": [
+    {
+      "name": "core-protobuf",
+      "command": [
+        "bash",
+        "scripts/proto-go.sh",
+        "core",
+        "--check"
+      ],
+      "exit_code": 0,
+      "seconds": 0.05420633401081432,
+      "log": "core-protobuf.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "kettle-protobuf",
+      "command": [
+        "bash",
+        "scripts/proto-go.sh",
+        "kettle",
+        "--check"
+      ],
+      "exit_code": 0,
+      "seconds": 0.04015895799966529,
+      "log": "kettle-protobuf.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "source-boundary",
+      "command": [
+        "mise",
+        "exec",
+        "--",
+        "cargo",
+        "run",
+        "-p",
+        "xtask",
+        "--locked",
+        "--",
+        "gate",
+        "--stage",
+        "source-boundary"
+      ],
+      "exit_code": 0,
+      "seconds": 1.9586338340013754,
+      "log": "source-boundary.log",
+      "log_sha256": "06fa53837d4862ff308461b73eab64d4d32413b33a3a3ed63dbe9aa621f275b3"
+    }
+  ],
+  "tracked_and_untracked_source_clean": true,
+  "BASH_ENV": "unset to remove sandbox-specific caller-directory injection; product environment unchanged"
+}

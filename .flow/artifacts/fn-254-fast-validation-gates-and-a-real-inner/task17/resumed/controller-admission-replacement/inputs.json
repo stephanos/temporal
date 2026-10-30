@@ -1,0 +1,15 @@
+{
+  "source_commit": "bac6ba518431106b503e3fb4fb68421e122d64c5",
+  "parent_base": "6cd00f6247",
+  "files": {
+    "model/dev/xtask/src/main.rs": "3c51da727b600889ae49937b85493560ea5ff349c01425e368dc06d778875d43",
+    "model/umpire/dev/xtask/README.md": "875174aa1b0e2039bff25b67e44c80f003281b75bbe3153e17bb6646725ddf63",
+    "model/umpire/dev/xtask/src/gate/work_counts.rs": "9a6f31882b4aace847fcd4e05a7632a8d6f00a2fba6631894c630a7a92bd4aa2",
+    "model/umpire/dev/xtask/src/main.rs": "99490c4f6d805885ea56c4df2cd904e797ba5f70229de9011aed10945e06079a",
+    "model/umpire/dev/xtask/tests/controller_counts.rs": "e2cd57f01b06f801e69b2f3669f02abaa6ea1b4017c817844652047b80e3ca2e",
+    "model/umpire/dev/xtask/tests/gate_wiring.rs": "c800f8bb4901db36f849137ba991ac67024d1ac994660afd4b341c741bd0e428",
+    "model/umpire/dev/xtask/tests/main.rs": "a6e6c04e7806a109073983e8479e75d7fd5fc1b07f3b311e5b7fd3297927c76a"
+  },
+  "production_change": "private process-local verified role snapshot initialized by both native CLI run entries",
+  "no_environment_role_boolean": true
+}

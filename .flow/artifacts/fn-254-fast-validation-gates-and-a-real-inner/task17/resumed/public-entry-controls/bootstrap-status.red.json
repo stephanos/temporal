@@ -1,0 +1,9 @@
+{
+  "command": [
+    "/bin/bash",
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal/model/scripts/test-model-validate.sh"
+  ],
+  "exit_code": 1,
+  "expected_failure": "bootstrap37 incorrectly became127 under timed command substitution",
+  "log_sha256": "656e621b65ab460069f17e939482a9648900d5a564e596e6b72e1cdd2b5f6ddc"
+}

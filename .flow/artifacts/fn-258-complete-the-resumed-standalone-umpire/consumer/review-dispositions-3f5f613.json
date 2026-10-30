@@ -1,0 +1,94 @@
+{
+  "initial_review_reservation": "5dd17a749187465799e1e08c14dfbc90",
+  "initial_receipt_source": ".flow/tmp/impl-review-fn2583.json",
+  "initial_receipt_sha256": "fd3d9b321fc72f07d9f5aaf81c865d707b9ac78cc9ca4bbf77737217b5eaede0",
+  "initial_verdict": "SHIP",
+  "initial_draws": [
+    {
+      "axis": "correctness",
+      "failed": false,
+      "model": "claude-fable-5-1",
+      "session_id": "6f6c58ee-c13b-4921-b2ba-fa1bc4efb35b",
+      "verdict": "SHIP"
+    },
+    {
+      "axis": "contracts",
+      "failed": false,
+      "model": "claude-fable-5-1",
+      "session_id": "950e4fba-a96a-4f69-bd04-bf106c6a8c88",
+      "verdict": "SHIP"
+    },
+    {
+      "axis": "integration",
+      "failed": false,
+      "model": "claude-fable-5-1",
+      "session_id": "34db4e37-0978-48c1-b0a5-ea1b987c10c5",
+      "verdict": "SHIP"
+    }
+  ],
+  "review_retention_owner": "Root retains actual raw reviews/receipt under consumer/review-initial-365; this disposition does not replace or alter that review.",
+  "current_candidate": "3f5f613578f2857b738a7792fad08f12b3ea0a41",
+  "fresh_current_review": "pending root",
+  "items": [
+    {
+      "id": "finding-24681eadb564c778bcd4473397d50064",
+      "ordinal": 1,
+      "title": "The actionable missing-sibling precheck is added only to `model-quick`",
+      "severity": "P2",
+      "original_receipt_status": "open",
+      "disposition": "addressed",
+      "assessment": "ec130572 adds explicit check/fmt/update preflight; quick retains its guard. Four actual missing-source commands plus shipping red/green/fake-tool controls verify diagnostics before tools.",
+      "evidence": "readiness-followup-ec13057/consumer-guard-results.json"
+    },
+    {
+      "id": "finding-850f6e6c0bf072ea20d644d028106205",
+      "ordinal": 2,
+      "title": "Task acceptance item 2 requires `go env GOWORK` and `go list -m -json` to show the intended workspace/host module",
+      "severity": "P2",
+      "original_receipt_status": "open",
+      "disposition": "addressed",
+      "assessment": "Explicit go env GOWORK and go list -m -json recorded on actual365/054 pair; all3 module Dirs verified. Current manifest objects identical, so resolution observation is portable, not relabeled as a new-pair run.",
+      "evidence": "readiness-followup-ec13057/consumer-parent-workspace.json"
+    },
+    {
+      "id": "finding-f69d2316befaab08f664dbe6b72ac5da",
+      "ordinal": 3,
+      "title": "`model/docs/paired-checkout",
+      "severity": "P3",
+      "original_receipt_status": "open",
+      "disposition": "addressed",
+      "assessment": "Paired setup source checkpoint changed from58a6989 to05473210 in ec130572.",
+      "evidence": "source-adaptation.patch"
+    },
+    {
+      "id": "finding-2df307636044c9b4557948a02cf1ddef",
+      "ordinal": 4,
+      "title": "Top-level `framework` is `ac79114a\u2026`, while `current-source",
+      "severity": "P3",
+      "original_receipt_status": "open",
+      "disposition": "addressed",
+      "assessment": "readiness.json now separates retained initial ac79114 observations, latest executed365/054 binding, current source followup and content-based rebind/expiry.",
+      "evidence": "readiness.json"
+    },
+    {
+      "id": "finding-ecd8ff30556fd322580221c0d673374a",
+      "ordinal": 5,
+      "title": "The fn-258",
+      "severity": "P3",
+      "original_receipt_status": "open",
+      "disposition": "addressed",
+      "assessment": "Root updated MILESTONES on2026-10-28: current consumer3f5f613, standalone gate pass, review fixes and task4 freshness boundary explicit. Task3 remains open pending final source review.",
+      "evidence": "MILESTONES.md"
+    },
+    {
+      "id": "finding-905f5073cd7c0fcc768792bc785bb363",
+      "ordinal": 6,
+      "title": "The candidate rewrites every Go import and `go",
+      "severity": "P3",
+      "original_receipt_status": "open",
+      "disposition": "addressed",
+      "assessment": "ec130572 rewrites live README aliases/sibling links; separate3f5f613 comment commit explicitly names hosts/go/README.md in sibling Umpire checkout. Historical orphan wording remains only in initial record; current record distinguishes documentation corrections.",
+      "evidence": "source-adaptation.patch"
+    }
+  ]
+}

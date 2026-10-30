@@ -1,0 +1,18 @@
+{
+  "success": true,
+  "type": "impl_review",
+  "id": "fn-257-extract-the-standalone-umpire.2",
+  "verdict": "SHIP",
+  "session_id": "01a17901-68bb-7fb2-af7b-af37e9c92b85",
+  "mode": "codex",
+  "model": "gpt-6.1-sol",
+  "effort": "high",
+  "spec": "codex:gpt-6.1-sol:high",
+  "standalone": false,
+  "review": "Prior finding #1: fixed\n\nThe verifier now checks rewritten parent order and preserved ancestry, allowing redundant-ancestor pruning. Read-only rechecks confirmed:\n\n- The unchanged export passes all 7,149 snapshot checks and 581 retained-parent comparisons.\n- The corrupted graph fails with `rewritten-parent-order`.\n- Source state remains unchanged in both checks.\n\nNo new blocking findings arose from the correction or control.\n\n## Requirements coverage\n\n| R-ID | Status | Evidence |\n| --- | --- | --- |\n| R1 | deferred | Tasks 1 and 6; outside this re-review. |\n| R2 | met | Positive export passes; injected ancestry corruption is rejected. |\n| R3 | deferred | Portable checkout preparation. |\n| R4 | deferred | Consumer wiring. |\n| R5 | deferred | Execution gates remain under the owner hold. |\n| R6 | deferred | Destination publication and cutover. |\n\nUnaddressed R-IDs: []\n\nClassification counts: 0 introduced, 0 pre_existing.\n\n```json\n{\"classification_counts\":{\"introduced\":0,\"pre_existing\":0},\"unaddressed\":[]}\n```\n\n<verdict>SHIP</verdict> - Ready to merge (no blocking introduced findings, all R-IDs met or deferred)\n",
+  "introduced_count": 0,
+  "pre_existing_count": 0,
+  "unaddressed": [],
+  "review_rounds": 0,
+  "review_rounds_cap": 8
+}

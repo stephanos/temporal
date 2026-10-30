@@ -1,0 +1,2575 @@
+{
+  "source_baseline": "c88fdc550694020eb1c6a2e09577813d906c9ffe",
+  "frozen_source": "ac60daaf47d2513b41eeff612f0e2758d33e186d",
+  "standalone_preparation_checkpoint": "58a6989fe5ccd6a1ae734326d568f60dce2dab43",
+  "status": "current integrated source delta transferred into ongoing standalone preparation; not original candidate disposition",
+  "command": [
+    "git",
+    "diff",
+    "--raw",
+    "--no-abbrev",
+    "--no-renames",
+    "-z",
+    "c88fdc550694020eb1c6a2e09577813d906c9ffe",
+    "ac60daaf47d2513b41eeff612f0e2758d33e186d",
+    "--",
+    "model/umpire"
+  ],
+  "rename_policy": "no rename inference; additions/deletions recorded independently",
+  "path_count": 283,
+  "status_counts": {
+    "M": 28,
+    "A": 133,
+    "D": 122
+  },
+  "path_relative_binary_patch_sha256": "ff3653f83568290dbab8c353b0a0ceb9e9fd160ba7e466cd21fd8f7996ae47cd",
+  "entries": [
+    {
+      "source_path": "model/umpire/.config/nextest.toml",
+      "destination_path": ".config/nextest.toml",
+      "status": "M",
+      "old_mode": "100644",
+      "new_mode": "100644",
+      "old_blob": "bd9d3518906051c678e0e19c4fc1ec27aa49cc2b",
+      "new_blob": "9e2f43684c09364199ab9dd176ae92901237bf59"
+    },
+    {
+      "source_path": "model/umpire/Cargo.lock",
+      "destination_path": "Cargo.lock",
+      "status": "M",
+      "old_mode": "100644",
+      "new_mode": "100644",
+      "old_blob": "8ddc405dd2e4833e0d39836e2e292f823ca281f4",
+      "new_blob": "18cf43883ffa175f8d8c29adfcf32f050fe117c6"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/fixtures.rs",
+      "destination_path": "author/dsl/macros/tests/fixtures.rs",
+      "status": "M",
+      "old_mode": "100644",
+      "new_mode": "100644",
+      "old_blob": "c872d974d5ca725000e15067299f675e9acbf68f",
+      "new_blob": "daac40c49cf7314aa58b49c8c17494e9a7fc0aea"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/parser_refusals/MAPPING.md",
+      "destination_path": "author/dsl/macros/tests/parser_refusals/MAPPING.md",
+      "status": "A",
+      "old_mode": "000000",
+      "new_mode": "100644",
+      "old_blob": "0000000000000000000000000000000000000000",
+      "new_blob": "553f5f49618c49e7188c35e9397a00c4fd319bd0"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/parser_refusals/cases.rs",
+      "destination_path": "author/dsl/macros/tests/parser_refusals/cases.rs",
+      "status": "A",
+      "old_mode": "000000",
+      "new_mode": "100644",
+      "old_blob": "0000000000000000000000000000000000000000",
+      "new_blob": "1c1fa6bd0b0a5a3d01a8674f447d0884c91eef0c"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/action_domain_conflict.rs",
+      "destination_path": "author/dsl/macros/tests/parser_refusals/inputs/action_domain_conflict.rs",
+      "status": "A",
+      "old_mode": "000000",
+      "new_mode": "100644",
+      "old_blob": "0000000000000000000000000000000000000000",
+      "new_blob": "a797cb64829bbf8d3a1c38d31d38618f0bda88d0"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/action_domain_conflict.stderr",
+      "destination_path": "author/dsl/macros/tests/parser_refusals/inputs/action_domain_conflict.stderr",
+      "status": "A",
+      "old_mode": "000000",
+      "new_mode": "100644",
+      "old_blob": "0000000000000000000000000000000000000000",
+      "new_blob": "5f1cc92204d7ab4347c3204cdaee565a94949dcf"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/action_domain_duplicate.rs",
+      "destination_path": "author/dsl/macros/tests/parser_refusals/inputs/action_domain_duplicate.rs",
+      "status": "A",
+      "old_mode": "000000",
+      "new_mode": "100644",
+      "old_blob": "0000000000000000000000000000000000000000",
+      "new_blob": "c08ee83d8be5c9a0d5d6cc66d3f3cbc2aec6011c"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/action_domain_duplicate.stderr",
+      "destination_path": "author/dsl/macros/tests/parser_refusals/inputs/action_domain_duplicate.stderr",
+      "status": "A",
+      "old_mode": "000000",
+      "new_mode": "100644",
+      "old_blob": "0000000000000000000000000000000000000000",
+      "new_blob": "1dbfa2925e126c68c4423be459a2a4ded08f70de"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/action_domain_variant.rs",
+      "destination_path": "author/dsl/macros/tests/parser_refusals/inputs/action_domain_variant.rs",
+      "status": "A",
+      "old_mode": "000000",
+      "new_mode": "100644",
+      "old_blob": "0000000000000000000000000000000000000000",
+      "new_blob": "710b4f26f938ac30679c02c81b44fe313658cacb"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/action_domain_variant.stderr",
+      "destination_path": "author/dsl/macros/tests/parser_refusals/inputs/action_domain_variant.stderr",
+      "status": "A",
+      "old_mode": "000000",
+      "new_mode": "100644",
+      "old_blob": "0000000000000000000000000000000000000000",
+      "new_blob": "e8b4b58bcf549ed0e34591f8cf6fe957b1ac2429"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/action_domain_without_world.rs",
+      "destination_path": "author/dsl/macros/tests/parser_refusals/inputs/action_domain_without_world.rs",
+      "status": "A",
+      "old_mode": "000000",
+      "new_mode": "100644",
+      "old_blob": "0000000000000000000000000000000000000000",
+      "new_blob": "4084df9b93661ea2dee5ecc6386b28d9c95e46af"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/action_domain_without_world.stderr",
+      "destination_path": "author/dsl/macros/tests/parser_refusals/inputs/action_domain_without_world.stderr",
+      "status": "A",
+      "old_mode": "000000",
+      "new_mode": "100644",
+      "old_blob": "0000000000000000000000000000000000000000",
+      "new_blob": "1971e3da43ba4b236edda1dad01dce9361cb9963"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/action_inputs_duplicate.rs",
+      "destination_path": "author/dsl/macros/tests/parser_refusals/inputs/action_inputs_duplicate.rs",
+      "status": "A",
+      "old_mode": "000000",
+      "new_mode": "100644",
+      "old_blob": "0000000000000000000000000000000000000000",
+      "new_blob": "d7ade5fc63141332f613f0c1e1987ed8f7f3c322"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/action_inputs_duplicate.stderr",
+      "destination_path": "author/dsl/macros/tests/parser_refusals/inputs/action_inputs_duplicate.stderr",
+      "status": "A",
+      "old_mode": "000000",
+      "new_mode": "100644",
+      "old_blob": "0000000000000000000000000000000000000000",
+      "new_blob": "e5270c6d17034902cab19effa30efb807dd8128c"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/action_inputs_invalid.rs",
+      "destination_path": "author/dsl/macros/tests/parser_refusals/inputs/action_inputs_invalid.rs",
+      "status": "A",
+      "old_mode": "000000",
+      "new_mode": "100644",
+      "old_blob": "0000000000000000000000000000000000000000",
+      "new_blob": "402769e8bb89c4216f8bb009baec8e681d863a6c"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/action_inputs_invalid.stderr",
+      "destination_path": "author/dsl/macros/tests/parser_refusals/inputs/action_inputs_invalid.stderr",
+      "status": "A",
+      "old_mode": "000000",
+      "new_mode": "100644",
+      "old_blob": "0000000000000000000000000000000000000000",
+      "new_blob": "9879a504b9a2d60154fef394dd3477c9ad71e0ac"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/action_inputs_missing.rs",
+      "destination_path": "author/dsl/macros/tests/parser_refusals/inputs/action_inputs_missing.rs",
+      "status": "A",
+      "old_mode": "000000",
+      "new_mode": "100644",
+      "old_blob": "0000000000000000000000000000000000000000",
+      "new_blob": "a31c47cd6af7c5dc17181075c183563d2385d2f6"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/action_inputs_missing.stderr",
+      "destination_path": "author/dsl/macros/tests/parser_refusals/inputs/action_inputs_missing.stderr",
+      "status": "A",
+      "old_mode": "000000",
+      "new_mode": "100644",
+      "old_blob": "0000000000000000000000000000000000000000",
+      "new_blob": "3f41d5601b61fe05a4d8f16d16aa42bda93a929b"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/action_inputs_variant_fault.rs",
+      "destination_path": "author/dsl/macros/tests/parser_refusals/inputs/action_inputs_variant_fault.rs",
+      "status": "A",
+      "old_mode": "000000",
+      "new_mode": "100644",
+      "old_blob": "0000000000000000000000000000000000000000",
+      "new_blob": "86eac9bc22fb4deab13153d7cdaa993a90f3ce05"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/action_inputs_variant_fault.stderr",
+      "destination_path": "author/dsl/macros/tests/parser_refusals/inputs/action_inputs_variant_fault.stderr",
+      "status": "A",
+      "old_mode": "000000",
+      "new_mode": "100644",
+      "old_blob": "0000000000000000000000000000000000000000",
+      "new_blob": "80bb39da1a2d46149a820a02ab1ab391336f88b0"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/action_metadata_duplicate.rs",
+      "destination_path": "author/dsl/macros/tests/parser_refusals/inputs/action_metadata_duplicate.rs",
+      "status": "A",
+      "old_mode": "000000",
+      "new_mode": "100644",
+      "old_blob": "0000000000000000000000000000000000000000",
+      "new_blob": "e49c8d6e33c7849bda91821b9b1332a5f4fbacdf"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/action_metadata_duplicate.stderr",
+      "destination_path": "author/dsl/macros/tests/parser_refusals/inputs/action_metadata_duplicate.stderr",
+      "status": "A",
+      "old_mode": "000000",
+      "new_mode": "100644",
+      "old_blob": "0000000000000000000000000000000000000000",
+      "new_blob": "49255e728d606c43dabe5c76e638235b12a297ee"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/action_metadata_namespace.rs",
+      "destination_path": "author/dsl/macros/tests/parser_refusals/inputs/action_metadata_namespace.rs",
+      "status": "A",
+      "old_mode": "000000",
+      "new_mode": "100644",
+      "old_blob": "0000000000000000000000000000000000000000",
+      "new_blob": "bf464fe08878115d5fee7e91d03d2356a9a5cd93"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/action_metadata_namespace.stderr",
+      "destination_path": "author/dsl/macros/tests/parser_refusals/inputs/action_metadata_namespace.stderr",
+      "status": "A",
+      "old_mode": "000000",
+      "new_mode": "100644",
+      "old_blob": "0000000000000000000000000000000000000000",
+      "new_blob": "637a9f41fd7cd871fe666e0e0440fc689916cdb5"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/action_metadata_placement.rs",
+      "destination_path": "author/dsl/macros/tests/parser_refusals/inputs/action_metadata_placement.rs",
+      "status": "A",
+      "old_mode": "000000",
+      "new_mode": "100644",
+      "old_blob": "0000000000000000000000000000000000000000",
+      "new_blob": "c092a7aa620afb5bc2e558339ab10bc23c5b922c"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/action_metadata_placement.stderr",
+      "destination_path": "author/dsl/macros/tests/parser_refusals/inputs/action_metadata_placement.stderr",
+      "status": "A",
+      "old_mode": "000000",
+      "new_mode": "100644",
+      "old_blob": "0000000000000000000000000000000000000000",
+      "new_blob": "b077773ad6b60e6d24e539daa362d59ac91bb56c"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/finite_shape.rs",
+      "destination_path": "author/dsl/macros/tests/parser_refusals/inputs/finite_shape.rs",
+      "status": "A",
+      "old_mode": "000000",
+      "new_mode": "100644",
+      "old_blob": "0000000000000000000000000000000000000000",
+      "new_blob": "fe8774ad2eaa904d9888efb64f32eaf4ddaa31d6"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/finite_shape.stderr",
+      "destination_path": "author/dsl/macros/tests/parser_refusals/inputs/finite_shape.stderr",
+      "status": "A",
+      "old_mode": "000000",
+      "new_mode": "100644",
+      "old_blob": "0000000000000000000000000000000000000000",
+      "new_blob": "b3fc44e16c771c6ae887aa90b3ced82f6a3ab5a7"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_actor_arity.rs",
+      "destination_path": "author/dsl/macros/tests/parser_refusals/inputs/machine_actor_arity.rs",
+      "status": "A",
+      "old_mode": "000000",
+      "new_mode": "100644",
+      "old_blob": "0000000000000000000000000000000000000000",
+      "new_blob": "b58eda672fac7c9c8fadd81e07616ab58d7ef30d"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_actor_arity.stderr",
+      "destination_path": "author/dsl/macros/tests/parser_refusals/inputs/machine_actor_arity.stderr",
+      "status": "A",
+      "old_mode": "000000",
+      "new_mode": "100644",
+      "old_blob": "0000000000000000000000000000000000000000",
+      "new_blob": "60e2b54b226fa17b64a7d720b6fc25128b75c5d9"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_actor_mismatch.rs",
+      "destination_path": "author/dsl/macros/tests/parser_refusals/inputs/machine_actor_mismatch.rs",
+      "status": "A",
+      "old_mode": "000000",
+      "new_mode": "100644",
+      "old_blob": "0000000000000000000000000000000000000000",
+      "new_blob": "eb48c78db46710d49d745f747a5a8f0e3bf1bde2"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_actor_mismatch.stderr",
+      "destination_path": "author/dsl/macros/tests/parser_refusals/inputs/machine_actor_mismatch.stderr",
+      "status": "A",
+      "old_mode": "000000",
+      "new_mode": "100644",
+      "old_blob": "0000000000000000000000000000000000000000",
+      "new_blob": "8aaa73f7fa19b820c56ab3af881d57c75a3d6305"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_actor_receiver.rs",
+      "destination_path": "author/dsl/macros/tests/parser_refusals/inputs/machine_actor_receiver.rs",
+      "status": "A",
+      "old_mode": "000000",
+      "new_mode": "100644",
+      "old_blob": "0000000000000000000000000000000000000000",
+      "new_blob": "22b9e41e5c8630a7b6691cb9e8c0e31f8db16fa5"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_actor_receiver.stderr",
+      "destination_path": "author/dsl/macros/tests/parser_refusals/inputs/machine_actor_receiver.stderr",
+      "status": "A",
+      "old_mode": "000000",
+      "new_mode": "100644",
+      "old_blob": "0000000000000000000000000000000000000000",
+      "new_blob": "be24378440cf0dda6c1db2535b001a545eda164e"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_after_inputs.rs",
+      "destination_path": "author/dsl/macros/tests/parser_refusals/inputs/machine_after_inputs.rs",
+      "status": "A",
+      "old_mode": "000000",
+      "new_mode": "100644",
+      "old_blob": "0000000000000000000000000000000000000000",
+      "new_blob": "4d53696aab2bc5ffa31a4239387c6f7507341b4b"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_after_inputs.stderr",
+      "destination_path": "author/dsl/macros/tests/parser_refusals/inputs/machine_after_inputs.stderr",
+      "status": "A",
+      "old_mode": "000000",
+      "new_mode": "100644",
+      "old_blob": "0000000000000000000000000000000000000000",
+      "new_blob": "56f93bb168662b989642df10a535408175ed59ca"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_claim_async.rs",
+      "destination_path": "author/dsl/macros/tests/parser_refusals/inputs/machine_claim_async.rs",
+      "status": "A",
+      "old_mode": "000000",
+      "new_mode": "100644",
+      "old_blob": "0000000000000000000000000000000000000000",
+      "new_blob": "495b4e3c14e3674e64e88b30f01e11a3e375fb36"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_claim_async.stderr",
+      "destination_path": "author/dsl/macros/tests/parser_refusals/inputs/machine_claim_async.stderr",
+      "status": "A",
+      "old_mode": "000000",
+      "new_mode": "100644",
+      "old_blob": "0000000000000000000000000000000000000000",
+      "new_blob": "854e360ce7e862e3fcb740168a565fe90d76868c"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_claim_returns.rs",
+      "destination_path": "author/dsl/macros/tests/parser_refusals/inputs/machine_claim_returns.rs",
+      "status": "A",
+      "old_mode": "000000",
+      "new_mode": "100644",
+      "old_blob": "0000000000000000000000000000000000000000",
+      "new_blob": "d862a4e8202a1a0d16a580690bed6873550b8369"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_claim_returns.stderr",
+      "destination_path": "author/dsl/macros/tests/parser_refusals/inputs/machine_claim_returns.stderr",
+      "status": "A",
+      "old_mode": "000000",
+      "new_mode": "100644",
+      "old_blob": "0000000000000000000000000000000000000000",
+      "new_blob": "2a80cba6011f001d3a5c027645eaf4e43d7f1289"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_duplicate_actor.rs",
+      "destination_path": "author/dsl/macros/tests/parser_refusals/inputs/machine_duplicate_actor.rs",
+      "status": "A",
+      "old_mode": "000000",
+      "new_mode": "100644",
+      "old_blob": "0000000000000000000000000000000000000000",
+      "new_blob": "a560e3d5622e5304e24d92545a0c23bd976ccac5"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_duplicate_actor.stderr",
+      "destination_path": "author/dsl/macros/tests/parser_refusals/inputs/machine_duplicate_actor.stderr",
+      "status": "A",
+      "old_mode": "000000",
+      "new_mode": "100644",
+      "old_blob": "0000000000000000000000000000000000000000",
+      "new_blob": "54fb228dfd8c8462a949535b9f9cc074922d49df"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_duplicate_kind.rs",
+      "destination_path": "author/dsl/macros/tests/parser_refusals/inputs/machine_duplicate_kind.rs",
+      "status": "A",
+      "old_mode": "000000",
+      "new_mode": "100644",
+      "old_blob": "0000000000000000000000000000000000000000",
+      "new_blob": "7652e78df7ace8600d4942d3efaf204926a19af4"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_duplicate_kind.stderr",
+      "destination_path": "author/dsl/macros/tests/parser_refusals/inputs/machine_duplicate_kind.stderr",
+      "status": "A",
+      "old_mode": "000000",
+      "new_mode": "100644",
+      "old_blob": "0000000000000000000000000000000000000000",
+      "new_blob": "9cbcc168b0197ede1d639eb7a8601e1700f38a17"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_effect_arguments.rs",
+      "destination_path": "author/dsl/macros/tests/parser_refusals/inputs/machine_effect_arguments.rs",
+      "status": "A",
+      "old_mode": "000000",
+      "new_mode": "100644",
+      "old_blob": "0000000000000000000000000000000000000000",
+      "new_blob": "2dd86404ed1c8d994d2881116e7d993972323828"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_effect_arguments.stderr",
+      "destination_path": "author/dsl/macros/tests/parser_refusals/inputs/machine_effect_arguments.stderr",
+      "status": "A",
+      "old_mode": "000000",
+      "new_mode": "100644",
+      "old_blob": "0000000000000000000000000000000000000000",
+      "new_blob": "39340f3a49f020297b2739bd4a780cc98d84eca3"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_generic.rs",
+      "destination_path": "author/dsl/macros/tests/parser_refusals/inputs/machine_generic.rs",
+      "status": "A",
+      "old_mode": "000000",
+      "new_mode": "100644",
+      "old_blob": "0000000000000000000000000000000000000000",
+      "new_blob": "385d4bb6b2636447e6f5951e4ba3036a37e8b574"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_generic.stderr",
+      "destination_path": "author/dsl/macros/tests/parser_refusals/inputs/machine_generic.stderr",
+      "status": "A",
+      "old_mode": "000000",
+      "new_mode": "100644",
+      "old_blob": "0000000000000000000000000000000000000000",
+      "new_blob": "18496b5ba5d86834464d908266616e98fe543ab4"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_handler_async.rs",
+      "destination_path": "author/dsl/macros/tests/parser_refusals/inputs/machine_handler_async.rs",
+      "status": "A",
+      "old_mode": "000000",
+      "new_mode": "100644",
+      "old_blob": "0000000000000000000000000000000000000000",
+      "new_blob": "9bb53bd5bff8cd9efa588f9fa700392dcc00a8f9"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_handler_async.stderr",
+      "destination_path": "author/dsl/macros/tests/parser_refusals/inputs/machine_handler_async.stderr",
+      "status": "A",
+      "old_mode": "000000",
+      "new_mode": "100644",
+      "old_blob": "0000000000000000000000000000000000000000",
+      "new_blob": "4573b92748478dfe6be467ef4c1acc683288be99"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_handler_returns.rs",
+      "destination_path": "author/dsl/macros/tests/parser_refusals/inputs/machine_handler_returns.rs",
+      "status": "A",
+      "old_mode": "000000",
+      "new_mode": "100644",
+      "old_blob": "0000000000000000000000000000000000000000",
+      "new_blob": "a5e9b5478aa9e9a4aabee72e7d81d4a478e91064"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_handler_returns.stderr",
+      "destination_path": "author/dsl/macros/tests/parser_refusals/inputs/machine_handler_returns.stderr",
+      "status": "A",
+      "old_mode": "000000",
+      "new_mode": "100644",
+      "old_blob": "0000000000000000000000000000000000000000",
+      "new_blob": "503ee8419075721481c90908a78bfd3527529a75"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_invariant_parameters.rs",
+      "destination_path": "author/dsl/macros/tests/parser_refusals/inputs/machine_invariant_parameters.rs",
+      "status": "A",
+      "old_mode": "000000",
+      "new_mode": "100644",
+      "old_blob": "0000000000000000000000000000000000000000",
+      "new_blob": "af1beae9ba7696b4ad9070760491a78b9ad9e2ea"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_invariant_parameters.stderr",
+      "destination_path": "author/dsl/macros/tests/parser_refusals/inputs/machine_invariant_parameters.stderr",
+      "status": "A",
+      "old_mode": "000000",
+      "new_mode": "100644",
+      "old_blob": "0000000000000000000000000000000000000000",
+      "new_blob": "5dc00390f785d73d27752b3ef4a8772019afd5e1"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_legacy_effects.rs",
+      "destination_path": "author/dsl/macros/tests/parser_refusals/inputs/machine_legacy_effects.rs",
+      "status": "A",
+      "old_mode": "000000",
+      "new_mode": "100644",
+      "old_blob": "0000000000000000000000000000000000000000",
+      "new_blob": "1e07ef98d6bcdf964ccffa836423201080a2a9c4"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_legacy_effects.stderr",
+      "destination_path": "author/dsl/macros/tests/parser_refusals/inputs/machine_legacy_effects.stderr",
+      "status": "A",
+      "old_mode": "000000",
+      "new_mode": "100644",
+      "old_blob": "0000000000000000000000000000000000000000",
+      "new_blob": "b8245bd49ea4f5b7a52b70070960f75ee95852b6"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_legacy_invariants.rs",
+      "destination_path": "author/dsl/macros/tests/parser_refusals/inputs/machine_legacy_invariants.rs",
+      "status": "A",
+      "old_mode": "000000",
+      "new_mode": "100644",
+      "old_blob": "0000000000000000000000000000000000000000",
+      "new_blob": "fc11aebcf1fc0dc3d1b6abb811ab3b36e2a8e3a3"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_legacy_invariants.stderr",
+      "destination_path": "author/dsl/macros/tests/parser_refusals/inputs/machine_legacy_invariants.stderr",
+      "status": "A",
+      "old_mode": "000000",
+      "new_mode": "100644",
+      "old_blob": "0000000000000000000000000000000000000000",
+      "new_blob": "7681450fac9652958a44fefd295b105e4c85b1dd"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_legacy_scopes.rs",
+      "destination_path": "author/dsl/macros/tests/parser_refusals/inputs/machine_legacy_scopes.rs",
+      "status": "A",
+      "old_mode": "000000",
+      "new_mode": "100644",
+      "old_blob": "0000000000000000000000000000000000000000",
+      "new_blob": "ded8f1bda0fb9dfd1935acdf0a71c9b54f601bf4"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_legacy_scopes.stderr",
+      "destination_path": "author/dsl/macros/tests/parser_refusals/inputs/machine_legacy_scopes.stderr",
+      "status": "A",
+      "old_mode": "000000",
+      "new_mode": "100644",
+      "old_blob": "0000000000000000000000000000000000000000",
+      "new_blob": "ed87175e1be6900863d21fbe442ac83ff86b45fe"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_legacy_transitions.rs",
+      "destination_path": "author/dsl/macros/tests/parser_refusals/inputs/machine_legacy_transitions.rs",
+      "status": "A",
+      "old_mode": "000000",
+      "new_mode": "100644",
+      "old_blob": "0000000000000000000000000000000000000000",
+      "new_blob": "ea4b360b98f29809a6c826fe8a7c2a4a2e709706"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_legacy_transitions.stderr",
+      "destination_path": "author/dsl/macros/tests/parser_refusals/inputs/machine_legacy_transitions.stderr",
+      "status": "A",
+      "old_mode": "000000",
+      "new_mode": "100644",
+      "old_blob": "0000000000000000000000000000000000000000",
+      "new_blob": "34ada33cf3e9744b319637c9aa69ec3fccaab15f"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_marker_trait.rs",
+      "destination_path": "author/dsl/macros/tests/parser_refusals/inputs/machine_marker_trait.rs",
+      "status": "A",
+      "old_mode": "000000",
+      "new_mode": "100644",
+      "old_blob": "0000000000000000000000000000000000000000",
+      "new_blob": "0dacde732c7f55b4f8577b3c87387d7c36387121"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_marker_trait.stderr",
+      "destination_path": "author/dsl/macros/tests/parser_refusals/inputs/machine_marker_trait.stderr",
+      "status": "A",
+      "old_mode": "000000",
+      "new_mode": "100644",
+      "old_blob": "0000000000000000000000000000000000000000",
+      "new_blob": "d6701fcbcc775aba474ad9f389bf0121b1512ad2"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_misplaced_effect.rs",
+      "destination_path": "author/dsl/macros/tests/parser_refusals/inputs/machine_misplaced_effect.rs",
+      "status": "A",
+      "old_mode": "000000",
+      "new_mode": "100644",
+      "old_blob": "0000000000000000000000000000000000000000",
+      "new_blob": "15310fd26b85d57ff2e1d94bdf9618c309593881"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_misplaced_effect.stderr",
+      "destination_path": "author/dsl/macros/tests/parser_refusals/inputs/machine_misplaced_effect.stderr",
+      "status": "A",
+      "old_mode": "000000",
+      "new_mode": "100644",
+      "old_blob": "0000000000000000000000000000000000000000",
+      "new_blob": "a231fa64b4806e587130affcea8a53775b971877"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_missing_actor.rs",
+      "destination_path": "author/dsl/macros/tests/parser_refusals/inputs/machine_missing_actor.rs",
+      "status": "A",
+      "old_mode": "000000",
+      "new_mode": "100644",
+      "old_blob": "0000000000000000000000000000000000000000",
+      "new_blob": "3c9b87707510ebfb80e6211cc70f7612b4113a0a"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_missing_actor.stderr",
+      "destination_path": "author/dsl/macros/tests/parser_refusals/inputs/machine_missing_actor.stderr",
+      "status": "A",
+      "old_mode": "000000",
+      "new_mode": "100644",
+      "old_blob": "0000000000000000000000000000000000000000",
+      "new_blob": "7fa271e36fb23028c6514fa5e540c6234c6cb2b9"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_mutable_helper.rs",
+      "destination_path": "author/dsl/macros/tests/parser_refusals/inputs/machine_mutable_helper.rs",
+      "status": "A",
+      "old_mode": "000000",
+      "new_mode": "100644",
+      "old_blob": "0000000000000000000000000000000000000000",
+      "new_blob": "8ef9e4e565bee418a130ddae929cf1c7f0eaad17"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_mutable_helper.stderr",
+      "destination_path": "author/dsl/macros/tests/parser_refusals/inputs/machine_mutable_helper.stderr",
+      "status": "A",
+      "old_mode": "000000",
+      "new_mode": "100644",
+      "old_blob": "0000000000000000000000000000000000000000",
+      "new_blob": "9652df9833120cc2ab35125dbfcf29a65a336157"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_mutable_invariant.rs",
+      "destination_path": "author/dsl/macros/tests/parser_refusals/inputs/machine_mutable_invariant.rs",
+      "status": "A",
+      "old_mode": "000000",
+      "new_mode": "100644",
+      "old_blob": "0000000000000000000000000000000000000000",
+      "new_blob": "139f15d37add26c64f2316f23e352c2e73acfa97"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_mutable_invariant.stderr",
+      "destination_path": "author/dsl/macros/tests/parser_refusals/inputs/machine_mutable_invariant.stderr",
+      "status": "A",
+      "old_mode": "000000",
+      "new_mode": "100644",
+      "old_blob": "0000000000000000000000000000000000000000",
+      "new_blob": "328eb6c9f8917ea317859f0003c0f497a09c9c9a"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_mutable_typed_helper.rs",
+      "destination_path": "author/dsl/macros/tests/parser_refusals/inputs/machine_mutable_typed_helper.rs",
+      "status": "A",
+      "old_mode": "000000",
+      "new_mode": "100644",
+      "old_blob": "0000000000000000000000000000000000000000",
+      "new_blob": "37b96cf2de6363cf7e64872a25a362edb9b26331"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_mutable_typed_helper.stderr",
+      "destination_path": "author/dsl/macros/tests/parser_refusals/inputs/machine_mutable_typed_helper.stderr",
+      "status": "A",
+      "old_mode": "000000",
+      "new_mode": "100644",
+      "old_blob": "0000000000000000000000000000000000000000",
+      "new_blob": "39192dc3dca8358d32cf396ab4dec6334e4500e2"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_nonactor_parameter.rs",
+      "destination_path": "author/dsl/macros/tests/parser_refusals/inputs/machine_nonactor_parameter.rs",
+      "status": "A",
+      "old_mode": "000000",
+      "new_mode": "100644",
+      "old_blob": "0000000000000000000000000000000000000000",
+      "new_blob": "0ec0f1127b61f588bffabc2d0540e8ec3c637e1f"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_nonactor_parameter.stderr",
+      "destination_path": "author/dsl/macros/tests/parser_refusals/inputs/machine_nonactor_parameter.stderr",
+      "status": "A",
+      "old_mode": "000000",
+      "new_mode": "100644",
+      "old_blob": "0000000000000000000000000000000000000000",
+      "new_blob": "a1727136c0b7edbc5a718a4c00a9b772b2b162d9"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_noncontiguous_kind.rs",
+      "destination_path": "author/dsl/macros/tests/parser_refusals/inputs/machine_noncontiguous_kind.rs",
+      "status": "A",
+      "old_mode": "000000",
+      "new_mode": "100644",
+      "old_blob": "0000000000000000000000000000000000000000",
+      "new_blob": "0f82743144c452d3c3e43f5d0dafa768044ec8c3"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_noncontiguous_kind.stderr",
+      "destination_path": "author/dsl/macros/tests/parser_refusals/inputs/machine_noncontiguous_kind.stderr",
+      "status": "A",
+      "old_mode": "000000",
+      "new_mode": "100644",
+      "old_blob": "0000000000000000000000000000000000000000",
+      "new_blob": "a374dc8c28425fa3e0af5fd13fbd4b98141222c3"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_out_of_order.rs",
+      "destination_path": "author/dsl/macros/tests/parser_refusals/inputs/machine_out_of_order.rs",
+      "status": "A",
+      "old_mode": "000000",
+      "new_mode": "100644",
+      "old_blob": "0000000000000000000000000000000000000000",
+      "new_blob": "6461e5713e86d6190f85ba214e2eeffdea0a88ec"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_out_of_order.stderr",
+      "destination_path": "author/dsl/macros/tests/parser_refusals/inputs/machine_out_of_order.stderr",
+      "status": "A",
+      "old_mode": "000000",
+      "new_mode": "100644",
+      "old_blob": "0000000000000000000000000000000000000000",
+      "new_blob": "e8c157605640f2022b40b7e6ebfa5f07fc3a810d"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_path_builders.rs",
+      "destination_path": "author/dsl/macros/tests/parser_refusals/inputs/machine_path_builders.rs",
+      "status": "A",
+      "old_mode": "000000",
+      "new_mode": "100644",
+      "old_blob": "0000000000000000000000000000000000000000",
+      "new_blob": "b59baef8586fd6606f4a82c968bc78d22087c3dd"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_path_builders.stderr",
+      "destination_path": "author/dsl/macros/tests/parser_refusals/inputs/machine_path_builders.stderr",
+      "status": "A",
+      "old_mode": "000000",
+      "new_mode": "100644",
+      "old_blob": "0000000000000000000000000000000000000000",
+      "new_blob": "17274d1f9ae0b65b8b5fb200e351ccf3c7617e2a"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_post_async.rs",
+      "destination_path": "author/dsl/macros/tests/parser_refusals/inputs/machine_post_async.rs",
+      "status": "A",
+      "old_mode": "000000",
+      "new_mode": "100644",
+      "old_blob": "0000000000000000000000000000000000000000",
+      "new_blob": "106de881ce9b96ad4f357909e1e927a1d61803cb"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_post_async.stderr",
+      "destination_path": "author/dsl/macros/tests/parser_refusals/inputs/machine_post_async.stderr",
+      "status": "A",
+      "old_mode": "000000",
+      "new_mode": "100644",
+      "old_blob": "0000000000000000000000000000000000000000",
+      "new_blob": "8777e9b15ecf0f18add0e2c3b06e2232e15ec340"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_post_returns_unit.rs",
+      "destination_path": "author/dsl/macros/tests/parser_refusals/inputs/machine_post_returns_unit.rs",
+      "status": "A",
+      "old_mode": "000000",
+      "new_mode": "100644",
+      "old_blob": "0000000000000000000000000000000000000000",
+      "new_blob": "6001f6160e328c17e15703a5739e77148d8f4de7"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_post_returns_unit.stderr",
+      "destination_path": "author/dsl/macros/tests/parser_refusals/inputs/machine_post_returns_unit.stderr",
+      "status": "A",
+      "old_mode": "000000",
+      "new_mode": "100644",
+      "old_blob": "0000000000000000000000000000000000000000",
+      "new_blob": "6a28cebeb683d9e76607c7d054fbf68d24a045e7"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_progress_chain.rs",
+      "destination_path": "author/dsl/macros/tests/parser_refusals/inputs/machine_progress_chain.rs",
+      "status": "A",
+      "old_mode": "000000",
+      "new_mode": "100644",
+      "old_blob": "0000000000000000000000000000000000000000",
+      "new_blob": "4b12ab59973ef5e0e71b71ec22d9cdf4bae5c1ba"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_progress_chain.stderr",
+      "destination_path": "author/dsl/macros/tests/parser_refusals/inputs/machine_progress_chain.stderr",
+      "status": "A",
+      "old_mode": "000000",
+      "new_mode": "100644",
+      "old_blob": "0000000000000000000000000000000000000000",
+      "new_blob": "aa7389cedaca307d8f5790385b8dc3043505d942"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_progress_gap.rs",
+      "destination_path": "author/dsl/macros/tests/parser_refusals/inputs/machine_progress_gap.rs",
+      "status": "A",
+      "old_mode": "000000",
+      "new_mode": "100644",
+      "old_blob": "0000000000000000000000000000000000000000",
+      "new_blob": "bcbf2cc008bed68003df52964e23ac5c819f5c2e"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_progress_gap.stderr",
+      "destination_path": "author/dsl/macros/tests/parser_refusals/inputs/machine_progress_gap.stderr",
+      "status": "A",
+      "old_mode": "000000",
+      "new_mode": "100644",
+      "old_blob": "0000000000000000000000000000000000000000",
+      "new_blob": "24b7f8136c099f906931038635d7e5e1c576ff71"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_starts_without_world.rs",
+      "destination_path": "author/dsl/macros/tests/parser_refusals/inputs/machine_starts_without_world.rs",
+      "status": "A",
+      "old_mode": "000000",
+      "new_mode": "100644",
+      "old_blob": "0000000000000000000000000000000000000000",
+      "new_blob": "fc16bb832d92c8b600ff146252c8ffdc163d1dce"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_starts_without_world.stderr",
+      "destination_path": "author/dsl/macros/tests/parser_refusals/inputs/machine_starts_without_world.stderr",
+      "status": "A",
+      "old_mode": "000000",
+      "new_mode": "100644",
+      "old_blob": "0000000000000000000000000000000000000000",
+      "new_blob": "e2735027937716527f52f689776eada8bc1f16fe"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_unknown_actor.rs",
+      "destination_path": "author/dsl/macros/tests/parser_refusals/inputs/machine_unknown_actor.rs",
+      "status": "A",
+      "old_mode": "000000",
+      "new_mode": "100644",
+      "old_blob": "0000000000000000000000000000000000000000",
+      "new_blob": "d96a3147a5c0e1c5fdbea7673c9af332e7ca2045"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_unknown_actor.stderr",
+      "destination_path": "author/dsl/macros/tests/parser_refusals/inputs/machine_unknown_actor.stderr",
+      "status": "A",
+      "old_mode": "000000",
+      "new_mode": "100644",
+      "old_blob": "0000000000000000000000000000000000000000",
+      "new_blob": "e5ea77309e6ce61f82a44cc366f663bad75355d1"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_unknown_after.rs",
+      "destination_path": "author/dsl/macros/tests/parser_refusals/inputs/machine_unknown_after.rs",
+      "status": "A",
+      "old_mode": "000000",
+      "new_mode": "100644",
+      "old_blob": "0000000000000000000000000000000000000000",
+      "new_blob": "8a52004428c59a709510e54ef51ca763c8a36461"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_unknown_after.stderr",
+      "destination_path": "author/dsl/macros/tests/parser_refusals/inputs/machine_unknown_after.stderr",
+      "status": "A",
+      "old_mode": "000000",
+      "new_mode": "100644",
+      "old_blob": "0000000000000000000000000000000000000000",
+      "new_blob": "6da130c88dd07a8d1e18b193e13bb0f9df3de6bf"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_unknown_scope.rs",
+      "destination_path": "author/dsl/macros/tests/parser_refusals/inputs/machine_unknown_scope.rs",
+      "status": "A",
+      "old_mode": "000000",
+      "new_mode": "100644",
+      "old_blob": "0000000000000000000000000000000000000000",
+      "new_blob": "2012f3366aaf8134880e2ec03ae55e1980009baf"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_unknown_scope.stderr",
+      "destination_path": "author/dsl/macros/tests/parser_refusals/inputs/machine_unknown_scope.stderr",
+      "status": "A",
+      "old_mode": "000000",
+      "new_mode": "100644",
+      "old_blob": "0000000000000000000000000000000000000000",
+      "new_blob": "c58f37466a0f092694427e9a832a9652eafd5106"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_within_bare.rs",
+      "destination_path": "author/dsl/macros/tests/parser_refusals/inputs/machine_within_bare.rs",
+      "status": "A",
+      "old_mode": "000000",
+      "new_mode": "100644",
+      "old_blob": "0000000000000000000000000000000000000000",
+      "new_blob": "dd48c9785109a3c29ad62edb4bb17338c50b076b"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_within_bare.stderr",
+      "destination_path": "author/dsl/macros/tests/parser_refusals/inputs/machine_within_bare.stderr",
+      "status": "A",
+      "old_mode": "000000",
+      "new_mode": "100644",
+      "old_blob": "0000000000000000000000000000000000000000",
+      "new_blob": "cef4cd9785ef9cbe834226ec2d49e10e136ccc07"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/non_range_starts.rs",
+      "destination_path": "author/dsl/macros/tests/parser_refusals/inputs/non_range_starts.rs",
+      "status": "A",
+      "old_mode": "000000",
+      "new_mode": "100644",
+      "old_blob": "0000000000000000000000000000000000000000",
+      "new_blob": "30d49fe58a8540f0972f32b6bc9cf614a5b4f288"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/non_range_starts.stderr",
+      "destination_path": "author/dsl/macros/tests/parser_refusals/inputs/non_range_starts.stderr",
+      "status": "A",
+      "old_mode": "000000",
+      "new_mode": "100644",
+      "old_blob": "0000000000000000000000000000000000000000",
+      "new_blob": "0db0e308d9ec898e8e4857b1c49ec9659621fc57"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/non_unit_internal.rs",
+      "destination_path": "author/dsl/macros/tests/parser_refusals/inputs/non_unit_internal.rs",
+      "status": "A",
+      "old_mode": "000000",
+      "new_mode": "100644",
+      "old_blob": "0000000000000000000000000000000000000000",
+      "new_blob": "6c5a0249fb351a6ac72b35d16ad386ef3f87150a"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/non_unit_internal.stderr",
+      "destination_path": "author/dsl/macros/tests/parser_refusals/inputs/non_unit_internal.stderr",
+      "status": "A",
+      "old_mode": "000000",
+      "new_mode": "100644",
+      "old_blob": "0000000000000000000000000000000000000000",
+      "new_blob": "441744999f740070ba5a72df2258324a4a6be03d"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/optional_facts_payload.rs",
+      "destination_path": "author/dsl/macros/tests/parser_refusals/inputs/optional_facts_payload.rs",
+      "status": "A",
+      "old_mode": "000000",
+      "new_mode": "100644",
+      "old_blob": "0000000000000000000000000000000000000000",
+      "new_blob": "89b70f76b01c77f23dce0077bd6a08ae2bde7922"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/optional_facts_payload.stderr",
+      "destination_path": "author/dsl/macros/tests/parser_refusals/inputs/optional_facts_payload.stderr",
+      "status": "A",
+      "old_mode": "000000",
+      "new_mode": "100644",
+      "old_blob": "0000000000000000000000000000000000000000",
+      "new_blob": "9a7c0c26300aa9772d511a7b219aded5d204f559"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/variant_internal.rs",
+      "destination_path": "author/dsl/macros/tests/parser_refusals/inputs/variant_internal.rs",
+      "status": "A",
+      "old_mode": "000000",
+      "new_mode": "100644",
+      "old_blob": "0000000000000000000000000000000000000000",
+      "new_blob": "8d3677b240777b05ad394279cacd30228a20906b"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/variant_internal.stderr",
+      "destination_path": "author/dsl/macros/tests/parser_refusals/inputs/variant_internal.stderr",
+      "status": "A",
+      "old_mode": "000000",
+      "new_mode": "100644",
+      "old_blob": "0000000000000000000000000000000000000000",
+      "new_blob": "bb867cb0c5938157e4a4d0a5a13aeda806ce6aaf"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/world_duplicate.rs",
+      "destination_path": "author/dsl/macros/tests/parser_refusals/inputs/world_duplicate.rs",
+      "status": "A",
+      "old_mode": "000000",
+      "new_mode": "100644",
+      "old_blob": "0000000000000000000000000000000000000000",
+      "new_blob": "b76c361af496b8089401c45f8efda2836f8866c9"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/world_duplicate.stderr",
+      "destination_path": "author/dsl/macros/tests/parser_refusals/inputs/world_duplicate.stderr",
+      "status": "A",
+      "old_mode": "000000",
+      "new_mode": "100644",
+      "old_blob": "0000000000000000000000000000000000000000",
+      "new_blob": "09513036b14da6a8eda8a0018f3ab6f8dc15fcae"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/world_parameter_duplicate.rs",
+      "destination_path": "author/dsl/macros/tests/parser_refusals/inputs/world_parameter_duplicate.rs",
+      "status": "A",
+      "old_mode": "000000",
+      "new_mode": "100644",
+      "old_blob": "0000000000000000000000000000000000000000",
+      "new_blob": "58f2383d11c69e76ab5a2e6736105e3869dd2dc8"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/world_parameter_duplicate.stderr",
+      "destination_path": "author/dsl/macros/tests/parser_refusals/inputs/world_parameter_duplicate.stderr",
+      "status": "A",
+      "old_mode": "000000",
+      "new_mode": "100644",
+      "old_blob": "0000000000000000000000000000000000000000",
+      "new_blob": "896f15cc4fc4281ca8f1408884e8e33eba6e6e8b"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/world_parameter_mutable.rs",
+      "destination_path": "author/dsl/macros/tests/parser_refusals/inputs/world_parameter_mutable.rs",
+      "status": "A",
+      "old_mode": "000000",
+      "new_mode": "100644",
+      "old_blob": "0000000000000000000000000000000000000000",
+      "new_blob": "32d71c5d6fd40c0fc22ea7d93d660e3f778f2a8b"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/world_parameter_mutable.stderr",
+      "destination_path": "author/dsl/macros/tests/parser_refusals/inputs/world_parameter_mutable.stderr",
+      "status": "A",
+      "old_mode": "000000",
+      "new_mode": "100644",
+      "old_blob": "0000000000000000000000000000000000000000",
+      "new_blob": "895259f4817bbd2d484d2220392642bfc089a3aa"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/world_parameter_position.rs",
+      "destination_path": "author/dsl/macros/tests/parser_refusals/inputs/world_parameter_position.rs",
+      "status": "A",
+      "old_mode": "000000",
+      "new_mode": "100644",
+      "old_blob": "0000000000000000000000000000000000000000",
+      "new_blob": "da057052ac4cb4fb28b182fdba3f4125ce59b091"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/world_parameter_position.stderr",
+      "destination_path": "author/dsl/macros/tests/parser_refusals/inputs/world_parameter_position.stderr",
+      "status": "A",
+      "old_mode": "000000",
+      "new_mode": "100644",
+      "old_blob": "0000000000000000000000000000000000000000",
+      "new_blob": "8836eed132382ca15a8e6547fdcc4413a69f039b"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/world_starts_empty_mixed.rs",
+      "destination_path": "author/dsl/macros/tests/parser_refusals/inputs/world_starts_empty_mixed.rs",
+      "status": "A",
+      "old_mode": "000000",
+      "new_mode": "100644",
+      "old_blob": "0000000000000000000000000000000000000000",
+      "new_blob": "d4f74904ccabf8071b6dbe238db02c479291098d"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/world_starts_empty_mixed.stderr",
+      "destination_path": "author/dsl/macros/tests/parser_refusals/inputs/world_starts_empty_mixed.stderr",
+      "status": "A",
+      "old_mode": "000000",
+      "new_mode": "100644",
+      "old_blob": "0000000000000000000000000000000000000000",
+      "new_blob": "26b362246de9512524138d0ddb86dfddbead24e4"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/world_starts_impl_block.rs",
+      "destination_path": "author/dsl/macros/tests/parser_refusals/inputs/world_starts_impl_block.rs",
+      "status": "A",
+      "old_mode": "000000",
+      "new_mode": "100644",
+      "old_blob": "0000000000000000000000000000000000000000",
+      "new_blob": "1af7fe9aa68d20359caa6c0c84016b8beafff4a7"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/world_starts_impl_block.stderr",
+      "destination_path": "author/dsl/macros/tests/parser_refusals/inputs/world_starts_impl_block.stderr",
+      "status": "A",
+      "old_mode": "000000",
+      "new_mode": "100644",
+      "old_blob": "0000000000000000000000000000000000000000",
+      "new_blob": "2c17dcc50dc7e4d438d67c8bbf9b7f740a3e3ffb"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/world_starts_mixed.rs",
+      "destination_path": "author/dsl/macros/tests/parser_refusals/inputs/world_starts_mixed.rs",
+      "status": "A",
+      "old_mode": "000000",
+      "new_mode": "100644",
+      "old_blob": "0000000000000000000000000000000000000000",
+      "new_blob": "b4f6bcfc599424f27b7ee41867289dcd727bbae4"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/world_starts_mixed.stderr",
+      "destination_path": "author/dsl/macros/tests/parser_refusals/inputs/world_starts_mixed.stderr",
+      "status": "A",
+      "old_mode": "000000",
+      "new_mode": "100644",
+      "old_blob": "0000000000000000000000000000000000000000",
+      "new_blob": "3681c2b8178611f864e4960a17873f02e81ed399"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/world_starts_receiver.rs",
+      "destination_path": "author/dsl/macros/tests/parser_refusals/inputs/world_starts_receiver.rs",
+      "status": "A",
+      "old_mode": "000000",
+      "new_mode": "100644",
+      "old_blob": "0000000000000000000000000000000000000000",
+      "new_blob": "cded50f1f973a2e3e06de88ef3fc8d55e9867dc7"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/world_starts_receiver.stderr",
+      "destination_path": "author/dsl/macros/tests/parser_refusals/inputs/world_starts_receiver.stderr",
+      "status": "A",
+      "old_mode": "000000",
+      "new_mode": "100644",
+      "old_blob": "0000000000000000000000000000000000000000",
+      "new_blob": "00d6f22e120bbfad1a223e0970697506e9edd949"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/world_starts_twice.rs",
+      "destination_path": "author/dsl/macros/tests/parser_refusals/inputs/world_starts_twice.rs",
+      "status": "A",
+      "old_mode": "000000",
+      "new_mode": "100644",
+      "old_blob": "0000000000000000000000000000000000000000",
+      "new_blob": "cc3775b30fc399032f78b52416db8de3fa52e7df"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/world_starts_twice.stderr",
+      "destination_path": "author/dsl/macros/tests/parser_refusals/inputs/world_starts_twice.stderr",
+      "status": "A",
+      "old_mode": "000000",
+      "new_mode": "100644",
+      "old_blob": "0000000000000000000000000000000000000000",
+      "new_blob": "585ad8cd8a6b7ffb16aea2f2316e1dcf9b2f9a8a"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/parser_refusals/mod.rs",
+      "destination_path": "author/dsl/macros/tests/parser_refusals/mod.rs",
+      "status": "A",
+      "old_mode": "000000",
+      "new_mode": "100644",
+      "old_blob": "0000000000000000000000000000000000000000",
+      "new_blob": "2e2663a6f228b18a578230d694ebab1363a57071"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/ui/action_domain_conflict.rs",
+      "destination_path": "author/dsl/macros/tests/ui/action_domain_conflict.rs",
+      "status": "D",
+      "old_mode": "100644",
+      "new_mode": "000000",
+      "old_blob": "a797cb64829bbf8d3a1c38d31d38618f0bda88d0",
+      "new_blob": "0000000000000000000000000000000000000000"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/ui/action_domain_conflict.stderr",
+      "destination_path": "author/dsl/macros/tests/ui/action_domain_conflict.stderr",
+      "status": "D",
+      "old_mode": "100644",
+      "new_mode": "000000",
+      "old_blob": "5f1cc92204d7ab4347c3204cdaee565a94949dcf",
+      "new_blob": "0000000000000000000000000000000000000000"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/ui/action_domain_duplicate.rs",
+      "destination_path": "author/dsl/macros/tests/ui/action_domain_duplicate.rs",
+      "status": "D",
+      "old_mode": "100644",
+      "new_mode": "000000",
+      "old_blob": "c08ee83d8be5c9a0d5d6cc66d3f3cbc2aec6011c",
+      "new_blob": "0000000000000000000000000000000000000000"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/ui/action_domain_duplicate.stderr",
+      "destination_path": "author/dsl/macros/tests/ui/action_domain_duplicate.stderr",
+      "status": "D",
+      "old_mode": "100644",
+      "new_mode": "000000",
+      "old_blob": "1dbfa2925e126c68c4423be459a2a4ded08f70de",
+      "new_blob": "0000000000000000000000000000000000000000"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/ui/action_domain_variant.rs",
+      "destination_path": "author/dsl/macros/tests/ui/action_domain_variant.rs",
+      "status": "D",
+      "old_mode": "100644",
+      "new_mode": "000000",
+      "old_blob": "710b4f26f938ac30679c02c81b44fe313658cacb",
+      "new_blob": "0000000000000000000000000000000000000000"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/ui/action_domain_variant.stderr",
+      "destination_path": "author/dsl/macros/tests/ui/action_domain_variant.stderr",
+      "status": "D",
+      "old_mode": "100644",
+      "new_mode": "000000",
+      "old_blob": "e8b4b58bcf549ed0e34591f8cf6fe957b1ac2429",
+      "new_blob": "0000000000000000000000000000000000000000"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/ui/action_domain_without_world.rs",
+      "destination_path": "author/dsl/macros/tests/ui/action_domain_without_world.rs",
+      "status": "D",
+      "old_mode": "100644",
+      "new_mode": "000000",
+      "old_blob": "4084df9b93661ea2dee5ecc6386b28d9c95e46af",
+      "new_blob": "0000000000000000000000000000000000000000"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/ui/action_domain_without_world.stderr",
+      "destination_path": "author/dsl/macros/tests/ui/action_domain_without_world.stderr",
+      "status": "D",
+      "old_mode": "100644",
+      "new_mode": "000000",
+      "old_blob": "1971e3da43ba4b236edda1dad01dce9361cb9963",
+      "new_blob": "0000000000000000000000000000000000000000"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/ui/action_inputs_duplicate.rs",
+      "destination_path": "author/dsl/macros/tests/ui/action_inputs_duplicate.rs",
+      "status": "D",
+      "old_mode": "100644",
+      "new_mode": "000000",
+      "old_blob": "d7ade5fc63141332f613f0c1e1987ed8f7f3c322",
+      "new_blob": "0000000000000000000000000000000000000000"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/ui/action_inputs_duplicate.stderr",
+      "destination_path": "author/dsl/macros/tests/ui/action_inputs_duplicate.stderr",
+      "status": "D",
+      "old_mode": "100644",
+      "new_mode": "000000",
+      "old_blob": "e5270c6d17034902cab19effa30efb807dd8128c",
+      "new_blob": "0000000000000000000000000000000000000000"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/ui/action_inputs_invalid.rs",
+      "destination_path": "author/dsl/macros/tests/ui/action_inputs_invalid.rs",
+      "status": "D",
+      "old_mode": "100644",
+      "new_mode": "000000",
+      "old_blob": "402769e8bb89c4216f8bb009baec8e681d863a6c",
+      "new_blob": "0000000000000000000000000000000000000000"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/ui/action_inputs_invalid.stderr",
+      "destination_path": "author/dsl/macros/tests/ui/action_inputs_invalid.stderr",
+      "status": "D",
+      "old_mode": "100644",
+      "new_mode": "000000",
+      "old_blob": "9879a504b9a2d60154fef394dd3477c9ad71e0ac",
+      "new_blob": "0000000000000000000000000000000000000000"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/ui/action_inputs_missing.rs",
+      "destination_path": "author/dsl/macros/tests/ui/action_inputs_missing.rs",
+      "status": "D",
+      "old_mode": "100644",
+      "new_mode": "000000",
+      "old_blob": "a31c47cd6af7c5dc17181075c183563d2385d2f6",
+      "new_blob": "0000000000000000000000000000000000000000"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/ui/action_inputs_missing.stderr",
+      "destination_path": "author/dsl/macros/tests/ui/action_inputs_missing.stderr",
+      "status": "D",
+      "old_mode": "100644",
+      "new_mode": "000000",
+      "old_blob": "3f41d5601b61fe05a4d8f16d16aa42bda93a929b",
+      "new_blob": "0000000000000000000000000000000000000000"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/ui/action_inputs_variant_fault.rs",
+      "destination_path": "author/dsl/macros/tests/ui/action_inputs_variant_fault.rs",
+      "status": "D",
+      "old_mode": "100644",
+      "new_mode": "000000",
+      "old_blob": "86eac9bc22fb4deab13153d7cdaa993a90f3ce05",
+      "new_blob": "0000000000000000000000000000000000000000"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/ui/action_inputs_variant_fault.stderr",
+      "destination_path": "author/dsl/macros/tests/ui/action_inputs_variant_fault.stderr",
+      "status": "D",
+      "old_mode": "100644",
+      "new_mode": "000000",
+      "old_blob": "80bb39da1a2d46149a820a02ab1ab391336f88b0",
+      "new_blob": "0000000000000000000000000000000000000000"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/ui/action_metadata_duplicate.rs",
+      "destination_path": "author/dsl/macros/tests/ui/action_metadata_duplicate.rs",
+      "status": "D",
+      "old_mode": "100644",
+      "new_mode": "000000",
+      "old_blob": "e49c8d6e33c7849bda91821b9b1332a5f4fbacdf",
+      "new_blob": "0000000000000000000000000000000000000000"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/ui/action_metadata_duplicate.stderr",
+      "destination_path": "author/dsl/macros/tests/ui/action_metadata_duplicate.stderr",
+      "status": "D",
+      "old_mode": "100644",
+      "new_mode": "000000",
+      "old_blob": "49255e728d606c43dabe5c76e638235b12a297ee",
+      "new_blob": "0000000000000000000000000000000000000000"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/ui/action_metadata_namespace.rs",
+      "destination_path": "author/dsl/macros/tests/ui/action_metadata_namespace.rs",
+      "status": "D",
+      "old_mode": "100644",
+      "new_mode": "000000",
+      "old_blob": "bf464fe08878115d5fee7e91d03d2356a9a5cd93",
+      "new_blob": "0000000000000000000000000000000000000000"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/ui/action_metadata_namespace.stderr",
+      "destination_path": "author/dsl/macros/tests/ui/action_metadata_namespace.stderr",
+      "status": "D",
+      "old_mode": "100644",
+      "new_mode": "000000",
+      "old_blob": "637a9f41fd7cd871fe666e0e0440fc689916cdb5",
+      "new_blob": "0000000000000000000000000000000000000000"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/ui/action_metadata_placement.rs",
+      "destination_path": "author/dsl/macros/tests/ui/action_metadata_placement.rs",
+      "status": "D",
+      "old_mode": "100644",
+      "new_mode": "000000",
+      "old_blob": "c092a7aa620afb5bc2e558339ab10bc23c5b922c",
+      "new_blob": "0000000000000000000000000000000000000000"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/ui/action_metadata_placement.stderr",
+      "destination_path": "author/dsl/macros/tests/ui/action_metadata_placement.stderr",
+      "status": "D",
+      "old_mode": "100644",
+      "new_mode": "000000",
+      "old_blob": "b077773ad6b60e6d24e539daa362d59ac91bb56c",
+      "new_blob": "0000000000000000000000000000000000000000"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/ui/finite_shape.rs",
+      "destination_path": "author/dsl/macros/tests/ui/finite_shape.rs",
+      "status": "D",
+      "old_mode": "100644",
+      "new_mode": "000000",
+      "old_blob": "fe8774ad2eaa904d9888efb64f32eaf4ddaa31d6",
+      "new_blob": "0000000000000000000000000000000000000000"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/ui/finite_shape.stderr",
+      "destination_path": "author/dsl/macros/tests/ui/finite_shape.stderr",
+      "status": "D",
+      "old_mode": "100644",
+      "new_mode": "000000",
+      "old_blob": "b3fc44e16c771c6ae887aa90b3ced82f6a3ab5a7",
+      "new_blob": "0000000000000000000000000000000000000000"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/ui/machine_actor_arity.rs",
+      "destination_path": "author/dsl/macros/tests/ui/machine_actor_arity.rs",
+      "status": "D",
+      "old_mode": "100644",
+      "new_mode": "000000",
+      "old_blob": "b58eda672fac7c9c8fadd81e07616ab58d7ef30d",
+      "new_blob": "0000000000000000000000000000000000000000"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/ui/machine_actor_arity.stderr",
+      "destination_path": "author/dsl/macros/tests/ui/machine_actor_arity.stderr",
+      "status": "D",
+      "old_mode": "100644",
+      "new_mode": "000000",
+      "old_blob": "60e2b54b226fa17b64a7d720b6fc25128b75c5d9",
+      "new_blob": "0000000000000000000000000000000000000000"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/ui/machine_actor_mismatch.rs",
+      "destination_path": "author/dsl/macros/tests/ui/machine_actor_mismatch.rs",
+      "status": "D",
+      "old_mode": "100644",
+      "new_mode": "000000",
+      "old_blob": "eb48c78db46710d49d745f747a5a8f0e3bf1bde2",
+      "new_blob": "0000000000000000000000000000000000000000"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/ui/machine_actor_mismatch.stderr",
+      "destination_path": "author/dsl/macros/tests/ui/machine_actor_mismatch.stderr",
+      "status": "D",
+      "old_mode": "100644",
+      "new_mode": "000000",
+      "old_blob": "8aaa73f7fa19b820c56ab3af881d57c75a3d6305",
+      "new_blob": "0000000000000000000000000000000000000000"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/ui/machine_actor_receiver.rs",
+      "destination_path": "author/dsl/macros/tests/ui/machine_actor_receiver.rs",
+      "status": "D",
+      "old_mode": "100644",
+      "new_mode": "000000",
+      "old_blob": "22b9e41e5c8630a7b6691cb9e8c0e31f8db16fa5",
+      "new_blob": "0000000000000000000000000000000000000000"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/ui/machine_actor_receiver.stderr",
+      "destination_path": "author/dsl/macros/tests/ui/machine_actor_receiver.stderr",
+      "status": "D",
+      "old_mode": "100644",
+      "new_mode": "000000",
+      "old_blob": "be24378440cf0dda6c1db2535b001a545eda164e",
+      "new_blob": "0000000000000000000000000000000000000000"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/ui/machine_after_inputs.rs",
+      "destination_path": "author/dsl/macros/tests/ui/machine_after_inputs.rs",
+      "status": "D",
+      "old_mode": "100644",
+      "new_mode": "000000",
+      "old_blob": "4d53696aab2bc5ffa31a4239387c6f7507341b4b",
+      "new_blob": "0000000000000000000000000000000000000000"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/ui/machine_after_inputs.stderr",
+      "destination_path": "author/dsl/macros/tests/ui/machine_after_inputs.stderr",
+      "status": "D",
+      "old_mode": "100644",
+      "new_mode": "000000",
+      "old_blob": "56f93bb168662b989642df10a535408175ed59ca",
+      "new_blob": "0000000000000000000000000000000000000000"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/ui/machine_claim_async.rs",
+      "destination_path": "author/dsl/macros/tests/ui/machine_claim_async.rs",
+      "status": "D",
+      "old_mode": "100644",
+      "new_mode": "000000",
+      "old_blob": "495b4e3c14e3674e64e88b30f01e11a3e375fb36",
+      "new_blob": "0000000000000000000000000000000000000000"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/ui/machine_claim_async.stderr",
+      "destination_path": "author/dsl/macros/tests/ui/machine_claim_async.stderr",
+      "status": "D",
+      "old_mode": "100644",
+      "new_mode": "000000",
+      "old_blob": "854e360ce7e862e3fcb740168a565fe90d76868c",
+      "new_blob": "0000000000000000000000000000000000000000"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/ui/machine_claim_returns.rs",
+      "destination_path": "author/dsl/macros/tests/ui/machine_claim_returns.rs",
+      "status": "D",
+      "old_mode": "100644",
+      "new_mode": "000000",
+      "old_blob": "d862a4e8202a1a0d16a580690bed6873550b8369",
+      "new_blob": "0000000000000000000000000000000000000000"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/ui/machine_claim_returns.stderr",
+      "destination_path": "author/dsl/macros/tests/ui/machine_claim_returns.stderr",
+      "status": "D",
+      "old_mode": "100644",
+      "new_mode": "000000",
+      "old_blob": "2a80cba6011f001d3a5c027645eaf4e43d7f1289",
+      "new_blob": "0000000000000000000000000000000000000000"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/ui/machine_duplicate_actor.rs",
+      "destination_path": "author/dsl/macros/tests/ui/machine_duplicate_actor.rs",
+      "status": "D",
+      "old_mode": "100644",
+      "new_mode": "000000",
+      "old_blob": "a560e3d5622e5304e24d92545a0c23bd976ccac5",
+      "new_blob": "0000000000000000000000000000000000000000"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/ui/machine_duplicate_actor.stderr",
+      "destination_path": "author/dsl/macros/tests/ui/machine_duplicate_actor.stderr",
+      "status": "D",
+      "old_mode": "100644",
+      "new_mode": "000000",
+      "old_blob": "54fb228dfd8c8462a949535b9f9cc074922d49df",
+      "new_blob": "0000000000000000000000000000000000000000"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/ui/machine_duplicate_kind.rs",
+      "destination_path": "author/dsl/macros/tests/ui/machine_duplicate_kind.rs",
+      "status": "D",
+      "old_mode": "100644",
+      "new_mode": "000000",
+      "old_blob": "7652e78df7ace8600d4942d3efaf204926a19af4",
+      "new_blob": "0000000000000000000000000000000000000000"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/ui/machine_duplicate_kind.stderr",
+      "destination_path": "author/dsl/macros/tests/ui/machine_duplicate_kind.stderr",
+      "status": "D",
+      "old_mode": "100644",
+      "new_mode": "000000",
+      "old_blob": "9cbcc168b0197ede1d639eb7a8601e1700f38a17",
+      "new_blob": "0000000000000000000000000000000000000000"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/ui/machine_effect_arguments.rs",
+      "destination_path": "author/dsl/macros/tests/ui/machine_effect_arguments.rs",
+      "status": "D",
+      "old_mode": "100644",
+      "new_mode": "000000",
+      "old_blob": "2dd86404ed1c8d994d2881116e7d993972323828",
+      "new_blob": "0000000000000000000000000000000000000000"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/ui/machine_effect_arguments.stderr",
+      "destination_path": "author/dsl/macros/tests/ui/machine_effect_arguments.stderr",
+      "status": "D",
+      "old_mode": "100644",
+      "new_mode": "000000",
+      "old_blob": "39340f3a49f020297b2739bd4a780cc98d84eca3",
+      "new_blob": "0000000000000000000000000000000000000000"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/ui/machine_generic.rs",
+      "destination_path": "author/dsl/macros/tests/ui/machine_generic.rs",
+      "status": "D",
+      "old_mode": "100644",
+      "new_mode": "000000",
+      "old_blob": "385d4bb6b2636447e6f5951e4ba3036a37e8b574",
+      "new_blob": "0000000000000000000000000000000000000000"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/ui/machine_generic.stderr",
+      "destination_path": "author/dsl/macros/tests/ui/machine_generic.stderr",
+      "status": "D",
+      "old_mode": "100644",
+      "new_mode": "000000",
+      "old_blob": "18496b5ba5d86834464d908266616e98fe543ab4",
+      "new_blob": "0000000000000000000000000000000000000000"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/ui/machine_handler_async.rs",
+      "destination_path": "author/dsl/macros/tests/ui/machine_handler_async.rs",
+      "status": "D",
+      "old_mode": "100644",
+      "new_mode": "000000",
+      "old_blob": "9bb53bd5bff8cd9efa588f9fa700392dcc00a8f9",
+      "new_blob": "0000000000000000000000000000000000000000"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/ui/machine_handler_async.stderr",
+      "destination_path": "author/dsl/macros/tests/ui/machine_handler_async.stderr",
+      "status": "D",
+      "old_mode": "100644",
+      "new_mode": "000000",
+      "old_blob": "4573b92748478dfe6be467ef4c1acc683288be99",
+      "new_blob": "0000000000000000000000000000000000000000"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/ui/machine_handler_returns.rs",
+      "destination_path": "author/dsl/macros/tests/ui/machine_handler_returns.rs",
+      "status": "D",
+      "old_mode": "100644",
+      "new_mode": "000000",
+      "old_blob": "a5e9b5478aa9e9a4aabee72e7d81d4a478e91064",
+      "new_blob": "0000000000000000000000000000000000000000"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/ui/machine_handler_returns.stderr",
+      "destination_path": "author/dsl/macros/tests/ui/machine_handler_returns.stderr",
+      "status": "D",
+      "old_mode": "100644",
+      "new_mode": "000000",
+      "old_blob": "503ee8419075721481c90908a78bfd3527529a75",
+      "new_blob": "0000000000000000000000000000000000000000"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/ui/machine_invariant_parameters.rs",
+      "destination_path": "author/dsl/macros/tests/ui/machine_invariant_parameters.rs",
+      "status": "D",
+      "old_mode": "100644",
+      "new_mode": "000000",
+      "old_blob": "af1beae9ba7696b4ad9070760491a78b9ad9e2ea",
+      "new_blob": "0000000000000000000000000000000000000000"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/ui/machine_invariant_parameters.stderr",
+      "destination_path": "author/dsl/macros/tests/ui/machine_invariant_parameters.stderr",
+      "status": "D",
+      "old_mode": "100644",
+      "new_mode": "000000",
+      "old_blob": "5dc00390f785d73d27752b3ef4a8772019afd5e1",
+      "new_blob": "0000000000000000000000000000000000000000"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/ui/machine_legacy_effects.rs",
+      "destination_path": "author/dsl/macros/tests/ui/machine_legacy_effects.rs",
+      "status": "D",
+      "old_mode": "100644",
+      "new_mode": "000000",
+      "old_blob": "1e07ef98d6bcdf964ccffa836423201080a2a9c4",
+      "new_blob": "0000000000000000000000000000000000000000"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/ui/machine_legacy_effects.stderr",
+      "destination_path": "author/dsl/macros/tests/ui/machine_legacy_effects.stderr",
+      "status": "D",
+      "old_mode": "100644",
+      "new_mode": "000000",
+      "old_blob": "b8245bd49ea4f5b7a52b70070960f75ee95852b6",
+      "new_blob": "0000000000000000000000000000000000000000"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/ui/machine_legacy_invariants.rs",
+      "destination_path": "author/dsl/macros/tests/ui/machine_legacy_invariants.rs",
+      "status": "D",
+      "old_mode": "100644",
+      "new_mode": "000000",
+      "old_blob": "fc11aebcf1fc0dc3d1b6abb811ab3b36e2a8e3a3",
+      "new_blob": "0000000000000000000000000000000000000000"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/ui/machine_legacy_invariants.stderr",
+      "destination_path": "author/dsl/macros/tests/ui/machine_legacy_invariants.stderr",
+      "status": "D",
+      "old_mode": "100644",
+      "new_mode": "000000",
+      "old_blob": "7681450fac9652958a44fefd295b105e4c85b1dd",
+      "new_blob": "0000000000000000000000000000000000000000"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/ui/machine_legacy_scopes.rs",
+      "destination_path": "author/dsl/macros/tests/ui/machine_legacy_scopes.rs",
+      "status": "D",
+      "old_mode": "100644",
+      "new_mode": "000000",
+      "old_blob": "ded8f1bda0fb9dfd1935acdf0a71c9b54f601bf4",
+      "new_blob": "0000000000000000000000000000000000000000"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/ui/machine_legacy_scopes.stderr",
+      "destination_path": "author/dsl/macros/tests/ui/machine_legacy_scopes.stderr",
+      "status": "D",
+      "old_mode": "100644",
+      "new_mode": "000000",
+      "old_blob": "ed87175e1be6900863d21fbe442ac83ff86b45fe",
+      "new_blob": "0000000000000000000000000000000000000000"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/ui/machine_legacy_transitions.rs",
+      "destination_path": "author/dsl/macros/tests/ui/machine_legacy_transitions.rs",
+      "status": "D",
+      "old_mode": "100644",
+      "new_mode": "000000",
+      "old_blob": "ea4b360b98f29809a6c826fe8a7c2a4a2e709706",
+      "new_blob": "0000000000000000000000000000000000000000"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/ui/machine_legacy_transitions.stderr",
+      "destination_path": "author/dsl/macros/tests/ui/machine_legacy_transitions.stderr",
+      "status": "D",
+      "old_mode": "100644",
+      "new_mode": "000000",
+      "old_blob": "34ada33cf3e9744b319637c9aa69ec3fccaab15f",
+      "new_blob": "0000000000000000000000000000000000000000"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/ui/machine_marker_trait.rs",
+      "destination_path": "author/dsl/macros/tests/ui/machine_marker_trait.rs",
+      "status": "D",
+      "old_mode": "100644",
+      "new_mode": "000000",
+      "old_blob": "0dacde732c7f55b4f8577b3c87387d7c36387121",
+      "new_blob": "0000000000000000000000000000000000000000"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/ui/machine_marker_trait.stderr",
+      "destination_path": "author/dsl/macros/tests/ui/machine_marker_trait.stderr",
+      "status": "D",
+      "old_mode": "100644",
+      "new_mode": "000000",
+      "old_blob": "d6701fcbcc775aba474ad9f389bf0121b1512ad2",
+      "new_blob": "0000000000000000000000000000000000000000"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/ui/machine_misplaced_effect.rs",
+      "destination_path": "author/dsl/macros/tests/ui/machine_misplaced_effect.rs",
+      "status": "D",
+      "old_mode": "100644",
+      "new_mode": "000000",
+      "old_blob": "15310fd26b85d57ff2e1d94bdf9618c309593881",
+      "new_blob": "0000000000000000000000000000000000000000"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/ui/machine_misplaced_effect.stderr",
+      "destination_path": "author/dsl/macros/tests/ui/machine_misplaced_effect.stderr",
+      "status": "D",
+      "old_mode": "100644",
+      "new_mode": "000000",
+      "old_blob": "a231fa64b4806e587130affcea8a53775b971877",
+      "new_blob": "0000000000000000000000000000000000000000"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/ui/machine_missing_actor.rs",
+      "destination_path": "author/dsl/macros/tests/ui/machine_missing_actor.rs",
+      "status": "D",
+      "old_mode": "100644",
+      "new_mode": "000000",
+      "old_blob": "3c9b87707510ebfb80e6211cc70f7612b4113a0a",
+      "new_blob": "0000000000000000000000000000000000000000"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/ui/machine_missing_actor.stderr",
+      "destination_path": "author/dsl/macros/tests/ui/machine_missing_actor.stderr",
+      "status": "D",
+      "old_mode": "100644",
+      "new_mode": "000000",
+      "old_blob": "7fa271e36fb23028c6514fa5e540c6234c6cb2b9",
+      "new_blob": "0000000000000000000000000000000000000000"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/ui/machine_mutable_helper.rs",
+      "destination_path": "author/dsl/macros/tests/ui/machine_mutable_helper.rs",
+      "status": "D",
+      "old_mode": "100644",
+      "new_mode": "000000",
+      "old_blob": "8ef9e4e565bee418a130ddae929cf1c7f0eaad17",
+      "new_blob": "0000000000000000000000000000000000000000"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/ui/machine_mutable_helper.stderr",
+      "destination_path": "author/dsl/macros/tests/ui/machine_mutable_helper.stderr",
+      "status": "D",
+      "old_mode": "100644",
+      "new_mode": "000000",
+      "old_blob": "9652df9833120cc2ab35125dbfcf29a65a336157",
+      "new_blob": "0000000000000000000000000000000000000000"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/ui/machine_mutable_invariant.rs",
+      "destination_path": "author/dsl/macros/tests/ui/machine_mutable_invariant.rs",
+      "status": "D",
+      "old_mode": "100644",
+      "new_mode": "000000",
+      "old_blob": "139f15d37add26c64f2316f23e352c2e73acfa97",
+      "new_blob": "0000000000000000000000000000000000000000"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/ui/machine_mutable_invariant.stderr",
+      "destination_path": "author/dsl/macros/tests/ui/machine_mutable_invariant.stderr",
+      "status": "D",
+      "old_mode": "100644",
+      "new_mode": "000000",
+      "old_blob": "328eb6c9f8917ea317859f0003c0f497a09c9c9a",
+      "new_blob": "0000000000000000000000000000000000000000"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/ui/machine_mutable_typed_helper.rs",
+      "destination_path": "author/dsl/macros/tests/ui/machine_mutable_typed_helper.rs",
+      "status": "D",
+      "old_mode": "100644",
+      "new_mode": "000000",
+      "old_blob": "37b96cf2de6363cf7e64872a25a362edb9b26331",
+      "new_blob": "0000000000000000000000000000000000000000"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/ui/machine_mutable_typed_helper.stderr",
+      "destination_path": "author/dsl/macros/tests/ui/machine_mutable_typed_helper.stderr",
+      "status": "D",
+      "old_mode": "100644",
+      "new_mode": "000000",
+      "old_blob": "39192dc3dca8358d32cf396ab4dec6334e4500e2",
+      "new_blob": "0000000000000000000000000000000000000000"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/ui/machine_nonactor_parameter.rs",
+      "destination_path": "author/dsl/macros/tests/ui/machine_nonactor_parameter.rs",
+      "status": "D",
+      "old_mode": "100644",
+      "new_mode": "000000",
+      "old_blob": "0ec0f1127b61f588bffabc2d0540e8ec3c637e1f",
+      "new_blob": "0000000000000000000000000000000000000000"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/ui/machine_nonactor_parameter.stderr",
+      "destination_path": "author/dsl/macros/tests/ui/machine_nonactor_parameter.stderr",
+      "status": "D",
+      "old_mode": "100644",
+      "new_mode": "000000",
+      "old_blob": "a1727136c0b7edbc5a718a4c00a9b772b2b162d9",
+      "new_blob": "0000000000000000000000000000000000000000"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/ui/machine_noncontiguous_kind.rs",
+      "destination_path": "author/dsl/macros/tests/ui/machine_noncontiguous_kind.rs",
+      "status": "D",
+      "old_mode": "100644",
+      "new_mode": "000000",
+      "old_blob": "0f82743144c452d3c3e43f5d0dafa768044ec8c3",
+      "new_blob": "0000000000000000000000000000000000000000"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/ui/machine_noncontiguous_kind.stderr",
+      "destination_path": "author/dsl/macros/tests/ui/machine_noncontiguous_kind.stderr",
+      "status": "D",
+      "old_mode": "100644",
+      "new_mode": "000000",
+      "old_blob": "a374dc8c28425fa3e0af5fd13fbd4b98141222c3",
+      "new_blob": "0000000000000000000000000000000000000000"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/ui/machine_out_of_order.rs",
+      "destination_path": "author/dsl/macros/tests/ui/machine_out_of_order.rs",
+      "status": "D",
+      "old_mode": "100644",
+      "new_mode": "000000",
+      "old_blob": "6461e5713e86d6190f85ba214e2eeffdea0a88ec",
+      "new_blob": "0000000000000000000000000000000000000000"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/ui/machine_out_of_order.stderr",
+      "destination_path": "author/dsl/macros/tests/ui/machine_out_of_order.stderr",
+      "status": "D",
+      "old_mode": "100644",
+      "new_mode": "000000",
+      "old_blob": "e8c157605640f2022b40b7e6ebfa5f07fc3a810d",
+      "new_blob": "0000000000000000000000000000000000000000"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/ui/machine_path_builders.rs",
+      "destination_path": "author/dsl/macros/tests/ui/machine_path_builders.rs",
+      "status": "D",
+      "old_mode": "100644",
+      "new_mode": "000000",
+      "old_blob": "b59baef8586fd6606f4a82c968bc78d22087c3dd",
+      "new_blob": "0000000000000000000000000000000000000000"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/ui/machine_path_builders.stderr",
+      "destination_path": "author/dsl/macros/tests/ui/machine_path_builders.stderr",
+      "status": "D",
+      "old_mode": "100644",
+      "new_mode": "000000",
+      "old_blob": "17274d1f9ae0b65b8b5fb200e351ccf3c7617e2a",
+      "new_blob": "0000000000000000000000000000000000000000"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/ui/machine_post_async.rs",
+      "destination_path": "author/dsl/macros/tests/ui/machine_post_async.rs",
+      "status": "D",
+      "old_mode": "100644",
+      "new_mode": "000000",
+      "old_blob": "106de881ce9b96ad4f357909e1e927a1d61803cb",
+      "new_blob": "0000000000000000000000000000000000000000"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/ui/machine_post_async.stderr",
+      "destination_path": "author/dsl/macros/tests/ui/machine_post_async.stderr",
+      "status": "D",
+      "old_mode": "100644",
+      "new_mode": "000000",
+      "old_blob": "8777e9b15ecf0f18add0e2c3b06e2232e15ec340",
+      "new_blob": "0000000000000000000000000000000000000000"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/ui/machine_post_returns_unit.rs",
+      "destination_path": "author/dsl/macros/tests/ui/machine_post_returns_unit.rs",
+      "status": "D",
+      "old_mode": "100644",
+      "new_mode": "000000",
+      "old_blob": "6001f6160e328c17e15703a5739e77148d8f4de7",
+      "new_blob": "0000000000000000000000000000000000000000"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/ui/machine_post_returns_unit.stderr",
+      "destination_path": "author/dsl/macros/tests/ui/machine_post_returns_unit.stderr",
+      "status": "D",
+      "old_mode": "100644",
+      "new_mode": "000000",
+      "old_blob": "6a28cebeb683d9e76607c7d054fbf68d24a045e7",
+      "new_blob": "0000000000000000000000000000000000000000"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/ui/machine_progress_chain.rs",
+      "destination_path": "author/dsl/macros/tests/ui/machine_progress_chain.rs",
+      "status": "D",
+      "old_mode": "100644",
+      "new_mode": "000000",
+      "old_blob": "4b12ab59973ef5e0e71b71ec22d9cdf4bae5c1ba",
+      "new_blob": "0000000000000000000000000000000000000000"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/ui/machine_progress_chain.stderr",
+      "destination_path": "author/dsl/macros/tests/ui/machine_progress_chain.stderr",
+      "status": "D",
+      "old_mode": "100644",
+      "new_mode": "000000",
+      "old_blob": "aa7389cedaca307d8f5790385b8dc3043505d942",
+      "new_blob": "0000000000000000000000000000000000000000"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/ui/machine_progress_gap.rs",
+      "destination_path": "author/dsl/macros/tests/ui/machine_progress_gap.rs",
+      "status": "D",
+      "old_mode": "100644",
+      "new_mode": "000000",
+      "old_blob": "bcbf2cc008bed68003df52964e23ac5c819f5c2e",
+      "new_blob": "0000000000000000000000000000000000000000"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/ui/machine_progress_gap.stderr",
+      "destination_path": "author/dsl/macros/tests/ui/machine_progress_gap.stderr",
+      "status": "D",
+      "old_mode": "100644",
+      "new_mode": "000000",
+      "old_blob": "24b7f8136c099f906931038635d7e5e1c576ff71",
+      "new_blob": "0000000000000000000000000000000000000000"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/ui/machine_starts_without_world.rs",
+      "destination_path": "author/dsl/macros/tests/ui/machine_starts_without_world.rs",
+      "status": "D",
+      "old_mode": "100644",
+      "new_mode": "000000",
+      "old_blob": "fc16bb832d92c8b600ff146252c8ffdc163d1dce",
+      "new_blob": "0000000000000000000000000000000000000000"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/ui/machine_starts_without_world.stderr",
+      "destination_path": "author/dsl/macros/tests/ui/machine_starts_without_world.stderr",
+      "status": "D",
+      "old_mode": "100644",
+      "new_mode": "000000",
+      "old_blob": "e2735027937716527f52f689776eada8bc1f16fe",
+      "new_blob": "0000000000000000000000000000000000000000"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/ui/machine_unknown_actor.rs",
+      "destination_path": "author/dsl/macros/tests/ui/machine_unknown_actor.rs",
+      "status": "D",
+      "old_mode": "100644",
+      "new_mode": "000000",
+      "old_blob": "d96a3147a5c0e1c5fdbea7673c9af332e7ca2045",
+      "new_blob": "0000000000000000000000000000000000000000"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/ui/machine_unknown_actor.stderr",
+      "destination_path": "author/dsl/macros/tests/ui/machine_unknown_actor.stderr",
+      "status": "D",
+      "old_mode": "100644",
+      "new_mode": "000000",
+      "old_blob": "e5ea77309e6ce61f82a44cc366f663bad75355d1",
+      "new_blob": "0000000000000000000000000000000000000000"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/ui/machine_unknown_after.rs",
+      "destination_path": "author/dsl/macros/tests/ui/machine_unknown_after.rs",
+      "status": "D",
+      "old_mode": "100644",
+      "new_mode": "000000",
+      "old_blob": "8a52004428c59a709510e54ef51ca763c8a36461",
+      "new_blob": "0000000000000000000000000000000000000000"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/ui/machine_unknown_after.stderr",
+      "destination_path": "author/dsl/macros/tests/ui/machine_unknown_after.stderr",
+      "status": "D",
+      "old_mode": "100644",
+      "new_mode": "000000",
+      "old_blob": "6da130c88dd07a8d1e18b193e13bb0f9df3de6bf",
+      "new_blob": "0000000000000000000000000000000000000000"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/ui/machine_unknown_scope.rs",
+      "destination_path": "author/dsl/macros/tests/ui/machine_unknown_scope.rs",
+      "status": "D",
+      "old_mode": "100644",
+      "new_mode": "000000",
+      "old_blob": "2012f3366aaf8134880e2ec03ae55e1980009baf",
+      "new_blob": "0000000000000000000000000000000000000000"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/ui/machine_unknown_scope.stderr",
+      "destination_path": "author/dsl/macros/tests/ui/machine_unknown_scope.stderr",
+      "status": "D",
+      "old_mode": "100644",
+      "new_mode": "000000",
+      "old_blob": "c58f37466a0f092694427e9a832a9652eafd5106",
+      "new_blob": "0000000000000000000000000000000000000000"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/ui/machine_within_bare.rs",
+      "destination_path": "author/dsl/macros/tests/ui/machine_within_bare.rs",
+      "status": "D",
+      "old_mode": "100644",
+      "new_mode": "000000",
+      "old_blob": "dd48c9785109a3c29ad62edb4bb17338c50b076b",
+      "new_blob": "0000000000000000000000000000000000000000"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/ui/machine_within_bare.stderr",
+      "destination_path": "author/dsl/macros/tests/ui/machine_within_bare.stderr",
+      "status": "D",
+      "old_mode": "100644",
+      "new_mode": "000000",
+      "old_blob": "cef4cd9785ef9cbe834226ec2d49e10e136ccc07",
+      "new_blob": "0000000000000000000000000000000000000000"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/ui/non_range_starts.rs",
+      "destination_path": "author/dsl/macros/tests/ui/non_range_starts.rs",
+      "status": "D",
+      "old_mode": "100644",
+      "new_mode": "000000",
+      "old_blob": "30d49fe58a8540f0972f32b6bc9cf614a5b4f288",
+      "new_blob": "0000000000000000000000000000000000000000"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/ui/non_range_starts.stderr",
+      "destination_path": "author/dsl/macros/tests/ui/non_range_starts.stderr",
+      "status": "D",
+      "old_mode": "100644",
+      "new_mode": "000000",
+      "old_blob": "0db0e308d9ec898e8e4857b1c49ec9659621fc57",
+      "new_blob": "0000000000000000000000000000000000000000"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/ui/non_unit_internal.rs",
+      "destination_path": "author/dsl/macros/tests/ui/non_unit_internal.rs",
+      "status": "D",
+      "old_mode": "100644",
+      "new_mode": "000000",
+      "old_blob": "6c5a0249fb351a6ac72b35d16ad386ef3f87150a",
+      "new_blob": "0000000000000000000000000000000000000000"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/ui/non_unit_internal.stderr",
+      "destination_path": "author/dsl/macros/tests/ui/non_unit_internal.stderr",
+      "status": "D",
+      "old_mode": "100644",
+      "new_mode": "000000",
+      "old_blob": "441744999f740070ba5a72df2258324a4a6be03d",
+      "new_blob": "0000000000000000000000000000000000000000"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/ui/optional_facts_payload.rs",
+      "destination_path": "author/dsl/macros/tests/ui/optional_facts_payload.rs",
+      "status": "D",
+      "old_mode": "100644",
+      "new_mode": "000000",
+      "old_blob": "89b70f76b01c77f23dce0077bd6a08ae2bde7922",
+      "new_blob": "0000000000000000000000000000000000000000"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/ui/optional_facts_payload.stderr",
+      "destination_path": "author/dsl/macros/tests/ui/optional_facts_payload.stderr",
+      "status": "D",
+      "old_mode": "100644",
+      "new_mode": "000000",
+      "old_blob": "9a7c0c26300aa9772d511a7b219aded5d204f559",
+      "new_blob": "0000000000000000000000000000000000000000"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/ui/variant_internal.rs",
+      "destination_path": "author/dsl/macros/tests/ui/variant_internal.rs",
+      "status": "D",
+      "old_mode": "100644",
+      "new_mode": "000000",
+      "old_blob": "8d3677b240777b05ad394279cacd30228a20906b",
+      "new_blob": "0000000000000000000000000000000000000000"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/ui/variant_internal.stderr",
+      "destination_path": "author/dsl/macros/tests/ui/variant_internal.stderr",
+      "status": "D",
+      "old_mode": "100644",
+      "new_mode": "000000",
+      "old_blob": "bb867cb0c5938157e4a4d0a5a13aeda806ce6aaf",
+      "new_blob": "0000000000000000000000000000000000000000"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/ui/world_duplicate.rs",
+      "destination_path": "author/dsl/macros/tests/ui/world_duplicate.rs",
+      "status": "D",
+      "old_mode": "100644",
+      "new_mode": "000000",
+      "old_blob": "b76c361af496b8089401c45f8efda2836f8866c9",
+      "new_blob": "0000000000000000000000000000000000000000"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/ui/world_duplicate.stderr",
+      "destination_path": "author/dsl/macros/tests/ui/world_duplicate.stderr",
+      "status": "D",
+      "old_mode": "100644",
+      "new_mode": "000000",
+      "old_blob": "09513036b14da6a8eda8a0018f3ab6f8dc15fcae",
+      "new_blob": "0000000000000000000000000000000000000000"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/ui/world_parameter_duplicate.rs",
+      "destination_path": "author/dsl/macros/tests/ui/world_parameter_duplicate.rs",
+      "status": "D",
+      "old_mode": "100644",
+      "new_mode": "000000",
+      "old_blob": "58f2383d11c69e76ab5a2e6736105e3869dd2dc8",
+      "new_blob": "0000000000000000000000000000000000000000"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/ui/world_parameter_duplicate.stderr",
+      "destination_path": "author/dsl/macros/tests/ui/world_parameter_duplicate.stderr",
+      "status": "D",
+      "old_mode": "100644",
+      "new_mode": "000000",
+      "old_blob": "896f15cc4fc4281ca8f1408884e8e33eba6e6e8b",
+      "new_blob": "0000000000000000000000000000000000000000"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/ui/world_parameter_mutable.rs",
+      "destination_path": "author/dsl/macros/tests/ui/world_parameter_mutable.rs",
+      "status": "D",
+      "old_mode": "100644",
+      "new_mode": "000000",
+      "old_blob": "32d71c5d6fd40c0fc22ea7d93d660e3f778f2a8b",
+      "new_blob": "0000000000000000000000000000000000000000"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/ui/world_parameter_mutable.stderr",
+      "destination_path": "author/dsl/macros/tests/ui/world_parameter_mutable.stderr",
+      "status": "D",
+      "old_mode": "100644",
+      "new_mode": "000000",
+      "old_blob": "895259f4817bbd2d484d2220392642bfc089a3aa",
+      "new_blob": "0000000000000000000000000000000000000000"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/ui/world_parameter_position.rs",
+      "destination_path": "author/dsl/macros/tests/ui/world_parameter_position.rs",
+      "status": "D",
+      "old_mode": "100644",
+      "new_mode": "000000",
+      "old_blob": "da057052ac4cb4fb28b182fdba3f4125ce59b091",
+      "new_blob": "0000000000000000000000000000000000000000"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/ui/world_parameter_position.stderr",
+      "destination_path": "author/dsl/macros/tests/ui/world_parameter_position.stderr",
+      "status": "D",
+      "old_mode": "100644",
+      "new_mode": "000000",
+      "old_blob": "8836eed132382ca15a8e6547fdcc4413a69f039b",
+      "new_blob": "0000000000000000000000000000000000000000"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/ui/world_starts_empty_mixed.rs",
+      "destination_path": "author/dsl/macros/tests/ui/world_starts_empty_mixed.rs",
+      "status": "D",
+      "old_mode": "100644",
+      "new_mode": "000000",
+      "old_blob": "d4f74904ccabf8071b6dbe238db02c479291098d",
+      "new_blob": "0000000000000000000000000000000000000000"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/ui/world_starts_empty_mixed.stderr",
+      "destination_path": "author/dsl/macros/tests/ui/world_starts_empty_mixed.stderr",
+      "status": "D",
+      "old_mode": "100644",
+      "new_mode": "000000",
+      "old_blob": "26b362246de9512524138d0ddb86dfddbead24e4",
+      "new_blob": "0000000000000000000000000000000000000000"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/ui/world_starts_impl_block.rs",
+      "destination_path": "author/dsl/macros/tests/ui/world_starts_impl_block.rs",
+      "status": "D",
+      "old_mode": "100644",
+      "new_mode": "000000",
+      "old_blob": "1af7fe9aa68d20359caa6c0c84016b8beafff4a7",
+      "new_blob": "0000000000000000000000000000000000000000"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/ui/world_starts_impl_block.stderr",
+      "destination_path": "author/dsl/macros/tests/ui/world_starts_impl_block.stderr",
+      "status": "D",
+      "old_mode": "100644",
+      "new_mode": "000000",
+      "old_blob": "2c17dcc50dc7e4d438d67c8bbf9b7f740a3e3ffb",
+      "new_blob": "0000000000000000000000000000000000000000"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/ui/world_starts_mixed.rs",
+      "destination_path": "author/dsl/macros/tests/ui/world_starts_mixed.rs",
+      "status": "D",
+      "old_mode": "100644",
+      "new_mode": "000000",
+      "old_blob": "b4f6bcfc599424f27b7ee41867289dcd727bbae4",
+      "new_blob": "0000000000000000000000000000000000000000"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/ui/world_starts_mixed.stderr",
+      "destination_path": "author/dsl/macros/tests/ui/world_starts_mixed.stderr",
+      "status": "D",
+      "old_mode": "100644",
+      "new_mode": "000000",
+      "old_blob": "3681c2b8178611f864e4960a17873f02e81ed399",
+      "new_blob": "0000000000000000000000000000000000000000"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/ui/world_starts_receiver.rs",
+      "destination_path": "author/dsl/macros/tests/ui/world_starts_receiver.rs",
+      "status": "D",
+      "old_mode": "100644",
+      "new_mode": "000000",
+      "old_blob": "cded50f1f973a2e3e06de88ef3fc8d55e9867dc7",
+      "new_blob": "0000000000000000000000000000000000000000"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/ui/world_starts_receiver.stderr",
+      "destination_path": "author/dsl/macros/tests/ui/world_starts_receiver.stderr",
+      "status": "D",
+      "old_mode": "100644",
+      "new_mode": "000000",
+      "old_blob": "00d6f22e120bbfad1a223e0970697506e9edd949",
+      "new_blob": "0000000000000000000000000000000000000000"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/ui/world_starts_twice.rs",
+      "destination_path": "author/dsl/macros/tests/ui/world_starts_twice.rs",
+      "status": "D",
+      "old_mode": "100644",
+      "new_mode": "000000",
+      "old_blob": "cc3775b30fc399032f78b52416db8de3fa52e7df",
+      "new_blob": "0000000000000000000000000000000000000000"
+    },
+    {
+      "source_path": "model/umpire/author/dsl/macros/tests/ui/world_starts_twice.stderr",
+      "destination_path": "author/dsl/macros/tests/ui/world_starts_twice.stderr",
+      "status": "D",
+      "old_mode": "100644",
+      "new_mode": "000000",
+      "old_blob": "585ad8cd8a6b7ffb16aea2f2316e1dcf9b2f9a8a",
+      "new_blob": "0000000000000000000000000000000000000000"
+    },
+    {
+      "source_path": "model/umpire/backends/process/src/lib.rs",
+      "destination_path": "backends/process/src/lib.rs",
+      "status": "M",
+      "old_mode": "100644",
+      "new_mode": "100644",
+      "old_blob": "4b03edd7bb8ffad917ceb700db096873f390569e",
+      "new_blob": "f8daadc9c2c8eba336eb09da259cf464894511cc"
+    },
+    {
+      "source_path": "model/umpire/backends/process/src/support.rs",
+      "destination_path": "backends/process/src/support.rs",
+      "status": "M",
+      "old_mode": "100644",
+      "new_mode": "100644",
+      "old_blob": "d6d3edff4f20aecfdec585c078a4d9b3a02c7566",
+      "new_blob": "ffde3ea78ff61f5f73572ebf8857e1e7906a84f1"
+    },
+    {
+      "source_path": "model/umpire/backends/process/src/syscall.rs",
+      "destination_path": "backends/process/src/syscall.rs",
+      "status": "M",
+      "old_mode": "100644",
+      "new_mode": "100644",
+      "old_blob": "a856f739083b1fd3496456132d4b325c6f2e507d",
+      "new_blob": "d2bbfb2c0528c1c02b4e8b56b45d07db7d535926"
+    },
+    {
+      "source_path": "model/umpire/backends/process/src/syscall/calls.rs",
+      "destination_path": "backends/process/src/syscall/calls.rs",
+      "status": "M",
+      "old_mode": "100644",
+      "new_mode": "100644",
+      "old_blob": "f82047b2ccb6f3340451092596f177e02926830a",
+      "new_blob": "a8cc198207d84c5d4e68a32b572a6aec407b1ee5"
+    },
+    {
+      "source_path": "model/umpire/backends/process/src/work.rs",
+      "destination_path": "backends/process/src/work.rs",
+      "status": "A",
+      "old_mode": "000000",
+      "new_mode": "100644",
+      "old_blob": "0000000000000000000000000000000000000000",
+      "new_blob": "efdf198ab205b5e6f02cde9b54d06362e0172adb"
+    },
+    {
+      "source_path": "model/umpire/backends/process/tests/fixtures/process_fixture.rs",
+      "destination_path": "backends/process/tests/fixtures/process_fixture.rs",
+      "status": "M",
+      "old_mode": "100644",
+      "new_mode": "100644",
+      "old_blob": "157a0b69aff47826b0d37c959e834ea378f999d8",
+      "new_blob": "2fa82a7b06fd29d7bd5f4d723a707a8ffe4e73d4"
+    },
+    {
+      "source_path": "model/umpire/backends/process/tests/process.rs",
+      "destination_path": "backends/process/tests/process.rs",
+      "status": "M",
+      "old_mode": "100644",
+      "new_mode": "100644",
+      "old_blob": "56d46d14293716aeabbdbea047cdd18c0f8483b6",
+      "new_blob": "8fcb62e1a577dcb8e30874bb19943a8ffe7d245f"
+    },
+    {
+      "source_path": "model/umpire/backends/tlc/src/runner.rs",
+      "destination_path": "backends/tlc/src/runner.rs",
+      "status": "M",
+      "old_mode": "100644",
+      "new_mode": "100644",
+      "old_blob": "8d1e15e32d16daf215dd76b13abc4696c229a121",
+      "new_blob": "e82344f0cee7d810ce60209d16b699905e9f9b7b"
+    },
+    {
+      "source_path": "model/umpire/backends/tlc/src/runner/cache_tests.rs",
+      "destination_path": "backends/tlc/src/runner/cache_tests.rs",
+      "status": "M",
+      "old_mode": "100644",
+      "new_mode": "100644",
+      "old_blob": "c08374672942f51200ad83684cb373755fd70c4a",
+      "new_blob": "3070278d914f61ef22425005d21353c3435491a7"
+    },
+    {
+      "source_path": "model/umpire/dev/fixtures/build.rs",
+      "destination_path": "dev/fixtures/build.rs",
+      "status": "M",
+      "old_mode": "100644",
+      "new_mode": "100644",
+      "old_blob": "80177414cd41c29b987d104457cc9eb1e9035c9d",
+      "new_blob": "b8a9ec37a9712605a15a1de37aea0277270f6e59"
+    },
+    {
+      "source_path": "model/umpire/dev/fixtures/fixtures.rs",
+      "destination_path": "dev/fixtures/fixtures.rs",
+      "status": "M",
+      "old_mode": "100644",
+      "new_mode": "100644",
+      "old_blob": "dcdbb0d3d4889e143a109c2ef84284797638f17a",
+      "new_blob": "cbfb5f56e0d81e66aa578139fa5cbefcd91f2030"
+    },
+    {
+      "source_path": "model/umpire/dev/testing/src/lib.rs",
+      "destination_path": "dev/testing/src/lib.rs",
+      "status": "M",
+      "old_mode": "100644",
+      "new_mode": "100644",
+      "old_blob": "22ba338ae86bf6ff9f72778b680d2da20eedbdb2",
+      "new_blob": "b67a5002897da34c9f5447ca5713524a70550cb7"
+    },
+    {
+      "source_path": "model/umpire/dev/testing/src/runner.rs",
+      "destination_path": "dev/testing/src/runner.rs",
+      "status": "M",
+      "old_mode": "100644",
+      "new_mode": "100644",
+      "old_blob": "3ea63059fa3ba6d7517f8251b74c89e20a4062af",
+      "new_blob": "660e61ce5a65603cab8f200d8ec7a2d8acd85dc3"
+    },
+    {
+      "source_path": "model/umpire/dev/testing/tests/consumers.rs",
+      "destination_path": "dev/testing/tests/consumers.rs",
+      "status": "M",
+      "old_mode": "100644",
+      "new_mode": "100644",
+      "old_blob": "6f6e7ef609aef5bcb594ebd8b99da2f47e472378",
+      "new_blob": "2c56073a7bfd08028b385e073ef2eefca927ce63"
+    },
+    {
+      "source_path": "model/umpire/dev/xtask/Cargo.toml",
+      "destination_path": "dev/xtask/Cargo.toml",
+      "status": "M",
+      "old_mode": "100644",
+      "new_mode": "100644",
+      "old_blob": "d206618c29ad5d6a6a624e296b7261bcb98f2a12",
+      "new_blob": "07fbdca67fe38cd4689bec71ae8ec7e3c20164e8"
+    },
+    {
+      "source_path": "model/umpire/dev/xtask/README.md",
+      "destination_path": "dev/xtask/README.md",
+      "status": "M",
+      "old_mode": "100644",
+      "new_mode": "100644",
+      "old_blob": "f859dcfee9695eed9cb0e6eefef0e2756bd9731d",
+      "new_blob": "d7c089c07dc02f7a9aae72e1fc099c12487bd21c"
+    },
+    {
+      "source_path": "model/umpire/dev/xtask/src/gate.rs",
+      "destination_path": "dev/xtask/src/gate.rs",
+      "status": "M",
+      "old_mode": "100644",
+      "new_mode": "100644",
+      "old_blob": "bf567777f7ade2664e3b59e1563fe7e757cf023c",
+      "new_blob": "7cff6f659f3e3c9e4b7a83d451a397b9c57f90f1"
+    },
+    {
+      "source_path": "model/umpire/dev/xtask/src/gate/admission.rs",
+      "destination_path": "dev/xtask/src/gate/admission.rs",
+      "status": "A",
+      "old_mode": "000000",
+      "new_mode": "100644",
+      "old_blob": "0000000000000000000000000000000000000000",
+      "new_blob": "08304a777b4522a6c63020db6b1d295dfc5b0d85"
+    },
+    {
+      "source_path": "model/umpire/dev/xtask/src/gate/lease.rs",
+      "destination_path": "dev/xtask/src/gate/lease.rs",
+      "status": "A",
+      "old_mode": "000000",
+      "new_mode": "100644",
+      "old_blob": "0000000000000000000000000000000000000000",
+      "new_blob": "4197429f866dbe4d9515d1cf94124d7a5cff0c73"
+    },
+    {
+      "source_path": "model/umpire/dev/xtask/src/gate/scheduler.rs",
+      "destination_path": "dev/xtask/src/gate/scheduler.rs",
+      "status": "A",
+      "old_mode": "000000",
+      "new_mode": "100644",
+      "old_blob": "0000000000000000000000000000000000000000",
+      "new_blob": "82b6f7591aade7e068004bb1ab212734d46ee861"
+    },
+    {
+      "source_path": "model/umpire/dev/xtask/src/gate/standalone.rs",
+      "destination_path": "dev/xtask/src/gate/standalone.rs",
+      "status": "M",
+      "old_mode": "100644",
+      "new_mode": "100644",
+      "old_blob": "c43b53287e9a9ad7999c0dd4da58bf0cce1e6f90",
+      "new_blob": "47e69f17ebaf48d59c6dcec5cd2d8e78b06ac1fb"
+    },
+    {
+      "source_path": "model/umpire/dev/xtask/src/gate/tasks.toml",
+      "destination_path": "dev/xtask/src/gate/tasks.toml",
+      "status": "A",
+      "old_mode": "000000",
+      "new_mode": "100644",
+      "old_blob": "0000000000000000000000000000000000000000",
+      "new_blob": "8367ba52a67c8ee37a3f378dbc79615673f7b0a2"
+    },
+    {
+      "source_path": "model/umpire/dev/xtask/src/gate/work_counts.rs",
+      "destination_path": "dev/xtask/src/gate/work_counts.rs",
+      "status": "A",
+      "old_mode": "000000",
+      "new_mode": "100644",
+      "old_blob": "0000000000000000000000000000000000000000",
+      "new_blob": "85007da3ea09d179ceba91190ad47342aaf20ac8"
+    },
+    {
+      "source_path": "model/umpire/dev/xtask/src/main.rs",
+      "destination_path": "dev/xtask/src/main.rs",
+      "status": "M",
+      "old_mode": "100644",
+      "new_mode": "100644",
+      "old_blob": "49c1063cf15baf9af09b9110832530a95bfe1792",
+      "new_blob": "a11c386aa19a286f2ab654927a58cd945bce25bf"
+    },
+    {
+      "source_path": "model/umpire/dev/xtask/src/quick/mod.rs",
+      "destination_path": "dev/xtask/src/quick/mod.rs",
+      "status": "M",
+      "old_mode": "100644",
+      "new_mode": "100644",
+      "old_blob": "8f268bf3a56151dc5f4c0898ea67c2516baa869d",
+      "new_blob": "aa5a9fb053b4364f872d42b120f60dd56d2b42be"
+    },
+    {
+      "source_path": "model/umpire/dev/xtask/src/quick/selection.rs",
+      "destination_path": "dev/xtask/src/quick/selection.rs",
+      "status": "M",
+      "old_mode": "100644",
+      "new_mode": "100644",
+      "old_blob": "c86199c7363925ea976ca58dc12b190a6a0ecaf9",
+      "new_blob": "6daaaccfaaa2e85e129b3c6b01586cfda23908ed"
+    },
+    {
+      "source_path": "model/umpire/dev/xtask/src/quick/tests.rs",
+      "destination_path": "dev/xtask/src/quick/tests.rs",
+      "status": "M",
+      "old_mode": "100644",
+      "new_mode": "100644",
+      "old_blob": "2c266681350ab2f5cc57dffa5868c65967321eda",
+      "new_blob": "bb32b49f2c8d9f8359a09ef6ac42c20b1f398a7d"
+    },
+    {
+      "source_path": "model/umpire/dev/xtask/src/test_run.rs",
+      "destination_path": "dev/xtask/src/test_run.rs",
+      "status": "M",
+      "old_mode": "100644",
+      "new_mode": "100644",
+      "old_blob": "ed03972baf4f9f7b9ccada765302f133e50a1a9e",
+      "new_blob": "804f9946e0a6be1b599ef873107cdab305931317"
+    },
+    {
+      "source_path": "model/umpire/dev/xtask/tests/controller_counts.rs",
+      "destination_path": "dev/xtask/tests/controller_counts.rs",
+      "status": "A",
+      "old_mode": "000000",
+      "new_mode": "100644",
+      "old_blob": "0000000000000000000000000000000000000000",
+      "new_blob": "f2b64c0a2081514b58ac0725cc7e48250212f5f2"
+    },
+    {
+      "source_path": "model/umpire/dev/xtask/tests/gate_graph.rs",
+      "destination_path": "dev/xtask/tests/gate_graph.rs",
+      "status": "A",
+      "old_mode": "000000",
+      "new_mode": "100644",
+      "old_blob": "0000000000000000000000000000000000000000",
+      "new_blob": "8eff093825d4064c56028bb1fbc9aafee91e0d90"
+    },
+    {
+      "source_path": "model/umpire/dev/xtask/tests/gate_wiring.rs",
+      "destination_path": "dev/xtask/tests/gate_wiring.rs",
+      "status": "M",
+      "old_mode": "100644",
+      "new_mode": "100644",
+      "old_blob": "1916c42976598b41ce6693675384a9ce867db8a9",
+      "new_blob": "71b44a54e35784343fa8818acff4346f60bc0139"
+    },
+    {
+      "source_path": "model/umpire/dev/xtask/tests/main.rs",
+      "destination_path": "dev/xtask/tests/main.rs",
+      "status": "M",
+      "old_mode": "100644",
+      "new_mode": "100644",
+      "old_blob": "359859b34a724cdbe604cfc5e9028d123044c984",
+      "new_blob": "8ab6cfba09e602946e48dbd52a09e0feb6b63cb1"
+    },
+    {
+      "source_path": "model/umpire/mise.toml",
+      "destination_path": "mise.toml",
+      "status": "M",
+      "old_mode": "100644",
+      "new_mode": "100644",
+      "old_blob": "be7ece1cf0a7fcc2ca35a17f994a2d59471e55a1",
+      "new_blob": "f584ecc6a7a75b5fc2302d462f9d9808c51f0ece"
+    }
+  ]
+}

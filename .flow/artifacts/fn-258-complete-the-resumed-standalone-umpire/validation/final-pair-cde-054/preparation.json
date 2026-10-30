@@ -1,0 +1,324 @@
+{
+  "schema_version": 2,
+  "status": "PREPARED_ONLY_EXECUTION_NOT_ADMITTED",
+  "observed_unix": 1793202798.098925,
+  "pair": "/home/agent/.cache/codex-build/tmp/fn258-final-pair-cde-054",
+  "sources": {
+    "temporal": {
+      "head": "cde1ee67efd266a058193694c2ddb287598b9ea5",
+      "tree": "937680c4cc87d81ce4da6b0868863ea1a5fb9fd3",
+      "detached": true,
+      "status": "",
+      "no_alternates": true,
+      "all_object_file_link_counts_one": true,
+      "object_file_count": 3,
+      "git_directory": "/home/agent/.cache/codex-build/tmp/fn258-final-pair-cde-054/temporal/.git",
+      "index_sha256": "05cd5cdbf2b65008e5191dbd9593064b3758e2d5ebbf5d7b251839ab1465069b",
+      "shallow": "true"
+    },
+    "umpire": {
+      "head": "05473210b48c3db862f22051eb7154ce98258f98",
+      "tree": "46829511b6d582b40f3fa5095f42bdf980c7d466",
+      "detached": true,
+      "status": "",
+      "no_alternates": true,
+      "all_object_file_link_counts_one": true,
+      "object_file_count": 3,
+      "git_directory": "/home/agent/.cache/codex-build/tmp/fn258-final-pair-cde-054/umpire/.git",
+      "index_sha256": "534d87b674a6e2e0a75d5ebe443be10eefc8c56849287423412ff921c2df4d99",
+      "shallow": "false"
+    }
+  },
+  "clone_commands": [
+    {
+      "argv": [
+        "git",
+        "clone",
+        "--no-local",
+        "--no-hardlinks",
+        "--no-checkout",
+        "--revision=cde1ee67efd266a058193694c2ddb287598b9ea5",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal",
+        "/home/agent/.cache/codex-build/tmp/fn258-final-pair-cde-054/temporal"
+      ],
+      "exit": 0,
+      "seconds": 9.0186678369937
+    },
+    {
+      "argv": [
+        "git",
+        "-C",
+        "/home/agent/.cache/codex-build/tmp/fn258-final-pair-cde-054/temporal",
+        "checkout",
+        "--detach",
+        "cde1ee67efd266a058193694c2ddb287598b9ea5"
+      ],
+      "exit": 0,
+      "seconds": 3.9312433769955533
+    },
+    {
+      "argv": [
+        "git",
+        "clone",
+        "--no-local",
+        "--no-hardlinks",
+        "--no-checkout",
+        "--revision=05473210b48c3db862f22051eb7154ce98258f98",
+        "/Users/stephan/Workspace/skunkworks/umpire/umpire",
+        "/home/agent/.cache/codex-build/tmp/fn258-final-pair-cde-054/umpire"
+      ],
+      "exit": 0,
+      "seconds": 0.3272440419968916
+    },
+    {
+      "argv": [
+        "git",
+        "-C",
+        "/home/agent/.cache/codex-build/tmp/fn258-final-pair-cde-054/umpire",
+        "checkout",
+        "--detach",
+        "05473210b48c3db862f22051eb7154ce98258f98"
+      ],
+      "exit": 0,
+      "seconds": 0.17213674999948125
+    }
+  ],
+  "source_independence": "Exact revision --no-local --no-hardlinks clones; detached and clean; no alternate/shared objects. No ignored binaries/jars/build outputs copied.",
+  "target": {
+    "path": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054",
+    "initially_absent": true,
+    "still_absent_after_preparation": true,
+    "artifacts_copied": false,
+    "planned_go_cache": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/go-build",
+    "guest_proof": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/proof/umpire_temporal_guest.wasm"
+  },
+  "workspace": {
+    "path": "/home/agent/.cache/codex-build/tmp/fn258-final-pair-cde-054/go.work",
+    "created_only_after_work_and_sum_absent": true,
+    "contents": "go 1.27.0\n\nuse (\n\t./temporal\n\t./umpire/hosts/go\n\t./umpire/reference/kettle\n\t./temporal/model/temporal/hosts/go\n)\n",
+    "sha256": "5e6ca8f10d627f4d5743ce4f9d2d49e12a67cb0172c3254f021f6c51ce3150db",
+    "automatic_discovery": "/home/agent/.cache/codex-build/tmp/fn258-final-pair-cde-054/go.work",
+    "modules": [
+      {
+        "Path": "github.com/temporalio/umpire/hosts/go",
+        "Main": true,
+        "Dir": "/home/agent/.cache/codex-build/tmp/fn258-final-pair-cde-054/umpire/hosts/go",
+        "GoMod": "/home/agent/.cache/codex-build/tmp/fn258-final-pair-cde-054/umpire/hosts/go/go.mod",
+        "GoVersion": "1.27.0"
+      },
+      {
+        "Path": "github.com/temporalio/umpire/reference/kettle",
+        "Main": true,
+        "Dir": "/home/agent/.cache/codex-build/tmp/fn258-final-pair-cde-054/umpire/reference/kettle",
+        "GoMod": "/home/agent/.cache/codex-build/tmp/fn258-final-pair-cde-054/umpire/reference/kettle/go.mod",
+        "GoVersion": "1.27.0"
+      },
+      {
+        "Path": "umpire.local/temporal",
+        "Main": true,
+        "Dir": "/home/agent/.cache/codex-build/tmp/fn258-final-pair-cde-054/temporal/model/temporal/hosts/go",
+        "GoMod": "/home/agent/.cache/codex-build/tmp/fn258-final-pair-cde-054/temporal/model/temporal/hosts/go/go.mod",
+        "GoVersion": "1.27.0"
+      }
+    ],
+    "dirs_verified": true,
+    "bytes_unchanged_during_metadata": true
+  },
+  "tools": {
+    "rustc": {
+      "invocation": [
+        "mise",
+        "exec",
+        "--",
+        "rustc"
+      ],
+      "effective_binary": "/home/agent/.rustup/toolchains/1.99.1-aarch64-unknown-linux-gnu/bin/rustc",
+      "sha256": "08383c36a0893aa8bb95fd43ee4616b112a5b20a181683192ca4130c3d3d603c",
+      "version": "rustc 1.99.1 (58cf8f9c3 2026-10-13)\nbinary: rustc\ncommit-hash: 58cf8f9c35b355199727627d07ae34a4e2846d67\ncommit-date: 2026-10-13\nhost: aarch64-unknown-linux-gnu\nrelease: 1.99.1\nLLVM version: 23.1.1"
+    },
+    "cargo": {
+      "invocation": [
+        "mise",
+        "exec",
+        "--",
+        "cargo"
+      ],
+      "effective_binary": "/home/agent/.rustup/toolchains/1.99.1-aarch64-unknown-linux-gnu/bin/cargo",
+      "sha256": "25b6901ec9ecffaa6a88591a77d3036a63a96ecffd1a45dd622a88385d0956af",
+      "version": "cargo 1.99.1 (5f94df478 2026-08-27)"
+    },
+    "go": {
+      "selected_path": "/home/agent/.local/share/mise/installs/go/1.27.0/bin/go",
+      "resolved_path": "/home/agent/.local/share/mise/installs/go/1.27.0/bin/go",
+      "sha256": "b51e8499a917e56a0b290e2ab3ba96f11715dc47ad9739d307e03708e630343a",
+      "version": "go version go1.27.0 linux/arm64"
+    },
+    "protoc": {
+      "selected_path": "/home/agent/.local/share/mise/installs/protoc/29.5/bin/protoc",
+      "resolved_path": "/home/agent/.local/share/mise/installs/protoc/29.5/bin/protoc",
+      "sha256": "77dc1e969324c70938e294cef8b7320ce01d94665171113bcf60361672d826e0",
+      "version": "libprotoc 29.5"
+    },
+    "cargo-nextest": {
+      "selected_path": "/home/agent/.local/share/mise/installs/github-nextest-rs-nextest/0.9.149/cargo-nextest",
+      "resolved_path": "/home/agent/.local/share/mise/installs/github-nextest-rs-nextest/0.9.149/cargo-nextest",
+      "sha256": "5b5d894f7770fa61e1061dc6c8338fe9c98ed80de3614035f70fe5bd0e133df7",
+      "version": "cargo-nextest 0.9.149 (3fe4ef319 2026-10-20)\nrelease: 0.9.149\ncommit-hash: 3fe4ef31972f24e0c94cfe291718eab0fe678260\ncommit-date: 2026-10-20\nhost: aarch64-unknown-linux-gnu"
+    },
+    "java": {
+      "selected_path": "/home/agent/.local/share/mise/installs/java/temurin-27.0.0+35/bin/java",
+      "resolved_path": "/home/agent/.local/share/mise/installs/java/temurin-27.0.0+35/bin/java",
+      "sha256": "9657d6ad64391294d30a9e14d28cddfcc86818b435d9b7bf5ceefff79fefd739",
+      "execution": "NOT EXECUTED; JVM not started",
+      "source_pin": "temurin-27"
+    },
+    "git": {
+      "selected_path": "/usr/bin/git",
+      "sha256": "89fbabe92d1e190036a9b15e8e30efc16643beb7562329592855e622c59c3e00",
+      "version": "git version 2.53.0"
+    },
+    "mise": {
+      "selected_path": "/home/agent/.local/bin/mise",
+      "sha256": "370b4b4cfd740402e9a55aa1a8a01fbb1ac95c50af1207b2db2c5489dd4da0cd",
+      "version": "2026.10.11 linux-arm64 (2026-10-15)\nmise WARN  mise version 2026.10.21 available\nmise WARN  To update, run mise self-update"
+    }
+  },
+  "normal_existing_go_cache_paths": {
+    "GOCACHE": "/home/agent/.cache/go-build",
+    "GOMODCACHE": "/home/agent/go/pkg/mod",
+    "GOPATH": "/home/agent/go",
+    "GOROOT": "/home/agent/.local/share/mise/installs/go/1.27.0"
+  },
+  "environment": {
+    "cleared_for_preparation": [
+      "BASH_ENV",
+      "GOWORK",
+      "CARGO_TARGET_DIR",
+      "GOCACHE"
+    ],
+    "mise_auto_install": "false",
+    "mise_exec_auto_install": "false",
+    "mise_not_found_auto_install": "false",
+    "GOTOOLCHAIN": "local",
+    "CARGO_HOME": "/home/agent/.cargo",
+    "TMPDIR": "/home/agent/.cache/codex-build/tmp",
+    "MISE_TRUSTED_CONFIG_PATHS": "/home/agent/.cache/codex-build/tmp/fn258-final-pair-cde-054/temporal:/home/agent/.cache/codex-build/tmp/fn258-final-pair-cde-054/umpire",
+    "scope": "Only selected non-secret tool/cache/config identity fields recorded; no full environment/credentials captured."
+  },
+  "planned_environment": {
+    "CARGO_TARGET_DIR": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054",
+    "CARGO_BUILD_JOBS": "1",
+    "CARGO_INCREMENTAL": "0",
+    "NEXTEST_TEST_THREADS": "4",
+    "RUST_TEST_THREADS": "1",
+    "GOMAXPROCS": "1",
+    "GOFLAGS": "-p=1",
+    "CGO_ENABLED": "0",
+    "MISE_AUTO_INSTALL": "false",
+    "MISE_EXEC_AUTO_INSTALL": "false",
+    "MISE_NOT_FOUND_AUTO_INSTALL": "false",
+    "GOCACHE": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054/go-build",
+    "GOWORK": "/home/agent/.cache/codex-build/tmp/fn258-final-pair-cde-054/go.work",
+    "GOTOOLCHAIN": "local"
+  },
+  "launcher": {
+    "external_code": "/home/agent/.cache/codex-build/tmp/fn258-final-pair-cde-054/launch.py",
+    "external_plan": "/home/agent/.cache/codex-build/tmp/fn258-final-pair-cde-054/launch-plan.json",
+    "retained_code": "launch.py",
+    "retained_plan": "launch-plan.json",
+    "code_sha256": "a752a4964303c547d720c9d15843c51e439d4df4641ec438696d3ef159547c49",
+    "plan_sha256": "7e63b87b0de9903aa4139a097f4c07d5415d3b7c8316f2ed61d8acb08485b115",
+    "mode": "0o755",
+    "syntax_checked_without_execution": true,
+    "resolution_dry_run_exit": 0,
+    "tlc_setup_dry_run_exit": 0,
+    "required_budget_dry_run_exit": 0,
+    "required_budget_output": "{\n  \"preflight\": {\n    \"sources\": {\n      \"temporal\": \"cde1ee67efd266a058193694c2ddb287598b9ea5\",\n      \"umpire\": \"05473210b48c3db862f22051eb7154ce98258f98\"\n    },\n    \"target\": \"/home/agent/.cache/codex-build/fn258-final-pair-cde-054\",\n    \"target_exists\": false,\n    \"free_bytes\": 55396896768,\n    \"additional_reservation_gib\": 16,\n    \"guest_sha256\": \"d171b91861dba54e9c73682fb17a5a317180dba4e7c5b6c1b09f46667b337f5d\",\n    \"workspace_sha256\": \"5e6ca8f10d627f4d5743ce4f9d2d49e12a67cb0172c3254f021f6c51ce3150db\",\n    \"step\": \"paired-required-validate\"\n  },\n  \"planned_commands\": [\n    [\n      \"make\",\n      \"model-validate\"\n    ]\n  ],\n  \"procedure\": [],\n  \"execution\": \"NOT RUN; explicit --execute plus matching FN258_TASK4_ADMIT_STEP required\"\n}\n",
+    "root_control": "Matching FN258_TASK4_ADMIT_STEP plus --execute, serial lock, clean exact source and disk guard. Preparation/dry-run never authorizes execution.",
+    "versioning": {
+      "launcher_source": "/home/agent/.cache/codex-build/tmp/fn258-final-pair-3f5-054/launch.py",
+      "launcher_source_sha256": "ed1614197e0099daac338d31276d3f5166c2d3ba8dada7a674ad93aa0fdf50e8",
+      "plan_source": "/home/agent/.cache/codex-build/tmp/fn258-final-pair-3f5-054/launch-plan.json",
+      "plan_source_sha256": "e11ef7d4eb85f52836e6c319d535a635100348b7368aa721d6348ed4a7617f71",
+      "substitutions": [
+        {
+          "from": "3f5f613578f2857b738a7792fad08f12b3ea0a41",
+          "to": "cde1ee67efd266a058193694c2ddb287598b9ea5"
+        },
+        {
+          "from": "fn258-final-pair-3f5-054",
+          "to": "fn258-final-pair-cde-054"
+        },
+        {
+          "from": "task4-final-3f5-054-local-edits",
+          "to": "task4-final-cde-054-local-edits"
+        }
+      ],
+      "added_step": "paired-tlc-setup",
+      "no_artifact_reuse": "No old execution-state, receipts, binaries, target output, source-ignored TLC jar or tool build cache is copied.",
+      "launcher_changes": [
+        "Load ROOT from versioned plan.pair so archived source copy and installed copy both refer only to assigned fresh checkouts.",
+        "Add documented manual paired TLC setup step plus actual checksum/status/time receipt.",
+        "Require successful exact-pair default receipt before setup and successful still-valid setup receipt before required validate."
+      ]
+    },
+    "readable_usage": "FN258_TASK4_ADMIT_STEP=<named-step> python3 /home/agent/.cache/codex-build/tmp/fn258-final-pair-cde-054/launch.py <named-step> --execute (only after root admission)"
+  },
+  "tlc_setup": {
+    "status": "NOT_EXECUTED",
+    "actual_sha256": null,
+    "actual_seconds": null,
+    "expected_sha256": "936a262061c914694dfd669a543be24573c45d5aa0ff20a8b96b23d01e050e88",
+    "expected_path": "/home/agent/.cache/codex-build/tmp/fn258-final-pair-cde-054/umpire/build/tlc/tla2tools-1.7.4.jar",
+    "initial_artifact_absent": true,
+    "source_wrapper_sha256": "e85c024d244b588ac312d3dfbee9da762bd039921660fb220869e21796330e2c",
+    "framework_fetch_script_sha256": "daae65c5470f2ead80d68b6b7dab6a0f7edcd7b2c5b2293a30716988a79ab163",
+    "documentation": "model/README.md:901-902",
+    "order": [
+      "paired-default-check successful",
+      "paired-tlc-setup documented manual fetch/checksum",
+      "paired-required-validate"
+    ],
+    "future_receipt": "Launcher records actual status/checksum/time on success or failure, and required-validate checks successful exact-pair receipt plus current jar digest.",
+    "production_edges_changed": false
+  },
+  "step_order": [
+    "resolution",
+    "pair-prerequisites-and-generators",
+    "framework-generation",
+    "temporal-generation",
+    "current-guest-identity",
+    "paired-default-check",
+    "paired-tlc-setup",
+    "paired-required-validate",
+    "warm-activity-quick",
+    "final-local-edit-red-green",
+    "final-seals"
+  ],
+  "canonical_guest": {
+    "size": 3988382,
+    "sha256": "d171b91861dba54e9c73682fb17a5a317180dba4e7c5b6c1b09f46667b337f5d",
+    "regenerated": false
+  },
+  "disk": {
+    "host_free_bytes": 72971915264,
+    "overlay_free_bytes": 55396896768,
+    "floor_bytes": 32212254720,
+    "high_case_paired_reservation_gib": 16,
+    "heavy_phase_admission_pending_cleanup": false
+  },
+  "old_failed_pair_and_target": "Not modified, cleaned or reused; only old launcher/plan source read for explicit versioning. Historical full-gate result remains FAILED2.",
+  "focused_cde_proof_reference": "Existing timing-control-inherited-cache-fix/checks.json: unset/0:1/1:0, wrapper and four shell controls. Not a broad-gate pass.",
+  "not_run": [
+    "Builds",
+    "JVM",
+    "TLC download/setup",
+    "Generators",
+    "Guest build/freshness",
+    "Broad gates/timing/release/quick",
+    "Flow state/source edits/refs review/commits"
+  ],
+  "execution_admission": "Root must first complete cleanup and fresh followup source code checks, then explicitly admit phase. No new target exists.",
+  "log_sha256": "d74633f3cc887194388ed17937a3c979e329b6b7204ca2b417cbf58b8d1b1685",
+  "versioning_note": "Retained code and plan match external runnable copies byte-for-byte; configuration binds actual assigned source pair. Old3f launcher/plan were read only."
+}

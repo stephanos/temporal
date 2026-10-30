@@ -1,0 +1,24 @@
+   Compiling xtask v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/dev/xtask)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 7.47s
+     Running unittests src/lib.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/target/debug/deps/xtask-1d211dd4a177cc0d)
+
+running 1 test
+test build_guests::path_controls::relative_absolute_default_and_symlink_cargo_paths_preserve_seven_children ... FAILED
+
+failures:
+
+---- build_guests::path_controls::relative_absolute_default_and_symlink_cargo_paths_preserve_seven_children stdout ----
+
+thread 'build_guests::path_controls::relative_absolute_default_and_symlink_cargo_paths_preserve_seven_children' (119056) panicked at dev/xtask/src/build_guest_path_controls.rs:101:9:
+assertion `left == right` failed: 
+  left: Some(1)
+ right: Some(0)
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    build_guests::path_controls::relative_absolute_default_and_symlink_cargo_paths_preserve_seven_children
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 102 filtered out; finished in 0.62s
+
+error: test failed, to rerun pass `-p xtask --lib`

@@ -1,0 +1,18 @@
+   Compiling xtask v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2546-quick/model/umpire/dev/xtask)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.79s
+     Running unittests src/lib.rs (/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2546-quick/quick/debug/deps/xtask-77ca01b04ba72586)
+
+running 10 tests
+test quick::tests::deleted_source_ownership_does_not_require_the_file_to_exist ... ok
+test quick::tests::global_and_unmapped_inputs_select_whole_workspace_and_reverse_dependents ... ok
+test quick::tests::mapped_external_sources_and_unchanged_invocations_keep_explicit_execution ... ok
+test quick::tests::options_reject_unknown_flags_and_relative_workspaces ... ok
+test quick::tests::package_filters_only_narrow_unchanged_or_exclusively_mapped_feature_edits ... ok
+test quick::tests::reverse_dependencies_merge_workspace_specific_ids_by_manifest ... ok
+test quick::tests::shared_feature_inputs_select_every_direct_consumer_and_reverse_guest ... ok
+test quick::tests::stage_receipt_reports_elapsed_and_spawn_failure_without_success_status ... ok
+test quick::tests::stage_receipts_label_formatting_and_preserve_success_and_failure_statuses ... ok
+test quick::tests::git_selection_includes_staged_unstaged_untracked_renamed_and_deleted_paths ... ok
+
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 16 filtered out; finished in 0.01s
+

@@ -1,0 +1,19 @@
+            let focused = focused(&options, name, &selection.changed);
+            if let Some(test) = options.targets.get(name).filter(|_| focused) {
+                command.args(["--test", test]);
+            }
+            if let Some(filter) = options.filters.get(name).filter(|_| focused) {
+                command.arg(filter);
+            }
+            command.args(["--", "--nocapture"]);
+            if focused && options.filters.contains_key(name) {
+                command.arg("--exact");
+            }
+            let status = execute(
+                "test",
+                &workspace.workspace,
+                std::slice::from_ref(name),
+                command,
+                io::stderr().lock(),
+            )?;
+            if status != 0 {

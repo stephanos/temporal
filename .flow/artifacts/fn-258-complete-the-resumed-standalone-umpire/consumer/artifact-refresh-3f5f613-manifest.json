@@ -1,0 +1,156 @@
+{
+  "candidate": "3f5f613578f2857b738a7792fad08f12b3ea0a41",
+  "scope": "Only artifacts owned by current consumer refresh; does not claim or relabel root-owned historical review data.",
+  "files": [
+    {
+      "file": "current-source.json",
+      "size": 1814,
+      "sha256": "8a26e55eb7798ac6965d3d5d2e9a62d1f10479104e22f8d6350c895b82b10ba1"
+    },
+    {
+      "file": "source-patch-input.json",
+      "size": 519,
+      "sha256": "ce03e26d35ed9e07cdc11091467728d7ad42709b7bf0815b33eafa8d8dc109ff"
+    },
+    {
+      "file": "source-adaptation.patch",
+      "size": 68286,
+      "sha256": "8ffb5fe3102e63c389b294ca827e400154b247c905b49fe0bfbe43f86ff3b793"
+    },
+    {
+      "file": "source-preparation-3f5f613.bundle",
+      "size": 260447,
+      "sha256": "8e016b8378a39e366aecc5a118de63bf451a5228d8967fbeb717bb9006979c25"
+    },
+    {
+      "file": "bundle-recovery-3f5f613.json",
+      "size": 1303,
+      "sha256": "a1c353e00129d4611257d42e38db278ad2ec5a684c841cced441695a4524cb18"
+    },
+    {
+      "file": "bundle-recovery-3f5f613.log",
+      "size": 3782,
+      "sha256": "4a01061c46f6cf3c51c23ca9795d885e9282e29688586e01e720c6ca91261947"
+    },
+    {
+      "file": "readiness.json",
+      "size": 3448,
+      "sha256": "6465f5bab75ad5f21a657c9e767a71ae5b6b5654d77a9d571906e46eb2440515"
+    },
+    {
+      "file": "readiness-initial-3658582.json",
+      "size": 12093,
+      "sha256": "c0bb0ed3419e9bc1f59eb62f4b0bb8b96a27f08d463befbf740322aec248f6c5"
+    },
+    {
+      "file": "current-source-3658582.json",
+      "size": 852,
+      "sha256": "8951cd07ec07f3da538776e9cedc153ccbda034bc82a0e9a3c2a2da467d29315"
+    },
+    {
+      "file": "source-patch-input-3658582.json",
+      "size": 436,
+      "sha256": "837aec569683ef8a21b78eb52f100cfaf129ed245e37b20bc410be65c508b204"
+    },
+    {
+      "file": "source-adaptation-3658582.patch",
+      "size": 62849,
+      "sha256": "18d62d47453764ca97e2aafc05cc19fc29084b6b5c7d37a56ddf0332bf6312dd"
+    },
+    {
+      "file": "proof-rebind-3f5f613.json",
+      "size": 4607,
+      "sha256": "f0b907932e55f94984265421a91e06312ce86695638761f9370a1dcc4b393ed2"
+    },
+    {
+      "file": "review-dispositions-3f5f613.json",
+      "size": 4222,
+      "sha256": "993116d85468620edb45cfae7480eba9bb9c66b1b886de80c792dd99abc2ddd1"
+    },
+    {
+      "file": "readiness-log-manifest.json",
+      "size": 8396,
+      "sha256": "58a29fbe1b0c930e3232e98946e1bc33da2421f2b29132622222bb485f57d275"
+    },
+    {
+      "file": "readiness-followup-ec13057/consumer-followup-assessment.json",
+      "size": 6758,
+      "sha256": "26d3f76dd0324a812e0cdbd10c92c711596a6ffefa7e98c5ba1f2b482de41bf5"
+    },
+    {
+      "file": "readiness-followup-ec13057/consumer-followup-static.log",
+      "size": 296,
+      "sha256": "05b2ce858598c7de8bd98c145d4fbb9df3abfa8c7c60f5b7fd6a4e5eb0f14b40"
+    },
+    {
+      "file": "readiness-followup-ec13057/consumer-guard-guest-roots.log",
+      "size": 239,
+      "sha256": "c74c011d163d8c0ead82db75c4d995dbb8195200222db5d5c72721b6a6c1f326"
+    },
+    {
+      "file": "readiness-followup-ec13057/consumer-guard-proto.log",
+      "size": 240,
+      "sha256": "51888e8fc35aa41c7dcb3d68206ecba63b7e6e41fdb451a103e488b345cc9449"
+    },
+    {
+      "file": "readiness-followup-ec13057/consumer-guard-results.json",
+      "size": 1877,
+      "sha256": "e443e1322e37b4f852c56948174349891cbf3219195770f3af725f17c7ac6558"
+    },
+    {
+      "file": "readiness-followup-ec13057/consumer-guard-validate.log",
+      "size": 217,
+      "sha256": "74c27e44335eed56a53058879d4c100b5f391d634567525e9f80003f55af6734"
+    },
+    {
+      "file": "readiness-followup-ec13057/consumer-guard-wiring.log",
+      "size": 215,
+      "sha256": "c69625951934c4b7c11908ad3fb4b903bae6a9dc8c3413215b5834eaaaa9b700"
+    },
+    {
+      "file": "readiness-followup-ec13057/consumer-parent-workspace.json",
+      "size": 1622,
+      "sha256": "6d9750a848fb584da5da3f9c665a982a05c3b639adfa283b9defeefd03f1ce62"
+    },
+    {
+      "file": "readiness-followup-ec13057/consumer-parent-workspace.log",
+      "size": 1357,
+      "sha256": "92d6f779714d47255914284e4df48aace8b944216e67f3e9d741c47dde2840bb"
+    },
+    {
+      "file": "readiness-followup-ec13057/manifest.json",
+      "size": 4753,
+      "sha256": "143fd05817c3dc339db2e88a8f565546b448e60b56a4807fde79810e576cb2c2"
+    },
+    {
+      "file": "readiness-followup-ec13057/missing-guard-green.log",
+      "size": 85,
+      "sha256": "af96ee151a5ec084bb4dd7cd487fc32bfd12af7785bd988590b46bc9ae926762"
+    },
+    {
+      "file": "readiness-followup-ec13057/missing-guard-red.log",
+      "size": 241,
+      "sha256": "d08ee270607e90099158bd64f6a6f426a9413c7f7359ad5873545ccf0d00baa9"
+    },
+    {
+      "file": "readiness-followup-ec13057/missing-sibling-actual-check.log",
+      "size": 519,
+      "sha256": "621566170f90cd9102d4b1423290c01c7b3ac4503f4153b64f4267bdb5329ecc"
+    },
+    {
+      "file": "readiness-followup-ec13057/missing-sibling-actual-fmt.log",
+      "size": 515,
+      "sha256": "673a3458b9fbda28170179c441716b353dd67b6a02c83f334c976ba591296498"
+    },
+    {
+      "file": "readiness-followup-ec13057/missing-sibling-actual-quick.log",
+      "size": 519,
+      "sha256": "786c0767e68c4197fd050a5eb6b96d757a987237fdb720bba60f696799f6e5e1"
+    },
+    {
+      "file": "readiness-followup-ec13057/missing-sibling-actual-update.log",
+      "size": 521,
+      "sha256": "4e4d1b0670c2523ad9236283dd170d8acaf6bef7797909fa634a894c84df3f30"
+    }
+  ]
+}

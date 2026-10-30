@@ -1,0 +1,18 @@
+{
+  "at": "2026-10-27T01:13:45.068933+00:00",
+  "command": [
+    "/bin/bash",
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal/model/scripts/test-time-gate.sh"
+  ],
+  "exit_code": 0,
+  "elapsed_seconds": 0.25216612499934854,
+  "log_sha256": "33542ea8e11f1092582935ad6883e7e2ea6a7c27f00d4a033a16385abe0a08fc",
+  "source_files": {
+    "Makefile": "12a0ab02c2227aefae029393b1bd6ca41b513a8fb93d78931506789ab71c2344",
+    "model/scripts/time-gate.sh": "a05fa9d3a94458784b3c3d52ea76a16b817bae263df501669b01725fdbda281f",
+    "model/scripts/test-model-validate.sh": "836fca71c224a57c1d599155fae0f73ec0f4ff2b751e6ee1650addbc71038580",
+    "model/scripts/test-model-wiring.sh": "2277b4d98788c6dd6076b9a60b28c093c7c8de41cde2e06101d961ab9ff58e2f"
+  },
+  "scope": "Controlled-child publicMake/timer:31stDAGproducerplacement,all3originalproducers,coldrequire/optional/defaultquickcompiler1,nativenonquickcaller99preserved,cachebypass,failure37,tempfilecleanup/mode/budgetwarnings",
+  "production_suite_evidence": false
+}

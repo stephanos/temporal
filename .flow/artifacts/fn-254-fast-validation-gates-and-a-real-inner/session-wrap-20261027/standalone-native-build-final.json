@@ -1,0 +1,38 @@
+{
+  "command": [
+    "mise",
+    "exec",
+    "--",
+    "cargo",
+    "build",
+    "--locked",
+    "-p",
+    "xtask",
+    "--bin",
+    "xtask",
+    "-p",
+    "umpire-guest-driver",
+    "--bin",
+    "umpire-guest-driver",
+    "--profile",
+    "dev",
+    "--target-dir",
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/target/xtask-bootstrap"
+  ],
+  "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25416-provider-adapt/model/umpire",
+  "source_head": "60f1c762a618d32478b58ae4e79c151f4355aeb3",
+  "exit": 0,
+  "seconds": 12.980047755998385,
+  "free_before_bytes": 54633500672,
+  "free_after_bytes": 54594007040,
+  "binaries": {
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/target/xtask-bootstrap/debug/xtask": {
+      "bytes": 6127504,
+      "sha256": "dcaa227d09e88174bad9a1368977b957d2d0c5d8315dd515292d48d9962da3d4"
+    },
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/target/xtask-bootstrap/debug/umpire-guest-driver": {
+      "bytes": 3724216,
+      "sha256": "ddac0ac870240b61e6b84717530225c818be320b4c5571235d21135b504fb682"
+    }
+  }
+}

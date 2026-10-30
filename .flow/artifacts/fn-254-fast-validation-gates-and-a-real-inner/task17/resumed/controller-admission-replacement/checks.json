@@ -1,0 +1,122 @@
+[
+  {
+    "name": "producer-controls",
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-work-counts/model/umpire",
+    "command": [
+      "mise",
+      "exec",
+      "--",
+      "cargo",
+      "test",
+      "--locked",
+      "-p",
+      "xtask",
+      "--lib",
+      "gate::work_counts"
+    ],
+    "exit": 0,
+    "seconds": 0.4032132089996594,
+    "log": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25417-controller-admission/producer-controls.log",
+    "sha256": "1134c7cd3b1328f4cdfdf110ae616f145d7f815316d4fa2fad94c823947ba216"
+  },
+  {
+    "name": "scheduler-controls",
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-work-counts/model/umpire",
+    "command": [
+      "mise",
+      "exec",
+      "--",
+      "cargo",
+      "test",
+      "--locked",
+      "-p",
+      "xtask",
+      "--lib",
+      "gate::scheduler"
+    ],
+    "exit": 0,
+    "seconds": 0.07767095900635468,
+    "log": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25417-controller-admission/scheduler-controls.log",
+    "sha256": "72fb8c7a4b5b5d0d5ab1186ad9bd8a9fe3b1ccf162a5e057aaa44e1732a4ad91"
+  },
+  {
+    "name": "framework-clippy",
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-work-counts/model/umpire",
+    "command": [
+      "mise",
+      "exec",
+      "--",
+      "cargo",
+      "clippy",
+      "--locked",
+      "-p",
+      "xtask",
+      "--all-targets",
+      "--all-features",
+      "--",
+      "-D",
+      "warnings"
+    ],
+    "exit": 0,
+    "seconds": 1.9642705000005662,
+    "log": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25417-controller-admission/framework-clippy.log",
+    "sha256": "40d9f7411c332e3cd7ac12a4bce5b2cbd83b4fffac69d4466c2409c181381cfa"
+  },
+  {
+    "name": "system-clippy",
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-work-counts/model",
+    "command": [
+      "mise",
+      "exec",
+      "--",
+      "cargo",
+      "clippy",
+      "--locked",
+      "-p",
+      "temporal-xtask",
+      "--all-targets",
+      "--all-features",
+      "--",
+      "-D",
+      "warnings"
+    ],
+    "exit": 0,
+    "seconds": 0.42115333399851806,
+    "log": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25417-controller-admission/system-clippy.log",
+    "sha256": "baef50d790516159dcd14ecce8b16cf00a337be82b8ea8effc5ad4b6121cd93a"
+  },
+  {
+    "name": "framework-fmt",
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-work-counts/model/umpire",
+    "command": [
+      "mise",
+      "exec",
+      "--",
+      "cargo",
+      "fmt",
+      "--all",
+      "--check"
+    ],
+    "exit": 0,
+    "seconds": 0.7562763340029051,
+    "log": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25417-controller-admission/framework-fmt.log",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "name": "system-fmt",
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-work-counts/model",
+    "command": [
+      "mise",
+      "exec",
+      "--",
+      "cargo",
+      "fmt",
+      "--all",
+      "--check"
+    ],
+    "exit": 0,
+    "seconds": 1.0849475009963498,
+    "log": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25417-controller-admission/system-fmt.log",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+]

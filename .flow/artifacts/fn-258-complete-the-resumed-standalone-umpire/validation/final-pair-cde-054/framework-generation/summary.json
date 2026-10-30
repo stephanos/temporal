@@ -1,0 +1,120 @@
+{
+  "before": {
+    "sources": {
+      "temporal": "cde1ee67efd266a058193694c2ddb287598b9ea5",
+      "umpire": "05473210b48c3db862f22051eb7154ce98258f98"
+    },
+    "target": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054",
+    "target_exists": true,
+    "free_bytes": 54838796288,
+    "additional_reservation_gib": 0,
+    "guest_sha256": "d171b91861dba54e9c73682fb17a5a317180dba4e7c5b6c1b09f46667b337f5d",
+    "workspace_sha256": "5e6ca8f10d627f4d5743ce4f9d2d49e12a67cb0172c3254f021f6c51ce3150db",
+    "step": "framework-generation"
+  },
+  "after": {
+    "temporal": {
+      "head": "cde1ee67efd266a058193694c2ddb287598b9ea5",
+      "status": ""
+    },
+    "umpire": {
+      "head": "05473210b48c3db862f22051eb7154ce98258f98",
+      "status": ""
+    }
+  },
+  "commands": [
+    {
+      "argv": [
+        "/bin/bash",
+        "/home/agent/.cache/codex-build/tmp/fn258-final-pair-cde-054/umpire/scripts/proto-tools.sh"
+      ],
+      "cwd": "/home/agent/.cache/codex-build/tmp/fn258-final-pair-cde-054/umpire",
+      "started_unix": 1793203252.9996307,
+      "ended_unix": 1793203254.1985407,
+      "exit": 0,
+      "log": "/home/agent/.cache/codex-build/tmp/fn258-final-pair-cde-054/execution-evidence/framework-generation-1793203252999289249/00-framework-generation.log",
+      "log_sha256": "1a649d6c23eccb707364c67230dd7fe9eb68b9c24fd5fc6bd0a1f635e70bb501",
+      "free_before": 54838788096,
+      "free_after": 54816653312
+    },
+    {
+      "argv": [
+        "/bin/bash",
+        "/home/agent/.cache/codex-build/tmp/fn258-final-pair-cde-054/umpire/scripts/proto-go.sh",
+        "core"
+      ],
+      "cwd": "/home/agent/.cache/codex-build/tmp/fn258-final-pair-cde-054/umpire",
+      "started_unix": 1793203254.1987367,
+      "ended_unix": 1793203254.2264993,
+      "exit": 0,
+      "log": "/home/agent/.cache/codex-build/tmp/fn258-final-pair-cde-054/execution-evidence/framework-generation-1793203252999289249/01-framework-generation.log",
+      "log_sha256": "e601059899b72de3a1b83d9b6257b7fc071338351e387988d922d409e9e8af77",
+      "free_before": 54816649216,
+      "free_after": 54816645120
+    },
+    {
+      "argv": [
+        "/bin/bash",
+        "/home/agent/.cache/codex-build/tmp/fn258-final-pair-cde-054/umpire/scripts/proto-go.sh",
+        "kettle"
+      ],
+      "cwd": "/home/agent/.cache/codex-build/tmp/fn258-final-pair-cde-054/umpire",
+      "started_unix": 1793203254.2267084,
+      "ended_unix": 1793203254.2440515,
+      "exit": 0,
+      "log": "/home/agent/.cache/codex-build/tmp/fn258-final-pair-cde-054/execution-evidence/framework-generation-1793203252999289249/02-framework-generation.log",
+      "log_sha256": "51b05e1e6cfe7021cce481825ae11f70e323ca8e9134de6a46daa0185cbb464c",
+      "free_before": 54816641024,
+      "free_after": 54816636928
+    },
+    {
+      "argv": [
+        "/bin/bash",
+        "/home/agent/.cache/codex-build/tmp/fn258-final-pair-cde-054/umpire/scripts/proto-go.sh",
+        "core",
+        "--check"
+      ],
+      "cwd": "/home/agent/.cache/codex-build/tmp/fn258-final-pair-cde-054/umpire",
+      "started_unix": 1793203254.2442415,
+      "ended_unix": 1793203254.2692962,
+      "exit": 0,
+      "log": "/home/agent/.cache/codex-build/tmp/fn258-final-pair-cde-054/execution-evidence/framework-generation-1793203252999289249/03-framework-generation.log",
+      "log_sha256": "bb4f37358b2da2f058e322d1102ea6d25751e6f7910761055b899b6ba1cc7f1b",
+      "free_before": 54816632832,
+      "free_after": 54816628736
+    },
+    {
+      "argv": [
+        "/bin/bash",
+        "/home/agent/.cache/codex-build/tmp/fn258-final-pair-cde-054/umpire/scripts/proto-go.sh",
+        "kettle",
+        "--check"
+      ],
+      "cwd": "/home/agent/.cache/codex-build/tmp/fn258-final-pair-cde-054/umpire",
+      "started_unix": 1793203254.2694895,
+      "ended_unix": 1793203254.2903366,
+      "exit": 0,
+      "log": "/home/agent/.cache/codex-build/tmp/fn258-final-pair-cde-054/execution-evidence/framework-generation-1793203252999289249/04-framework-generation.log",
+      "log_sha256": "0223ccb88990dc012dd9ddd8338c2f5dfbd13d3fcf668ffdc95a3e784f54b3e1",
+      "free_before": 54816624640,
+      "free_after": 54816620544
+    },
+    {
+      "argv": [
+        "git",
+        "diff",
+        "--exit-code"
+      ],
+      "cwd": "/home/agent/.cache/codex-build/tmp/fn258-final-pair-cde-054/umpire",
+      "started_unix": 1793203254.2904909,
+      "ended_unix": 1793203254.2944086,
+      "exit": 0,
+      "log": "/home/agent/.cache/codex-build/tmp/fn258-final-pair-cde-054/execution-evidence/framework-generation-1793203252999289249/05-framework-generation.log",
+      "log_sha256": "58a0fbb8bbdd2970f253842cd584ed94208f3de3a82e50738cad40cccbe75bc8",
+      "free_before": 54816616448,
+      "free_after": 54816612352
+    }
+  ],
+  "guest_sha256": "d171b91861dba54e9c73682fb17a5a317180dba4e7c5b6c1b09f46667b337f5d",
+  "scope": "Command receipts only; final acceptance/Flow state and proof recovery remain root-controlled."
+}

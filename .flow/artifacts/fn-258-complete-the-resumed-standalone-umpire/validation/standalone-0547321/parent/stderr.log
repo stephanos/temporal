@@ -1,0 +1,37 @@
+[gate:fmt] $ exec "$UMPIRE_GATE_EXECUTABLE" gate --scheduled-stage fmt
+[gate:proto-tools] $ exec "$UMPIRE_GATE_EXECUTABLE" gate --scheduled-stage proto-tools
+[gate:retired-names] $ exec "$UMPIRE_GATE_EXECUTABLE" gate --scheduled-stage retired-names
+[gate:retired-names] Finished in 665.7ms
+[gate:fmt] Finished in 683.9ms
+[gate:proto-tools] Finished in 1.12s
+[gate:timing-controls] $ exec "$UMPIRE_GATE_EXECUTABLE" gate --scheduled-stage timing-controls
+[gate:timing-controls] Finished in 148.4ms
+[gate:protobuf-controls] $ exec "$UMPIRE_GATE_EXECUTABLE" gate --scheduled-stage protobuf-controls
+[gate:protobuf-controls] Finished in 177.4ms
+[gate:protobuf-freshness] $ exec "$UMPIRE_GATE_EXECUTABLE" gate --scheduled-stage protobuf-freshness
+[gate:protobuf-freshness] Finished in 84.3ms
+[gate:kettle-protobuf-freshness] $ exec "$UMPIRE_GATE_EXECUTABLE" gate --scheduled-stage kettle-protobuf-freshness
+[gate:kettle-protobuf-freshness] Finished in 86.1ms
+[gate:capability-controls] $ exec "$UMPIRE_GATE_EXECUTABLE" gate --scheduled-stage capability-controls
+[gate:capability-controls] Finished in 200.4ms
+[gate:source-boundary] $ exec "$UMPIRE_GATE_EXECUTABLE" gate --scheduled-stage source-boundary
+[gate:source-boundary] Finished in 823.1ms
+[gate:clippy] $ exec "$UMPIRE_GATE_EXECUTABLE" gate --scheduled-stage clippy
+[gate:clippy] Finished in 51.21s
+[gate:docs] $ exec "$UMPIRE_GATE_EXECUTABLE" gate --scheduled-stage docs
+[gate:docs] Finished in 16.23s
+[gate:tests] $ exec "$UMPIRE_GATE_EXECUTABLE" gate --scheduled-stage tests
+[gate:tests] Finished in 504.25s
+[gate:wasm32-wasip1] $ exec "$UMPIRE_GATE_EXECUTABLE" gate --scheduled-stage wasm32-wasip1
+[gate:wasm32-wasip1] Finished in 23.76s
+[gate:core-wasm-clippy] $ exec "$UMPIRE_GATE_EXECUTABLE" gate --scheduled-stage core-wasm-clippy
+[gate:core-wasm-clippy] Finished in 24.49s
+[gate:wasm-guest] $ exec "$UMPIRE_GATE_EXECUTABLE" gate --scheduled-stage wasm-guest
+[gate:wasm-guest] Finished in 259.30s
+[gate:go-host] $ exec "$UMPIRE_GATE_EXECUTABLE" gate --scheduled-stage go-host
+[gate:go-host] Finished in 17.84s
+[gate:kettle-go-host] $ exec "$UMPIRE_GATE_EXECUTABLE" gate --scheduled-stage kettle-go-host
+[gate:kettle-go-host] Finished in 42.33s
+[gate:standalone] $ exec "$UMPIRE_GATE_EXECUTABLE" gate --scheduled-stage standalone
+[gate:standalone] Finished in 737.56s
+Finished in 1679.71s

@@ -1,0 +1,19 @@
+{
+  "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24613-protocol/model",
+  "evidence": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24613-protocol/.flow/tmp/fn24613-resume-20261030",
+  "commands": {
+    "fixtures-native.log": "CARGO_TARGET_DIR=/home/agent/.cache/codex-build/fn24613-proof-20261030 CARGO_BUILD_JOBS=2 mise exec -- cargo test -p umpire-temporal-tests --test fixtures -- --test-threads=1",
+    "snapshot-ownership.log": "CARGO_TARGET_DIR=/home/agent/.cache/codex-build/fn24613-proof-20261030 CARGO_BUILD_JOBS=2 mise exec -- cargo test -p umpire-temporal-tests --test snapshot_ownership",
+    "protocol-required.log": "CARGO_TARGET_DIR=/home/agent/.cache/codex-build/fn24613-proof-20261030 CARGO_BUILD_JOBS=2 UMPIRE_BACKENDS=require UMPIRE_PROTOCOL_SCOPE_REPORT=<evidence>/protocol-scopes.txt mise exec -- cargo test -p umpire-temporal-tests --test fixtures protocol -- --test-threads=1",
+    "fetch-tlc.log": "CARGO_TARGET_DIR=/home/agent/.cache/codex-build/fn24613-proof-20261030 CARGO_BUILD_JOBS=2 mise exec -- cargo xtask fetch-tlc",
+    "protocol-required-renewed.log": "CARGO_TARGET_DIR=/home/agent/.cache/codex-build/fn24613-proof-20261030 CARGO_BUILD_JOBS=2 UMPIRE_BACKENDS=require UMPIRE_PROTOCOL_SCOPE_REPORT=<evidence>/protocol-scopes.txt UMPIRE_PROTOCOL_MUTANT_REPORT=<evidence>/protocol-mutants.txt mise exec -- cargo test -p umpire-temporal-tests --test fixtures protocol -- --test-threads=1",
+    "feature-policy-required.log": "CARGO_TARGET_DIR=/home/agent/.cache/codex-build/fn24613-proof-20261030 CARGO_BUILD_JOBS=2 UMPIRE_BACKENDS=require mise exec -- cargo test -p umpire-temporal-tests --test fixtures activity_tests::policy_checks:: -- --test-threads=1 --nocapture",
+    "clippy.log": "CARGO_TARGET_DIR=/home/agent/.cache/codex-build/fn24613-proof-20261030 CARGO_BUILD_JOBS=2 mise exec -- cargo clippy -p umpire-temporal -p umpire-temporal-tests --all-targets -- -D warnings",
+    "fmt.log": "mise exec -- cargo fmt --all -- --check",
+    "fmt-focused.log": "mise exec -- rustfmt --edition 2024 --check temporal/shared/protocol/activity/model.rs temporal/shared/protocol/activity/mod.rs temporal/shared/protocol/activity/adapter.rs temporal/shared/protocol/activity/parameters.rs temporal/shared/protocol/activity/parameters_tests.rs temporal/shared/protocol/activity/tests.rs temporal/shared/protocol/activity/mutants.rs temporal/shared/protocol/activity/view.rs temporal/shared/protocol/activity/view_tests.rs temporal/feature/activity/model.rs temporal/feature/activity/tests.rs temporal/feature/activity/policy_checks.rs temporal/feature/activity/proof_checks.rs",
+    "guest-reproduce.log": "CARGO_TARGET_DIR=/home/agent/.cache/codex-build/fn24613-proof-20261030 CARGO_BUILD_JOBS=2 mise exec -- cargo xtask guest umpire-temporal-guest <evidence>/umpire_temporal_guest.wasm",
+    "guest-freshness.log": "CARGO_TARGET_DIR=/home/agent/.cache/codex-build/fn24613-proof-20261030 CARGO_BUILD_JOBS=2 mise exec -- cargo xtask guest umpire-temporal-guest temporal/hosts/go/umpire_temporal_guest.wasm --check",
+    "named-adapter.log": "CARGO_TARGET_DIR=/home/agent/.cache/codex-build/fn24613-proof-20261030 CARGO_BUILD_JOBS=2 mise exec -- cargo test -p umpire-temporal --test realization named_guest_adapter_preserves_the_independent_report_and_ordered_rows -- --exact",
+    "default-fixture-required.log": "CARGO_TARGET_DIR=/home/agent/.cache/codex-build/fn24613-proof-20261030 CARGO_BUILD_JOBS=2 UMPIRE_BACKENDS=require mise exec -- cargo test -p umpire-temporal-tests --test fixtures fixtures -- --exact --test-threads=1 --nocapture"
+  }
+}

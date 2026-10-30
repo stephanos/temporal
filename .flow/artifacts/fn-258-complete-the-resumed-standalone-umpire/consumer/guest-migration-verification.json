@@ -1,0 +1,69 @@
+{
+  "status": "verified_and_committed_canonical_guest",
+  "framework": "ac79114a9ad43a9d9fc2a022d07406d217878760",
+  "consumer_source": "7e655da80b3810807cbd02a3ea29c26ceb9804e4",
+  "artifact_size": 3988382,
+  "artifact_sha256": "d171b91861dba54e9c73682fb17a5a317180dba4e7c5b6c1b09f46667b337f5d",
+  "logs": {
+    "build": {
+      "path": "/home/agent/.cache/codex-build/fn258-consumer/guest-migration-build.log",
+      "sha256": "47a438754328d4dd08693cfe4e9f44841bb123d18982771c10699eea959ed499",
+      "exit": 0
+    },
+    "repro": {
+      "path": "/home/agent/.cache/codex-build/fn258-consumer/guest-migration-repro.log",
+      "sha256": "1211cf549092d1a73c956563622668f01c9cd8598d1b1ad2e9a3ff30c8592cf2",
+      "exit": 0
+    },
+    "host": {
+      "path": "/home/agent/.cache/codex-build/fn258-consumer/guest-migration-host.log",
+      "sha256": "3280b98320051e6e0af0e315fa65eb20172d6dd790d0c82c9b06a16039afefd5",
+      "exit": 0
+    },
+    "wire": {
+      "path": "/home/agent/.cache/codex-build/fn258-consumer/guest-migration-wire.log",
+      "sha256": "0722750fe5b5519569f49c741442524474964ef31dca422ea89072e94e46d1be",
+      "exit": 0
+    },
+    "freshness": {
+      "path": "/home/agent/.cache/codex-build/fn258-consumer/guest-migration-freshness.log",
+      "sha256": "a797092d84ac331ee42bc95f2437b561dd6bbddf81308e7312923ccc4fa0f0c0",
+      "exit": 0
+    },
+    "before": {
+      "path": "/home/agent/.cache/codex-build/fn258-consumer/guest-migration-before.log",
+      "sha256": "0312eb5b404f634d67cfc76314ad9992727c81cb69ee04f75acee40a25ebcb3e",
+      "exit": 0
+    },
+    "source-copy": {
+      "path": "/home/agent/.cache/codex-build/fn258-consumer/guest-migration-source-copy.log",
+      "sha256": "bb0454e92c51a6a071e0e069fef716131ce758f9dedb0c5e6e3a15a389b47084",
+      "exit": 0
+    }
+  },
+  "paired_tracked_changes": [
+    "model/temporal/hosts/go/umpire_temporal_guest.wasm"
+  ],
+  "semantic_golden_changes": [],
+  "protocol_ABI_sections_identical": [
+    1,
+    2,
+    4,
+    5,
+    13,
+    6,
+    7
+  ],
+  "before_artifact_control": {
+    "source": "ac60daaf47",
+    "committed_sha256": "c83e883a38647cdc988ace1b32efbccd546a4a1f2acbe10d53485e7d8438c4cc",
+    "rebuilt_sha256": "c83e883a38647cdc988ace1b32efbccd546a4a1f2acbe10d53485e7d8438c4cc",
+    "size": 3988334,
+    "identical": true,
+    "build_log": "/home/agent/.cache/codex-build/fn258-consumer/guest-migration-before.log",
+    "target": "/home/agent/.cache/codex-build/fn258-consumer-before"
+  },
+  "diagnosis": "Fresh ac60 in-tree build exactly reproduces committed old guest; two migrated sibling builds reproduce the new guest. Difference is migration-caused, with identical public ABI sections and passing Temporal host/raw/SDK and protocol wire controls. Rust framework source locations become /framework paths and portable generated identities change.",
+  "artifact_commit": "4035bb70fdf4c7ef074a8f05a02b19fb458c0b1d",
+  "canonical_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2583-consumers/model/temporal/hosts/go/umpire_temporal_guest.wasm"
+}

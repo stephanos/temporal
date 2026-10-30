@@ -13,7 +13,7 @@ Complete integrated R1-R7 evidence, counts/timing and author documentation after
 
 ## Approach
 
-Consume task .15's committed, independently proved corrected timeout-retry baseline. This task introduces no further Model-policy changes and preserves the original independent lifecycle checkpoint outside the approved retry cell.
+Consume the committed, independently proved baseline incorporating task .15's approved timeout-retry correction and task .13's approved pending-cancellation worker-failure/local-timeout Failed/TimedOut correction. This task introduces no further Model-policy changes and preserves the original independent lifecycle checkpoint and every unrelated Model policy. Scheduled cancellation and explicit worker acknowledgement remain Canceled.
 
 All source coordinates are provisional planning anchors. Reanchor final fn-237.3 fields, emitted graph, accessors and fn-247 xtask/build owners after their committed closures before implementation. The current fn-237.3 source checkpoint and fn-247 plan do not satisfy those gates.
 
@@ -37,7 +37,7 @@ All source coordinates are provisional planning anchors. Reanchor final fn-237.3
 
 ## Verification
 
-Renew task .15's corrected timeout-retry, exact-fact and reset/priority controls on the integrated source, including actual worker-program successor validation. Report original and corrected evidence scopes separately; all mandatory actual raw/SDK live rows remain required.
+Renew task .15's corrected timeout-retry controls and task .13's approved pending-cancellation worker-failure/local-timeout outcome controls on the integrated source, retaining exact-fact, reset/priority and actual worker-program successor validation. Report original lifecycle, timeout-retry and cancellation-correction evidence scopes separately; all mandatory actual raw/SDK live rows remain required.
 
 From root, in dependency-safe order: `make umpire-guest`; `make model-validate`; `make umpire-check-model-slice`; `make umpire-check-model-gaps`; current explore/record/replay controls. Use `test_dep` for every Go command and integration only where its harness requires it. Run only required focused regressions again if integrated changes expose a new failure; retain real exits/output and inherited-failure distinctions.
 

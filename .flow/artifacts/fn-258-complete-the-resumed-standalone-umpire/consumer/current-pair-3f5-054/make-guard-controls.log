@@ -1,0 +1,6 @@
+pair: 3f5f613578f2857b738a7792fad08f12b3ea0a41 / 05473210b48c3db862f22051eb7154ce98258f98
+BASH_ENV and GOWORK unset; automatic parent Go workspace discovery; CARGO_BUILD_JOBS=4
+cwd: /home/agent/.cache/codex-build/tmp/fn258-pair/temporal
+$ /bin/bash model/scripts/test-model-wiring.sh
+Model recipe wiring controls passed (fake children; no execution evidence).
+exit: 0

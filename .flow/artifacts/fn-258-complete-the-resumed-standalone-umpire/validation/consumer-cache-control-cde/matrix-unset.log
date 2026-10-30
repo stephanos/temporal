@@ -1,0 +1,6 @@
+command: ["/bin/bash", "/home/agent/.cache/codex-build/tmp/fn258-timing-control-mocks-_1gfbhvo/temporal/model/scripts/test-model-wiring.sh"]
+BASH_ENV unset; inherited gate env except named fixture overrides
+cache flags: {"UMPIRE_QUICK_CACHE": null, "UMPIRE_CACHE_DISABLE": null}
+Model recipe wiring controls passed (fake children; no execution evidence).
+
+exit: 0

@@ -7,6 +7,7 @@ mod action;
 mod catalog;
 pub mod claim;
 pub mod closable;
+pub mod countdown;
 mod finite;
 mod machine;
 pub mod outcome;

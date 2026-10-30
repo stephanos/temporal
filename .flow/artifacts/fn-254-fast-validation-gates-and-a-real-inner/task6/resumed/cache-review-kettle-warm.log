@@ -1,0 +1,11 @@
+
+running 1 test
+TLC cache hit Kettle configuration 0 4ac29a9500960b40d100aa2ccd69646f70532ac61d8337a9289197262f5f348e
+TLC cache hit Kettle configuration 1 8056b8019b29bce507aab951821c4bce9c7e743639469ed293b5384102b2dd7c
+TLC cache miss Kettle configuration 2 b84a5c5c360eab7780df01a92bd07ce91b99acf247f247963671aa3e552bcb74
+TLC execute Kettle record 27fe2c1301d1485ed573a461e3423919f7994b5ec6b858789de6520a33cde065
+TLC execute Kettle record 25dfe13b891e11620e072fdee52a8922c68a0f36bf9ab9eef576f9703b7bdf1e
+test runner::cache_tests::cache_child ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 25 filtered out; finished in 1.59s
+

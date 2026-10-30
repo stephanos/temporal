@@ -1,0 +1,23 @@
+{
+  "reviewed_head": "c178882dd0a492f61d0c1c7c1a873d803c6b85cd",
+  "source_proof": "9babff6c815beb7cff92d7001f647ddca19663bf",
+  "rid": "27c73e11a2c64e60a76d79de9c85cb7f",
+  "outer_exit": 124,
+  "outer_timeout_seconds": 600,
+  "completed_draws": {
+    "correctness": "SHIP",
+    "contracts": "SHIP"
+  },
+  "integration": "interrupted; no verdict",
+  "supported_finalizer": "Recovered atomically published per-draw results; computed SHIP from surviving draws; integration remains explicitly failed in receipt.",
+  "task_complete": false,
+  "next_steps": [
+    "Fix demonstrated timing interruption and framework empty-target regressions; correct missing-generator hint.",
+    "Run focused regression checks and renew source-applicable standalone acceptance as required.",
+    "Complete fresh integration-focused review before task closure."
+  ],
+  "deferred_nonblocking": [
+    "Duplicated control execution cost remains for task8 measurement without dropping coverage.",
+    "Optional supervisor overhead, ignored helper consistency and invalid soft-budget text remain follow-ups."
+  ]
+}

@@ -1,0 +1,49 @@
+   Compiling winnow v1.0.4
+   Compiling toml_datetime v1.1.2+spec-1.1.0
+   Compiling rustix v1.1.5
+   Compiling syn v3.0.9
+   Compiling umpire-dsl-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/author/dsl/macros)
+   Compiling regex-syntax v0.8.11
+   Compiling linux-raw-sys v0.12.1
+   Compiling petgraph v0.8.3
+   Compiling prettyplease v0.2.37
+   Compiling once_cell v1.21.4
+   Compiling multimap v0.10.1
+   Compiling log v0.4.34
+   Compiling getrandom v0.4.3
+   Compiling ident_case v1.0.1
+   Compiling tempfile v3.27.0
+   Compiling insta v1.49.0
+   Compiling regex-automata v0.4.18
+   Compiling toml_parser v1.1.5+spec-1.1.0
+   Compiling toml_edit v0.25.17+spec-1.1.0
+   Compiling proc-macro-crate v3.5.0
+   Compiling regex v1.13.1
+   Compiling prost-build v0.14.4
+   Compiling prettyplease v0.3.0
+   Compiling manyhow v0.14.1
+   Compiling darling_core v0.24.1
+   Compiling umpire-runtime v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/protocol/runtime)
+   Compiling umpire-ir-derive v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/ir/derive)
+   Compiling thiserror-impl v2.0.21
+   Compiling umpire-ir v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/ir)
+   Compiling umpire-front v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/front)
+   Compiling thiserror v2.0.21
+   Compiling umpire-backend-process v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/backends/process)
+   Compiling darling_macro v0.24.1
+   Compiling darling v0.24.1
+   Compiling umpire-tla v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/backends/tla)
+   Compiling umpire-tlc v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/backends/tlc)
+   Compiling umpire-dsl v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/author/dsl)
+   Compiling umpire-checker v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/backends/native)
+   Compiling umpire-suite v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/author/suite)
+   Compiling umpire-testing v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/dev/testing)
+   Compiling umpire-catalog-syntax v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/catalog/syntax)
+   Compiling umpire-catalog-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/catalog/macros)
+   Compiling umpire-catalog v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/catalog)
+   Compiling umpire v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/author/umpire)
+      Timing report saved to /home/agent/.cache/codex-build/cargo-target/cargo-timings/cargo-timing-20261030T003744924Z-188e16e2988bfe38.html
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 9.80s
+  Executable unittests src/lib.rs (/home/agent/.cache/codex-build/cargo-target/debug/deps/umpire_suite-5a90196a3afc7667)
+  Executable tests/main.rs (/home/agent/.cache/codex-build/cargo-target/debug/deps/main-a0eae943d208ccef)
+  Executable tests/retained.rs (/home/agent/.cache/codex-build/cargo-target/debug/deps/retained-7fa3551f1d62ffd2)

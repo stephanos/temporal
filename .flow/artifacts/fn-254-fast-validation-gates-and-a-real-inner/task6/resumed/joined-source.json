@@ -1,0 +1,16 @@
+{
+  "commit": "0c83ab3d1e4b8593e7415d780902789d8bad7c90",
+  "files": {
+    "model/umpire/dev/xtask/src/quick/mod.rs": "a22c2ca1b6d48caaac8bb8e17f84728769b4478038c2f795712857de8e2ca185",
+    "model/umpire/dev/xtask/src/quick/selection.rs": "e958359c853b54426278c2703de235b3435387646f467f05e24715962296a676",
+    "model/umpire/dev/xtask/src/quick/tests.rs": "5289f5de03973368571d5158d778b6b4493be7ed1b56caeb13133ceabe3a45c0",
+    "model/umpire/backends/tlc/src/runner.rs": "769b6c7489855959b0c2bc46f7c3307df0c29ad3c10501568b34ce286b5bd243",
+    "model/umpire/backends/tlc/src/runner/cache_tests.rs": "19965ef2dbfbd0737a0f15cf1dc6b398ef62d8d4e6d3c8d511512a4a2cf3ba01",
+    "model/dev/xtask/src/quick/mod.rs": "83e76a8f0fda96f4df2fa0e8ba274a679592dfc5fc454f6c78df23d844cdb157",
+    "model/umpire/Cargo.lock": "bc3962111f4b446d43e01dd5409274ff00219830d02e85ac0ea9a7ec34a27dd5",
+    "model/Cargo.lock": "50d2b024555c958b02286fa6ec65976efc9fb9cd69f4d27780e9a01998d5d70f"
+  },
+  "integrated_source_equal": true,
+  "compiler_cache": "warm reused task target",
+  "tlc_cache": "previous cache retained and new empty root starts cold"
+}

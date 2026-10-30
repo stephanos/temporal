@@ -13,16 +13,23 @@
     "fn-254-fast-validation-gates-and-a-real-inner.11": 0,
     "fn-254-fast-validation-gates-and-a-real-inner.13": 0,
     "fn-254-fast-validation-gates-and-a-real-inner.14": 0,
+    "fn-254-fast-validation-gates-and-a-real-inner.15": 0,
+    "fn-254-fast-validation-gates-and-a-real-inner.16": 0,
+    "fn-254-fast-validation-gates-and-a-real-inner.17": 0,
+    "fn-254-fast-validation-gates-and-a-real-inner.18": 0,
     "fn-254-fast-validation-gates-and-a-real-inner.2": 0,
+    "fn-254-fast-validation-gates-and-a-real-inner.20": 0,
+    "fn-254-fast-validation-gates-and-a-real-inner.21": 0,
     "fn-254-fast-validation-gates-and-a-real-inner.3": 0,
     "fn-254-fast-validation-gates-and-a-real-inner.4": 0,
+    "fn-254-fast-validation-gates-and-a-real-inner.5": 0,
     "fn-254-fast-validation-gates-and-a-real-inner.6": 0,
     "fn-254-fast-validation-gates-and-a-real-inner.9": 0
   },
   "next_task": 1,
   "plan_review_rounds": 0,
   "plan_review_status": "ship",
-  "plan_reviewed_at": "2026-10-25T23:30:29.042145Z",
+  "plan_reviewed_at": "2026-10-29T04:06:21.342609Z",
   "review_attempts": [
     {
       "artifact_sha256": "0907cdf3394de07cc8ea2c162f7e124bf19fd90c2284d5de1a0e9f980ada1f38",
@@ -1404,6 +1411,1161 @@
       "task": "fn-254-fast-validation-gates-and-a-real-inner.6",
       "timestamp": "2026-10-26T02:33:07.129234Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "9465c1ffc55831a8e71f0498a4c00e3e2190b7eac3f544b1444155efb9e0a93c",
+      "backend": "claude",
+      "base_sha": "951c5516e9e7b3066e7e069adda9565cfd68844c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "forced": false,
+      "hash_epoch": 8,
+      "head_sha": "eb881b03acf5ba868a1f20c7cdb096c172d69e7d",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "claude-fable-5-1",
+      "outcome": "verdict",
+      "output_bytes": 7898,
+      "output_sha256": "603c9420df578490ab5094aae64b7bd859b85db85e745474c3ac6c374371aa0b",
+      "reservation_id": "858c482ad2b146868d5bbf77a1b6073d",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-26T05:35:20.132432Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "e8dc8e231b7ffb522c6991d391a989d2640701d92de37a3aae58d4aa907b7a6a",
+      "backend": "claude",
+      "base_sha": "951c5516e9e7b3066e7e069adda9565cfd68844c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "forced": false,
+      "hash_epoch": 9,
+      "head_sha": "eb881b03acf5ba868a1f20c7cdb096c172d69e7d",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "claude-fable-5-1",
+      "outcome": "verdict",
+      "output_bytes": 3254,
+      "output_sha256": "7d375adf94aa65e17d7535c43d2be451c66a35615cc2c6fd68e3609e84d62f1d",
+      "reservation_id": "00e40870c97b480cb0211fc52aa9c193",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-26T05:39:00.984693Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "66195fc66819567d3754da9b9ed8836a0538f73ef81263cfdeef0b2bf71db83b",
+      "backend": "codex",
+      "base_sha": "8cf15a04e60d15f63f7b0de72d1e2f933d6f2ad0",
+      "counter_kind": "impl",
+      "failure_class": "fanout_abandoned",
+      "finalized": {
+        "digest": "not_applicable",
+        "receipt": "not_applicable",
+        "status": "not_applicable"
+      },
+      "forced": false,
+      "hash_epoch": 2,
+      "head_sha": "eb881b03acf5ba868a1f20c7cdb096c172d69e7d",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "outcome": "transport_failure",
+      "output_bytes": 85,
+      "output_sha256": "6ea4de7239adcef700fcf360528c3918564fc4300515f3a62b9a089c94e74f20",
+      "reservation_id": "1e3bbf201a9d40da8ce6a3666185ada9",
+      "round_consumed": false,
+      "scope": "impl:fn-254-fast-validation-gates-and-a-real-inner.6",
+      "superseded_by": null,
+      "task": "fn-254-fast-validation-gates-and-a-real-inner.6",
+      "timestamp": "2026-10-26T20:49:59.528470Z",
+      "verdict": null
+    },
+    {
+      "artifact_sha256": "c83060857186dec6de9e96cfbf47adb344c5e40c34bddb41b2e224905bc7a896",
+      "backend": "claude",
+      "base_sha": "8cf15a04e60d15f63f7b0de72d1e2f933d6f2ad0",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "claude",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-2ad366dd54b72381672bfb8bc3141cd5",
+            "classification": "introduced",
+            "findingId": "finding-2ad366dd54b72381672bfb8bc3141cd5",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-63b56e731bf62102d65df88aedf0a5e3",
+            "classification": "introduced",
+            "findingId": "finding-63b56e731bf62102d65df88aedf0a5e3",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-4715eb2b26e1c4dcd4e8626de8feb716",
+            "classification": "introduced",
+            "findingId": "finding-4715eb2b26e1c4dcd4e8626de8feb716",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-88285dc170bd28de3dfadf1cdd48fbfe",
+            "classification": "introduced",
+            "findingId": "finding-88285dc170bd28de3dfadf1cdd48fbfe",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-ff9198e3b226033d922744968bf292d3",
+            "classification": "introduced",
+            "findingId": "finding-ff9198e3b226033d922744968bf292d3",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 2,
+      "head_sha": "21a6294ba07e0235c2774179321cd40fda986603",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "claude-fable-5-1",
+      "outcome": "verdict",
+      "output_bytes": 6420,
+      "output_sha256": "563eb5ee3f2ac67927ebab0c27c1044f13cd5e63b34bcc8449fa6dfd6264e449",
+      "reservation_id": "ab3fbc55f0034d1faac0c1324866ec36",
+      "round_consumed": true,
+      "scope": "impl:fn-254-fast-validation-gates-and-a-real-inner.6",
+      "superseded_by": null,
+      "task": "fn-254-fast-validation-gates-and-a-real-inner.6",
+      "timestamp": "2026-10-26T21:02:29.601909Z",
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "c7fff98f4a466c8fe8b03e79e63fffe2ad1ccc91ceaef3e0b93fe79d8988a648",
+      "backend": "claude",
+      "base_sha": "21a6294ba07e0235c2774179321cd40fda986603",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "claude",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-2ad366dd54b72381672bfb8bc3141cd5",
+            "classification": "introduced",
+            "findingId": "finding-2ad366dd54b72381672bfb8bc3141cd5",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-63b56e731bf62102d65df88aedf0a5e3",
+            "classification": "introduced",
+            "findingId": "finding-63b56e731bf62102d65df88aedf0a5e3",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-4715eb2b26e1c4dcd4e8626de8feb716",
+            "classification": "introduced",
+            "findingId": "finding-4715eb2b26e1c4dcd4e8626de8feb716",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-88285dc170bd28de3dfadf1cdd48fbfe",
+            "classification": "introduced",
+            "findingId": "finding-88285dc170bd28de3dfadf1cdd48fbfe",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-48e1cc5dc33a0d048bf695d0d3f17b4c",
+            "classification": "introduced",
+            "findingId": "finding-48e1cc5dc33a0d048bf695d0d3f17b4c",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-ff9198e3b226033d922744968bf292d3",
+            "classification": "introduced",
+            "findingId": "finding-ff9198e3b226033d922744968bf292d3",
+            "firstSeenThisRound": false,
+            "severity": "P3",
+            "status": "withdrawn"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 2,
+      "head_sha": "0c83ab3d1e4b8593e7415d780902789d8bad7c90",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "claude-fable-5-1",
+      "outcome": "verdict",
+      "output_bytes": 4196,
+      "output_sha256": "4c96cd2606683bb592bdda0eaeb687b1bac22307987f7c584a19b7939bb375d1",
+      "reservation_id": "e6060a9317614ae2aaa4828686382cde",
+      "round_consumed": true,
+      "scope": "impl:fn-254-fast-validation-gates-and-a-real-inner.6",
+      "superseded_by": null,
+      "task": "fn-254-fast-validation-gates-and-a-real-inner.6",
+      "timestamp": "2026-10-26T21:13:42.759931Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "2cf58d0f3a31097bc94f9d15eeabcd106579b89d53fc9668bd08e230e3587fae",
+      "backend": "claude",
+      "base_sha": "0c83ab3d1e4b8593e7415d780902789d8bad7c90",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "claude",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-2ad366dd54b72381672bfb8bc3141cd5",
+            "classification": "introduced",
+            "findingId": "finding-2ad366dd54b72381672bfb8bc3141cd5",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-63b56e731bf62102d65df88aedf0a5e3",
+            "classification": "introduced",
+            "findingId": "finding-63b56e731bf62102d65df88aedf0a5e3",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-4715eb2b26e1c4dcd4e8626de8feb716",
+            "classification": "introduced",
+            "findingId": "finding-4715eb2b26e1c4dcd4e8626de8feb716",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-88285dc170bd28de3dfadf1cdd48fbfe",
+            "classification": "introduced",
+            "findingId": "finding-88285dc170bd28de3dfadf1cdd48fbfe",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-48e1cc5dc33a0d048bf695d0d3f17b4c",
+            "classification": "introduced",
+            "findingId": "finding-48e1cc5dc33a0d048bf695d0d3f17b4c",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-ff9198e3b226033d922744968bf292d3",
+            "classification": "introduced",
+            "findingId": "finding-ff9198e3b226033d922744968bf292d3",
+            "firstSeenThisRound": false,
+            "severity": "P3",
+            "status": "withdrawn"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 3,
+      "head_sha": "cdfd3720c83bcdbcb836f77b36326e255e01ddc2",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "claude-fable-5-1",
+      "outcome": "verdict",
+      "output_bytes": 158,
+      "output_sha256": "6ff70da3d83706800ca3cabc6ba62603ba0485fcf5259d27f1be54ce68686975",
+      "reservation_id": "ad8f5a8e4cd5472bbdf4d93191c2be92",
+      "round_consumed": true,
+      "scope": "impl:fn-254-fast-validation-gates-and-a-real-inner.6",
+      "superseded_by": null,
+      "task": "fn-254-fast-validation-gates-and-a-real-inner.6",
+      "timestamp": "2026-10-26T21:21:01.773456Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "59d07f7db5692fdc296e6ea1e8930070c2f709740b6875ecd2c4c299d6d7e4d2",
+      "backend": "claude",
+      "base_sha": "890f7498b4f9c79c1e01b9081b5be3a3439b97e8",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "claude",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-e374bf3e90a351f329d46ed771eccbd6",
+            "classification": "introduced",
+            "findingId": "finding-e374bf3e90a351f329d46ed771eccbd6",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-191990f55112c1b9a0a143523ed82a08",
+            "classification": "introduced",
+            "findingId": "finding-191990f55112c1b9a0a143523ed82a08",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-3ec36f19830afc8b3a751941b20b3826",
+            "classification": "introduced",
+            "findingId": "finding-3ec36f19830afc8b3a751941b20b3826",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-287fbc5a63eb09aa205de04079334606",
+            "classification": "introduced",
+            "findingId": "finding-287fbc5a63eb09aa205de04079334606",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "fdf115db9986e67e20b2d9c5c1fdcb1afb741aa8",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "claude-fable-5-1",
+      "outcome": "verdict",
+      "output_bytes": 2029,
+      "output_sha256": "d931b08c3ad69af1875080387cb4b195788e4f0f4360c8b5c466e85950ff00d6",
+      "reservation_id": "81b94a664e4b4012aace6c1e0fa7d73a",
+      "round_consumed": true,
+      "scope": "impl:fn-254-fast-validation-gates-and-a-real-inner.5",
+      "superseded_by": null,
+      "task": "fn-254-fast-validation-gates-and-a-real-inner.5",
+      "timestamp": "2026-10-26T23:36:23.987131Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "9a06baf586ebad5ed62cdaab90260711298334241b252cbb159fd0e34f06b3f5",
+      "backend": "claude",
+      "base_sha": "fdf115db9986e67e20b2d9c5c1fdcb1afb741aa8",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "claude",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-e374bf3e90a351f329d46ed771eccbd6",
+            "classification": "introduced",
+            "findingId": "finding-e374bf3e90a351f329d46ed771eccbd6",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-191990f55112c1b9a0a143523ed82a08",
+            "classification": "introduced",
+            "findingId": "finding-191990f55112c1b9a0a143523ed82a08",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-3ec36f19830afc8b3a751941b20b3826",
+            "classification": "introduced",
+            "findingId": "finding-3ec36f19830afc8b3a751941b20b3826",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-287fbc5a63eb09aa205de04079334606",
+            "classification": "introduced",
+            "findingId": "finding-287fbc5a63eb09aa205de04079334606",
+            "firstSeenThisRound": false,
+            "severity": "P3",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 1,
+      "head_sha": "85c0a39f8aa372c6598a610486121299f3034fcc",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "claude-fable-5-1",
+      "outcome": "verdict",
+      "output_bytes": 158,
+      "output_sha256": "6ff70da3d83706800ca3cabc6ba62603ba0485fcf5259d27f1be54ce68686975",
+      "reservation_id": "6123c05d6b554f9fb57748df542d09d3",
+      "round_consumed": true,
+      "scope": "impl:fn-254-fast-validation-gates-and-a-real-inner.5",
+      "superseded_by": null,
+      "task": "fn-254-fast-validation-gates-and-a-real-inner.5",
+      "timestamp": "2026-10-26T23:48:12.268102Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "61382aa19bee5f40d3762791b110b99ee3d136381693a19aa5ebc7836d700052",
+      "backend": "claude",
+      "base_sha": "c958d34af0c1f00479ddabf6b207aa2949200201",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "claude",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-e3dd092d30e209a102f471c6b5843fae",
+            "classification": "introduced",
+            "findingId": "finding-e3dd092d30e209a102f471c6b5843fae",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-29b4625222e7f7e544fff42b7d46697d",
+            "classification": "introduced",
+            "findingId": "finding-29b4625222e7f7e544fff42b7d46697d",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-947aa585f8c09d7021ea658375d150f8",
+            "classification": "introduced",
+            "findingId": "finding-947aa585f8c09d7021ea658375d150f8",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-d1f1584c3f99d7b2539c1dab71f1a86b",
+            "classification": "introduced",
+            "findingId": "finding-d1f1584c3f99d7b2539c1dab71f1a86b",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "884794b82546a6a029f8bf4ba2faa98e84afcf8f",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "claude-opus-5-5",
+      "outcome": "verdict",
+      "output_bytes": 2999,
+      "output_sha256": "a6b197d994507a961ba5af5cd382988861231e8bec53857af65be62eb9f1cd08",
+      "reservation_id": "69374ba736a74a3cbf466335e820aa75",
+      "round_consumed": true,
+      "scope": "impl:fn-254-fast-validation-gates-and-a-real-inner.17",
+      "superseded_by": null,
+      "task": "fn-254-fast-validation-gates-and-a-real-inner.17",
+      "timestamp": "2026-10-27T18:31:12.220078Z",
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "f098e6eb544099f2fb1868434489c3b0d549c58c3e0f22b27ab7052cf3e7b38f",
+      "backend": "claude",
+      "base_sha": "c958d34af0c1f00479ddabf6b207aa2949200201",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "claude",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-e3dd092d30e209a102f471c6b5843fae",
+            "classification": "introduced",
+            "findingId": "finding-e3dd092d30e209a102f471c6b5843fae",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-29b4625222e7f7e544fff42b7d46697d",
+            "classification": "introduced",
+            "findingId": "finding-29b4625222e7f7e544fff42b7d46697d",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-947aa585f8c09d7021ea658375d150f8",
+            "classification": "introduced",
+            "findingId": "finding-947aa585f8c09d7021ea658375d150f8",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-d1f1584c3f99d7b2539c1dab71f1a86b",
+            "classification": "introduced",
+            "findingId": "finding-d1f1584c3f99d7b2539c1dab71f1a86b",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "e988ff1d229f9b8c9e89f106bc6ecff095606bd7",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "claude-opus-5-5",
+      "outcome": "verdict",
+      "output_bytes": 2200,
+      "output_sha256": "af7fe9641f29b053850b7509cdf2a39080f4387de0dc078e685931eec7c8219d",
+      "reservation_id": "e9373153d8594563a7b0d4aeade328cc",
+      "round_consumed": true,
+      "scope": "impl:fn-254-fast-validation-gates-and-a-real-inner.17",
+      "superseded_by": null,
+      "task": "fn-254-fast-validation-gates-and-a-real-inner.17",
+      "timestamp": "2026-10-27T18:44:31.750884Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "7104e67ff1b135d68a0870c43b93924988e8c0013ebeeea363ea4cd61bd2d277",
+      "backend": "claude",
+      "base_sha": "f0a82c7a969ec6fd1717a73f98536d3b9c6fe8ee",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "claude",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-14defa50b62208cf77a718aa7f022f26",
+            "classification": "introduced",
+            "findingId": "finding-14defa50b62208cf77a718aa7f022f26",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-ffd5ccf4acf8121a241e41a01fdf83b8",
+            "classification": "introduced",
+            "findingId": "finding-ffd5ccf4acf8121a241e41a01fdf83b8",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-87417b0c771a0abf06a182ccf906e572",
+            "classification": "introduced",
+            "findingId": "finding-87417b0c771a0abf06a182ccf906e572",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-64a5be2e3df6a70404435d258d135de0",
+            "classification": "introduced",
+            "findingId": "finding-64a5be2e3df6a70404435d258d135de0",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-69413c7d8278695ff19d2e1e2baf57c2",
+            "classification": "introduced",
+            "findingId": "finding-69413c7d8278695ff19d2e1e2baf57c2",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-1019e3d3419a6f03f0d55c770ca84bdc",
+            "classification": "introduced",
+            "findingId": "finding-1019e3d3419a6f03f0d55c770ca84bdc",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "60f1c762a618d32478b58ae4e79c151f4355aeb3",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "claude-fable-5-1",
+      "outcome": "verdict",
+      "output_bytes": 3808,
+      "output_sha256": "ab6b3dc90514cb636ad06544d5eaf36cf031cf57771fbd21cac78dd0bd525dbd",
+      "reservation_id": "d56cefa991c84615bd07f20be7556d9b",
+      "round_consumed": true,
+      "scope": "impl:fn-254-fast-validation-gates-and-a-real-inner.16",
+      "superseded_by": null,
+      "task": "fn-254-fast-validation-gates-and-a-real-inner.16",
+      "timestamp": "2026-10-28T17:14:52.028688Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "36f20c0b01eb41e35c7fc6db3e1a115eddbd149412a0813074a8221a6c7b3f5d",
+      "backend": "claude",
+      "base_sha": "a82eb651cf4422a47df2917f6d4e2bd412ce2593",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "claude",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-702c0004bcf9cbf8136f9662cc090522",
+            "classification": "introduced",
+            "findingId": "finding-702c0004bcf9cbf8136f9662cc090522",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-505cedae6d83b4c9bf8d161cf0c38610",
+            "classification": "introduced",
+            "findingId": "finding-505cedae6d83b4c9bf8d161cf0c38610",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-ad7867a913343000a8ba3bb2b57fd456",
+            "classification": "introduced",
+            "findingId": "finding-ad7867a913343000a8ba3bb2b57fd456",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-7cb5fa827280b7a8785df74747c6dc58",
+            "classification": "introduced",
+            "findingId": "finding-7cb5fa827280b7a8785df74747c6dc58",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "c178882dd0a492f61d0c1c7c1a873d803c6b85cd",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "claude-fable-5-1",
+      "outcome": "verdict",
+      "output_bytes": 3266,
+      "output_sha256": "8043772af2e041803ef39a70a856a7b138c1bd80c63d2d3fd2cb673c3ee497cf",
+      "reservation_id": "27c73e11a2c64e60a76d79de9c85cb7f",
+      "round_consumed": true,
+      "scope": "impl:fn-254-fast-validation-gates-and-a-real-inner.15",
+      "superseded_by": null,
+      "task": "fn-254-fast-validation-gates-and-a-real-inner.15",
+      "timestamp": "2026-10-28T19:21:47.354400Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "6955c21d38592fbdb6c57e5f4afc8f1a65643baeaf99488997fa1ef067c40b61",
+      "backend": "claude",
+      "base_sha": "e0a29b99da3127f5973cd7af5d23744428e7ee33",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "claude",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-22bbdd86d855fb1775ab1145a4817edd",
+            "classification": "introduced",
+            "findingId": "finding-22bbdd86d855fb1775ab1145a4817edd",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-30392092ed059b1de55e06834e730db8",
+            "classification": "pre_existing",
+            "findingId": "finding-30392092ed059b1de55e06834e730db8",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 1,
+      "head_sha": "89c99a82c0523e0598d88d47a38685aaffbd85b5",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "claude-fable-5-1",
+      "outcome": "verdict",
+      "output_bytes": 2024,
+      "output_sha256": "9ddd6ce571b4849d2aa0b5270ce208618c9a9f26b1e16728cc62ed08405e2fb6",
+      "reservation_id": "47a954e6a0144ff8975c3f0dbe2b9155",
+      "round_consumed": true,
+      "scope": "impl:fn-254-fast-validation-gates-and-a-real-inner.15",
+      "superseded_by": null,
+      "task": "fn-254-fast-validation-gates-and-a-real-inner.15",
+      "timestamp": "2026-10-28T19:56:14.703474Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "512d7add3e5fe079c2f7985158f1348b332e7e26d59c1d86aa5fbec86db7caef",
+      "backend": "claude",
+      "base_sha": "bb8e406eff9932b9e019ed3d60256464dd3c3977",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "claude",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-3b463b537b71ee82a38027cfd8e18434",
+            "classification": "introduced",
+            "findingId": "finding-3b463b537b71ee82a38027cfd8e18434",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-1fd7c282a1daad93f76a4c2e330ec2c9",
+            "classification": "introduced",
+            "findingId": "finding-1fd7c282a1daad93f76a4c2e330ec2c9",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-04886f148a63a7e72cf0947364827033",
+            "classification": "introduced",
+            "findingId": "finding-04886f148a63a7e72cf0947364827033",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-359a1ee130cd5c2b182a4fa1e3743d4f",
+            "classification": "introduced",
+            "findingId": "finding-359a1ee130cd5c2b182a4fa1e3743d4f",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-6e8af3e511553394b6a0451b32c6d73f",
+            "classification": "introduced",
+            "findingId": "finding-6e8af3e511553394b6a0451b32c6d73f",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-6db2e81cc6a1ef3701718fa8bb4d32e7",
+            "classification": "introduced",
+            "findingId": "finding-6db2e81cc6a1ef3701718fa8bb4d32e7",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-bb9d3a06fa15ae17f2dc07490c3f1728",
+            "classification": "introduced",
+            "findingId": "finding-bb9d3a06fa15ae17f2dc07490c3f1728",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 10,
+      "head_sha": "bb8e406eff9932b9e019ed3d60256464dd3c3977",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "claude-fable-5-1",
+      "outcome": "verdict",
+      "output_bytes": 6574,
+      "output_sha256": "a661c96124f63d9da1e632ccedca914b9b209d6858b9ab78cf7d5e35bd2ee139",
+      "reservation_id": "2fba737b674e45fd8e2c4decffafb63a",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-29T04:03:31.424693Z",
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "39115abb8332c1e2928a811c156f9989ae2a10e676bf09360db233eeff324d63",
+      "backend": "claude",
+      "base_sha": "bb8e406eff9932b9e019ed3d60256464dd3c3977",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "claude",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-3b463b537b71ee82a38027cfd8e18434",
+            "classification": "introduced",
+            "findingId": "finding-3b463b537b71ee82a38027cfd8e18434",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-1fd7c282a1daad93f76a4c2e330ec2c9",
+            "classification": "introduced",
+            "findingId": "finding-1fd7c282a1daad93f76a4c2e330ec2c9",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-04886f148a63a7e72cf0947364827033",
+            "classification": "introduced",
+            "findingId": "finding-04886f148a63a7e72cf0947364827033",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-359a1ee130cd5c2b182a4fa1e3743d4f",
+            "classification": "introduced",
+            "findingId": "finding-359a1ee130cd5c2b182a4fa1e3743d4f",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-6e8af3e511553394b6a0451b32c6d73f",
+            "classification": "introduced",
+            "findingId": "finding-6e8af3e511553394b6a0451b32c6d73f",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-6db2e81cc6a1ef3701718fa8bb4d32e7",
+            "classification": "introduced",
+            "findingId": "finding-6db2e81cc6a1ef3701718fa8bb4d32e7",
+            "firstSeenThisRound": false,
+            "severity": "P3",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-bb9d3a06fa15ae17f2dc07490c3f1728",
+            "classification": "introduced",
+            "findingId": "finding-bb9d3a06fa15ae17f2dc07490c3f1728",
+            "firstSeenThisRound": false,
+            "severity": "P3",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 10,
+      "head_sha": "bb8e406eff9932b9e019ed3d60256464dd3c3977",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "claude-fable-5-1",
+      "outcome": "verdict",
+      "output_bytes": 2203,
+      "output_sha256": "125145537c443735876308adfd0247a2f1658ca4a95c5c0fcee84be786dc192e",
+      "reservation_id": "1bce7992fab94367a2979bcc8f89060f",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-29T04:06:21.278912Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "d8a3c7a6f7ef93dfe8694e538a096915e4dcc61d04df65b12a869dee9850f48d",
+      "backend": "claude",
+      "base_sha": "7658d16caecf5c388253156b417f2f390c90e311",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "claude",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "aad703bc63cdacac1468e137a06ceb721b57c287",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "claude-fable-5-1",
+      "outcome": "verdict",
+      "output_bytes": 158,
+      "output_sha256": "6ff70da3d83706800ca3cabc6ba62603ba0485fcf5259d27f1be54ce68686975",
+      "reservation_id": "64183a27db094248b8256075f86bb505",
+      "round_consumed": true,
+      "scope": "impl:fn-254-fast-validation-gates-and-a-real-inner.18",
+      "superseded_by": null,
+      "task": "fn-254-fast-validation-gates-and-a-real-inner.18",
+      "timestamp": "2026-10-29T04:23:34.363100Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "a6d9cc154ca689b26a3d3708395796ce9f3a905780bd77ae615c994c8c0bf3eb",
+      "backend": "claude",
+      "base_sha": "93ae07bee7f750b6f7e26c3d6a042d17832ddd6e",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "claude",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "7e433489e907f9354bc21ba5d40a41aebf4b7bcd",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "claude-fable-5-1",
+      "outcome": "verdict",
+      "output_bytes": 995,
+      "output_sha256": "1511d839751940fb6960488bd9a3ebad76eeabcff845b18a9ea508965a2332af",
+      "reservation_id": "9317bd92f700472f9897d8e797ddac96",
+      "round_consumed": true,
+      "scope": "impl:fn-254-fast-validation-gates-and-a-real-inner.21",
+      "superseded_by": null,
+      "task": "fn-254-fast-validation-gates-and-a-real-inner.21",
+      "timestamp": "2026-10-30T00:47:58.646252Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "97ca107938bf2390e442027eda3b18e7a3db666dc0bed54502dc61ead83e8ac3",
+      "backend": "claude",
+      "base_sha": "305137d447ef2c1834aed2b11ea1e73030d638bd",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "claude",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-be354f2807de903b5b8a4042b99f46cf",
+            "classification": "introduced",
+            "findingId": "finding-be354f2807de903b5b8a4042b99f46cf",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "75b4ee542c6984fef103d6ba337be18e5293e693",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "claude-fable-5-1",
+      "outcome": "verdict",
+      "output_bytes": 2300,
+      "output_sha256": "2afd7a050dc7a65bd1ec123ba6fe8117f7fb58a8a79ddb21834bffee9b1ebb54",
+      "reservation_id": "df6dadca15d44fa6810ab3c9f2537478",
+      "round_consumed": true,
+      "scope": "impl:fn-254-fast-validation-gates-and-a-real-inner.20",
+      "superseded_by": null,
+      "task": "fn-254-fast-validation-gates-and-a-real-inner.20",
+      "timestamp": "2026-10-30T00:57:53.925596Z",
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "ae318809a17c99efc1c240e9042bf4743d429146114a1bbc24d40be782caab80",
+      "backend": "claude",
+      "base_sha": "75b4ee542c6984fef103d6ba337be18e5293e693",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "claude",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-be354f2807de903b5b8a4042b99f46cf",
+            "classification": "introduced",
+            "findingId": "finding-be354f2807de903b5b8a4042b99f46cf",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-b716c48ddc4f7ca6860349445d8c10ae",
+            "classification": "introduced",
+            "findingId": "finding-b716c48ddc4f7ca6860349445d8c10ae",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "e6919f360a15451b84f19bf1ca2b69216b766bee",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "claude-fable-5-1",
+      "outcome": "verdict",
+      "output_bytes": 3747,
+      "output_sha256": "c4f389809cb0f96e9874f713126faf39963a5a795c4714d65234bc5e140459b4",
+      "reservation_id": "ddd4eee07f454d01ad2c3573c95f99ae",
+      "round_consumed": true,
+      "scope": "impl:fn-254-fast-validation-gates-and-a-real-inner.20",
+      "superseded_by": null,
+      "task": "fn-254-fast-validation-gates-and-a-real-inner.20",
+      "timestamp": "2026-10-30T01:13:06.035145Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
@@ -1411,12 +2573,19 @@
     "impl:fn-254-fast-validation-gates-and-a-real-inner.11": 1,
     "impl:fn-254-fast-validation-gates-and-a-real-inner.13": 1,
     "impl:fn-254-fast-validation-gates-and-a-real-inner.14": 1,
+    "impl:fn-254-fast-validation-gates-and-a-real-inner.15": 2,
+    "impl:fn-254-fast-validation-gates-and-a-real-inner.16": 1,
+    "impl:fn-254-fast-validation-gates-and-a-real-inner.17": 1,
+    "impl:fn-254-fast-validation-gates-and-a-real-inner.18": 1,
     "impl:fn-254-fast-validation-gates-and-a-real-inner.2": 1,
+    "impl:fn-254-fast-validation-gates-and-a-real-inner.20": 1,
+    "impl:fn-254-fast-validation-gates-and-a-real-inner.21": 1,
     "impl:fn-254-fast-validation-gates-and-a-real-inner.3": 1,
     "impl:fn-254-fast-validation-gates-and-a-real-inner.4": 1,
-    "impl:fn-254-fast-validation-gates-and-a-real-inner.6": 2,
+    "impl:fn-254-fast-validation-gates-and-a-real-inner.5": 2,
+    "impl:fn-254-fast-validation-gates-and-a-real-inner.6": 4,
     "impl:fn-254-fast-validation-gates-and-a-real-inner.9": 1,
-    "plan": 8,
+    "plan": 11,
     "plan#completion": 0
   },
   "review_pending_rounds": {},
@@ -1426,9 +2595,16 @@
     "impl:fn-254-fast-validation-gates-and-a-real-inner.11": 0,
     "impl:fn-254-fast-validation-gates-and-a-real-inner.13": 0,
     "impl:fn-254-fast-validation-gates-and-a-real-inner.14": 0,
+    "impl:fn-254-fast-validation-gates-and-a-real-inner.15": 0,
+    "impl:fn-254-fast-validation-gates-and-a-real-inner.16": 0,
+    "impl:fn-254-fast-validation-gates-and-a-real-inner.17": 0,
+    "impl:fn-254-fast-validation-gates-and-a-real-inner.18": 0,
     "impl:fn-254-fast-validation-gates-and-a-real-inner.2": 0,
+    "impl:fn-254-fast-validation-gates-and-a-real-inner.20": 0,
+    "impl:fn-254-fast-validation-gates-and-a-real-inner.21": 0,
     "impl:fn-254-fast-validation-gates-and-a-real-inner.3": 0,
     "impl:fn-254-fast-validation-gates-and-a-real-inner.4": 0,
+    "impl:fn-254-fast-validation-gates-and-a-real-inner.5": 0,
     "impl:fn-254-fast-validation-gates-and-a-real-inner.6": 0,
     "impl:fn-254-fast-validation-gates-and-a-real-inner.9": 0,
     "plan": 0
@@ -1447,5 +2623,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-26T02:33:07.134726Z"
+  "updated_at": "2026-10-30T01:13:06.080813Z"
 }

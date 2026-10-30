@@ -1,0 +1,10 @@
+{
+  "frozen_source": "ac60daaf47d2513b41eeff612f0e2758d33e186d",
+  "observed_root_head": "a4e97c8e16e71f5cea515910fe692b738d31a366",
+  "framework_tree_frozen": "eb605031e69e6eb381e2727330958e04ab03cfe0",
+  "framework_tree_current": "eb605031e69e6eb381e2727330958e04ab03cfe0",
+  "archive_tree_frozen": "cb5223b9a4839233876c98cf6158a46dc9d97a19",
+  "archive_tree_current": "cb5223b9a4839233876c98cf6158a46dc9d97a19",
+  "tracked_source_delta": [],
+  "scope": "Pre-cutover Git tree identity only; no post-cutover cache inventory or publication claim."
+}

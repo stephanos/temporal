@@ -1,0 +1,48 @@
+{
+  "schema_version": 1,
+  "spec_id": "fn-258-complete-the-resumed-standalone-umpire",
+  "task_id": "fn-258-complete-the-resumed-standalone-umpire.2",
+  "gates": [
+    {
+      "command": "make validate",
+      "mode": "Standalone054 required TLC; full parent plus isolated source-only child; dev profile. Gate timer only.",
+      "cost": {
+        "kind": "measured",
+        "seconds": 1679.762
+      },
+      "coverage": "All18parent17child stages, current protobuf, lint/docs/native/wasm/Go parity, containment and required TLC.",
+      "evidence": [
+        "validation/standalone-0547321/README.md",
+        "validation/standalone-0547321/cold-proof/result.json"
+      ]
+    },
+    {
+      "command": "flowctl claude impl-review-fanout fn-258-complete-the-resumed-standalone-umpire.2",
+      "mode": "Fresh054 correctness/contracts/integration; Claude Fable5.1 high, concurrent draw wall maximum.",
+      "cost": {
+        "kind": "measured",
+        "seconds": 295.6
+      },
+      "coverage": "Independent review of new setup source and exact adaptation/lineage evidence.",
+      "evidence": [
+        "task2-review/final-0547321/correctness.json",
+        "task2-review/final-0547321/contracts.json",
+        "task2-review/final-0547321/integration.json"
+      ]
+    }
+  ],
+  "speedup_decisions": [
+    {
+      "opportunity": "Repeated cold standalone validation after artifact-only changes",
+      "decision": "Reuse retained054 validation; run exact byte/mode/history verifiers after rationale-only change.",
+      "rationale": "Standalone source remains the exact tested054 tree; metadata reasons do not affect execution.",
+      "coverage_preserved": "Cold required-backend proof and complete recovery remain; all14 adaptation refusal controls and lineage checks rerun."
+    },
+    {
+      "opportunity": "Performance misses",
+      "decision": "Retain fn254 performance obligations; do not lower targets or omit required final commands.",
+      "rationale": "Gate1679.762 and inner24.162 exceed soft60/10 budgets; no safe task2-only optimization identified.",
+      "coverage_preserved": "Task4 named check/time/release/paired commands and task5 final ownership remain required."
+    }
+  ]
+}

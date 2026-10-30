@@ -1,0 +1,3309 @@
+{
+  "result": "pass",
+  "source_files": 1189,
+  "unchanged_files": 1130,
+  "modified_paths": [
+    ".cargo/config.toml",
+    "README.md",
+    "dev/gate/policy/framework-boundary.txt",
+    "dev/guest-driver/README.md",
+    "dev/xtask/README.md",
+    "dev/xtask/src/gate.rs",
+    "dev/xtask/src/gate/boundary.rs",
+    "dev/xtask/src/quick/mod.rs",
+    "dev/xtask/src/quick/tests.rs",
+    "dev/xtask/tests/gate_wiring.rs",
+    "hosts/go/README.md",
+    "hosts/go/gen/umpire/annotations/v1/annotations.pb.go",
+    "hosts/go/gen/umpire/model/v1/model.pb.go",
+    "hosts/go/gen/umpire/realization/v1/realization.pb.go",
+    "hosts/go/gen/umpire/run/v1/run.pb.go",
+    "hosts/go/go.mod",
+    "hosts/go/host/annotations.go",
+    "hosts/go/host/current_contract_test.go",
+    "hosts/go/host/guest_profile_test.go",
+    "hosts/go/host/host.go",
+    "hosts/go/host/host_test.go",
+    "hosts/go/host/probes.go",
+    "hosts/go/host/probes_test.go",
+    "hosts/go/host/proposal_test.go",
+    "hosts/go/host/protocol_test.go",
+    "hosts/go/host/protocol_wire_test.go",
+    "hosts/go/host/realization_wire_test.go",
+    "hosts/go/host/stateful_test.go",
+    "hosts/go/runner/admission_test.go",
+    "hosts/go/runner/driver.go",
+    "hosts/go/runner/fake_test.go",
+    "hosts/go/runner/fault_evidence_test.go",
+    "hosts/go/runner/modes_test.go",
+    "hosts/go/runner/program.go",
+    "hosts/go/runner/replay.go",
+    "hosts/go/runner/runner.go",
+    "hosts/go/runner/runner_test.go",
+    "hosts/go/runner/session.go",
+    "hosts/go/runner/worker_test.go",
+    "protocol/proto/README.md",
+    "protocol/proto/umpire/annotations/v1/annotations.proto",
+    "protocol/proto/umpire/model/v1/model.proto",
+    "protocol/proto/umpire/realization/v1/realization.proto",
+    "protocol/proto/umpire/run/v1/run.proto",
+    "reference/kettle/README.md",
+    "reference/kettle/gen/kettle/v1/kettle.pb.go",
+    "reference/kettle/gen/kettle/v1/probe.pb.go",
+    "reference/kettle/go.mod",
+    "reference/kettle/kettle_annotations_test.go",
+    "reference/kettle/kettle_mutants_test.go",
+    "reference/kettle/kettle_test.go",
+    "reference/kettle/parity_test.go",
+    "reference/kettle/proto/kettle/v1/kettle.proto",
+    "reference/kettle/proto/kettle/v1/probe.proto",
+    "reference/kettle/server.go",
+    "reference/kettle/server_test.go",
+    "reference/kettle/snapshots_test.go",
+    "reference/kettle/validators.go",
+    "rust-toolchain.toml"
+  ],
+  "missing_source_paths": [],
+  "unexpected_modified_paths": [],
+  "protected_files": 499,
+  "protected_differences": [],
+  "mode_differences": [],
+  "standalone_only_paths": [
+    ".github/workflows/check.yml",
+    "AGENTS.md",
+    "DESIGN.md",
+    "GUEST_BUILDS.md",
+    "Makefile",
+    "docs/consumer-interface.md"
+  ],
+  "errors": [],
+  "normalized_source_identity_checks": [
+    {
+      "path": "hosts/go/host/annotations.go",
+      "check": "only-canonical-import-identity-and-order-differs",
+      "passed": true
+    },
+    {
+      "path": "hosts/go/host/current_contract_test.go",
+      "check": "only-canonical-import-identity-and-order-differs",
+      "passed": true
+    },
+    {
+      "path": "hosts/go/host/guest_profile_test.go",
+      "check": "only-canonical-import-identity-and-order-differs",
+      "passed": true
+    },
+    {
+      "path": "hosts/go/host/host.go",
+      "check": "only-canonical-import-identity-and-order-differs",
+      "passed": true
+    },
+    {
+      "path": "hosts/go/host/host_test.go",
+      "check": "only-canonical-import-identity-and-order-differs",
+      "passed": true
+    },
+    {
+      "path": "hosts/go/host/probes.go",
+      "check": "only-canonical-import-identity-and-order-differs",
+      "passed": true
+    },
+    {
+      "path": "hosts/go/host/probes_test.go",
+      "check": "only-canonical-import-identity-and-order-differs",
+      "passed": true
+    },
+    {
+      "path": "hosts/go/host/proposal_test.go",
+      "check": "only-canonical-import-identity-and-order-differs",
+      "passed": true
+    },
+    {
+      "path": "hosts/go/host/protocol_test.go",
+      "check": "only-canonical-import-identity-and-order-differs",
+      "passed": true
+    },
+    {
+      "path": "hosts/go/host/protocol_wire_test.go",
+      "check": "only-canonical-import-identity-and-order-differs",
+      "passed": true
+    },
+    {
+      "path": "hosts/go/host/realization_wire_test.go",
+      "check": "only-canonical-import-identity-and-order-differs",
+      "passed": true
+    },
+    {
+      "path": "hosts/go/host/stateful_test.go",
+      "check": "only-canonical-import-identity-and-order-differs",
+      "passed": true
+    },
+    {
+      "path": "hosts/go/runner/admission_test.go",
+      "check": "only-canonical-import-identity-and-order-differs",
+      "passed": true
+    },
+    {
+      "path": "hosts/go/runner/driver.go",
+      "check": "only-canonical-import-identity-and-order-differs",
+      "passed": true
+    },
+    {
+      "path": "hosts/go/runner/fake_test.go",
+      "check": "only-canonical-import-identity-and-order-differs",
+      "passed": true
+    },
+    {
+      "path": "hosts/go/runner/fault_evidence_test.go",
+      "check": "only-canonical-import-identity-and-order-differs",
+      "passed": true
+    },
+    {
+      "path": "hosts/go/runner/modes_test.go",
+      "check": "only-canonical-import-identity-and-order-differs",
+      "passed": true
+    },
+    {
+      "path": "hosts/go/runner/program.go",
+      "check": "only-canonical-import-identity-and-order-differs",
+      "passed": true
+    },
+    {
+      "path": "hosts/go/runner/replay.go",
+      "check": "only-canonical-import-identity-and-order-differs",
+      "passed": true
+    },
+    {
+      "path": "hosts/go/runner/runner.go",
+      "check": "only-canonical-import-identity-and-order-differs",
+      "passed": true
+    },
+    {
+      "path": "hosts/go/runner/runner_test.go",
+      "check": "only-canonical-import-identity-and-order-differs",
+      "passed": true
+    },
+    {
+      "path": "hosts/go/runner/session.go",
+      "check": "only-canonical-import-identity-and-order-differs",
+      "passed": true
+    },
+    {
+      "path": "hosts/go/runner/worker_test.go",
+      "check": "only-canonical-import-identity-and-order-differs",
+      "passed": true
+    },
+    {
+      "path": "protocol/proto/umpire/annotations/v1/annotations.proto",
+      "check": "only-go-package-option-differs",
+      "passed": true
+    },
+    {
+      "path": "protocol/proto/umpire/model/v1/model.proto",
+      "check": "only-go-package-option-differs",
+      "passed": true
+    },
+    {
+      "path": "protocol/proto/umpire/realization/v1/realization.proto",
+      "check": "only-go-package-option-differs",
+      "passed": true
+    },
+    {
+      "path": "protocol/proto/umpire/run/v1/run.proto",
+      "check": "only-go-package-option-differs",
+      "passed": true
+    },
+    {
+      "path": "reference/kettle/kettle_annotations_test.go",
+      "check": "only-canonical-import-identity-and-order-differs",
+      "passed": true
+    },
+    {
+      "path": "reference/kettle/kettle_mutants_test.go",
+      "check": "only-canonical-import-identity-and-order-differs",
+      "passed": true
+    },
+    {
+      "path": "reference/kettle/kettle_test.go",
+      "check": "only-canonical-import-identity-and-order-differs",
+      "passed": true
+    },
+    {
+      "path": "reference/kettle/parity_test.go",
+      "check": "only-canonical-import-identity-and-order-differs",
+      "passed": true
+    },
+    {
+      "path": "reference/kettle/proto/kettle/v1/kettle.proto",
+      "check": "only-go-package-option-differs",
+      "passed": true
+    },
+    {
+      "path": "reference/kettle/proto/kettle/v1/probe.proto",
+      "check": "only-go-package-option-differs",
+      "passed": true
+    },
+    {
+      "path": "reference/kettle/server.go",
+      "check": "only-canonical-import-identity-and-order-differs",
+      "passed": true
+    },
+    {
+      "path": "reference/kettle/server_test.go",
+      "check": "only-canonical-import-identity-and-order-differs",
+      "passed": true
+    },
+    {
+      "path": "reference/kettle/snapshots_test.go",
+      "check": "only-canonical-import-identity-and-order-differs",
+      "passed": true
+    },
+    {
+      "path": "reference/kettle/validators.go",
+      "check": "only-canonical-import-identity-and-order-differs",
+      "passed": true
+    }
+  ],
+  "prior_approved_adaptation_checks": {
+    "result": "pass",
+    "errors": [],
+    "verified_prior_blob_count": 54,
+    "verified_claim_count": 54,
+    "verified_unchanged_count": 51,
+    "verified_changed_count": 3,
+    "inventory_path": ".flow/artifacts/fn-257-extract-the-standalone-umpire/task3/adaptation-inventory.json",
+    "inventory_sha256": "48d9f6f485aaf0bc649be076fe433d4c0dacdd43cb962e868cd15663b951b5c2",
+    "source_manifest_sha256": "41e7917631b3d18ed4a6ef6271267d3e61dc34fae2e483ab19451f594c2ad4cf",
+    "source_commit": "c88fdc550694020eb1c6a2e09577813d906c9ffe",
+    "standalone_head": "f7b42ce25558344ea2d38f1e05d002259427a8f6",
+    "checks": [
+      {
+        "path": ".cargo/config.toml",
+        "prior_blob": "356f4e4f7bf0654b94dff427e2dbea14fc135b98",
+        "prior_mode": "100644",
+        "prior_after_sha256": "e43f88620e1bf4e7b6824483871672c7070c9a23dc8765ff1621a5f76a7c4dc9",
+        "actual_after_sha256": "e43f88620e1bf4e7b6824483871672c7070c9a23dc8765ff1621a5f76a7c4dc9",
+        "unchanged_verified": true
+      },
+      {
+        "path": "README.md",
+        "prior_blob": "28e23742dac7c551106458a6b436acdd01bb6241",
+        "prior_mode": "100644",
+        "prior_after_sha256": "f9693e7345916b07609106382150407391ef9a053f18ffa8fc3b640d2e96ed6f",
+        "actual_after_sha256": "f9693e7345916b07609106382150407391ef9a053f18ffa8fc3b640d2e96ed6f",
+        "unchanged_verified": true
+      },
+      {
+        "path": "dev/guest-driver/README.md",
+        "prior_blob": "4d62b8de5b57d8de1cccd45b1f51a776ab0026b7",
+        "prior_mode": "100644",
+        "prior_after_sha256": "7db96a50e4013e22dad634458aa9242d8053fa3c05454f52ef824e7b1a564850",
+        "actual_after_sha256": "7db96a50e4013e22dad634458aa9242d8053fa3c05454f52ef824e7b1a564850",
+        "unchanged_verified": true
+      },
+      {
+        "path": "dev/xtask/README.md",
+        "prior_blob": "4441178238486b1b74605a5de495c1174dfaefbf",
+        "prior_mode": "100644",
+        "prior_after_sha256": "dae8470faaa21fbe53cf4f2a7a943df9492ff0bf39f7a97c9ed57582ac573935",
+        "actual_after_sha256": "d2a7d56929de54ec18260e9036830acb87c4d5506cf3c0e235f58a993278fee6",
+        "unchanged_verified": false
+      },
+      {
+        "path": "dev/xtask/src/quick/mod.rs",
+        "prior_blob": "34cc769c23372d4ec1c97b4b36c4a7c50f6200db",
+        "prior_mode": "100644",
+        "prior_after_sha256": "b6e098540aa96e831b68a569abeabdf58dc91221796f8f1d981b0f6b99fb09a2",
+        "actual_after_sha256": "afdeca00d8f9763dac330730457f8c77f84094d4fd4dcc94a390c8224669dfab",
+        "unchanged_verified": false
+      },
+      {
+        "path": "dev/xtask/src/quick/tests.rs",
+        "prior_blob": "93a8896f89f4e02f0ae0dcb866a7515ae8643064",
+        "prior_mode": "100644",
+        "prior_after_sha256": "38396a41e7aba9ba77ad03bca3cb489092e49fd5964e88560b8a4739f415fe11",
+        "actual_after_sha256": "ecedf079b64be59893b9513543a994c44c4be3b2d2d1565f4131779ace5cfaec",
+        "unchanged_verified": false
+      },
+      {
+        "path": "hosts/go/README.md",
+        "prior_blob": "7d53456e2bd79ff686dd01326f26b4ae6544c4df",
+        "prior_mode": "100644",
+        "prior_after_sha256": "7d274feee3b9e3da21c8591af161b3f62c187bb2e137b22c8aa01f6f2afb3e0c",
+        "actual_after_sha256": "7d274feee3b9e3da21c8591af161b3f62c187bb2e137b22c8aa01f6f2afb3e0c",
+        "unchanged_verified": true
+      },
+      {
+        "path": "hosts/go/gen/umpire/annotations/v1/annotations.pb.go",
+        "prior_blob": "0abb969c81381f7b33d08cf31ae4707902404fb6",
+        "prior_mode": "100644",
+        "prior_after_sha256": "ea7084f2505b5b6ed2e3b804fe69fc7831b3790ea785e4ea4a570dc9e0d5c056",
+        "actual_after_sha256": "ea7084f2505b5b6ed2e3b804fe69fc7831b3790ea785e4ea4a570dc9e0d5c056",
+        "unchanged_verified": true
+      },
+      {
+        "path": "hosts/go/gen/umpire/model/v1/model.pb.go",
+        "prior_blob": "be0b8e3a770b93d77490a196ecdefd88404ece7c",
+        "prior_mode": "100644",
+        "prior_after_sha256": "64830baf46b4715f287b2dea30fe1690e9526bea5617039cf9f0018a2c18047c",
+        "actual_after_sha256": "64830baf46b4715f287b2dea30fe1690e9526bea5617039cf9f0018a2c18047c",
+        "unchanged_verified": true
+      },
+      {
+        "path": "hosts/go/gen/umpire/realization/v1/realization.pb.go",
+        "prior_blob": "2541547cb7dc5afe4de92672d3044e09e00983b0",
+        "prior_mode": "100644",
+        "prior_after_sha256": "66e65bda81b9a2a46d56f3dc9bd26e044e671bac3fed215a47804076edd729f0",
+        "actual_after_sha256": "66e65bda81b9a2a46d56f3dc9bd26e044e671bac3fed215a47804076edd729f0",
+        "unchanged_verified": true
+      },
+      {
+        "path": "hosts/go/gen/umpire/run/v1/run.pb.go",
+        "prior_blob": "5f3a60359fd3aa403de42e34f146b06b9af7bd74",
+        "prior_mode": "100644",
+        "prior_after_sha256": "1b35c7c3c14074300ba7c18c7d0569ffd2542a0b4c6188096678e3dcbe40fa15",
+        "actual_after_sha256": "1b35c7c3c14074300ba7c18c7d0569ffd2542a0b4c6188096678e3dcbe40fa15",
+        "unchanged_verified": true
+      },
+      {
+        "path": "hosts/go/go.mod",
+        "prior_blob": "2c530566576d04efc39ec6654d05ca9171fbf8bd",
+        "prior_mode": "100644",
+        "prior_after_sha256": "e632428ca663454e80c9d59fc0aa3795bd1015b8917146298a02824427118f1a",
+        "actual_after_sha256": "e632428ca663454e80c9d59fc0aa3795bd1015b8917146298a02824427118f1a",
+        "unchanged_verified": true
+      },
+      {
+        "path": "hosts/go/host/annotations.go",
+        "prior_blob": "32c960ea78d41e62f2ddcfb6998e202641cba8d8",
+        "prior_mode": "100644",
+        "prior_after_sha256": "d8a2414c706399ee8d43b8c594c3e38507d2ba49dd0c1deee51eaca078898c40",
+        "actual_after_sha256": "d8a2414c706399ee8d43b8c594c3e38507d2ba49dd0c1deee51eaca078898c40",
+        "unchanged_verified": true
+      },
+      {
+        "path": "hosts/go/host/current_contract_test.go",
+        "prior_blob": "a38721a76e47c50c379e932a04a981146b729a88",
+        "prior_mode": "100644",
+        "prior_after_sha256": "486fc0a3a8d7ed18b8788d5e88e092e0d70f6fd7cd707ecfc37faa281874ff1d",
+        "actual_after_sha256": "486fc0a3a8d7ed18b8788d5e88e092e0d70f6fd7cd707ecfc37faa281874ff1d",
+        "unchanged_verified": true
+      },
+      {
+        "path": "hosts/go/host/guest_profile_test.go",
+        "prior_blob": "617069da0df4d9a39233cfb831b813ec463e567f",
+        "prior_mode": "100644",
+        "prior_after_sha256": "e792d8a435c07ede1b3185efe66515b7f4bd249bdb64d56b9b413e8b231a752b",
+        "actual_after_sha256": "e792d8a435c07ede1b3185efe66515b7f4bd249bdb64d56b9b413e8b231a752b",
+        "unchanged_verified": true
+      },
+      {
+        "path": "hosts/go/host/host.go",
+        "prior_blob": "1c1019b6c4b7b97bd83912a46ccdbe2a8f458c9c",
+        "prior_mode": "100644",
+        "prior_after_sha256": "a5ae3ac30594058a7e0a8102bed88fe50dbe57c6d6b05716e96e21318438266a",
+        "actual_after_sha256": "a5ae3ac30594058a7e0a8102bed88fe50dbe57c6d6b05716e96e21318438266a",
+        "unchanged_verified": true
+      },
+      {
+        "path": "hosts/go/host/host_test.go",
+        "prior_blob": "0829114d85bc353cd6ef53f7a9a2ee1beaf71eb4",
+        "prior_mode": "100644",
+        "prior_after_sha256": "6c95e2b6292b5b286b9e812ec31c59c27b26053c283cd8c522d22109b66cc19a",
+        "actual_after_sha256": "6c95e2b6292b5b286b9e812ec31c59c27b26053c283cd8c522d22109b66cc19a",
+        "unchanged_verified": true
+      },
+      {
+        "path": "hosts/go/host/probes.go",
+        "prior_blob": "4b48aa2944bc2224d86aa9fe3f6e0ace2c17ac2e",
+        "prior_mode": "100644",
+        "prior_after_sha256": "fde0d2a35c76bba3a6d9c972793663230bc6a569d803981c1f44763cd20b93fa",
+        "actual_after_sha256": "fde0d2a35c76bba3a6d9c972793663230bc6a569d803981c1f44763cd20b93fa",
+        "unchanged_verified": true
+      },
+      {
+        "path": "hosts/go/host/probes_test.go",
+        "prior_blob": "116bfde924e15cd1ea1f2ad104358b6d7adce5d5",
+        "prior_mode": "100644",
+        "prior_after_sha256": "bb8cf3a32b430c7e82df292c66f592343935275ff2f6f169dbfd9ee6cc07f60f",
+        "actual_after_sha256": "bb8cf3a32b430c7e82df292c66f592343935275ff2f6f169dbfd9ee6cc07f60f",
+        "unchanged_verified": true
+      },
+      {
+        "path": "hosts/go/host/proposal_test.go",
+        "prior_blob": "784bbd38336f3d8de6f60a79168edca9111f589a",
+        "prior_mode": "100644",
+        "prior_after_sha256": "2e8a2850f994eec4efc73ead4110c9f2dc552fdb1a8c25c034da2d18ee0099f0",
+        "actual_after_sha256": "2e8a2850f994eec4efc73ead4110c9f2dc552fdb1a8c25c034da2d18ee0099f0",
+        "unchanged_verified": true
+      },
+      {
+        "path": "hosts/go/host/protocol_test.go",
+        "prior_blob": "c622240bca40c27a809ba34fa3887cec6c776203",
+        "prior_mode": "100644",
+        "prior_after_sha256": "b786dcbacf38bbf47ce261ced01ea8f2b860474c0ddd3328acae54d8f6f41c70",
+        "actual_after_sha256": "b786dcbacf38bbf47ce261ced01ea8f2b860474c0ddd3328acae54d8f6f41c70",
+        "unchanged_verified": true
+      },
+      {
+        "path": "hosts/go/host/protocol_wire_test.go",
+        "prior_blob": "f428846e3b0c0aa77ee7ffd4fe6b59419c594e42",
+        "prior_mode": "100644",
+        "prior_after_sha256": "cf47b83b25e9620c46efaf75efc02880924c852f79da3c243623bf5ce92a14ca",
+        "actual_after_sha256": "cf47b83b25e9620c46efaf75efc02880924c852f79da3c243623bf5ce92a14ca",
+        "unchanged_verified": true
+      },
+      {
+        "path": "hosts/go/host/realization_wire_test.go",
+        "prior_blob": "6bca67f6d4add58385fc095768709ea190c5c4fd",
+        "prior_mode": "100644",
+        "prior_after_sha256": "aeafdb33e3ec5be707e669706647ec999478c7c1a3c386e07782ea0d2289dc0a",
+        "actual_after_sha256": "aeafdb33e3ec5be707e669706647ec999478c7c1a3c386e07782ea0d2289dc0a",
+        "unchanged_verified": true
+      },
+      {
+        "path": "hosts/go/host/stateful_test.go",
+        "prior_blob": "7e6d8f1de67ea6c25e0b908d1b9eaaaca6ff4103",
+        "prior_mode": "100644",
+        "prior_after_sha256": "b8f12938278af9c9b6d52240db4f960bf7aca07cf07e99c2b6db5176d18c0e26",
+        "actual_after_sha256": "b8f12938278af9c9b6d52240db4f960bf7aca07cf07e99c2b6db5176d18c0e26",
+        "unchanged_verified": true
+      },
+      {
+        "path": "hosts/go/runner/admission_test.go",
+        "prior_blob": "c593777ab9c2c72812d2fa9d2f872a62a349ff8b",
+        "prior_mode": "100644",
+        "prior_after_sha256": "543f50a332555ab36354f928e01753123fbcb71732b3ffa0027e502733026b6e",
+        "actual_after_sha256": "543f50a332555ab36354f928e01753123fbcb71732b3ffa0027e502733026b6e",
+        "unchanged_verified": true
+      },
+      {
+        "path": "hosts/go/runner/driver.go",
+        "prior_blob": "6c528c2a73d4987e4452b9ab80d75b33e34da0d1",
+        "prior_mode": "100644",
+        "prior_after_sha256": "8589631fd72060fa95697eb9f33740cf4fb17bf37e4578a43c5ee40ebce2cdb2",
+        "actual_after_sha256": "8589631fd72060fa95697eb9f33740cf4fb17bf37e4578a43c5ee40ebce2cdb2",
+        "unchanged_verified": true
+      },
+      {
+        "path": "hosts/go/runner/fake_test.go",
+        "prior_blob": "83afe48db3158a6b0f7556da933b138c3e134307",
+        "prior_mode": "100644",
+        "prior_after_sha256": "0bc7ddd25b5e8e43dbc0f35ab2534b96b0c8c1a9e85cd74cc3ff3e817e1ecb23",
+        "actual_after_sha256": "0bc7ddd25b5e8e43dbc0f35ab2534b96b0c8c1a9e85cd74cc3ff3e817e1ecb23",
+        "unchanged_verified": true
+      },
+      {
+        "path": "hosts/go/runner/fault_evidence_test.go",
+        "prior_blob": "40a3c562ae7622ca4e88e1db3a95ada332b399f2",
+        "prior_mode": "100644",
+        "prior_after_sha256": "5f996dc1e148230cc87d42c6b5c1ad3a8da8ca12ec834f43ab515f35bcb7dda2",
+        "actual_after_sha256": "5f996dc1e148230cc87d42c6b5c1ad3a8da8ca12ec834f43ab515f35bcb7dda2",
+        "unchanged_verified": true
+      },
+      {
+        "path": "hosts/go/runner/modes_test.go",
+        "prior_blob": "a3d916f0601f01dcb31db94b4d66cb449b4a7ee8",
+        "prior_mode": "100644",
+        "prior_after_sha256": "6972a282733aeac03d67c6d0391b9468f9ed8f31fe1bf9f0773d76903c86705f",
+        "actual_after_sha256": "6972a282733aeac03d67c6d0391b9468f9ed8f31fe1bf9f0773d76903c86705f",
+        "unchanged_verified": true
+      },
+      {
+        "path": "hosts/go/runner/program.go",
+        "prior_blob": "5e24e9d68af986a73baeda5baaa551771e00faca",
+        "prior_mode": "100644",
+        "prior_after_sha256": "25fdbc36943a05acbb06315f681680e08afcd9869abe441319f86fe7979d85c1",
+        "actual_after_sha256": "25fdbc36943a05acbb06315f681680e08afcd9869abe441319f86fe7979d85c1",
+        "unchanged_verified": true
+      },
+      {
+        "path": "hosts/go/runner/replay.go",
+        "prior_blob": "1545be47f539b822541f9e8fefeee468e7ae5049",
+        "prior_mode": "100644",
+        "prior_after_sha256": "57429bf16a9c2aebb362d1f12a06ac4f2a28d7ad8aa75e1b5f95997a4c45cf49",
+        "actual_after_sha256": "57429bf16a9c2aebb362d1f12a06ac4f2a28d7ad8aa75e1b5f95997a4c45cf49",
+        "unchanged_verified": true
+      },
+      {
+        "path": "hosts/go/runner/runner.go",
+        "prior_blob": "db9e17ec8b81ba796fa111f685147218e8089f11",
+        "prior_mode": "100644",
+        "prior_after_sha256": "cf9971b04f3f7a194cb4abe0faea458fc97bbc78321ec5348642dfb1a071fdc8",
+        "actual_after_sha256": "cf9971b04f3f7a194cb4abe0faea458fc97bbc78321ec5348642dfb1a071fdc8",
+        "unchanged_verified": true
+      },
+      {
+        "path": "hosts/go/runner/runner_test.go",
+        "prior_blob": "f0549f41f3bf7e79a1b8c6c82b6a81c53d79cc56",
+        "prior_mode": "100644",
+        "prior_after_sha256": "e7326a8c0e155392d537e94a8f86a2ddc82f7d1b70d0d3793b34a5723d958acf",
+        "actual_after_sha256": "e7326a8c0e155392d537e94a8f86a2ddc82f7d1b70d0d3793b34a5723d958acf",
+        "unchanged_verified": true
+      },
+      {
+        "path": "hosts/go/runner/session.go",
+        "prior_blob": "e87977c0f44cafc1836cda7d16c0892545d3613d",
+        "prior_mode": "100644",
+        "prior_after_sha256": "334e281ba2b573f2eb9011861b11d2cc8b2e7de72ae1e996fa3cc94d9e44ea7a",
+        "actual_after_sha256": "334e281ba2b573f2eb9011861b11d2cc8b2e7de72ae1e996fa3cc94d9e44ea7a",
+        "unchanged_verified": true
+      },
+      {
+        "path": "hosts/go/runner/worker_test.go",
+        "prior_blob": "50b7b5dc0b4e9fb6fa8a0cfa0dc3191e3c10fbda",
+        "prior_mode": "100644",
+        "prior_after_sha256": "8815f433eaafe81709ea46f182c9f7a9f8254c97db9c1ee2052c797145936299",
+        "actual_after_sha256": "8815f433eaafe81709ea46f182c9f7a9f8254c97db9c1ee2052c797145936299",
+        "unchanged_verified": true
+      },
+      {
+        "path": "protocol/proto/umpire/annotations/v1/annotations.proto",
+        "prior_blob": "c4d97e05053588cd1fdca5870918f11f380cae40",
+        "prior_mode": "100644",
+        "prior_after_sha256": "55e0186d86bea83ba6da6be208312b04c520ddd07809ce6c1e98def1d95dec67",
+        "actual_after_sha256": "55e0186d86bea83ba6da6be208312b04c520ddd07809ce6c1e98def1d95dec67",
+        "unchanged_verified": true
+      },
+      {
+        "path": "protocol/proto/umpire/model/v1/model.proto",
+        "prior_blob": "29059a8912081420c4fdcb35e18e7816194dbaf4",
+        "prior_mode": "100644",
+        "prior_after_sha256": "a0f891bc2afd0e4f2d6c9a2ced297cdea5820fb165ad2e0cadde35a0fb34f768",
+        "actual_after_sha256": "a0f891bc2afd0e4f2d6c9a2ced297cdea5820fb165ad2e0cadde35a0fb34f768",
+        "unchanged_verified": true
+      },
+      {
+        "path": "protocol/proto/umpire/realization/v1/realization.proto",
+        "prior_blob": "a598d6946397ae01f6be3ac08c7d2dc1bb742bb1",
+        "prior_mode": "100644",
+        "prior_after_sha256": "375a80ced933cfddf1c60ea5648eabf2f494ea5c7d8faa13c29bcfa57da2fa67",
+        "actual_after_sha256": "375a80ced933cfddf1c60ea5648eabf2f494ea5c7d8faa13c29bcfa57da2fa67",
+        "unchanged_verified": true
+      },
+      {
+        "path": "protocol/proto/umpire/run/v1/run.proto",
+        "prior_blob": "ead81e19b9ce1bdb5659a61896f419ab9a8c4a91",
+        "prior_mode": "100644",
+        "prior_after_sha256": "b45da965f8b5312ef5f8cbd3a1ba904d5a411f02abdf9f0c13a52cafd280a1ef",
+        "actual_after_sha256": "b45da965f8b5312ef5f8cbd3a1ba904d5a411f02abdf9f0c13a52cafd280a1ef",
+        "unchanged_verified": true
+      },
+      {
+        "path": "reference/kettle/README.md",
+        "prior_blob": "1c6066e7db36e221bfb427b334a65a445a01a5dd",
+        "prior_mode": "100644",
+        "prior_after_sha256": "d1129e79c9a62f310f38e3004308e25a2feee32d8fb8537fa2e8e6e3d2d49083",
+        "actual_after_sha256": "d1129e79c9a62f310f38e3004308e25a2feee32d8fb8537fa2e8e6e3d2d49083",
+        "unchanged_verified": true
+      },
+      {
+        "path": "reference/kettle/gen/kettle/v1/kettle.pb.go",
+        "prior_blob": "a8607ec2d2bd2bac5dd813f3e4d748c09861e997",
+        "prior_mode": "100644",
+        "prior_after_sha256": "1c59d404abc5d43248ef55a4e118f8e7d4efa5fdd14575b01b85caf68e03b83a",
+        "actual_after_sha256": "1c59d404abc5d43248ef55a4e118f8e7d4efa5fdd14575b01b85caf68e03b83a",
+        "unchanged_verified": true
+      },
+      {
+        "path": "reference/kettle/gen/kettle/v1/probe.pb.go",
+        "prior_blob": "4d7dd11307e380e2790daec2886427649f1935d2",
+        "prior_mode": "100644",
+        "prior_after_sha256": "52da4a7eef9756d13998cd6068805ef2baed85bbbbbe7a972303e690783404e0",
+        "actual_after_sha256": "52da4a7eef9756d13998cd6068805ef2baed85bbbbbe7a972303e690783404e0",
+        "unchanged_verified": true
+      },
+      {
+        "path": "reference/kettle/go.mod",
+        "prior_blob": "79a6e80865c8f1dccd88290466e07740585bf77d",
+        "prior_mode": "100644",
+        "prior_after_sha256": "a4c1164f446439fec6757b0ef2b2287a1a2d23875476b242b82f20b66a893cef",
+        "actual_after_sha256": "a4c1164f446439fec6757b0ef2b2287a1a2d23875476b242b82f20b66a893cef",
+        "unchanged_verified": true
+      },
+      {
+        "path": "reference/kettle/kettle_annotations_test.go",
+        "prior_blob": "3f1dc5c0801b9dd4ebc781bd65524d826f3be859",
+        "prior_mode": "100644",
+        "prior_after_sha256": "1b5c14824e11d4947bc84d9992f6599e40ecc927a20ba15e9296d596a25fe420",
+        "actual_after_sha256": "1b5c14824e11d4947bc84d9992f6599e40ecc927a20ba15e9296d596a25fe420",
+        "unchanged_verified": true
+      },
+      {
+        "path": "reference/kettle/kettle_mutants_test.go",
+        "prior_blob": "d42aa777665feb53724fe640357f1674dba0fae2",
+        "prior_mode": "100644",
+        "prior_after_sha256": "594c64815be34cbe75b243703bb8f60d6ef823b0e9cbbe51ac844f59cd6fc03e",
+        "actual_after_sha256": "594c64815be34cbe75b243703bb8f60d6ef823b0e9cbbe51ac844f59cd6fc03e",
+        "unchanged_verified": true
+      },
+      {
+        "path": "reference/kettle/kettle_test.go",
+        "prior_blob": "0b6b677b1495dc6c8a7ba58804dc9291dc93f200",
+        "prior_mode": "100644",
+        "prior_after_sha256": "7862ad5436a13ecbf0f89de8b5af3996e32305c265ff7eb2dd2b18a1e80588c8",
+        "actual_after_sha256": "7862ad5436a13ecbf0f89de8b5af3996e32305c265ff7eb2dd2b18a1e80588c8",
+        "unchanged_verified": true
+      },
+      {
+        "path": "reference/kettle/parity_test.go",
+        "prior_blob": "8446dd6b44ad68ba3d6e5db5b411cbd037003973",
+        "prior_mode": "100644",
+        "prior_after_sha256": "c36c5489866597980504d95c280fe0e93ee81b7edf8ffb2c897c9280d79c2686",
+        "actual_after_sha256": "c36c5489866597980504d95c280fe0e93ee81b7edf8ffb2c897c9280d79c2686",
+        "unchanged_verified": true
+      },
+      {
+        "path": "reference/kettle/proto/kettle/v1/kettle.proto",
+        "prior_blob": "20912a85be161f7c3eac3902437dbdb07f235b9c",
+        "prior_mode": "100644",
+        "prior_after_sha256": "03bdd49033989c62147bad2114c4087ec5f5a9db19336c9537e590bbc12c0fe7",
+        "actual_after_sha256": "03bdd49033989c62147bad2114c4087ec5f5a9db19336c9537e590bbc12c0fe7",
+        "unchanged_verified": true
+      },
+      {
+        "path": "reference/kettle/proto/kettle/v1/probe.proto",
+        "prior_blob": "bc95cda6e060d28902d0ff6e5e7949dbe1d92a52",
+        "prior_mode": "100644",
+        "prior_after_sha256": "241510488aa8a2698403101153ab65b6b7fe7e32782a268ac319257504ab9cb1",
+        "actual_after_sha256": "241510488aa8a2698403101153ab65b6b7fe7e32782a268ac319257504ab9cb1",
+        "unchanged_verified": true
+      },
+      {
+        "path": "reference/kettle/server.go",
+        "prior_blob": "ef69f379d52bb71028dcaaec2d329f242e1072d4",
+        "prior_mode": "100644",
+        "prior_after_sha256": "2aba13585b012abd6f7b35c8bfc1b220cdaf264d864d373709f8d7649e218882",
+        "actual_after_sha256": "2aba13585b012abd6f7b35c8bfc1b220cdaf264d864d373709f8d7649e218882",
+        "unchanged_verified": true
+      },
+      {
+        "path": "reference/kettle/server_test.go",
+        "prior_blob": "b3d83650fdc9be7fb785d0a0b27eca891439f9ba",
+        "prior_mode": "100644",
+        "prior_after_sha256": "cd81324dbebfe12f16c5356cd1e8f8732362cadff4b5cc31b2a6fd3cc2aabe91",
+        "actual_after_sha256": "cd81324dbebfe12f16c5356cd1e8f8732362cadff4b5cc31b2a6fd3cc2aabe91",
+        "unchanged_verified": true
+      },
+      {
+        "path": "reference/kettle/snapshots_test.go",
+        "prior_blob": "36d47c0c7e43d2dd6161347ea671b461b1516bf7",
+        "prior_mode": "100644",
+        "prior_after_sha256": "66c668f6b38d16dbed6f4f81517437d625cac6ec3b2d08a3837ba4b2efadac55",
+        "actual_after_sha256": "66c668f6b38d16dbed6f4f81517437d625cac6ec3b2d08a3837ba4b2efadac55",
+        "unchanged_verified": true
+      },
+      {
+        "path": "reference/kettle/validators.go",
+        "prior_blob": "e96e26ef1fc356afb3a92bffb473fa60ddec8d53",
+        "prior_mode": "100644",
+        "prior_after_sha256": "478abc45fa599bd85be6a99bda942825927ff538bda533415e04e7f2a91d29dd",
+        "actual_after_sha256": "478abc45fa599bd85be6a99bda942825927ff538bda533415e04e7f2a91d29dd",
+        "unchanged_verified": true
+      },
+      {
+        "path": "rust-toolchain.toml",
+        "prior_blob": "724bf0b80e22751083f32afc147bb9641f29ebc9",
+        "prior_mode": "100644",
+        "prior_after_sha256": "4467266fabdd9b6d0d1ad5155777bbbbf67fe235cd66263e4cf091644224cd2d",
+        "actual_after_sha256": "4467266fabdd9b6d0d1ad5155777bbbbf67fe235cd66263e4cf091644224cd2d",
+        "unchanged_verified": true
+      }
+    ]
+  },
+  "frozen_source_commit": "ac60daaf47d2513b41eeff612f0e2758d33e186d",
+  "standalone_head": "05473210b48c3db862f22051eb7154ce98258f98",
+  "live_head": "05473210b48c3db862f22051eb7154ce98258f98",
+  "standalone_tree": "46829511b6d582b40f3fa5095f42bdf980c7d466",
+  "manifest_sha256": "a29ea7017bf9138701d1580e1a466071a1c151b849526a55648484b27175a2c3",
+  "allowlist_sha256": "5c1c8d34a36c67a3aee64cb94cb315187847387bccec757dc4250b71fdd3d8ba",
+  "deleted_source_paths_checked_absent": 122,
+  "new_source_paths_checked_present": 133,
+  "protected_records": [
+    {
+      "path": "Cargo.lock",
+      "mode": "100644",
+      "blob": "18cf43883ffa175f8d8c29adfcf32f050fe117c6"
+    },
+    {
+      "path": "LICENSE",
+      "mode": "100644",
+      "blob": "3349f76795f4409cba6ae18ea56adf9fbd8346f3"
+    },
+    {
+      "path": "author/dsl/macros/tests/fixtures/action/expected/expansion.rs.snap",
+      "mode": "100644",
+      "blob": "d68bed4340335242272c9bf988f4b322deff7fcd"
+    },
+    {
+      "path": "author/dsl/macros/tests/fixtures/action/model.rs",
+      "mode": "100644",
+      "blob": "6fde2603e4dc099132fd7df909f2fc42658669e7"
+    },
+    {
+      "path": "author/dsl/macros/tests/fixtures/declared_world/expected/expansion.rs.snap",
+      "mode": "100644",
+      "blob": "4f1e77cf9cedeedf821743af01d0cc8b5db41f65"
+    },
+    {
+      "path": "author/dsl/macros/tests/fixtures/declared_world/model.rs",
+      "mode": "100644",
+      "blob": "c7a177e1c46702a9e6ba06dabed57fc0a9f7ff0a"
+    },
+    {
+      "path": "author/dsl/macros/tests/fixtures/finite/expected/expansion.rs.snap",
+      "mode": "100644",
+      "blob": "baa077f7935527df0f472d2d3f039ad64e789d2c"
+    },
+    {
+      "path": "author/dsl/macros/tests/fixtures/finite/model.rs",
+      "mode": "100644",
+      "blob": "051c29ad9d3b37a93319f65dbbeeae9c1d89cdcb"
+    },
+    {
+      "path": "author/dsl/macros/tests/fixtures/machine/expected/expansion.rs.snap",
+      "mode": "100644",
+      "blob": "08fdd93f148540734dabd4af4df08ac271febbe4"
+    },
+    {
+      "path": "author/dsl/macros/tests/fixtures/machine/model.rs",
+      "mode": "100644",
+      "blob": "a7b02c66fe3bab5767d8eccd94cbbeec35c31209"
+    },
+    {
+      "path": "author/dsl/macros/tests/fixtures/path/expected/expansion.rs.snap",
+      "mode": "100644",
+      "blob": "24cf4cd610dd9d6964e22d947cad13a3c3c053ee"
+    },
+    {
+      "path": "author/dsl/macros/tests/fixtures/path/model.rs",
+      "mode": "100644",
+      "blob": "0d30688950c4f4edab11d1aaa6c2b0703ef4dd3c"
+    },
+    {
+      "path": "author/dsl/macros/tests/fixtures/rejecting_machine/expected/expansion.rs.snap",
+      "mode": "100644",
+      "blob": "75657c5a40ef45f99a27923de9a7fac68df51467"
+    },
+    {
+      "path": "author/dsl/macros/tests/fixtures/rejecting_machine/model.rs",
+      "mode": "100644",
+      "blob": "4332cdf02c0483a92ebaac3907851a2381bf435b"
+    },
+    {
+      "path": "author/dsl/macros/tests/fixtures/state/expected/expansion.rs.snap",
+      "mode": "100644",
+      "blob": "eb35891c7b822299c079fd4f4414b42f578fb31c"
+    },
+    {
+      "path": "author/dsl/macros/tests/fixtures/state/model.rs",
+      "mode": "100644",
+      "blob": "db46a0975d7adf400c7a1829f144eaaeef65079f"
+    },
+    {
+      "path": "author/dsl/macros/tests/fixtures/staying_machine/expected/expansion.rs.snap",
+      "mode": "100644",
+      "blob": "7b278f2fd07d9903fa2747491497cc7627a29d16"
+    },
+    {
+      "path": "author/dsl/macros/tests/fixtures/staying_machine/model.rs",
+      "mode": "100644",
+      "blob": "d90145099b3396a5bd6cddab36567e10aee4ae67"
+    },
+    {
+      "path": "author/dsl/macros/tests/fixtures/world/expected/expansion.rs.snap",
+      "mode": "100644",
+      "blob": "bd19469ef14633b28bddc6e9819b0b40563ab297"
+    },
+    {
+      "path": "author/dsl/macros/tests/fixtures/world/model.rs",
+      "mode": "100644",
+      "blob": "ee9ba99276c300cd61af1a0776e4ceffa43616de"
+    },
+    {
+      "path": "author/dsl/tests/fixtures/action_inputs_limits/expected/values.txt.snap",
+      "mode": "100644",
+      "blob": "7247f3400ec5892cc79676659cfa7f07a3442725"
+    },
+    {
+      "path": "author/dsl/tests/fixtures/action_inputs_limits/model.rs",
+      "mode": "100644",
+      "blob": "f6e370f6a28aedb7015b072480d50fa65f99a71b"
+    },
+    {
+      "path": "author/dsl/tests/fixtures/action_inputs_values/expected/values.txt.snap",
+      "mode": "100644",
+      "blob": "aac8c99846791553c919e9876caafa5eb157bdca"
+    },
+    {
+      "path": "author/dsl/tests/fixtures/action_inputs_values/model.rs",
+      "mode": "100644",
+      "blob": "62c5eb3e52a0a50e9c0d83a4ae775831f316068d"
+    },
+    {
+      "path": "author/dsl/tests/fixtures/assumptions/expected/values.txt.snap",
+      "mode": "100644",
+      "blob": "db1ddbdf65239b086bc1aa5a3e97207330cb7c29"
+    },
+    {
+      "path": "author/dsl/tests/fixtures/assumptions/model.rs",
+      "mode": "100644",
+      "blob": "97d76f310517b7aeea61509b3bcc8c84866d74c5"
+    },
+    {
+      "path": "author/dsl/tests/fixtures/derives/expected/values.txt.snap",
+      "mode": "100644",
+      "blob": "54f3be259dfa8b923199011ce0e6d853512bb4aa"
+    },
+    {
+      "path": "author/dsl/tests/fixtures/derives/model.rs",
+      "mode": "100644",
+      "blob": "1656bfc8702b954b27937f0224363e5a58a52a31"
+    },
+    {
+      "path": "author/dsl/tests/fixtures/empty_actions/expected/values.txt.snap",
+      "mode": "100644",
+      "blob": "7ec98bce7b3c52bcfa733fa04474a0ffb1c247e6"
+    },
+    {
+      "path": "author/dsl/tests/fixtures/empty_actions/model.rs",
+      "mode": "100644",
+      "blob": "2bc49852c389b264810b8e4162c357fe395ae72c"
+    },
+    {
+      "path": "author/dsl/tests/fixtures/formatting/expected/values.txt.snap",
+      "mode": "100644",
+      "blob": "8f3e12e054b0dd141d8bde85397d1e68ad5951d2"
+    },
+    {
+      "path": "author/dsl/tests/fixtures/formatting/model.rs",
+      "mode": "100644",
+      "blob": "46def1fcf00af1067b31bf93c18b35052961efd9"
+    },
+    {
+      "path": "author/dsl/tests/fixtures/machine/expected/values.txt.snap",
+      "mode": "100644",
+      "blob": "69b71d310c13ddda3d2c8234de6c59c2a4f8c473"
+    },
+    {
+      "path": "author/dsl/tests/fixtures/machine/model.rs",
+      "mode": "100644",
+      "blob": "c418004bf66cc96c25e9c6c826e8da1dc382d026"
+    },
+    {
+      "path": "author/dsl/tests/fixtures/path/expected/values.txt.snap",
+      "mode": "100644",
+      "blob": "bb8653fb2d9c77727132340d1b3415bd0fe76c69"
+    },
+    {
+      "path": "author/dsl/tests/fixtures/path/model.rs",
+      "mode": "100644",
+      "blob": "a022131072a2919a253d2d52f22d1311eaa964a9"
+    },
+    {
+      "path": "author/suite/tests/fixtures/along/expected/messages.txt.snap",
+      "mode": "100644",
+      "blob": "6bd526138afc9ddfb6966722b7116b27c7d6f160"
+    },
+    {
+      "path": "author/suite/tests/fixtures/along/model.rs",
+      "mode": "100644",
+      "blob": "fae4b2328a39ccade67be5f4f758beec5e369d38"
+    },
+    {
+      "path": "author/suite/tests/fixtures/ambiguous_step/expected/messages.txt.snap",
+      "mode": "100644",
+      "blob": "a69f8ed99b8e290b26360a96098a07a0cc2e5d5a"
+    },
+    {
+      "path": "author/suite/tests/fixtures/ambiguous_step/model.rs",
+      "mode": "100644",
+      "blob": "e5ee4f0a3bb60d4715b77daf3a8298e7fd6b0cac"
+    },
+    {
+      "path": "author/suite/tests/fixtures/disabled_step/expected/messages.txt.snap",
+      "mode": "100644",
+      "blob": "9d9a0f6c2204fd0725248e41ef9116f66e87534c"
+    },
+    {
+      "path": "author/suite/tests/fixtures/disabled_step/model.rs",
+      "mode": "100644",
+      "blob": "ee35474a97e51f63eb02b0d2bf58481bd090540e"
+    },
+    {
+      "path": "author/suite/tests/fixtures/expect_line/expected/messages.txt.snap",
+      "mode": "100644",
+      "blob": "d5d092d5c981d5dacce87ff56035c843a46bca06"
+    },
+    {
+      "path": "author/suite/tests/fixtures/expect_line/model.rs",
+      "mode": "100644",
+      "blob": "d87ee0704000cbc80c7d7f4e184c897bc967035a"
+    },
+    {
+      "path": "author/suite/tests/fixtures/search_budget/expected/messages.txt.snap",
+      "mode": "100644",
+      "blob": "f646f95e09e5e1556e89059e3aed774410eef152"
+    },
+    {
+      "path": "author/suite/tests/fixtures/search_budget/model.rs",
+      "mode": "100644",
+      "blob": "e242a3bf2f987faf56808a181d94564bfbca481c"
+    },
+    {
+      "path": "author/suite/tests/fixtures/space_find/expected/messages.txt.snap",
+      "mode": "100644",
+      "blob": "50fd16f0c3d56ad5a92b81b96da55f9e0d2c73fd"
+    },
+    {
+      "path": "author/suite/tests/fixtures/space_find/model.rs",
+      "mode": "100644",
+      "blob": "0e06d6487754016428846c70ef25c0eef5cb8f55"
+    },
+    {
+      "path": "author/suite/tests/fixtures/space_refuted/expected/messages.txt.snap",
+      "mode": "100644",
+      "blob": "87f64b4099e45450ed96e341018264e7f635c915"
+    },
+    {
+      "path": "author/suite/tests/fixtures/space_refuted/model.rs",
+      "mode": "100644",
+      "blob": "0eef530af73666d4319fdd94600084a0f7e94ada"
+    },
+    {
+      "path": "author/suite/tests/fixtures/space_skipped/expected/messages.txt.snap",
+      "mode": "100644",
+      "blob": "d989330ec18c21a814a44dde7317112a67465e29"
+    },
+    {
+      "path": "author/suite/tests/fixtures/space_skipped/model.rs",
+      "mode": "100644",
+      "blob": "e90c64561ffcd006bf67147a56c932c03ccfbe59"
+    },
+    {
+      "path": "author/suite/tests/fixtures/space_verify_all/expected/messages.txt.snap",
+      "mode": "100644",
+      "blob": "f95a9a15adabf11659ae7854dd5d06fb330b9c0d"
+    },
+    {
+      "path": "author/suite/tests/fixtures/space_verify_all/model.rs",
+      "mode": "100644",
+      "blob": "d746064edf9dd9ce48a151eea5f6c92a6c89ab2e"
+    },
+    {
+      "path": "author/suite/tests/fixtures/test_space/expected/coverage.txt.snap",
+      "mode": "100644",
+      "blob": "a059e635d70bc337c12c84035782ae63fc276e24"
+    },
+    {
+      "path": "author/suite/tests/fixtures/test_space/expected/expansion/closings.txt.snap",
+      "mode": "100644",
+      "blob": "ada5cd0b777b8d076334f83efbad73047d460aaa"
+    },
+    {
+      "path": "author/suite/tests/fixtures/test_space/expected/expansion/sample.txt.snap",
+      "mode": "100644",
+      "blob": "02699e9f32f816b3693994d9b202e60170033e6b"
+    },
+    {
+      "path": "author/suite/tests/fixtures/test_space/expected/messages.txt.snap",
+      "mode": "100644",
+      "blob": "a660018e36789c74b91e0dfa93a6967841b30179"
+    },
+    {
+      "path": "author/suite/tests/fixtures/test_space/model.rs",
+      "mode": "100644",
+      "blob": "7b922e9ecdf7c5c14f15193fa8aa62efc060a6f2"
+    },
+    {
+      "path": "backends/apalache/tests/expected/kettle-negative.txt",
+      "mode": "100644",
+      "blob": "2565f84ade3b9ad14137a72acc45f07bbc65adc5"
+    },
+    {
+      "path": "backends/apalache/tests/fixtures/arithmetic.rs",
+      "mode": "100644",
+      "blob": "37068c946a4ef32b7e2ad51e79fe0bc5d57b91fd"
+    },
+    {
+      "path": "backends/apalache/tests/fixtures/arithmetic_prefix.rs",
+      "mode": "100644",
+      "blob": "4adf0a00b10905f69add586a1351ab93cc12c1cc"
+    },
+    {
+      "path": "backends/apalache/tests/fixtures/categories.rs",
+      "mode": "100644",
+      "blob": "570e466c6106d3887934353f04085b3c23f02934"
+    },
+    {
+      "path": "backends/apalache/tests/fixtures/empty_condition.rs",
+      "mode": "100644",
+      "blob": "b54ad8813af32592dcd8291f4af529e8f0378b86"
+    },
+    {
+      "path": "backends/apalache/tests/fixtures/kettle-0.62.4.itf.json",
+      "mode": "100644",
+      "blob": "adfbd03bfaff2cee76e8062b4aa364ad07b4e56e"
+    },
+    {
+      "path": "backends/apalache/tests/fixtures/replay.rs",
+      "mode": "100644",
+      "blob": "f467614619b2906a9e46ad21ede6a0aa3ce668a3"
+    },
+    {
+      "path": "backends/apalache/tests/fixtures/start_empty_first.rs",
+      "mode": "100644",
+      "blob": "d6170e4617b40d35ff168bb275e6b1c2b6af81a9"
+    },
+    {
+      "path": "backends/apalache/tests/fixtures/start_fault_first.rs",
+      "mode": "100644",
+      "blob": "1f5c9038c6a8e44c225fd3f0cd32093b461d3c3f"
+    },
+    {
+      "path": "backends/apalache/tests/fixtures/start_later_fault.rs",
+      "mode": "100644",
+      "blob": "f731b1f7b08b4ee0fe736c4a5709f45c7841c646"
+    },
+    {
+      "path": "backends/native/tests/fixtures/choices/expected/report.txt.snap",
+      "mode": "100644",
+      "blob": "f575489fe16bc2348184eee793b3c58bb60aa461"
+    },
+    {
+      "path": "backends/native/tests/fixtures/choices/expected/rows.txt.snap",
+      "mode": "100644",
+      "blob": "092117db472123fcf4d5c8aa5be0973975c8b9d3"
+    },
+    {
+      "path": "backends/native/tests/fixtures/choices/expected/states.txt.snap",
+      "mode": "100644",
+      "blob": "498e7d3346bacfdce822d76918177afcbe6d4b7c"
+    },
+    {
+      "path": "backends/native/tests/fixtures/choices/model.rs",
+      "mode": "100644",
+      "blob": "a56d9b11392ba1abc81232cd76910ee3c2a66717"
+    },
+    {
+      "path": "backends/native/tests/fixtures/claim_order/expected/report.txt.snap",
+      "mode": "100644",
+      "blob": "4696f8655e513c86b83956c9b4055d318a75df09"
+    },
+    {
+      "path": "backends/native/tests/fixtures/claim_order/model.rs",
+      "mode": "100644",
+      "blob": "fda83d8eed251756438e9579db579b490a4aca3c"
+    },
+    {
+      "path": "backends/native/tests/fixtures/deep_chain/expected/report.txt.snap",
+      "mode": "100644",
+      "blob": "38232bd6db3113f93f0f5c085ebfdf5e30fe141b"
+    },
+    {
+      "path": "backends/native/tests/fixtures/deep_chain/model.rs",
+      "mode": "100644",
+      "blob": "5256f16d07e4f21a5a28f47a3c32165221b14e8f"
+    },
+    {
+      "path": "backends/native/tests/fixtures/edge_checks/expected/paths/idle_changes.txt.snap",
+      "mode": "100644",
+      "blob": "0e5f4f9d74f86ca080d32e4e08aa3211ba67d213"
+    },
+    {
+      "path": "backends/native/tests/fixtures/edge_checks/expected/paths/never_decreases.txt.snap",
+      "mode": "100644",
+      "blob": "3d978f94dedfa7f67e3dd6129699626973512202"
+    },
+    {
+      "path": "backends/native/tests/fixtures/edge_checks/expected/report.txt.snap",
+      "mode": "100644",
+      "blob": "f56cf49ef5645bc830b896df2c7e03d81d546801"
+    },
+    {
+      "path": "backends/native/tests/fixtures/edge_checks/expected/rows.txt.snap",
+      "mode": "100644",
+      "blob": "97dedffdc6790f072ba8840d34cd770f812bbc90"
+    },
+    {
+      "path": "backends/native/tests/fixtures/edge_checks/expected/states.txt.snap",
+      "mode": "100644",
+      "blob": "17e4c777061f67e35cd96f6194925268ce3bce9e"
+    },
+    {
+      "path": "backends/native/tests/fixtures/edge_checks/model.rs",
+      "mode": "100644",
+      "blob": "ce616ac352efe731575bb28350f49343125af4c9"
+    },
+    {
+      "path": "backends/native/tests/fixtures/effect_overflow/expected/paths/step_0_0.txt.snap",
+      "mode": "100644",
+      "blob": "6f7761facd1659b2ed78d1a8192466722d5102ae"
+    },
+    {
+      "path": "backends/native/tests/fixtures/effect_overflow/expected/report.txt.snap",
+      "mode": "100644",
+      "blob": "1ff34291757a0997f6b13f24b2c3bac8a0ae503b"
+    },
+    {
+      "path": "backends/native/tests/fixtures/effect_overflow/expected/rows.txt.snap",
+      "mode": "100644",
+      "blob": "11d4e9be4c8aa406a09c5016324d89bb44fe8a55"
+    },
+    {
+      "path": "backends/native/tests/fixtures/effect_overflow/expected/states.txt.snap",
+      "mode": "100644",
+      "blob": "0771f4eefc6b5c0bcf34c18bf2180912bd19bca7"
+    },
+    {
+      "path": "backends/native/tests/fixtures/effect_overflow/model.rs",
+      "mode": "100644",
+      "blob": "5d97bdc280facd84431b112cffd20daf32c82ff8"
+    },
+    {
+      "path": "backends/native/tests/fixtures/effect_panic/expected/paths/step_0_0.txt.snap",
+      "mode": "100644",
+      "blob": "2d7df1a834380d50b07eed9ded2033845692279c"
+    },
+    {
+      "path": "backends/native/tests/fixtures/effect_panic/expected/report.txt.snap",
+      "mode": "100644",
+      "blob": "1694be59dce9b5b8e8f825a41c6c05517a455aef"
+    },
+    {
+      "path": "backends/native/tests/fixtures/effect_panic/expected/rows.txt.snap",
+      "mode": "100644",
+      "blob": "11d4e9be4c8aa406a09c5016324d89bb44fe8a55"
+    },
+    {
+      "path": "backends/native/tests/fixtures/effect_panic/expected/states.txt.snap",
+      "mode": "100644",
+      "blob": "0771f4eefc6b5c0bcf34c18bf2180912bd19bca7"
+    },
+    {
+      "path": "backends/native/tests/fixtures/effect_panic/model.rs",
+      "mode": "100644",
+      "blob": "a9739cca25612ded03e88e7f7ea375b4b83bb2e6"
+    },
+    {
+      "path": "backends/native/tests/fixtures/format_values/expected/paths/unchanged.txt.snap",
+      "mode": "100644",
+      "blob": "463eece149f30317c761bc08625df317f2dba234"
+    },
+    {
+      "path": "backends/native/tests/fixtures/format_values/expected/report.txt.snap",
+      "mode": "100644",
+      "blob": "03f24bca5ff42761245b4e8a57176abce0cbccf5"
+    },
+    {
+      "path": "backends/native/tests/fixtures/format_values/expected/rows.txt.snap",
+      "mode": "100644",
+      "blob": "2fb563ad91a0f5563aae28313a6b902e31607345"
+    },
+    {
+      "path": "backends/native/tests/fixtures/format_values/expected/states.txt.snap",
+      "mode": "100644",
+      "blob": "157b3d915cfdd18298c8bb287b1794862bb8f4c1"
+    },
+    {
+      "path": "backends/native/tests/fixtures/format_values/model.rs",
+      "mode": "100644",
+      "blob": "0ef2b4cae26ef74b824cb79e4d2ebcc5f1aa9395"
+    },
+    {
+      "path": "backends/native/tests/fixtures/hole_then_failure/expected/paths/safe.txt.snap",
+      "mode": "100644",
+      "blob": "b7c218918820a93e101ac03a0da6f55b188ac1ab"
+    },
+    {
+      "path": "backends/native/tests/fixtures/hole_then_failure/expected/report.txt.snap",
+      "mode": "100644",
+      "blob": "fba936225688e56b46b4ae2f0724a32ecab598a6"
+    },
+    {
+      "path": "backends/native/tests/fixtures/hole_then_failure/expected/rows.txt.snap",
+      "mode": "100644",
+      "blob": "97dedffdc6790f072ba8840d34cd770f812bbc90"
+    },
+    {
+      "path": "backends/native/tests/fixtures/hole_then_failure/expected/states.txt.snap",
+      "mode": "100644",
+      "blob": "17e4c777061f67e35cd96f6194925268ce3bce9e"
+    },
+    {
+      "path": "backends/native/tests/fixtures/hole_then_failure/model.rs",
+      "mode": "100644",
+      "blob": "0a2eca5c88777e62e7e0238da475b2bc1e01d237"
+    },
+    {
+      "path": "backends/native/tests/fixtures/holes/expected/report.txt.snap",
+      "mode": "100644",
+      "blob": "56252ac367a36de5d05caeb0f59e7beb859a0659"
+    },
+    {
+      "path": "backends/native/tests/fixtures/holes/expected/rows.txt.snap",
+      "mode": "100644",
+      "blob": "97dedffdc6790f072ba8840d34cd770f812bbc90"
+    },
+    {
+      "path": "backends/native/tests/fixtures/holes/expected/states.txt.snap",
+      "mode": "100644",
+      "blob": "17e4c777061f67e35cd96f6194925268ce3bce9e"
+    },
+    {
+      "path": "backends/native/tests/fixtures/holes/model.rs",
+      "mode": "100644",
+      "blob": "10af79ad0628694f72dc23b800d96172f9b1fcdd"
+    },
+    {
+      "path": "backends/native/tests/fixtures/interleaved_claims/expected/negative_report.txt.snap",
+      "mode": "100644",
+      "blob": "5752ff3220f53f5876a5b7ac90083394369af7e8"
+    },
+    {
+      "path": "backends/native/tests/fixtures/interleaved_claims/expected/paths/starts_zero.txt.snap",
+      "mode": "100644",
+      "blob": "34374834870b0593dc76b0241adf912bd910ec8b"
+    },
+    {
+      "path": "backends/native/tests/fixtures/interleaved_claims/expected/paths/stays_zero.txt.snap",
+      "mode": "100644",
+      "blob": "34374834870b0593dc76b0241adf912bd910ec8b"
+    },
+    {
+      "path": "backends/native/tests/fixtures/interleaved_claims/expected/report.txt.snap",
+      "mode": "100644",
+      "blob": "50e8fb1f88d1db3ccf7c2d6262a1aba90933dd53"
+    },
+    {
+      "path": "backends/native/tests/fixtures/interleaved_claims/expected/rows.txt.snap",
+      "mode": "100644",
+      "blob": "ac8d542cc737b97d9a0fe98158dd14ad92e30359"
+    },
+    {
+      "path": "backends/native/tests/fixtures/interleaved_claims/expected/states.txt.snap",
+      "mode": "100644",
+      "blob": "7561a71dd377fcf9128d62af47f0aa52abac3e3a"
+    },
+    {
+      "path": "backends/native/tests/fixtures/interleaved_claims/model.rs",
+      "mode": "100644",
+      "blob": "38855906cf33440679d51bb6651ed12ff87765d4"
+    },
+    {
+      "path": "backends/native/tests/fixtures/invalid_state/expected/report.txt.snap",
+      "mode": "100644",
+      "blob": "925bb31102163d720983a5624a342834b2a6ef02"
+    },
+    {
+      "path": "backends/native/tests/fixtures/invalid_state/model.rs",
+      "mode": "100644",
+      "blob": "33abf5c4c7b3372091750522a4dcdb04af958e40"
+    },
+    {
+      "path": "backends/native/tests/fixtures/invariant_panic/expected/paths/safe.txt.snap",
+      "mode": "100644",
+      "blob": "349eec0b0c29024a440d0c3ba136352ea03cd0e2"
+    },
+    {
+      "path": "backends/native/tests/fixtures/invariant_panic/expected/report.txt.snap",
+      "mode": "100644",
+      "blob": "0b2294798e9448d9ecbbe8d4694881b12a9be0bf"
+    },
+    {
+      "path": "backends/native/tests/fixtures/invariant_panic/expected/rows.txt.snap",
+      "mode": "100644",
+      "blob": "97dedffdc6790f072ba8840d34cd770f812bbc90"
+    },
+    {
+      "path": "backends/native/tests/fixtures/invariant_panic/expected/states.txt.snap",
+      "mode": "100644",
+      "blob": "17e4c777061f67e35cd96f6194925268ce3bce9e"
+    },
+    {
+      "path": "backends/native/tests/fixtures/invariant_panic/model.rs",
+      "mode": "100644",
+      "blob": "cb0cfc9cb54dec3575b199c1c5862a32f11afd8c"
+    },
+    {
+      "path": "backends/native/tests/fixtures/post_refuted_cut/expected/paths/unchanged.txt.snap",
+      "mode": "100644",
+      "blob": "b7c218918820a93e101ac03a0da6f55b188ac1ab"
+    },
+    {
+      "path": "backends/native/tests/fixtures/post_refuted_cut/expected/report.txt.snap",
+      "mode": "100644",
+      "blob": "d208af646370e104f9a13755ecc0a5f7d8cda3d3"
+    },
+    {
+      "path": "backends/native/tests/fixtures/post_refuted_cut/expected/rows.txt.snap",
+      "mode": "100644",
+      "blob": "f5064f5c9bedb7c1f10a5ce7f5e8cd93025548b9"
+    },
+    {
+      "path": "backends/native/tests/fixtures/post_refuted_cut/expected/states.txt.snap",
+      "mode": "100644",
+      "blob": "0771f4eefc6b5c0bcf34c18bf2180912bd19bca7"
+    },
+    {
+      "path": "backends/native/tests/fixtures/post_refuted_cut/model.rs",
+      "mode": "100644",
+      "blob": "112cdb3ce38cfd2dff2d229c8d17c7bba3e321ff"
+    },
+    {
+      "path": "backends/native/tests/fixtures/postcondition_panic/expected/paths/panicking_edge.txt.snap",
+      "mode": "100644",
+      "blob": "f6f2423a7888c8bd81653882dca58299b3df6093"
+    },
+    {
+      "path": "backends/native/tests/fixtures/postcondition_panic/expected/report.txt.snap",
+      "mode": "100644",
+      "blob": "dc03b1d12c0a36494bca45e9ef60de1f9cc1b8bc"
+    },
+    {
+      "path": "backends/native/tests/fixtures/postcondition_panic/expected/rows.txt.snap",
+      "mode": "100644",
+      "blob": "97dedffdc6790f072ba8840d34cd770f812bbc90"
+    },
+    {
+      "path": "backends/native/tests/fixtures/postcondition_panic/expected/states.txt.snap",
+      "mode": "100644",
+      "blob": "17e4c777061f67e35cd96f6194925268ce3bce9e"
+    },
+    {
+      "path": "backends/native/tests/fixtures/postcondition_panic/model.rs",
+      "mode": "100644",
+      "blob": "9f4272b90c4821273bb3b9a7095130c20aafda6f"
+    },
+    {
+      "path": "backends/native/tests/fixtures/progress_action_choices/expected/paths/reaches_target.txt.snap",
+      "mode": "100644",
+      "blob": "ec96d81d1841373878b6d8e3bd48e2e4b7834df4"
+    },
+    {
+      "path": "backends/native/tests/fixtures/progress_action_choices/expected/report.txt.snap",
+      "mode": "100644",
+      "blob": "f4f7cc57399e0e418b1b14d8a19d67ed739b3d5e"
+    },
+    {
+      "path": "backends/native/tests/fixtures/progress_action_choices/expected/rows.txt.snap",
+      "mode": "100644",
+      "blob": "010a73d3e29a5c5d9d97cd189c03cc19593321fd"
+    },
+    {
+      "path": "backends/native/tests/fixtures/progress_action_choices/expected/states.txt.snap",
+      "mode": "100644",
+      "blob": "13490fe5be86007f96a27e7c90c3b974a0930c40"
+    },
+    {
+      "path": "backends/native/tests/fixtures/progress_action_choices/model.rs",
+      "mode": "100644",
+      "blob": "d87a1a5ee89f4a2d7a1d9aa441007eb5c488746b"
+    },
+    {
+      "path": "backends/native/tests/fixtures/progress_admission_cut/expected/report.txt.snap",
+      "mode": "100644",
+      "blob": "d5ea50bf5c76d5f42c2443ac64cb025ea4b5c14e"
+    },
+    {
+      "path": "backends/native/tests/fixtures/progress_admission_cut/expected/rows.txt.snap",
+      "mode": "100644",
+      "blob": "4b294605f09e09019e8be124164a7dc17b8bb33b"
+    },
+    {
+      "path": "backends/native/tests/fixtures/progress_admission_cut/expected/states.txt.snap",
+      "mode": "100644",
+      "blob": "f4c6a6ac6d7fb30a46c17d4f36bca65bcf36464d"
+    },
+    {
+      "path": "backends/native/tests/fixtures/progress_admission_cut/model.rs",
+      "mode": "100644",
+      "blob": "6109db80fa3c3dbf5435637ce09dfd5f431203e2"
+    },
+    {
+      "path": "backends/native/tests/fixtures/progress_assumption_validation/expected/report.txt.snap",
+      "mode": "100644",
+      "blob": "2e9109af5ca8fa6aeef52666b6a46abd1aec07af"
+    },
+    {
+      "path": "backends/native/tests/fixtures/progress_assumption_validation/model.rs",
+      "mode": "100644",
+      "blob": "11156b2aefa259d7644441a4b7095744d4ab8a70"
+    },
+    {
+      "path": "backends/native/tests/fixtures/progress_bounds/expected/report.txt.snap",
+      "mode": "100644",
+      "blob": "eb455ea5688602fbfddbba134875ef69a857be92"
+    },
+    {
+      "path": "backends/native/tests/fixtures/progress_bounds/model.rs",
+      "mode": "100644",
+      "blob": "74a6c17a6150d174678749c24a2b93e848add878"
+    },
+    {
+      "path": "backends/native/tests/fixtures/progress_chain_path/expected/report.txt.snap",
+      "mode": "100644",
+      "blob": "2e358a53b3c7a3079a623a7ce23be6883687f321"
+    },
+    {
+      "path": "backends/native/tests/fixtures/progress_chain_path/model.rs",
+      "mode": "100644",
+      "blob": "e5b7c6459372ee7e61810684b9a05f137d337fcc"
+    },
+    {
+      "path": "backends/native/tests/fixtures/progress_choices_cut/expected/report.txt.snap",
+      "mode": "100644",
+      "blob": "d37b4db992a0efdd13f13a1bb8c5b6e4d05d9897"
+    },
+    {
+      "path": "backends/native/tests/fixtures/progress_choices_cut/expected/rows.txt.snap",
+      "mode": "100644",
+      "blob": "4b938e55a6cc21fd4b76677aeed805a252762ca8"
+    },
+    {
+      "path": "backends/native/tests/fixtures/progress_choices_cut/expected/states.txt.snap",
+      "mode": "100644",
+      "blob": "a7458f0b4324f405a54eb67e82ef24f48a742cb1"
+    },
+    {
+      "path": "backends/native/tests/fixtures/progress_choices_cut/model.rs",
+      "mode": "100644",
+      "blob": "5e1ad1d6421aea47fefbe70fcec973197a3598a4"
+    },
+    {
+      "path": "backends/native/tests/fixtures/progress_effect_panic/expected/paths/step_0_0.txt.snap",
+      "mode": "100644",
+      "blob": "8ce902a09c572da6fadf1c27a4cb87a027efe367"
+    },
+    {
+      "path": "backends/native/tests/fixtures/progress_effect_panic/expected/report.txt.snap",
+      "mode": "100644",
+      "blob": "dec86c4ca2a723edca4bdb838877424466e1df32"
+    },
+    {
+      "path": "backends/native/tests/fixtures/progress_effect_panic/expected/rows.txt.snap",
+      "mode": "100644",
+      "blob": "11d4e9be4c8aa406a09c5016324d89bb44fe8a55"
+    },
+    {
+      "path": "backends/native/tests/fixtures/progress_effect_panic/expected/states.txt.snap",
+      "mode": "100644",
+      "blob": "f4c6a6ac6d7fb30a46c17d4f36bca65bcf36464d"
+    },
+    {
+      "path": "backends/native/tests/fixtures/progress_effect_panic/model.rs",
+      "mode": "100644",
+      "blob": "e7ef1e50f7b936d58790d0952cc6273b41c11610"
+    },
+    {
+      "path": "backends/native/tests/fixtures/progress_explicit_fairness/expected/report.txt.snap",
+      "mode": "100644",
+      "blob": "d970e37314cb2d9007c169df05c6368091fe2018"
+    },
+    {
+      "path": "backends/native/tests/fixtures/progress_explicit_fairness/model.rs",
+      "mode": "100644",
+      "blob": "bf4c939f243d6f522107c7a0434733e38e811a05"
+    },
+    {
+      "path": "backends/native/tests/fixtures/progress_external_cycle_cut/expected/paths/reaches_target.txt.snap",
+      "mode": "100644",
+      "blob": "6a966d5d8c1b3327e603cc4dc3c716ff3c2cb9b2"
+    },
+    {
+      "path": "backends/native/tests/fixtures/progress_external_cycle_cut/expected/report.txt.snap",
+      "mode": "100644",
+      "blob": "d455e103bc4cf724dfa06e7f110a809ca2397b4e"
+    },
+    {
+      "path": "backends/native/tests/fixtures/progress_external_cycle_cut/expected/rows.txt.snap",
+      "mode": "100644",
+      "blob": "52a09e19c38105d21cb11d7fac159dd2d23b67df"
+    },
+    {
+      "path": "backends/native/tests/fixtures/progress_external_cycle_cut/expected/states.txt.snap",
+      "mode": "100644",
+      "blob": "f4c6a6ac6d7fb30a46c17d4f36bca65bcf36464d"
+    },
+    {
+      "path": "backends/native/tests/fixtures/progress_external_cycle_cut/model.rs",
+      "mode": "100644",
+      "blob": "2d89de9b96f796202d6179db92119f6b05e1f4a8"
+    },
+    {
+      "path": "backends/native/tests/fixtures/progress_independent_failure/expected/paths/independent_failure.txt.snap",
+      "mode": "100644",
+      "blob": "79ac229d2b796558449b55ec61ac772922f0f630"
+    },
+    {
+      "path": "backends/native/tests/fixtures/progress_independent_failure/expected/paths/target_panic.txt.snap",
+      "mode": "100644",
+      "blob": "c92e4cf31e10f9fd3ac9725dadac8b57021bbcdb"
+    },
+    {
+      "path": "backends/native/tests/fixtures/progress_independent_failure/expected/paths/trigger_panic.txt.snap",
+      "mode": "100644",
+      "blob": "9dcfb86aa771cec611f615212f2e23b57cc01646"
+    },
+    {
+      "path": "backends/native/tests/fixtures/progress_independent_failure/expected/report.txt.snap",
+      "mode": "100644",
+      "blob": "e5d2b6f5f3d92d0fa4709a42ee2825663452ff61"
+    },
+    {
+      "path": "backends/native/tests/fixtures/progress_independent_failure/expected/rows.txt.snap",
+      "mode": "100644",
+      "blob": "8b10844176b680a8ed700581b9053d9430b80a66"
+    },
+    {
+      "path": "backends/native/tests/fixtures/progress_independent_failure/expected/states.txt.snap",
+      "mode": "100644",
+      "blob": "a7458f0b4324f405a54eb67e82ef24f48a742cb1"
+    },
+    {
+      "path": "backends/native/tests/fixtures/progress_independent_failure/model.rs",
+      "mode": "100644",
+      "blob": "46711c934d5e3d25ec0ca645eabae89164d83a94"
+    },
+    {
+      "path": "backends/native/tests/fixtures/progress_internal_cycle_cut/expected/paths/reaches_target.txt.snap",
+      "mode": "100644",
+      "blob": "6a966d5d8c1b3327e603cc4dc3c716ff3c2cb9b2"
+    },
+    {
+      "path": "backends/native/tests/fixtures/progress_internal_cycle_cut/expected/report.txt.snap",
+      "mode": "100644",
+      "blob": "d455e103bc4cf724dfa06e7f110a809ca2397b4e"
+    },
+    {
+      "path": "backends/native/tests/fixtures/progress_internal_cycle_cut/expected/rows.txt.snap",
+      "mode": "100644",
+      "blob": "52a09e19c38105d21cb11d7fac159dd2d23b67df"
+    },
+    {
+      "path": "backends/native/tests/fixtures/progress_internal_cycle_cut/expected/states.txt.snap",
+      "mode": "100644",
+      "blob": "f4c6a6ac6d7fb30a46c17d4f36bca65bcf36464d"
+    },
+    {
+      "path": "backends/native/tests/fixtures/progress_internal_cycle_cut/model.rs",
+      "mode": "100644",
+      "blob": "6aee98adc4745e1c96874aa05807f92b553e75a7"
+    },
+    {
+      "path": "backends/native/tests/fixtures/progress_multiple_starts/expected/paths/reaches_target.txt.snap",
+      "mode": "100644",
+      "blob": "06847a34fad46867f7c639e974dacaea1ffb7919"
+    },
+    {
+      "path": "backends/native/tests/fixtures/progress_multiple_starts/expected/report.txt.snap",
+      "mode": "100644",
+      "blob": "a29673e3202a94df6a94ee3806f0e54d3721f335"
+    },
+    {
+      "path": "backends/native/tests/fixtures/progress_multiple_starts/expected/rows.txt.snap",
+      "mode": "100644",
+      "blob": "4fa91c5deb02f4c7c9dfa0448f599ee668d889de"
+    },
+    {
+      "path": "backends/native/tests/fixtures/progress_multiple_starts/expected/states.txt.snap",
+      "mode": "100644",
+      "blob": "4d4d0ba1f63821bcdb38205b293c2e6aa02887c6"
+    },
+    {
+      "path": "backends/native/tests/fixtures/progress_multiple_starts/model.rs",
+      "mode": "100644",
+      "blob": "102a3f09e2170df7085ad9a209f6cdb5efb0f17b"
+    },
+    {
+      "path": "backends/native/tests/fixtures/progress_queued_cut/expected/report.txt.snap",
+      "mode": "100644",
+      "blob": "ca4852c88920719b0ac20904b5bedf4e51d68d03"
+    },
+    {
+      "path": "backends/native/tests/fixtures/progress_queued_cut/expected/rows.txt.snap",
+      "mode": "100644",
+      "blob": "195e6bdc15ebed16eff657d4acfa37fc1959be24"
+    },
+    {
+      "path": "backends/native/tests/fixtures/progress_queued_cut/expected/states.txt.snap",
+      "mode": "100644",
+      "blob": "a7458f0b4324f405a54eb67e82ef24f48a742cb1"
+    },
+    {
+      "path": "backends/native/tests/fixtures/progress_queued_cut/model.rs",
+      "mode": "100644",
+      "blob": "cdeec2f21655fb09ba4c792175354ad954361d75"
+    },
+    {
+      "path": "backends/native/tests/fixtures/progress_refuted_cut/expected/paths/reaches_target.txt.snap",
+      "mode": "100644",
+      "blob": "f2a3cd89b67d7fac6be732cdd9c616718127d9b8"
+    },
+    {
+      "path": "backends/native/tests/fixtures/progress_refuted_cut/expected/report.txt.snap",
+      "mode": "100644",
+      "blob": "4515a0dd7f7adf48bdb2206e160cbe747c253eb2"
+    },
+    {
+      "path": "backends/native/tests/fixtures/progress_refuted_cut/expected/rows.txt.snap",
+      "mode": "100644",
+      "blob": "c5243b76550ea18fb25634b76b93f737e58d5fe8"
+    },
+    {
+      "path": "backends/native/tests/fixtures/progress_refuted_cut/expected/states.txt.snap",
+      "mode": "100644",
+      "blob": "55d839e71eef2b0341de366a65ba6d6240331083"
+    },
+    {
+      "path": "backends/native/tests/fixtures/progress_refuted_cut/model.rs",
+      "mode": "100644",
+      "blob": "1fb5671f816fad74f2bc1cc878c280e4b59547e2"
+    },
+    {
+      "path": "backends/native/tests/fixtures/progress_scope_refusal/expected/report.txt.snap",
+      "mode": "100644",
+      "blob": "7439908f5837eab3d86843774e0a36c422c3e0e4"
+    },
+    {
+      "path": "backends/native/tests/fixtures/progress_scope_refusal/model.rs",
+      "mode": "100644",
+      "blob": "bc76c4c9e10488c0e0af0dfeab9e6965180cdf66"
+    },
+    {
+      "path": "backends/native/tests/fixtures/progress_starts_cut/expected/report.txt.snap",
+      "mode": "100644",
+      "blob": "0d1763deaeb6628e50b8e9dd362e5c713efa55b5"
+    },
+    {
+      "path": "backends/native/tests/fixtures/progress_starts_cut/expected/rows.txt.snap",
+      "mode": "100644",
+      "blob": "11d4e9be4c8aa406a09c5016324d89bb44fe8a55"
+    },
+    {
+      "path": "backends/native/tests/fixtures/progress_starts_cut/expected/states.txt.snap",
+      "mode": "100644",
+      "blob": "f4c6a6ac6d7fb30a46c17d4f36bca65bcf36464d"
+    },
+    {
+      "path": "backends/native/tests/fixtures/progress_starts_cut/model.rs",
+      "mode": "100644",
+      "blob": "43cc3de8f1de5c804e727096d8574a6cd4de22a5"
+    },
+    {
+      "path": "backends/native/tests/fixtures/progress_unknown/expected/paths/target_panic.txt.snap",
+      "mode": "100644",
+      "blob": "c92e4cf31e10f9fd3ac9725dadac8b57021bbcdb"
+    },
+    {
+      "path": "backends/native/tests/fixtures/progress_unknown/expected/paths/trigger_panic.txt.snap",
+      "mode": "100644",
+      "blob": "9dcfb86aa771cec611f615212f2e23b57cc01646"
+    },
+    {
+      "path": "backends/native/tests/fixtures/progress_unknown/expected/report.txt.snap",
+      "mode": "100644",
+      "blob": "14b9085a7828c6b7913e80c13d493c787194f864"
+    },
+    {
+      "path": "backends/native/tests/fixtures/progress_unknown/expected/rows.txt.snap",
+      "mode": "100644",
+      "blob": "8b10844176b680a8ed700581b9053d9430b80a66"
+    },
+    {
+      "path": "backends/native/tests/fixtures/progress_unknown/expected/states.txt.snap",
+      "mode": "100644",
+      "blob": "a7458f0b4324f405a54eb67e82ef24f48a742cb1"
+    },
+    {
+      "path": "backends/native/tests/fixtures/progress_unknown/model.rs",
+      "mode": "100644",
+      "blob": "286887be97aa59ec7072525774d4c13e648f4d6a"
+    },
+    {
+      "path": "backends/native/tests/fixtures/refuted_cut/expected/paths/safe.txt.snap",
+      "mode": "100644",
+      "blob": "508e8cb4b42929b29fd3f7ab574e2747ca7e553a"
+    },
+    {
+      "path": "backends/native/tests/fixtures/refuted_cut/expected/report.txt.snap",
+      "mode": "100644",
+      "blob": "f9cecd741f35509e088cf0730d01aba3aec76275"
+    },
+    {
+      "path": "backends/native/tests/fixtures/refuted_cut/expected/rows.txt.snap",
+      "mode": "100644",
+      "blob": "f5064f5c9bedb7c1f10a5ce7f5e8cd93025548b9"
+    },
+    {
+      "path": "backends/native/tests/fixtures/refuted_cut/expected/states.txt.snap",
+      "mode": "100644",
+      "blob": "0771f4eefc6b5c0bcf34c18bf2180912bd19bca7"
+    },
+    {
+      "path": "backends/native/tests/fixtures/refuted_cut/model.rs",
+      "mode": "100644",
+      "blob": "de5e82a92fa1b70707b9675dd9acdc7fa2166279"
+    },
+    {
+      "path": "backends/native/tests/fixtures/rejecting_mutation/expected/report.txt.snap",
+      "mode": "100644",
+      "blob": "59058972a12b6a911e1ec4912366f167fd8da97b"
+    },
+    {
+      "path": "backends/native/tests/fixtures/rejecting_mutation/model.rs",
+      "mode": "100644",
+      "blob": "616a3665d695db3332071914bac8beab785eed44"
+    },
+    {
+      "path": "backends/native/tests/fixtures/sample_kettle_trait/expected/report.txt.snap",
+      "mode": "100644",
+      "blob": "087016a2e2163115f6be46dc34fef62f3fbe8bd1"
+    },
+    {
+      "path": "backends/native/tests/fixtures/sample_kettle_trait/expected/rows.txt.snap",
+      "mode": "100644",
+      "blob": "b03612a499743706256614d82e9ca4e0e2da889c"
+    },
+    {
+      "path": "backends/native/tests/fixtures/sample_kettle_trait/expected/states.txt.snap",
+      "mode": "100644",
+      "blob": "8ffeee62bb62b25d422e9afab3698d283302a685"
+    },
+    {
+      "path": "backends/native/tests/fixtures/sample_kettle_trait/kettle.rs",
+      "mode": "100644",
+      "blob": "93067d6f6849c6f5ebeda74ca0d8e9d5f5d58297"
+    },
+    {
+      "path": "backends/native/tests/fixtures/sample_kettle_trait/model.rs",
+      "mode": "100644",
+      "blob": "44fd5154cc7fe7801ab7dce913a9a0ab6b257140"
+    },
+    {
+      "path": "backends/native/tests/fixtures/shared_starts/expected/report.txt.snap",
+      "mode": "100644",
+      "blob": "fdeafb41785e14331382507f36e5f7afd6e1a603"
+    },
+    {
+      "path": "backends/native/tests/fixtures/shared_starts/expected/rows.txt.snap",
+      "mode": "100644",
+      "blob": "97dedffdc6790f072ba8840d34cd770f812bbc90"
+    },
+    {
+      "path": "backends/native/tests/fixtures/shared_starts/expected/states.txt.snap",
+      "mode": "100644",
+      "blob": "17e4c777061f67e35cd96f6194925268ce3bce9e"
+    },
+    {
+      "path": "backends/native/tests/fixtures/shared_starts/model.rs",
+      "mode": "100644",
+      "blob": "66ec1adfb54ccc9e387c8e6d079a974b5c32611f"
+    },
+    {
+      "path": "backends/native/tests/fixtures/starts_cut/expected/report.txt.snap",
+      "mode": "100644",
+      "blob": "1d311d8d7598499ca0ba5f40c6dd4fbaafd83eec"
+    },
+    {
+      "path": "backends/native/tests/fixtures/starts_cut/expected/rows.txt.snap",
+      "mode": "100644",
+      "blob": "11d4e9be4c8aa406a09c5016324d89bb44fe8a55"
+    },
+    {
+      "path": "backends/native/tests/fixtures/starts_cut/expected/states.txt.snap",
+      "mode": "100644",
+      "blob": "0771f4eefc6b5c0bcf34c18bf2180912bd19bca7"
+    },
+    {
+      "path": "backends/native/tests/fixtures/starts_cut/model.rs",
+      "mode": "100644",
+      "blob": "e4103b8b7ba6d87f84a3b392ab8c604edd7e58ed"
+    },
+    {
+      "path": "backends/native/tests/fixtures/vacuity/expected/report.txt.snap",
+      "mode": "100644",
+      "blob": "66a36f6619427d532eff027fbddf3df39c84484f"
+    },
+    {
+      "path": "backends/native/tests/fixtures/vacuity/expected/rows.txt.snap",
+      "mode": "100644",
+      "blob": "97dedffdc6790f072ba8840d34cd770f812bbc90"
+    },
+    {
+      "path": "backends/native/tests/fixtures/vacuity/expected/states.txt.snap",
+      "mode": "100644",
+      "blob": "17e4c777061f67e35cd96f6194925268ce3bce9e"
+    },
+    {
+      "path": "backends/native/tests/fixtures/vacuity/model.rs",
+      "mode": "100644",
+      "blob": "2319282381653329a2c3b6f9c5056b3ac5df73cc"
+    },
+    {
+      "path": "backends/native/tests/fixtures/zero_budget/expected/report.txt.snap",
+      "mode": "100644",
+      "blob": "f4860ba94a1c3c19e77a32109bea8951e2adc0ab"
+    },
+    {
+      "path": "backends/native/tests/fixtures/zero_budget/model.rs",
+      "mode": "100644",
+      "blob": "18974c5a129e93ffc336724d4681c0a03b4b9fb7"
+    },
+    {
+      "path": "backends/process/tests/fixtures/process_fixture.rs",
+      "mode": "100644",
+      "blob": "2fa82a7b06fd29d7bd5f4d723a707a8ffe4e73d4"
+    },
+    {
+      "path": "backends/tla/tests/expected/path_refusals.txt",
+      "mode": "100644",
+      "blob": "b57ddd5db8e1facc69720b816ce8d9a827b7ae3e"
+    },
+    {
+      "path": "backends/tla/tests/expected/phased_refusals.txt",
+      "mode": "100644",
+      "blob": "99a7681157110bb0566a2d614d167e438fb833b0"
+    },
+    {
+      "path": "backends/tla/tests/expected/unsupported.txt",
+      "mode": "100644",
+      "blob": "f8a9a9cc7121e35d04f10aa15dd0c5b15c133521"
+    },
+    {
+      "path": "backends/tla/tests/fixtures/linear_returns.rs",
+      "mode": "100644",
+      "blob": "da3999ab73d1584be49b21689f60b50fef7b8962"
+    },
+    {
+      "path": "backends/tla/tests/fixtures/optional_eager.rs",
+      "mode": "100644",
+      "blob": "2bb834e32ee2afb2c071caa9dbda3d8adad499ce"
+    },
+    {
+      "path": "backends/tla/tests/fixtures/remainder_i16.rs",
+      "mode": "100644",
+      "blob": "7e9f21315c3c666b9a6696fe7930c49158e60124"
+    },
+    {
+      "path": "backends/tla/tests/fixtures/remainder_i8.rs",
+      "mode": "100644",
+      "blob": "0faf118e6ef1ae2348d266b9316dfc8bcd4fb1aa"
+    },
+    {
+      "path": "backends/tla/tests/fixtures/sequential_checks.rs",
+      "mode": "100644",
+      "blob": "790a27ef9683917fc58e540af9c6ed27aaed3b90"
+    },
+    {
+      "path": "backends/tla/tests/fixtures/shadowing.rs",
+      "mode": "100644",
+      "blob": "2a61b16535420b8a0063494b17db531129e5431a"
+    },
+    {
+      "path": "backends/tla/tests/fixtures/vector.rs",
+      "mode": "100644",
+      "blob": "b39a31e9b2758a24a14db69aec6485373c4c626b"
+    },
+    {
+      "path": "backends/tla/tests/fixtures/vector_fallback.rs",
+      "mode": "100644",
+      "blob": "cfab3761699d3e37ca46e14c3e1c941696dea5e3"
+    },
+    {
+      "path": "backends/tlc/tests/fixtures/scaling_model.rs",
+      "mode": "100644",
+      "blob": "5bb163374f6852cde0830244b282a8a7f2e7f7d3"
+    },
+    {
+      "path": "catalog/syntax/tests/snapshots/expansion__typed-catalog.snap",
+      "mode": "100644",
+      "blob": "c686fede2119dbd1527b6177840a2d398cb95b76"
+    },
+    {
+      "path": "catalog/tests/snapshots/catalog__admission.snap",
+      "mode": "100644",
+      "blob": "2b64344deeb6c2048b78184c8f68632f16a3d990"
+    },
+    {
+      "path": "catalog/tests/snapshots/catalog__gaps.snap",
+      "mode": "100644",
+      "blob": "8e3ec22010a4c49f809a7fcfd66ed162dd98577e"
+    },
+    {
+      "path": "catalog/tests/snapshots/catalog__kind-violations.snap",
+      "mode": "100644",
+      "blob": "a5cc879d272df10074e768d2c401cd654d06d0ae"
+    },
+    {
+      "path": "catalog/tests/snapshots/catalog__presence-violations.snap",
+      "mode": "100644",
+      "blob": "e87827112038fe43a64cfb256f519eba90e8acd4"
+    },
+    {
+      "path": "catalog/tests/snapshots/controls__generated-catalog.snap",
+      "mode": "100644",
+      "blob": "0dc24e13dddb96cab086b013c2a25ee4fb5cac3b"
+    },
+    {
+      "path": "dev/fixtures/Cargo.toml",
+      "mode": "100644",
+      "blob": "dc252f390a986cbaf58d64f464adb8836accffa6"
+    },
+    {
+      "path": "dev/fixtures/build.rs",
+      "mode": "100644",
+      "blob": "b8a9ec37a9712605a15a1de37aea0277270f6e59"
+    },
+    {
+      "path": "dev/fixtures/crowded.rs",
+      "mode": "100644",
+      "blob": "41f73abd5b5e898fa3fe1b24ddf363dccb70c192"
+    },
+    {
+      "path": "dev/fixtures/fixtures.rs",
+      "mode": "100644",
+      "blob": "cbfb5f56e0d81e66aa578139fa5cbefcd91f2030"
+    },
+    {
+      "path": "dev/fixtures/fixtures/accepted_self_loops/expected/lift.txt.snap",
+      "mode": "100644",
+      "blob": "65c2ee3f3f88385b52762bc23a87c18050c45b34"
+    },
+    {
+      "path": "dev/fixtures/fixtures/accepted_self_loops/expected/report.txt.snap",
+      "mode": "100644",
+      "blob": "263ad5040edccca02819d3cb457a493e6caa5b36"
+    },
+    {
+      "path": "dev/fixtures/fixtures/accepted_self_loops/expected/rows.txt.snap",
+      "mode": "100644",
+      "blob": "1841e4465655dd7e296c5b6f5b2f2bd5c28a2120"
+    },
+    {
+      "path": "dev/fixtures/fixtures/accepted_self_loops/expected/states.txt.snap",
+      "mode": "100644",
+      "blob": "e7cfbcb58f198d3b5c5b8b6d274583ac83f855f0"
+    },
+    {
+      "path": "dev/fixtures/fixtures/accepted_self_loops/model.rs",
+      "mode": "100644",
+      "blob": "6b247056f4fcb096e784d9f4470892caeae49e0b"
+    },
+    {
+      "path": "dev/fixtures/fixtures/accepted_self_loops/tests.rs",
+      "mode": "100644",
+      "blob": "2abeee63520cfd3d3a7137e1460367f13204b163"
+    },
+    {
+      "path": "dev/fixtures/fixtures/action_inputs/expected/Inputs.cfg.snap",
+      "mode": "100644",
+      "blob": "0c38ced35fe43d484fde1b20b3853d7e967f4080"
+    },
+    {
+      "path": "dev/fixtures/fixtures/action_inputs/expected/Inputs.tla.snap",
+      "mode": "100644",
+      "blob": "f24480d4aaa52c788f9ea07da0fd1ee5b9e39daf"
+    },
+    {
+      "path": "dev/fixtures/fixtures/action_inputs/expected/lift.txt.snap",
+      "mode": "100644",
+      "blob": "a6a90cd26a7ea30e51aac9d2f6650d88769c4158"
+    },
+    {
+      "path": "dev/fixtures/fixtures/action_inputs/expected/negative_report.txt.snap",
+      "mode": "100644",
+      "blob": "80677bd90b9e238355635375a6652014b343b642"
+    },
+    {
+      "path": "dev/fixtures/fixtures/action_inputs/expected/paths/excluded_poll_settles.txt.snap",
+      "mode": "100644",
+      "blob": "f2a81601db5514d05c8580bea0f933a1b3b01657"
+    },
+    {
+      "path": "dev/fixtures/fixtures/action_inputs/expected/paths/never_retried.txt.snap",
+      "mode": "100644",
+      "blob": "316bcf817545ef54ed72f7324d74a3c9ba9e9266"
+    },
+    {
+      "path": "dev/fixtures/fixtures/action_inputs/expected/paths/settles_within_four.txt.snap",
+      "mode": "100644",
+      "blob": "f2a81601db5514d05c8580bea0f933a1b3b01657"
+    },
+    {
+      "path": "dev/fixtures/fixtures/action_inputs/expected/paths/stale_poll_settles.txt.snap",
+      "mode": "100644",
+      "blob": "f2a81601db5514d05c8580bea0f933a1b3b01657"
+    },
+    {
+      "path": "dev/fixtures/fixtures/action_inputs/expected/report.txt.snap",
+      "mode": "100644",
+      "blob": "317b1d3bb166510803d3779bb4efdaec304e730a"
+    },
+    {
+      "path": "dev/fixtures/fixtures/action_inputs/expected/rows.txt.snap",
+      "mode": "100644",
+      "blob": "8f10285fefd29eb8984febf0e8933e2f360295a6"
+    },
+    {
+      "path": "dev/fixtures/fixtures/action_inputs/expected/states.txt.snap",
+      "mode": "100644",
+      "blob": "53292854e1ef02b6efbf1f3bfd4c5b7d58c8a493"
+    },
+    {
+      "path": "dev/fixtures/fixtures/action_inputs/expected/tlc.txt.snap",
+      "mode": "100644",
+      "blob": "d803a4b45c651b6408a09d83d809a38510b835ae"
+    },
+    {
+      "path": "dev/fixtures/fixtures/action_inputs/model.rs",
+      "mode": "100644",
+      "blob": "2bf69c9763c4a428f3fa02c116be19e2afce5dfe"
+    },
+    {
+      "path": "dev/fixtures/fixtures/action_inputs/tests.rs",
+      "mode": "100644",
+      "blob": "90bf12d03e2010eb87a2ecbf976f4a3058bee84b"
+    },
+    {
+      "path": "dev/fixtures/fixtures/changed_state/expected/ChangedState.cfg.snap",
+      "mode": "100644",
+      "blob": "a70478efd8764adcf074b218c43eece0d9f38409"
+    },
+    {
+      "path": "dev/fixtures/fixtures/changed_state/expected/ChangedState.tla.snap",
+      "mode": "100644",
+      "blob": "a91551f118c9d4e7632248f91a9e73e6038b1842"
+    },
+    {
+      "path": "dev/fixtures/fixtures/changed_state/expected/lift.txt.snap",
+      "mode": "100644",
+      "blob": "a6a90cd26a7ea30e51aac9d2f6650d88769c4158"
+    },
+    {
+      "path": "dev/fixtures/fixtures/changed_state/expected/paths/actual_change_checked.txt.snap",
+      "mode": "100644",
+      "blob": "1a2b2adcc5ab51e388551e5e5d75634d1ec1bc2a"
+    },
+    {
+      "path": "dev/fixtures/fixtures/changed_state/expected/report.txt.snap",
+      "mode": "100644",
+      "blob": "5c6b576d00c8c8dbc8e0d97a232f55dae116562f"
+    },
+    {
+      "path": "dev/fixtures/fixtures/changed_state/expected/rows.txt.snap",
+      "mode": "100644",
+      "blob": "074b1802a2ff0f18f160893694c75ecd2894799c"
+    },
+    {
+      "path": "dev/fixtures/fixtures/changed_state/expected/states.txt.snap",
+      "mode": "100644",
+      "blob": "6b6e3ea24f306ef2d4c76869ffd06b5d51f3706a"
+    },
+    {
+      "path": "dev/fixtures/fixtures/changed_state/expected/tlc.txt.snap",
+      "mode": "100644",
+      "blob": "f517674ca48b359fd84d239c3e10d597ecc3bc89"
+    },
+    {
+      "path": "dev/fixtures/fixtures/changed_state/model.rs",
+      "mode": "100644",
+      "blob": "d0720ed49c0f2fe988b914f9c24a24bc6274288b"
+    },
+    {
+      "path": "dev/fixtures/fixtures/changed_state/tests.rs",
+      "mode": "100644",
+      "blob": "da978a7b116bbdf57df5e7947f61cb7f074d7b23"
+    },
+    {
+      "path": "dev/fixtures/fixtures/kettle_cut/expected/lift.txt.snap",
+      "mode": "100644",
+      "blob": "8e3404262189333e06fa28e80a9874f06735e36d"
+    },
+    {
+      "path": "dev/fixtures/fixtures/kettle_cut/expected/report.txt.snap",
+      "mode": "100644",
+      "blob": "df599ee87b3d219601ab42e6df00e452c74b2d01"
+    },
+    {
+      "path": "dev/fixtures/fixtures/kettle_cut/expected/states.txt.snap",
+      "mode": "100644",
+      "blob": "96874ecc827543947c9ae424ce276f3627a66146"
+    },
+    {
+      "path": "dev/fixtures/fixtures/kettle_cut/model.rs",
+      "mode": "100644",
+      "blob": "44432546b8cab33b96690550c5c031fbd0437695"
+    },
+    {
+      "path": "dev/fixtures/fixtures/kettle_cut/tests.rs",
+      "mode": "100644",
+      "blob": "267143e93dea45dd391196dd17b5babb88a0a91d"
+    },
+    {
+      "path": "dev/fixtures/fixtures/kettle_progress/expected/lift.txt.snap",
+      "mode": "100644",
+      "blob": "389ca3a70c3f976c630ebcc4c7b9cee5afbf3b6e"
+    },
+    {
+      "path": "dev/fixtures/fixtures/kettle_progress/expected/paths/room_fair_heat.txt.snap",
+      "mode": "100644",
+      "blob": "07d0d7801df0b88f5359bad94b0e87b4d1cad937"
+    },
+    {
+      "path": "dev/fixtures/fixtures/kettle_progress/expected/paths/room_press_only.txt.snap",
+      "mode": "100644",
+      "blob": "dc2dce92910668b12dabbe606999a689827299c7"
+    },
+    {
+      "path": "dev/fixtures/fixtures/kettle_progress/expected/paths/room_unrestricted.txt.snap",
+      "mode": "100644",
+      "blob": "07d0d7801df0b88f5359bad94b0e87b4d1cad937"
+    },
+    {
+      "path": "dev/fixtures/fixtures/kettle_progress/expected/paths/room_within_80.txt.snap",
+      "mode": "100644",
+      "blob": "1a1dedd39c8a86bd42a87615654624ac8fedd841"
+    },
+    {
+      "path": "dev/fixtures/fixtures/kettle_progress/expected/report.txt.snap",
+      "mode": "100644",
+      "blob": "36e2ff807e68a4aa9457976970417561c7d51ec6"
+    },
+    {
+      "path": "dev/fixtures/fixtures/kettle_progress/model.rs",
+      "mode": "100644",
+      "blob": "44432546b8cab33b96690550c5c031fbd0437695"
+    },
+    {
+      "path": "dev/fixtures/fixtures/kettle_progress/tests.rs",
+      "mode": "100644",
+      "blob": "f6c9cb8eecdb64606303c7fc0b9b4f8a4ed6b22a"
+    },
+    {
+      "path": "dev/fixtures/fixtures/optional_facts/expected/Facts.cfg.snap",
+      "mode": "100644",
+      "blob": "2095c276322b37cb4adcebd0536ee4e688069248"
+    },
+    {
+      "path": "dev/fixtures/fixtures/optional_facts/expected/Facts.tla.snap",
+      "mode": "100644",
+      "blob": "b3596613599591c6daab72be8f7f5b9fb27ae6c4"
+    },
+    {
+      "path": "dev/fixtures/fixtures/optional_facts/expected/lift.txt.snap",
+      "mode": "100644",
+      "blob": "a6a90cd26a7ea30e51aac9d2f6650d88769c4158"
+    },
+    {
+      "path": "dev/fixtures/fixtures/optional_facts/expected/paths/never_a.txt.snap",
+      "mode": "100644",
+      "blob": "051c4e9d68ae59479d8e2ebd092c2360d0e438d9"
+    },
+    {
+      "path": "dev/fixtures/fixtures/optional_facts/expected/paths/never_b.txt.snap",
+      "mode": "100644",
+      "blob": "3c4cf67a9d2f899995ecd98169a6b666840ce7c5"
+    },
+    {
+      "path": "dev/fixtures/fixtures/optional_facts/expected/paths/never_c.txt.snap",
+      "mode": "100644",
+      "blob": "5828826a99539d878016a6840fae02c29378c082"
+    },
+    {
+      "path": "dev/fixtures/fixtures/optional_facts/expected/paths/never_clear.txt.snap",
+      "mode": "100644",
+      "blob": "b226c6b1efd7eac7f0df3602197fcffa6de09a20"
+    },
+    {
+      "path": "dev/fixtures/fixtures/optional_facts/expected/paths/never_d.txt.snap",
+      "mode": "100644",
+      "blob": "2272af68e3490bec2ccc0e7d0b68bea450e44e96"
+    },
+    {
+      "path": "dev/fixtures/fixtures/optional_facts/expected/report.txt.snap",
+      "mode": "100644",
+      "blob": "34112d8805a3fa3a1f865b4b39aff93e687d2c84"
+    },
+    {
+      "path": "dev/fixtures/fixtures/optional_facts/expected/rows.txt.snap",
+      "mode": "100644",
+      "blob": "8562c6f78bd21bf26abcfcf9794faa9936528775"
+    },
+    {
+      "path": "dev/fixtures/fixtures/optional_facts/expected/states.txt.snap",
+      "mode": "100644",
+      "blob": "7de269e7f3a9dbe098e1c80a0e1308e6203c4618"
+    },
+    {
+      "path": "dev/fixtures/fixtures/optional_facts/expected/tlc.txt.snap",
+      "mode": "100644",
+      "blob": "f1e5112b87d2d383eb1ff937245c173f1041dc77"
+    },
+    {
+      "path": "dev/fixtures/fixtures/optional_facts/model.rs",
+      "mode": "100644",
+      "blob": "62cf39b9d3d0556d7010899bebeb2aa029c05ab0"
+    },
+    {
+      "path": "dev/fixtures/fixtures/optional_facts/tests.rs",
+      "mode": "100644",
+      "blob": "69a92cb1f238d7fcc1c9ebed8cb467752adbaa0a"
+    },
+    {
+      "path": "dev/fixtures/fixtures/optional_ticks/expected/Countdown.cfg.snap",
+      "mode": "100644",
+      "blob": "85e16f2b64e7f08a35164f546d88e0d27c395144"
+    },
+    {
+      "path": "dev/fixtures/fixtures/optional_ticks/expected/Countdown.tla.snap",
+      "mode": "100644",
+      "blob": "6b98b0cbcd091eeaef23e6157d552a4ce9c3b3dd"
+    },
+    {
+      "path": "dev/fixtures/fixtures/optional_ticks/expected/lift.txt.snap",
+      "mode": "100644",
+      "blob": "a6a90cd26a7ea30e51aac9d2f6650d88769c4158"
+    },
+    {
+      "path": "dev/fixtures/fixtures/optional_ticks/expected/negative_report.txt.snap",
+      "mode": "100644",
+      "blob": "04dad6daedbb396ef77a29a29c9ef5fd8abdd0f9"
+    },
+    {
+      "path": "dev/fixtures/fixtures/optional_ticks/expected/paths/never_decrements.txt.snap",
+      "mode": "100644",
+      "blob": "a5b768b1b81b6778319630c6313579e079b3530d"
+    },
+    {
+      "path": "dev/fixtures/fixtures/optional_ticks/expected/paths/never_exhausted.txt.snap",
+      "mode": "100644",
+      "blob": "0ff980ab769f6d9175cfb005a1ffc3606e341f2f"
+    },
+    {
+      "path": "dev/fixtures/fixtures/optional_ticks/expected/paths/never_started.txt.snap",
+      "mode": "100644",
+      "blob": "fc59a9b886ab0c62d037e5d4b82e1fc50aa85b4b"
+    },
+    {
+      "path": "dev/fixtures/fixtures/optional_ticks/expected/report.txt.snap",
+      "mode": "100644",
+      "blob": "b63f3915aaf07fae73f3f75017679a4d7b35aec8"
+    },
+    {
+      "path": "dev/fixtures/fixtures/optional_ticks/expected/rows.txt.snap",
+      "mode": "100644",
+      "blob": "047f9a6e5114f594d4db103ff31e12b0b51a239b"
+    },
+    {
+      "path": "dev/fixtures/fixtures/optional_ticks/expected/states.txt.snap",
+      "mode": "100644",
+      "blob": "1c640d71657eed6bd078997acbdde358fc7685a1"
+    },
+    {
+      "path": "dev/fixtures/fixtures/optional_ticks/expected/tlc.txt.snap",
+      "mode": "100644",
+      "blob": "38114d48d3f407acd6cb58a35ac1fe1b7e6eb80b"
+    },
+    {
+      "path": "dev/fixtures/fixtures/optional_ticks/model.rs",
+      "mode": "100644",
+      "blob": "03a966d56c4c51ad1300505b21de9bf19de71ad6"
+    },
+    {
+      "path": "dev/fixtures/fixtures/optional_ticks/tests.rs",
+      "mode": "100644",
+      "blob": "512328989a6124566935b985fc60fcfd2aa11149"
+    },
+    {
+      "path": "dev/fixtures/fixtures/parameterized_world/expected/Counter.cfg.snap",
+      "mode": "100644",
+      "blob": "5df472dbe53123a26372ec56ed6e40851b1f1bde"
+    },
+    {
+      "path": "dev/fixtures/fixtures/parameterized_world/expected/Counter.tla.snap",
+      "mode": "100644",
+      "blob": "7a6e512b2371f46c2b63f50e3c274851b40932fa"
+    },
+    {
+      "path": "dev/fixtures/fixtures/parameterized_world/expected/lift.txt.snap",
+      "mode": "100644",
+      "blob": "a6a90cd26a7ea30e51aac9d2f6650d88769c4158"
+    },
+    {
+      "path": "dev/fixtures/fixtures/parameterized_world/expected/negative_report.txt.snap",
+      "mode": "100644",
+      "blob": "3a4d8401adbcb62378f746afbdbfa4261e87ad98"
+    },
+    {
+      "path": "dev/fixtures/fixtures/parameterized_world/expected/paths/never_three.txt.snap",
+      "mode": "100644",
+      "blob": "c0516a2ed68f2d4e4148c21122cff1b7fc0f24ec"
+    },
+    {
+      "path": "dev/fixtures/fixtures/parameterized_world/expected/report.txt.snap",
+      "mode": "100644",
+      "blob": "25c272c109eafb5bd01eaacf2fc0503d9eff3842"
+    },
+    {
+      "path": "dev/fixtures/fixtures/parameterized_world/expected/rows.txt.snap",
+      "mode": "100644",
+      "blob": "e85f27a11aaf19df402eeda2cf4c28711e68d532"
+    },
+    {
+      "path": "dev/fixtures/fixtures/parameterized_world/expected/states.txt.snap",
+      "mode": "100644",
+      "blob": "44527bd3047830578f4a45be3740f9efe7ce5266"
+    },
+    {
+      "path": "dev/fixtures/fixtures/parameterized_world/expected/tlc.txt.snap",
+      "mode": "100644",
+      "blob": "8e7f551cccdbfcd7a7afc2c134144ea8201cea6d"
+    },
+    {
+      "path": "dev/fixtures/fixtures/parameterized_world/model.rs",
+      "mode": "100644",
+      "blob": "7ca511e2f1f1cb3b0cc38ef93c606efcc4bc4623"
+    },
+    {
+      "path": "dev/fixtures/fixtures/parameterized_world/tests.rs",
+      "mode": "100644",
+      "blob": "12ec2d32e0ac99829fd02fb5e6743cf03c505457"
+    },
+    {
+      "path": "dev/fixtures/fixtures/phased_rejection/expected/Job.cfg.snap",
+      "mode": "100644",
+      "blob": "6ab4564c37d306b91beb81344082b6680060866e"
+    },
+    {
+      "path": "dev/fixtures/fixtures/phased_rejection/expected/Job.tla.snap",
+      "mode": "100644",
+      "blob": "e99a0e3aea1ee384339b4b2151afef1c1b9c0147"
+    },
+    {
+      "path": "dev/fixtures/fixtures/phased_rejection/expected/lift.txt.snap",
+      "mode": "100644",
+      "blob": "a6a90cd26a7ea30e51aac9d2f6650d88769c4158"
+    },
+    {
+      "path": "dev/fixtures/fixtures/phased_rejection/expected/paths/closed_rejects.txt.snap",
+      "mode": "100644",
+      "blob": "3028dd2bd1fef0ec930d1000e500d839c42683b8"
+    },
+    {
+      "path": "dev/fixtures/fixtures/phased_rejection/expected/paths/recheck_rejects.txt.snap",
+      "mode": "100644",
+      "blob": "24ab012e7195b656b3fb665c88c332c260ee87d2"
+    },
+    {
+      "path": "dev/fixtures/fixtures/phased_rejection/expected/paths/reopen_remains.txt.snap",
+      "mode": "100644",
+      "blob": "2bc9d3ad187ec8fbaab591d3d0156a0443debd19"
+    },
+    {
+      "path": "dev/fixtures/fixtures/phased_rejection/expected/paths/steps_accept.txt.snap",
+      "mode": "100644",
+      "blob": "365efe56380618f4ada2e0ba2a4a4b262f84f640"
+    },
+    {
+      "path": "dev/fixtures/fixtures/phased_rejection/expected/paths/terminal_remains.txt.snap",
+      "mode": "100644",
+      "blob": "2bc9d3ad187ec8fbaab591d3d0156a0443debd19"
+    },
+    {
+      "path": "dev/fixtures/fixtures/phased_rejection/expected/paths/touch_rejects.txt.snap",
+      "mode": "100644",
+      "blob": "2e4bf8f1f696c10a87e6d53d8d376f6fc56b7c9c"
+    },
+    {
+      "path": "dev/fixtures/fixtures/phased_rejection/expected/report.txt.snap",
+      "mode": "100644",
+      "blob": "4dbc476b46eacb03c98296aea27f7caefcf3493b"
+    },
+    {
+      "path": "dev/fixtures/fixtures/phased_rejection/expected/rows.txt.snap",
+      "mode": "100644",
+      "blob": "61360d5c408ed7840d12c419465842f4e44c48d7"
+    },
+    {
+      "path": "dev/fixtures/fixtures/phased_rejection/expected/states.txt.snap",
+      "mode": "100644",
+      "blob": "0ea1a4660b00310ec220590d8a737e7c367a9169"
+    },
+    {
+      "path": "dev/fixtures/fixtures/phased_rejection/expected/tlc.txt.snap",
+      "mode": "100644",
+      "blob": "ee1ebd4c4cfd7aeca6465d5bc0cc14bc5c44d2ad"
+    },
+    {
+      "path": "dev/fixtures/fixtures/phased_rejection/model.rs",
+      "mode": "100644",
+      "blob": "b4adbb6d4364261e6e0a63fb1ad3813a7f313dc1"
+    },
+    {
+      "path": "dev/fixtures/fixtures/phased_rejection/tests.rs",
+      "mode": "100644",
+      "blob": "f862a2df9e7c52f5dfa2f8db799deeea001e4eec"
+    },
+    {
+      "path": "dev/fixtures/fixtures/progress_continuous/expected/Graph.cfg.snap",
+      "mode": "100644",
+      "blob": "bf28c6861c7ec9ec07e5e3ef04b2cb189058b918"
+    },
+    {
+      "path": "dev/fixtures/fixtures/progress_continuous/expected/Graph.tla.snap",
+      "mode": "100644",
+      "blob": "3f39eec746d3dc58801d7c9be87261b31c65ab0c"
+    },
+    {
+      "path": "dev/fixtures/fixtures/progress_continuous/expected/lift.txt.snap",
+      "mode": "100644",
+      "blob": "a6a90cd26a7ea30e51aac9d2f6650d88769c4158"
+    },
+    {
+      "path": "dev/fixtures/fixtures/progress_continuous/expected/report.txt.snap",
+      "mode": "100644",
+      "blob": "c55a801c060f638d3e163cf18b8f7924f31e11d4"
+    },
+    {
+      "path": "dev/fixtures/fixtures/progress_continuous/expected/rows.txt.snap",
+      "mode": "100644",
+      "blob": "f960f251325965e2a4983c2bb8abb96f7de2efd2"
+    },
+    {
+      "path": "dev/fixtures/fixtures/progress_continuous/expected/states.txt.snap",
+      "mode": "100644",
+      "blob": "b76090eed0340038ff9152ed2b02ec21bc51cc14"
+    },
+    {
+      "path": "dev/fixtures/fixtures/progress_continuous/expected/tlc.txt.snap",
+      "mode": "100644",
+      "blob": "60943eb2e280841d6a2e5f62843c1d64fb7c6050"
+    },
+    {
+      "path": "dev/fixtures/fixtures/progress_continuous/model.rs",
+      "mode": "100644",
+      "blob": "82721599e92298781d219d4153fbdf12b74947f7"
+    },
+    {
+      "path": "dev/fixtures/fixtures/progress_continuous/tests.rs",
+      "mode": "100644",
+      "blob": "9eb1d1189534b0e9f65c354016ccd0a6da86fe9c"
+    },
+    {
+      "path": "dev/fixtures/fixtures/progress_dead_end/expected/lift.txt.snap",
+      "mode": "100644",
+      "blob": "967f74540fd52aa7c0ebd0e0bab55e27c23436e6"
+    },
+    {
+      "path": "dev/fixtures/fixtures/progress_dead_end/expected/paths/boils.txt.snap",
+      "mode": "100644",
+      "blob": "dc2dce92910668b12dabbe606999a689827299c7"
+    },
+    {
+      "path": "dev/fixtures/fixtures/progress_dead_end/expected/report.txt.snap",
+      "mode": "100644",
+      "blob": "f045c3ddba1ca717f7c2a1432802c0fe553ae7e1"
+    },
+    {
+      "path": "dev/fixtures/fixtures/progress_dead_end/expected/rows.txt.snap",
+      "mode": "100644",
+      "blob": "1dc8e928f659fdd806b9a7c7678addc61d814f6f"
+    },
+    {
+      "path": "dev/fixtures/fixtures/progress_dead_end/expected/states.txt.snap",
+      "mode": "100644",
+      "blob": "692980ada01d448ef2fdfbb30dd2c96817563978"
+    },
+    {
+      "path": "dev/fixtures/fixtures/progress_dead_end/model.rs",
+      "mode": "100644",
+      "blob": "d67c7830ef6509010deb3bc36351cc7b72c834f1"
+    },
+    {
+      "path": "dev/fixtures/fixtures/progress_dead_end/tests.rs",
+      "mode": "100644",
+      "blob": "d640df8b45e702eabea5720b8eb0dccdad97f03c"
+    },
+    {
+      "path": "dev/fixtures/fixtures/progress_excluded_prefix/expected/Graph.cfg.snap",
+      "mode": "100644",
+      "blob": "bf28c6861c7ec9ec07e5e3ef04b2cb189058b918"
+    },
+    {
+      "path": "dev/fixtures/fixtures/progress_excluded_prefix/expected/Graph.tla.snap",
+      "mode": "100644",
+      "blob": "0a7a64bc7050e0d770a6cf6037cc2e0a528afe1f"
+    },
+    {
+      "path": "dev/fixtures/fixtures/progress_excluded_prefix/expected/lift.txt.snap",
+      "mode": "100644",
+      "blob": "a6a90cd26a7ea30e51aac9d2f6650d88769c4158"
+    },
+    {
+      "path": "dev/fixtures/fixtures/progress_excluded_prefix/expected/paths/reaches_target.txt.snap",
+      "mode": "100644",
+      "blob": "84981f844c9e1c505341bde7f7be3e44e74408a5"
+    },
+    {
+      "path": "dev/fixtures/fixtures/progress_excluded_prefix/expected/report.txt.snap",
+      "mode": "100644",
+      "blob": "86e280f30fab7635e4f003d5c8957dbc47bb787e"
+    },
+    {
+      "path": "dev/fixtures/fixtures/progress_excluded_prefix/expected/rows.txt.snap",
+      "mode": "100644",
+      "blob": "d08b960ccc5dd2e5b12339ffba9cd126439fbe64"
+    },
+    {
+      "path": "dev/fixtures/fixtures/progress_excluded_prefix/expected/states.txt.snap",
+      "mode": "100644",
+      "blob": "e7cfbcb58f198d3b5c5b8b6d274583ac83f855f0"
+    },
+    {
+      "path": "dev/fixtures/fixtures/progress_excluded_prefix/expected/tlc.txt.snap",
+      "mode": "100644",
+      "blob": "9ab058e8d804408541f19d0bcd04666474f5692e"
+    },
+    {
+      "path": "dev/fixtures/fixtures/progress_excluded_prefix/model.rs",
+      "mode": "100644",
+      "blob": "bf219f61a0e359fa35a8b49c87540c70e529b608"
+    },
+    {
+      "path": "dev/fixtures/fixtures/progress_excluded_prefix/tests.rs",
+      "mode": "100644",
+      "blob": "dfe1fcbf7997bb17a2d51191ce8999727a250911"
+    },
+    {
+      "path": "dev/fixtures/fixtures/progress_fulfilled/expected/Graph.cfg.snap",
+      "mode": "100644",
+      "blob": "bf28c6861c7ec9ec07e5e3ef04b2cb189058b918"
+    },
+    {
+      "path": "dev/fixtures/fixtures/progress_fulfilled/expected/Graph.tla.snap",
+      "mode": "100644",
+      "blob": "29730c6122d98bb13481c5269cc93eecdaca0faa"
+    },
+    {
+      "path": "dev/fixtures/fixtures/progress_fulfilled/expected/lift.txt.snap",
+      "mode": "100644",
+      "blob": "a6a90cd26a7ea30e51aac9d2f6650d88769c4158"
+    },
+    {
+      "path": "dev/fixtures/fixtures/progress_fulfilled/expected/report.txt.snap",
+      "mode": "100644",
+      "blob": "1cd6ca4e1e2d157fcca5efee96662ae0cccafeb9"
+    },
+    {
+      "path": "dev/fixtures/fixtures/progress_fulfilled/expected/rows.txt.snap",
+      "mode": "100644",
+      "blob": "11d4e9be4c8aa406a09c5016324d89bb44fe8a55"
+    },
+    {
+      "path": "dev/fixtures/fixtures/progress_fulfilled/expected/states.txt.snap",
+      "mode": "100644",
+      "blob": "bfaa986188b75560ccb202e4b72569687709d3d3"
+    },
+    {
+      "path": "dev/fixtures/fixtures/progress_fulfilled/expected/tlc.txt.snap",
+      "mode": "100644",
+      "blob": "c9767bd0ecf9c6a847feae7342c2338ff5c8c616"
+    },
+    {
+      "path": "dev/fixtures/fixtures/progress_fulfilled/model.rs",
+      "mode": "100644",
+      "blob": "77718d284fe6acd54b24a6db258f7ad62eef5af6"
+    },
+    {
+      "path": "dev/fixtures/fixtures/progress_fulfilled/tests.rs",
+      "mode": "100644",
+      "blob": "e0f9ed2307603fd47eb7965d4489acdb4a317e60"
+    },
+    {
+      "path": "dev/fixtures/fixtures/progress_graph/expected/Graph.cfg.snap",
+      "mode": "100644",
+      "blob": "bf28c6861c7ec9ec07e5e3ef04b2cb189058b918"
+    },
+    {
+      "path": "dev/fixtures/fixtures/progress_graph/expected/Graph.tla.snap",
+      "mode": "100644",
+      "blob": "dde81dbc2ae01312b63bec62fb10bb8be68d7267"
+    },
+    {
+      "path": "dev/fixtures/fixtures/progress_graph/expected/lift.txt.snap",
+      "mode": "100644",
+      "blob": "a6a90cd26a7ea30e51aac9d2f6650d88769c4158"
+    },
+    {
+      "path": "dev/fixtures/fixtures/progress_graph/expected/paths/reaches_target.txt.snap",
+      "mode": "100644",
+      "blob": "acd83516e872a74f3de07750a20236ae11c7db29"
+    },
+    {
+      "path": "dev/fixtures/fixtures/progress_graph/expected/report.txt.snap",
+      "mode": "100644",
+      "blob": "443ea14d4f1533995a0f32860b726377e90744fc"
+    },
+    {
+      "path": "dev/fixtures/fixtures/progress_graph/expected/rows.txt.snap",
+      "mode": "100644",
+      "blob": "ddd46264b3f22f37393c90fe526c98c0338697a4"
+    },
+    {
+      "path": "dev/fixtures/fixtures/progress_graph/expected/states.txt.snap",
+      "mode": "100644",
+      "blob": "b43df7dce47aaf4cc20b411d427dfc781176038f"
+    },
+    {
+      "path": "dev/fixtures/fixtures/progress_graph/expected/tlc.txt.snap",
+      "mode": "100644",
+      "blob": "26688c29ddf02ff6cb2fbf4d4e64228861636750"
+    },
+    {
+      "path": "dev/fixtures/fixtures/progress_graph/model.rs",
+      "mode": "100644",
+      "blob": "05a05b04ede2a76e79bddb25f1b8649508ee3f64"
+    },
+    {
+      "path": "dev/fixtures/fixtures/progress_graph/tests.rs",
+      "mode": "100644",
+      "blob": "7cc734d88ecee5271f1bdf664a16a364bc5e506d"
+    },
+    {
+      "path": "dev/fixtures/fixtures/progress_intermittent/expected/Graph.cfg.snap",
+      "mode": "100644",
+      "blob": "bf28c6861c7ec9ec07e5e3ef04b2cb189058b918"
+    },
+    {
+      "path": "dev/fixtures/fixtures/progress_intermittent/expected/Graph.tla.snap",
+      "mode": "100644",
+      "blob": "3be9eb845db2046f8b60baae14610f7bb9565adb"
+    },
+    {
+      "path": "dev/fixtures/fixtures/progress_intermittent/expected/lift.txt.snap",
+      "mode": "100644",
+      "blob": "a6a90cd26a7ea30e51aac9d2f6650d88769c4158"
+    },
+    {
+      "path": "dev/fixtures/fixtures/progress_intermittent/expected/paths/reaches_target.txt.snap",
+      "mode": "100644",
+      "blob": "c9fc9ce756c5cc5f71c8b9967ac6b6955d272ed7"
+    },
+    {
+      "path": "dev/fixtures/fixtures/progress_intermittent/expected/report.txt.snap",
+      "mode": "100644",
+      "blob": "2b74e736815bb7ad45e158c2be36d1c57cc821ab"
+    },
+    {
+      "path": "dev/fixtures/fixtures/progress_intermittent/expected/rows.txt.snap",
+      "mode": "100644",
+      "blob": "67b6f09b1ec555904770cf1fa0147edaee415243"
+    },
+    {
+      "path": "dev/fixtures/fixtures/progress_intermittent/expected/states.txt.snap",
+      "mode": "100644",
+      "blob": "b76090eed0340038ff9152ed2b02ec21bc51cc14"
+    },
+    {
+      "path": "dev/fixtures/fixtures/progress_intermittent/expected/tlc.txt.snap",
+      "mode": "100644",
+      "blob": "26688c29ddf02ff6cb2fbf4d4e64228861636750"
+    },
+    {
+      "path": "dev/fixtures/fixtures/progress_intermittent/model.rs",
+      "mode": "100644",
+      "blob": "380eb4b84be94c45161aa7de326f600f7a75271b"
+    },
+    {
+      "path": "dev/fixtures/fixtures/progress_intermittent/tests.rs",
+      "mode": "100644",
+      "blob": "839a6b14f43d23eb319503eb9293fa7888df4a8e"
+    },
+    {
+      "path": "dev/fixtures/fixtures/progress_scope_exit/expected/Graph.cfg.snap",
+      "mode": "100644",
+      "blob": "bf28c6861c7ec9ec07e5e3ef04b2cb189058b918"
+    },
+    {
+      "path": "dev/fixtures/fixtures/progress_scope_exit/expected/Graph.tla.snap",
+      "mode": "100644",
+      "blob": "725d38fb2e0b7b2e1025143dfb3a65abc58ddff8"
+    },
+    {
+      "path": "dev/fixtures/fixtures/progress_scope_exit/expected/lift.txt.snap",
+      "mode": "100644",
+      "blob": "a6a90cd26a7ea30e51aac9d2f6650d88769c4158"
+    },
+    {
+      "path": "dev/fixtures/fixtures/progress_scope_exit/expected/paths/reaches_target.txt.snap",
+      "mode": "100644",
+      "blob": "7c37d2b888bbc506f6ef41fea7a6b52089026867"
+    },
+    {
+      "path": "dev/fixtures/fixtures/progress_scope_exit/expected/report.txt.snap",
+      "mode": "100644",
+      "blob": "e3cd7fa6c90a48000fab1ad090bfe8377c31a1c1"
+    },
+    {
+      "path": "dev/fixtures/fixtures/progress_scope_exit/expected/rows.txt.snap",
+      "mode": "100644",
+      "blob": "9d32711812a98948f03e797b3c788fdecc711722"
+    },
+    {
+      "path": "dev/fixtures/fixtures/progress_scope_exit/expected/states.txt.snap",
+      "mode": "100644",
+      "blob": "9c148d4c9891256701248f01f1280172d64070e4"
+    },
+    {
+      "path": "dev/fixtures/fixtures/progress_scope_exit/expected/tlc.txt.snap",
+      "mode": "100644",
+      "blob": "9ab058e8d804408541f19d0bcd04666474f5692e"
+    },
+    {
+      "path": "dev/fixtures/fixtures/progress_scope_exit/model.rs",
+      "mode": "100644",
+      "blob": "ac6150c06a361905c1b5394fbc5fa209d65f9ebf"
+    },
+    {
+      "path": "dev/fixtures/fixtures/progress_scope_exit/tests.rs",
+      "mode": "100644",
+      "blob": "410d51b0fffdd0ccf72d57511c417a7b46f29f8a"
+    },
+    {
+      "path": "dev/fixtures/fixtures/progress_self_loop/expected/Graph.cfg.snap",
+      "mode": "100644",
+      "blob": "bf28c6861c7ec9ec07e5e3ef04b2cb189058b918"
+    },
+    {
+      "path": "dev/fixtures/fixtures/progress_self_loop/expected/Graph.tla.snap",
+      "mode": "100644",
+      "blob": "3c93eb17d5271ed069085cf4bd3f8c53f7c21925"
+    },
+    {
+      "path": "dev/fixtures/fixtures/progress_self_loop/expected/lift.txt.snap",
+      "mode": "100644",
+      "blob": "a6a90cd26a7ea30e51aac9d2f6650d88769c4158"
+    },
+    {
+      "path": "dev/fixtures/fixtures/progress_self_loop/expected/paths/reaches_target.txt.snap",
+      "mode": "100644",
+      "blob": "7c37d2b888bbc506f6ef41fea7a6b52089026867"
+    },
+    {
+      "path": "dev/fixtures/fixtures/progress_self_loop/expected/report.txt.snap",
+      "mode": "100644",
+      "blob": "c1f8e7b72e4be8f61ebf85c299fe3b05dba9bce3"
+    },
+    {
+      "path": "dev/fixtures/fixtures/progress_self_loop/expected/rows.txt.snap",
+      "mode": "100644",
+      "blob": "5d30380ba6cda2afcca78e9ecb4c13bf49ccc150"
+    },
+    {
+      "path": "dev/fixtures/fixtures/progress_self_loop/expected/states.txt.snap",
+      "mode": "100644",
+      "blob": "bfaa986188b75560ccb202e4b72569687709d3d3"
+    },
+    {
+      "path": "dev/fixtures/fixtures/progress_self_loop/expected/tlc.txt.snap",
+      "mode": "100644",
+      "blob": "bf0183541de7e0912dc56faa60b123356f9e3015"
+    },
+    {
+      "path": "dev/fixtures/fixtures/progress_self_loop/model.rs",
+      "mode": "100644",
+      "blob": "69e29502d1fee263e017983441aee214b708b32d"
+    },
+    {
+      "path": "dev/fixtures/fixtures/progress_self_loop/tests.rs",
+      "mode": "100644",
+      "blob": "e55e0d8dec3571597db3d3c7752cf3b0433072a9"
+    },
+    {
+      "path": "dev/fixtures/fixtures/progress_target_barrier/expected/Graph.cfg.snap",
+      "mode": "100644",
+      "blob": "bf28c6861c7ec9ec07e5e3ef04b2cb189058b918"
+    },
+    {
+      "path": "dev/fixtures/fixtures/progress_target_barrier/expected/Graph.tla.snap",
+      "mode": "100644",
+      "blob": "4e729d45c1e609516ef92f8091702e437f84b968"
+    },
+    {
+      "path": "dev/fixtures/fixtures/progress_target_barrier/expected/lift.txt.snap",
+      "mode": "100644",
+      "blob": "a6a90cd26a7ea30e51aac9d2f6650d88769c4158"
+    },
+    {
+      "path": "dev/fixtures/fixtures/progress_target_barrier/expected/report.txt.snap",
+      "mode": "100644",
+      "blob": "6a899adeb8cbfed13b563be1c61c819911ddb80d"
+    },
+    {
+      "path": "dev/fixtures/fixtures/progress_target_barrier/expected/rows.txt.snap",
+      "mode": "100644",
+      "blob": "df9bbc32dd224579006dac3126b5d6e6846410a7"
+    },
+    {
+      "path": "dev/fixtures/fixtures/progress_target_barrier/expected/states.txt.snap",
+      "mode": "100644",
+      "blob": "ca7fd622834593a7a6de2fe0fe340908e475278e"
+    },
+    {
+      "path": "dev/fixtures/fixtures/progress_target_barrier/expected/tlc.txt.snap",
+      "mode": "100644",
+      "blob": "60943eb2e280841d6a2e5f62843c1d64fb7c6050"
+    },
+    {
+      "path": "dev/fixtures/fixtures/progress_target_barrier/model.rs",
+      "mode": "100644",
+      "blob": "4ded73168c3d8b43746a181e383b3229c4d404c4"
+    },
+    {
+      "path": "dev/fixtures/fixtures/progress_target_barrier/tests.rs",
+      "mode": "100644",
+      "blob": "1caf9425d7c1241afedef5ae58ed0a5713723dc5"
+    },
+    {
+      "path": "dev/fixtures/fixtures/progress_trigger_stops/expected/Graph.cfg.snap",
+      "mode": "100644",
+      "blob": "bf28c6861c7ec9ec07e5e3ef04b2cb189058b918"
+    },
+    {
+      "path": "dev/fixtures/fixtures/progress_trigger_stops/expected/Graph.tla.snap",
+      "mode": "100644",
+      "blob": "fc4084a829b6c2b59cd474e01854821eff6c20f5"
+    },
+    {
+      "path": "dev/fixtures/fixtures/progress_trigger_stops/expected/lift.txt.snap",
+      "mode": "100644",
+      "blob": "a6a90cd26a7ea30e51aac9d2f6650d88769c4158"
+    },
+    {
+      "path": "dev/fixtures/fixtures/progress_trigger_stops/expected/report.txt.snap",
+      "mode": "100644",
+      "blob": "bf7f1b47bed5d88e8e33abd23553cf3e3189b532"
+    },
+    {
+      "path": "dev/fixtures/fixtures/progress_trigger_stops/expected/rows.txt.snap",
+      "mode": "100644",
+      "blob": "671a73f0b46f43fe2d34763f8959f0b6ac9b6385"
+    },
+    {
+      "path": "dev/fixtures/fixtures/progress_trigger_stops/expected/states.txt.snap",
+      "mode": "100644",
+      "blob": "b76090eed0340038ff9152ed2b02ec21bc51cc14"
+    },
+    {
+      "path": "dev/fixtures/fixtures/progress_trigger_stops/expected/tlc.txt.snap",
+      "mode": "100644",
+      "blob": "60943eb2e280841d6a2e5f62843c1d64fb7c6050"
+    },
+    {
+      "path": "dev/fixtures/fixtures/progress_trigger_stops/model.rs",
+      "mode": "100644",
+      "blob": "22ee7b87d4d984b6377d5995130f9cce00a34b03"
+    },
+    {
+      "path": "dev/fixtures/fixtures/progress_trigger_stops/tests.rs",
+      "mode": "100644",
+      "blob": "b14345218a73739a2fed50dc1a28c30e0c28db24"
+    },
+    {
+      "path": "dev/fixtures/fixtures/progress_two_lobes/expected/Graph.cfg.snap",
+      "mode": "100644",
+      "blob": "bf28c6861c7ec9ec07e5e3ef04b2cb189058b918"
+    },
+    {
+      "path": "dev/fixtures/fixtures/progress_two_lobes/expected/Graph.tla.snap",
+      "mode": "100644",
+      "blob": "742ccda6cf6ce4c02f3e5246a22360c6c9c0be07"
+    },
+    {
+      "path": "dev/fixtures/fixtures/progress_two_lobes/expected/lift.txt.snap",
+      "mode": "100644",
+      "blob": "a6a90cd26a7ea30e51aac9d2f6650d88769c4158"
+    },
+    {
+      "path": "dev/fixtures/fixtures/progress_two_lobes/expected/paths/reaches_target.txt.snap",
+      "mode": "100644",
+      "blob": "7f127390ee0d6e9d202458945a99caa97e337b1c"
+    },
+    {
+      "path": "dev/fixtures/fixtures/progress_two_lobes/expected/report.txt.snap",
+      "mode": "100644",
+      "blob": "5111974cc6c149f0d6316c6ec30223f0ce65fb16"
+    },
+    {
+      "path": "dev/fixtures/fixtures/progress_two_lobes/expected/states.txt.snap",
+      "mode": "100644",
+      "blob": "199f16e7251ea3554186261534df2065e88cabd1"
+    },
+    {
+      "path": "dev/fixtures/fixtures/progress_two_lobes/expected/tlc.txt.snap",
+      "mode": "100644",
+      "blob": "884b5dfcd93b7a5dcd18d1a9358813a1d45ae102"
+    },
+    {
+      "path": "dev/fixtures/fixtures/progress_two_lobes/model.rs",
+      "mode": "100644",
+      "blob": "ee2e7b59cbd3567823381b2a17619a7a180f170b"
+    },
+    {
+      "path": "dev/fixtures/fixtures/progress_two_lobes/tests.rs",
+      "mode": "100644",
+      "blob": "0c8ef7f345069a0b663b28b54f7eb5e9dd7f3878"
+    },
+    {
+      "path": "dev/fixtures/fixtures/rejecting_steps/expected/lift.txt.snap",
+      "mode": "100644",
+      "blob": "b8425920f9653879a3d9ded41cee41089fdb6616"
+    },
+    {
+      "path": "dev/fixtures/fixtures/rejecting_steps/expected/report.txt.snap",
+      "mode": "100644",
+      "blob": "633e168e294a7860ef5f9541c3d7138e24dfb7c7"
+    },
+    {
+      "path": "dev/fixtures/fixtures/rejecting_steps/expected/rows.txt.snap",
+      "mode": "100644",
+      "blob": "f2d9f883514187af40a2b38a63a10b60443e07fe"
+    },
+    {
+      "path": "dev/fixtures/fixtures/rejecting_steps/expected/states.txt.snap",
+      "mode": "100644",
+      "blob": "e7cfbcb58f198d3b5c5b8b6d274583ac83f855f0"
+    },
+    {
+      "path": "dev/fixtures/fixtures/rejecting_steps/model.rs",
+      "mode": "100644",
+      "blob": "a8acbc457df4d3b4e6a4da5c820bb436fe753173"
+    },
+    {
+      "path": "dev/fixtures/fixtures/rejecting_steps/tests.rs",
+      "mode": "100644",
+      "blob": "e703dd174aa7d573546389f86b82b5469de76db9"
+    },
+    {
+      "path": "dev/fixtures/fixtures/sample_kettle/expected/Kettle.cfg.snap",
+      "mode": "100644",
+      "blob": "071e045b21315130f61d9abd787c5e67f5653bee"
+    },
+    {
+      "path": "dev/fixtures/fixtures/sample_kettle/expected/Kettle.tla.snap",
+      "mode": "100644",
+      "blob": "968557681beb08ae32752936279d76d6d6c51c3d"
+    },
+    {
+      "path": "dev/fixtures/fixtures/sample_kettle/expected/coverage.txt.snap",
+      "mode": "100644",
+      "blob": "c8867c0b2f40ae335f2eac2c42b20d149f3ec473"
+    },
+    {
+      "path": "dev/fixtures/fixtures/sample_kettle/expected/expansion/closings.txt.snap",
+      "mode": "100644",
+      "blob": "e729234a6eb8523f4679e3c98288bf8a118b2297"
+    },
+    {
+      "path": "dev/fixtures/fixtures/sample_kettle/expected/expansion/enabledness.txt.snap",
+      "mode": "100644",
+      "blob": "e90f53e3e9d2e4a97cea5a3af54434ecbe6524e8"
+    },
+    {
+      "path": "dev/fixtures/fixtures/sample_kettle/expected/expansion/sample.txt.snap",
+      "mode": "100644",
+      "blob": "6b200a934c2fd0e424f13b8c09a112d02a6bd28e"
+    },
+    {
+      "path": "dev/fixtures/fixtures/sample_kettle/expected/lift.txt.snap",
+      "mode": "100644",
+      "blob": "a6a90cd26a7ea30e51aac9d2f6650d88769c4158"
+    },
+    {
+      "path": "dev/fixtures/fixtures/sample_kettle/expected/negative_report.txt.snap",
+      "mode": "100644",
+      "blob": "41ff846b217ff243427d4326390db4ffb59b6ee4"
+    },
+    {
+      "path": "dev/fixtures/fixtures/sample_kettle/expected/paths/never_beeps.txt.snap",
+      "mode": "100644",
+      "blob": "5277a1e212b6a17463df7bab38b1c798291e508c"
+    },
+    {
+      "path": "dev/fixtures/fixtures/sample_kettle/expected/report.txt.snap",
+      "mode": "100644",
+      "blob": "087016a2e2163115f6be46dc34fef62f3fbe8bd1"
+    },
+    {
+      "path": "dev/fixtures/fixtures/sample_kettle/expected/states.txt.snap",
+      "mode": "100644",
+      "blob": "8be4b5e2ff6f36f522774d77777dc5ee457363ec"
+    },
+    {
+      "path": "dev/fixtures/fixtures/sample_kettle/expected/tlc.txt.snap",
+      "mode": "100644",
+      "blob": "7e813622713c9f120796cd2350c09100a274d544"
+    },
+    {
+      "path": "dev/fixtures/fixtures/sample_kettle/model.rs",
+      "mode": "100644",
+      "blob": "e2ae5bb026a8c732ba400797de537995937aaaf7"
+    },
+    {
+      "path": "dev/fixtures/fixtures/sample_kettle/tests.rs",
+      "mode": "100644",
+      "blob": "b23ccbd052517185ba4a8b8ecce64370a19ec126"
+    },
+    {
+      "path": "dev/fixtures/fixtures/shared_returns/expected/Gate.cfg.snap",
+      "mode": "100644",
+      "blob": "f167c7aa992f82f90004ed69bae818ab9aa41f7f"
+    },
+    {
+      "path": "dev/fixtures/fixtures/shared_returns/expected/Gate.tla.snap",
+      "mode": "100644",
+      "blob": "2213ba4e6da8d1d840b8a4a2b12e0bc29940a4f4"
+    },
+    {
+      "path": "dev/fixtures/fixtures/shared_returns/expected/lift.txt.snap",
+      "mode": "100644",
+      "blob": "a6a90cd26a7ea30e51aac9d2f6650d88769c4158"
+    },
+    {
+      "path": "dev/fixtures/fixtures/shared_returns/expected/paths/steps_accept.txt.snap",
+      "mode": "100644",
+      "blob": "6012565fb5d9d62b896b95c0f3dcbe60196fe0d2"
+    },
+    {
+      "path": "dev/fixtures/fixtures/shared_returns/expected/report.txt.snap",
+      "mode": "100644",
+      "blob": "cccb2c982f2326447c3a6e05347477036d4e0f6f"
+    },
+    {
+      "path": "dev/fixtures/fixtures/shared_returns/expected/rows.txt.snap",
+      "mode": "100644",
+      "blob": "d4d537f4f07c4ecf83e526d4d886d7deb038d65d"
+    },
+    {
+      "path": "dev/fixtures/fixtures/shared_returns/expected/states.txt.snap",
+      "mode": "100644",
+      "blob": "ba77516b6040f9d940c9024f3d06ec399c3e14d9"
+    },
+    {
+      "path": "dev/fixtures/fixtures/shared_returns/expected/tlc.txt.snap",
+      "mode": "100644",
+      "blob": "d66fd8fb902dd1346472dd7fc1e24eecbff3bdc3"
+    },
+    {
+      "path": "dev/fixtures/fixtures/shared_returns/model.rs",
+      "mode": "100644",
+      "blob": "d13c081ab05c19fdc623f71fa264a572735708e2"
+    },
+    {
+      "path": "dev/fixtures/fixtures/shared_returns/tests.rs",
+      "mode": "100644",
+      "blob": "72dc7c7a5b96c9e89428bba1320d2719607b0f90"
+    },
+    {
+      "path": "dev/fixtures/fixtures/world_fairness/expected/Retry.cfg.snap",
+      "mode": "100644",
+      "blob": "34d85a5f4e93df989aefb6aec0d2f87aa4bb1f67"
+    },
+    {
+      "path": "dev/fixtures/fixtures/world_fairness/expected/Retry.tla.snap",
+      "mode": "100644",
+      "blob": "8046535a9d5cbac6d770db07064247bc684fd7f2"
+    },
+    {
+      "path": "dev/fixtures/fixtures/world_fairness/expected/lift.txt.snap",
+      "mode": "100644",
+      "blob": "a6a90cd26a7ea30e51aac9d2f6650d88769c4158"
+    },
+    {
+      "path": "dev/fixtures/fixtures/world_fairness/expected/negative_report.txt.snap",
+      "mode": "100644",
+      "blob": "bfab59fe3e8db24ca0771af49bb75d3d79771005"
+    },
+    {
+      "path": "dev/fixtures/fixtures/world_fairness/expected/paths/never_closed.txt.snap",
+      "mode": "100644",
+      "blob": "1cba97d8537257bd96a7a56b487a35be1421926a"
+    },
+    {
+      "path": "dev/fixtures/fixtures/world_fairness/expected/report.txt.snap",
+      "mode": "100644",
+      "blob": "6ee5e7bb8f63e786a060843b77b53fd71f7d943b"
+    },
+    {
+      "path": "dev/fixtures/fixtures/world_fairness/expected/rows.txt.snap",
+      "mode": "100644",
+      "blob": "a06193078bac3d04cfdf95d66a148801cb084d08"
+    },
+    {
+      "path": "dev/fixtures/fixtures/world_fairness/expected/states.txt.snap",
+      "mode": "100644",
+      "blob": "336763a52b8c3238055ce91e4b4c419dd6955d44"
+    },
+    {
+      "path": "dev/fixtures/fixtures/world_fairness/expected/tlc.txt.snap",
+      "mode": "100644",
+      "blob": "6e1ced1a3ee35cb9a8c685b6da60471c896e1bb7"
+    },
+    {
+      "path": "dev/fixtures/fixtures/world_fairness/model.rs",
+      "mode": "100644",
+      "blob": "48ba85a939de9a18d39b762d1f4964d1d32a54c9"
+    },
+    {
+      "path": "dev/fixtures/fixtures/world_fairness/tests.rs",
+      "mode": "100644",
+      "blob": "4008707a15a00a615a67b68f58b971048e237f21"
+    },
+    {
+      "path": "dev/fixtures/interpreted.rs",
+      "mode": "100644",
+      "blob": "ad12c4758fce909f75d7a0d24b63fced078abb82"
+    },
+    {
+      "path": "dev/fixtures/lengths.rs",
+      "mode": "100644",
+      "blob": "6ff7c7b4983138277c7d0e196e7c8c7dc5194f9f"
+    },
+    {
+      "path": "dev/fixtures/support/progress_starts.rs",
+      "mode": "100644",
+      "blob": "b448c864fa36e2f978c1e1ff5d2e0a4f5f46e8f1"
+    },
+    {
+      "path": "hosts/go/go.sum",
+      "mode": "100644",
+      "blob": "ba6fb5f8c0b077f97633c3dcb7185cf9c1cc30f8"
+    },
+    {
+      "path": "mise.lock",
+      "mode": "100644",
+      "blob": "0cad14fdc1de23310ab398d0bb26ff125927327e"
+    },
+    {
+      "path": "reference/kettle/expected/coverage.txt.snap",
+      "mode": "100644",
+      "blob": "e4dc9ae9e9980c5a0ce9020bb1bf5852e93d842d"
+    },
+    {
+      "path": "reference/kettle/expected/gaps.txt.snap",
+      "mode": "100644",
+      "blob": "956ab958cf6300f74f026977b825791f9ac7431c"
+    },
+    {
+      "path": "reference/kettle/expected/mutants.txt.snap",
+      "mode": "100644",
+      "blob": "7ea093691ac095a842d5117729e45265522b1a0f"
+    },
+    {
+      "path": "reference/kettle/expected/report.txt.snap",
+      "mode": "100644",
+      "blob": "a25c9b231d1c3efd49124bbf3cf588e5207899de"
+    },
+    {
+      "path": "reference/kettle/expected/transcript.txt.snap",
+      "mode": "100644",
+      "blob": "d6861be6e69f3da48f3777e55306f48c140c3c58"
+    },
+    {
+      "path": "reference/kettle/go.sum",
+      "mode": "100644",
+      "blob": "ba6fb5f8c0b077f97633c3dcb7185cf9c1cc30f8"
+    }
+  ],
+  "scope": "Git tree byte/mode identity, exact approved adaptations and source path evolution only; no runtime, regeneration, wire-semantic or guest execution claim.",
+  "negative_controls": [
+    {
+      "name": "missing-source",
+      "mutated_path": ".config/nextest.toml",
+      "expected_refusal": "missing-source",
+      "passed": true
+    },
+    {
+      "name": "unexpected-modified",
+      "mutated_path": ".config/nextest.toml",
+      "expected_refusal": "unexpected-modified",
+      "passed": true
+    },
+    {
+      "name": "protected-license",
+      "mutated_path": "LICENSE",
+      "expected_refusal": "protected-difference",
+      "passed": true
+    },
+    {
+      "name": "protected-fixture",
+      "mutated_path": "author/dsl/macros/tests/fixtures/action/expected/expansion.rs.snap",
+      "expected_refusal": "protected-difference",
+      "passed": true
+    },
+    {
+      "name": "protected-lock",
+      "mutated_path": "Cargo.lock",
+      "expected_refusal": "protected-difference",
+      "passed": true
+    },
+    {
+      "name": "protected-fixture-build-script",
+      "mutated_path": "dev/fixtures/build.rs",
+      "expected_refusal": "protected-difference",
+      "passed": true
+    },
+    {
+      "name": "protected-fixture-crate-source",
+      "mutated_path": "dev/fixtures/interpreted.rs",
+      "expected_refusal": "protected-difference",
+      "passed": true
+    },
+    {
+      "name": "allowlisted-content-change",
+      "mutated_path": ".cargo/config.toml",
+      "expected_refusal": "unreviewed-allowlisted-content",
+      "passed": true
+    },
+    {
+      "name": "missing-approved-support",
+      "mutated_path": "Makefile",
+      "expected_refusal": "missing-approved-support",
+      "passed": true
+    },
+    {
+      "name": "unexpected-added",
+      "mutated_path": "__unapproved_source__.rs",
+      "expected_refusal": "unexpected-added",
+      "passed": true
+    },
+    {
+      "name": "deleted-source-resurrection",
+      "mutated_path": "author/dsl/macros/tests/ui/action_domain_conflict.rs",
+      "expected_refusal": "deleted-source-resurrected",
+      "passed": true
+    },
+    {
+      "name": "stale-prior-hash",
+      "mutated_path": ".cargo/config.toml",
+      "mutated_field": "prior_adaptation_after_sha256",
+      "expected_refusal": "stale-prior-adaptation-hash",
+      "passed": true
+    },
+    {
+      "name": "mismatched-prior-flag",
+      "mutated_path": ".cargo/config.toml",
+      "mutated_field": "unchanged_since_prior_approved_adaptation",
+      "expected_refusal": "prior-adaptation-flag-mismatch",
+      "passed": true
+    },
+    {
+      "name": "mismatched-prior-changed-flag",
+      "mutated_path": "dev/xtask/README.md",
+      "mutated_field": "unchanged_since_prior_approved_adaptation",
+      "expected_refusal": "prior-adaptation-flag-mismatch",
+      "passed": true
+    }
+  ]
+}

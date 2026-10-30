@@ -1,0 +1,99 @@
+{
+  "base": "7c6d9fdcbd896b4903720350ae6706e32d203a5d",
+  "draws": [
+    {
+      "axis": "correctness",
+      "failed": false,
+      "model": "claude-fable-5-1",
+      "session_id": "a9ee77e4-b1b3-4804-825b-547ba314ce14",
+      "verdict": "SHIP"
+    },
+    {
+      "axis": "contracts",
+      "failed": false,
+      "model": "claude-fable-5-1",
+      "session_id": "0b8b0789-f6b7-42ce-9435-5e61f2e8cb43",
+      "verdict": "SHIP"
+    },
+    {
+      "axis": "integration",
+      "failed": false,
+      "model": "claude-fable-5-1",
+      "session_id": "4a18a02f-2e0a-4dec-a005-500430294cc6",
+      "verdict": "SHIP"
+    }
+  ],
+  "effort": "high",
+  "findings": {
+    "backend": "claude",
+    "baseSha": "7c6d9fdcbd896b4903720350ae6706e32d203a5d",
+    "headSha": "1fb713f6fcdcab8f1078d52f363d948a195d65b2",
+    "items": [
+      {
+        "anchor": {
+          "baseSha": "7c6d9fdcbd896b4903720350ae6706e32d203a5d",
+          "headSha": "1fb713f6fcdcab8f1078d52f363d948a195d65b2",
+          "path": ".flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/standalone/adaptation-allowlist.json",
+          "side": "head",
+          "startLine": 749
+        },
+        "body": "The gate.rs allowlist reason describes supervised fetch and setup failure but does not explicitly name the portability category enumerated by task acceptance.",
+        "classification": "introduced",
+        "confidence": 75,
+        "firstSeenReceiptId": "review-ae1633abb4ffc6e5dab541c2e5b8a16a0866ae943416ee7c6684f95996a28870",
+        "id": "finding-4deaa2e9ca41aaefa266b788ee4cd807",
+        "lastSeenReceiptId": "review-ae1633abb4ffc6e5dab541c2e5b8a16a0866ae943416ee7c6684f95996a28870",
+        "ordinal": 1,
+        "rIds": [
+          "R3"
+        ],
+        "severity": "P3",
+        "status": "open",
+        "suggestion": "Prefix the reason with the framework-only cold-checkout portability rationale. Metadata-only, no source or approved blob change. Source: contracts finding1.",
+        "title": "Name the portability category in the required-test setup adaptation"
+      },
+      {
+        "anchor": {
+          "baseSha": "7c6d9fdcbd896b4903720350ae6706e32d203a5d",
+          "headSha": "1fb713f6fcdcab8f1078d52f363d948a195d65b2",
+          "path": ".flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/standalone/source-adaptation.patch",
+          "side": "head",
+          "startLine": 500
+        },
+        "body": "dev/xtask/README.md says validate forces required TLC but does not explicitly describe tests-stage fetch-tlc.sh network/build writes or exit propagation. Root README already promises provisioning checksum-pinned tools as needed; this is a non-blocking narrower documentation omission.",
+        "classification": "introduced",
+        "confidence": 75,
+        "firstSeenReceiptId": "review-ae1633abb4ffc6e5dab541c2e5b8a16a0866ae943416ee7c6684f95996a28870",
+        "id": "finding-58863d3658e0234493da91c92e8e3b45",
+        "lastSeenReceiptId": "review-ae1633abb4ffc6e5dab541c2e5b8a16a0866ae943416ee7c6684f95996a28870",
+        "ordinal": 2,
+        "rIds": [
+          "R3"
+        ],
+        "severity": "P3",
+        "status": "open",
+        "suggestion": "Add that sentence during task5 final documentation synchronization. Source: integration finding1; reviewer marked R3 met and verdict SHIP.",
+        "title": "Make the required-test provisioning side effect explicit in the CLI guide"
+      }
+    ],
+    "reviewKind": "implementation",
+    "round": 1,
+    "schemaVersion": 1,
+    "sourceReceiptId": "review-ae1633abb4ffc6e5dab541c2e5b8a16a0866ae943416ee7c6684f95996a28870"
+  },
+  "focus": "Final task2 R2/R3 standalone source readiness at05473210 tree46829511; actual sibling ../umpire authoritative, inspect standalone/source-adaptation.patch and current-readiness.json. Initial ac79114 review all3 SHIP retained task2-review/initial-ac79114; three valid findings now fixed: current core/Kettle protobuf/source-boundary receipts, historical54 hash and flag verification with14controls, explicit entire fixture-source freeze. New source handoff exactly two gate files: supervised existing fetch-tlc before required tests; exact setup failure, skip mode and direct/scheduled receipts. No new tool provider or protocol/lock/fixture semantics. Focus portability, generation/wire/ABI, exact1189 mapped/1130unchanged/59adaptations/499protected/133add122delete, history join and strict boundary policy. Full clean source-only make validate passed18parent17child with recovery-only verifier158objects7979members; see validation/standalone-0547321/README and receipt summaries, no need to read giant raw archive inventories unless contradiction. All focused gate30+clippy+realTLC controls green. Task4 named check/time/release/paired proof still open; task5 publication/receiving/cutover open. Consumer changes, R6 prep and cleanup out of this task2 scope. Review source and exact-task acceptance, do not count deferred requirements as task2 completion claims.",
+  "id": "fn-258-complete-the-resumed-standalone-umpire.2",
+  "introduced_count": 2,
+  "mode": "claude",
+  "model": "claude-fable-5-1",
+  "pre_existing_count": 0,
+  "review": "## Issue 1\n- **Severity**: P3\n- **Confidence**: 75\n- **Classification**: introduced\n- **File:Line**: .flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/standalone/adaptation-allowlist.json:749\n- **R-IDs**: [R3]\n- **Title**: Name the portability category in the required-test setup adaptation\n- **Problem**: The gate.rs allowlist reason describes supervised fetch and setup failure but does not explicitly name the portability category enumerated by task acceptance.\n- **Suggestion**: Prefix the reason with the framework-only cold-checkout portability rationale. Metadata-only, no source or approved blob change. Source: contracts finding1.\n\n## Issue 2\n- **Severity**: P3\n- **Confidence**: 75\n- **Classification**: introduced\n- **File:Line**: .flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/standalone/source-adaptation.patch:500\n- **R-IDs**: [R3]\n- **Title**: Make the required-test provisioning side effect explicit in the CLI guide\n- **Problem**: dev/xtask/README.md says validate forces required TLC but does not explicitly describe tests-stage fetch-tlc.sh network/build writes or exit propagation. Root README already promises provisioning checksum-pinned tools as needed; this is a non-blocking narrower documentation omission.\n- **Suggestion**: Add that sentence during task5 final documentation synchronization. Source: integration finding1; reviewer marked R3 met and verdict SHIP.\n\nDeclined correctness finding1/contracts finding2: the prelude intentionally belongs to the tests stage receipt; script stderr identifies setup errors and exit status is preserved. Duplicate timing labels follow the existing execute pattern and break no consumer. Record the label in the adaptation rationale instead of changing source after full proof.\nDeclined correctness finding2: direct update/test-run provisioning is unchanged and outside this gate correction; required direct-stage and scheduled tests are covered. The controls preserve the existing contract.\n\nThis is a format-repaired merge of the actual three SHIP draws. Correctness and integration used inline enum fields rejected by the parser; raw reviews remain unchanged. All three reviewers mark task2 R2/R3 met; task4/5 remain deferred.\n\n```json\n{\"classification_counts\":{\"introduced\":2,\"pre_existing\":0},\"unaddressed\":[]}\n```\n\n<verdict>SHIP</verdict>\n",
+  "review_reservation_id": "62e898a1eb3648ddbdc6fa82e37a72fb",
+  "rid": "62e898a1eb3648ddbdc6fa82e37a72fb",
+  "session_id": "a9ee77e4-b1b3-4804-825b-547ba314ce14",
+  "spec": "claude:claude-fable-5-1:high",
+  "timestamp": "2026-10-28T14:09:19.946245Z",
+  "type": "impl_review",
+  "unaddressed": [],
+  "verdict": "SHIP"
+}

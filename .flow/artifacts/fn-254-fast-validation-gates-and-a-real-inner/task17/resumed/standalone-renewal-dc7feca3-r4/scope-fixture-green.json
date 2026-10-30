@@ -1,0 +1,30 @@
+{
+  "command": [
+    "mise",
+    "exec",
+    "--",
+    "cargo",
+    "nextest",
+    "run",
+    "--locked",
+    "-p",
+    "xtask",
+    "--test",
+    "main",
+    "--profile",
+    "required",
+    "-E",
+    "test(gate_wiring::)"
+  ],
+  "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire",
+  "environment": {
+    "CARGO_TARGET_DIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25417-standalone-renewal/target",
+    "UMPIRE_GATE_SCOPE": "framework",
+    "UMPIRE_GATE_STAGE": "tests",
+    "UMPIRE_GATE_ORDER": "11",
+    "NEXTEST_PROFILE": "required",
+    "NEXTEST_TEST_THREADS": "4"
+  },
+  "exit": 0,
+  "seconds": 97.74780163000105
+}

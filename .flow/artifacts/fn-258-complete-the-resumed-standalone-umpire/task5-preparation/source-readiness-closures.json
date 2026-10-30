@@ -1,0 +1,136 @@
+{
+  "command": "python3 /home/agent/.codex/scripts/flowctl.py show <id> --json from Temporal root",
+  "root_head": "d1634eb04e058229bffef1457280d6292804de8e",
+  "observations": [
+    {
+      "success": true,
+      "assignee": "stephanos@users.noreply.github.com",
+      "claim_note": "",
+      "claimed_at": "2026-10-28T05:10:43.244013Z",
+      "created_at": "2026-10-28T05:10:42.666107Z",
+      "depends_on": [],
+      "id": "fn-258-complete-the-resumed-standalone-umpire.1",
+      "priority": null,
+      "spec": "fn-258-complete-the-resumed-standalone-umpire",
+      "spec_path": ".flow/tasks/fn-258-complete-the-resumed-standalone-umpire.1.md",
+      "status": "done",
+      "title": "Freeze renewed source and reconcile candidate ownership",
+      "updated_at": "2026-10-28T05:46:56.777814Z",
+      "evidence": {
+        "commits": [
+          "05051b84a18f29e8cafbfa6b5ac57981a2aee72f",
+          "ba8ede3a6a078d3ede43245a7764c081a5daa1d6",
+          "e4c4642cdc760bd42e1ec29ef422bb814c924694"
+        ],
+        "prs": [],
+        "tests": [
+          "python3 .flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/source/candidate-ledger.py",
+          "python3 .flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/source/candidate-ledger.py --controls-only",
+          "Independent verify-export.py full/bundle verification,627 retained+6634 pruned; exact commands in history/tool-provenance.json and current proof artifacts",
+          "checkpoint-controls.py old-pass/new-fail unmapped-tip and foreign-parent controls",
+          "verify-history-provenance.py all15 definitions,6 representative histories,current1189-file inventory",
+          "git diff --check"
+        ]
+      },
+      "impl": null,
+      "review": null,
+      "sync": null,
+      "status_source": "flow-state"
+    },
+    {
+      "success": true,
+      "assignee": "stephanos@users.noreply.github.com",
+      "claim_note": "",
+      "claimed_at": "2026-10-28T05:53:33.137979Z",
+      "created_at": "2026-10-28T05:10:42.666192Z",
+      "depends_on": [
+        "fn-258-complete-the-resumed-standalone-umpire.1"
+      ],
+      "id": "fn-258-complete-the-resumed-standalone-umpire.2",
+      "priority": null,
+      "spec": "fn-258-complete-the-resumed-standalone-umpire",
+      "spec_path": ".flow/tasks/fn-258-complete-the-resumed-standalone-umpire.2.md",
+      "status": "done",
+      "title": "Refresh portable standalone from integrated framework source",
+      "updated_at": "2026-10-28T14:10:31.159530Z",
+      "evidence": {
+        "base_commit": "26fcbb6bdbe273e2b0bf5db2739e4d0e5fa34ffe",
+        "commits": [
+          "7c6d9fdcbd896b4903720350ae6706e32d203a5d",
+          "a4e97c8e16e71f5cea515910fe692b738d31a366",
+          "e4cf57dd013b6c86cc9d6e0e27984005608ad4ba",
+          "1fb713f6fcdcab8f1078d52f363d948a195d65b2"
+        ],
+        "prs": [],
+        "tests": [
+          "make validate at standalone054;18parent17child success; validation/standalone-0547321",
+          "verify-adaptation.py:1189mapped499protected14controls; verify-history-join.py:exact trees/parents/current054 ancestry",
+          "core/Kettle protobuf --check and source-boundary current054;30gate wiring+clippy+realTLC regression",
+          "verify-recovery.py:158objects7979members PASS without original caches"
+        ]
+      },
+      "impl": null,
+      "review": null,
+      "sync": null,
+      "status_source": "flow-state"
+    },
+    {
+      "success": true,
+      "assignee": "stephanos@users.noreply.github.com",
+      "claim_note": "",
+      "claimed_at": "2026-10-28T05:53:33.637969Z",
+      "created_at": "2026-10-28T05:10:42.666242Z",
+      "depends_on": [
+        "fn-258-complete-the-resumed-standalone-umpire.1"
+      ],
+      "id": "fn-258-complete-the-resumed-standalone-umpire.3",
+      "priority": null,
+      "spec": "fn-258-complete-the-resumed-standalone-umpire",
+      "spec_path": ".flow/tasks/fn-258-complete-the-resumed-standalone-umpire.3.md",
+      "status": "done",
+      "title": "Adapt actual Temporal consumers to current standalone interfaces",
+      "updated_at": "2026-10-28T14:17:59.169758Z",
+      "evidence": {
+        "base_commit": "a4e97c8e16e71f5cea515910fe692b738d31a366",
+        "commits": [
+          "e4cf57dd013b6c86cc9d6e0e27984005608ad4ba",
+          "1fb713f6fcdcab8f1078d52f363d948a195d65b2",
+          "c258547ed5cc7d2ddc2247fce956dc5bb8504d32"
+        ],
+        "prs": [],
+        "tests": [
+          "Exactclean3f5/054: all-target/all-feature check;16unit+7integration; Makeguards; Go parent workspace/moduleDirs; clean before/after",
+          "New thinbundle actual prerequisite-only recovery; exacttree/guest; strictfsck0",
+          "Content-based unchanged host/noRust/native-symbolic runtime proof rebinding; currentinput guestfreshness explicitly expires to task4"
+        ]
+      },
+      "impl": null,
+      "review": null,
+      "sync": null,
+      "status_source": "flow-state"
+    },
+    {
+      "success": true,
+      "assignee": "stephanos@users.noreply.github.com",
+      "claim_note": "",
+      "claimed_at": "2026-10-28T14:19:49.599362Z",
+      "created_at": "2026-10-28T05:10:42.666284Z",
+      "depends_on": [
+        "fn-258-complete-the-resumed-standalone-umpire.2",
+        "fn-258-complete-the-resumed-standalone-umpire.3"
+      ],
+      "id": "fn-258-complete-the-resumed-standalone-umpire.4",
+      "priority": null,
+      "spec": "fn-258-complete-the-resumed-standalone-umpire",
+      "spec_path": ".flow/tasks/fn-258-complete-the-resumed-standalone-umpire.4.md",
+      "status": "in_progress",
+      "title": "Prove current standalone and paired development loop",
+      "updated_at": "2026-10-28T14:19:49.596934Z",
+      "impl": null,
+      "review": null,
+      "sync": null,
+      "status_source": "flow-state"
+    }
+  ],
+  "qualification": "Flow runtime overlays are authoritative for task status (status_source flow-state). Task definition JSON todo fields are not the current lifecycle state; committed task markdown Done summary/evidence records retain closures. Task4 remains inprogress."
+}

@@ -1,0 +1,332 @@
+{
+  "test_result": "15 passed; 0 failed; 0 ignored; 49 filtered; 805.58s",
+  "selected_world_count": 33,
+  "worlds": [
+    {
+      "maximum_attempts": 3,
+      "asynchronous_cancel": true,
+      "timeouts": "[None, None, None, None]",
+      "states": 18,
+      "edges": 84,
+      "bound": 4096,
+      "complete": true
+    },
+    {
+      "maximum_attempts": 1,
+      "asynchronous_cancel": false,
+      "timeouts": "[None, None, Some(1), None]",
+      "states": 6,
+      "edges": 13,
+      "bound": 4096,
+      "complete": true
+    },
+    {
+      "maximum_attempts": 3,
+      "asynchronous_cancel": true,
+      "timeouts": "[None, None, Some(3), None]",
+      "states": 39,
+      "edges": 264,
+      "bound": 4096,
+      "complete": true
+    },
+    {
+      "maximum_attempts": 1,
+      "asynchronous_cancel": true,
+      "timeouts": "[Some(3), Some(1), Some(1), None]",
+      "states": 7,
+      "edges": 20,
+      "bound": 4096,
+      "complete": true
+    },
+    {
+      "maximum_attempts": 1,
+      "asynchronous_cancel": true,
+      "timeouts": "[Some(3), None, None, Some(1)]",
+      "states": 9,
+      "edges": 26,
+      "bound": 4096,
+      "complete": true
+    },
+    {
+      "maximum_attempts": 1,
+      "asynchronous_cancel": true,
+      "timeouts": "[Some(3), None, Some(3), Some(1)]",
+      "states": 13,
+      "edges": 52,
+      "bound": 4096,
+      "complete": true
+    },
+    {
+      "maximum_attempts": 1,
+      "asynchronous_cancel": true,
+      "timeouts": "[None, Some(1), Some(1), Some(1)]",
+      "states": 7,
+      "edges": 20,
+      "bound": 4096,
+      "complete": true
+    },
+    {
+      "maximum_attempts": 2,
+      "asynchronous_cancel": true,
+      "timeouts": "[Some(3), Some(1), Some(1), None]",
+      "states": 14,
+      "edges": 52,
+      "bound": 4096,
+      "complete": true
+    },
+    {
+      "maximum_attempts": 2,
+      "asynchronous_cancel": true,
+      "timeouts": "[Some(3), None, None, Some(1)]",
+      "states": 18,
+      "edges": 72,
+      "bound": 4096,
+      "complete": true
+    },
+    {
+      "maximum_attempts": 2,
+      "asynchronous_cancel": true,
+      "timeouts": "[Some(3), None, Some(3), Some(1)]",
+      "states": 29,
+      "edges": 155,
+      "bound": 4096,
+      "complete": true
+    },
+    {
+      "maximum_attempts": 2,
+      "asynchronous_cancel": true,
+      "timeouts": "[None, Some(1), Some(1), Some(1)]",
+      "states": 14,
+      "edges": 52,
+      "bound": 4096,
+      "complete": true
+    },
+    {
+      "maximum_attempts": 3,
+      "asynchronous_cancel": true,
+      "timeouts": "[Some(3), Some(1), Some(1), None]",
+      "states": 21,
+      "edges": 96,
+      "bound": 4096,
+      "complete": true
+    },
+    {
+      "maximum_attempts": 3,
+      "asynchronous_cancel": true,
+      "timeouts": "[Some(3), None, None, Some(1)]",
+      "states": 27,
+      "edges": 138,
+      "bound": 4096,
+      "complete": true
+    },
+    {
+      "maximum_attempts": 3,
+      "asynchronous_cancel": true,
+      "timeouts": "[Some(3), None, Some(3), Some(1)]",
+      "states": 45,
+      "edges": 306,
+      "bound": 4096,
+      "complete": true
+    },
+    {
+      "maximum_attempts": 3,
+      "asynchronous_cancel": true,
+      "timeouts": "[None, Some(1), Some(1), Some(1)]",
+      "states": 21,
+      "edges": 96,
+      "bound": 4096,
+      "complete": true
+    },
+    {
+      "maximum_attempts": 3,
+      "asynchronous_cancel": true,
+      "timeouts": "[None, Some(3), None, None]",
+      "states": 33,
+      "edges": 219,
+      "bound": 4096,
+      "complete": true
+    },
+    {
+      "maximum_attempts": 1,
+      "asynchronous_cancel": false,
+      "timeouts": "[None, None, None, None]",
+      "states": 5,
+      "edges": 10,
+      "bound": 4096,
+      "complete": true
+    },
+    {
+      "maximum_attempts": 1,
+      "asynchronous_cancel": false,
+      "timeouts": "[Some(1), None, None, None]",
+      "states": 6,
+      "edges": 12,
+      "bound": 4096,
+      "complete": true
+    },
+    {
+      "maximum_attempts": 3,
+      "asynchronous_cancel": true,
+      "timeouts": "[Some(3), None, None, None]",
+      "states": 27,
+      "edges": 132,
+      "bound": 4096,
+      "complete": true
+    },
+    {
+      "maximum_attempts": 1,
+      "asynchronous_cancel": true,
+      "timeouts": "[Some(3), Some(1), None, None]",
+      "states": 9,
+      "edges": 26,
+      "bound": 4096,
+      "complete": true
+    },
+    {
+      "maximum_attempts": 1,
+      "asynchronous_cancel": true,
+      "timeouts": "[Some(3), Some(1), Some(3), None]",
+      "states": 13,
+      "edges": 52,
+      "bound": 4096,
+      "complete": true
+    },
+    {
+      "maximum_attempts": 1,
+      "asynchronous_cancel": true,
+      "timeouts": "[Some(3), None, Some(1), Some(1)]",
+      "states": 7,
+      "edges": 20,
+      "bound": 4096,
+      "complete": true
+    },
+    {
+      "maximum_attempts": 1,
+      "asynchronous_cancel": true,
+      "timeouts": "[None, Some(1), None, Some(1)]",
+      "states": 7,
+      "edges": 19,
+      "bound": 4096,
+      "complete": true
+    },
+    {
+      "maximum_attempts": 2,
+      "asynchronous_cancel": true,
+      "timeouts": "[Some(3), Some(1), None, None]",
+      "states": 18,
+      "edges": 72,
+      "bound": 4096,
+      "complete": true
+    },
+    {
+      "maximum_attempts": 2,
+      "asynchronous_cancel": true,
+      "timeouts": "[Some(3), Some(1), Some(3), None]",
+      "states": 29,
+      "edges": 155,
+      "bound": 4096,
+      "complete": true
+    },
+    {
+      "maximum_attempts": 2,
+      "asynchronous_cancel": true,
+      "timeouts": "[Some(3), None, Some(1), Some(1)]",
+      "states": 14,
+      "edges": 52,
+      "bound": 4096,
+      "complete": true
+    },
+    {
+      "maximum_attempts": 2,
+      "asynchronous_cancel": true,
+      "timeouts": "[None, Some(1), None, Some(1)]",
+      "states": 14,
+      "edges": 50,
+      "bound": 4096,
+      "complete": true
+    },
+    {
+      "maximum_attempts": 3,
+      "asynchronous_cancel": true,
+      "timeouts": "[Some(3), Some(1), None, None]",
+      "states": 27,
+      "edges": 138,
+      "bound": 4096,
+      "complete": true
+    },
+    {
+      "maximum_attempts": 3,
+      "asynchronous_cancel": true,
+      "timeouts": "[Some(3), Some(1), Some(3), None]",
+      "states": 45,
+      "edges": 306,
+      "bound": 4096,
+      "complete": true
+    },
+    {
+      "maximum_attempts": 3,
+      "asynchronous_cancel": true,
+      "timeouts": "[Some(3), None, Some(1), Some(1)]",
+      "states": 21,
+      "edges": 96,
+      "bound": 4096,
+      "complete": true
+    },
+    {
+      "maximum_attempts": 3,
+      "asynchronous_cancel": true,
+      "timeouts": "[None, Some(1), None, Some(1)]",
+      "states": 21,
+      "edges": 93,
+      "bound": 4096,
+      "complete": true
+    },
+    {
+      "maximum_attempts": 1,
+      "asynchronous_cancel": false,
+      "timeouts": "[Some(1), None, Some(1), None]",
+      "states": 6,
+      "edges": 13,
+      "bound": 4096,
+      "complete": true
+    },
+    {
+      "maximum_attempts": 3,
+      "asynchronous_cancel": true,
+      "timeouts": "[None, None, None, Some(3)]",
+      "states": 33,
+      "edges": 219,
+      "bound": 4096,
+      "complete": true
+    }
+  ],
+  "tlc_native_verified_claim_rows": 561,
+  "own_law_names": [
+    "attempt_changes_only_on_retry",
+    "closed_rejects",
+    "countdowns_decrement",
+    "deadline_arming",
+    "eventually_closed",
+    "global_never_replenished",
+    "heartbeat_preserves_attempt_and_global",
+    "ordinary_nonretryable_failure_fails",
+    "ordinary_retry_at_cap_fails",
+    "ordinary_retry_rearms",
+    "pending_is_cooperative",
+    "pending_nonretryable_failure_fails",
+    "pending_retryable_failure_fails",
+    "state_bounds",
+    "terminal_remains",
+    "tick_descends_and_expires",
+    "tick_priority"
+  ],
+  "native_state_sum_across_scopes": 623,
+  "native_edge_sum_across_scopes": 3130,
+  "negative_control_trace_counts": {
+    "pending_failure_payload_attempt_traces": 8,
+    "pending_expiry_cause_traces": 2,
+    "timeout_retry_traces": 4,
+    "source_policy_mutant_traces": 6
+  },
+  "scope": "Approved fn246.13 pending-cancellation outcomes, preserved fn246.15 timeout retry and selected policy World agreement; full live and broad combined gates remain separate."
+}

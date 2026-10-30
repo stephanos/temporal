@@ -15,10 +15,14 @@ pub const JAR_SHA256: &str = "936a262061c914694dfd669a543be24573c45d5aa0ff20a8b9
 const TLC_VERSION: &str = "Version 2.19 of 08 August 2024";
 const CACHE: &str = "build/tlc";
 use crate::cache::{self, Bundle, Record};
-use std::sync::Mutex;
+use std::sync::{Mutex, OnceLock};
 use umpire_backend_process::{
-    PinnedJar, Scratch, bounded_text, bytes_sha256, java_command, run_process, structural_sha256,
+    PinnedJar, Scratch, bounded_text, bytes_sha256, java_command, run_process_observed,
+    structural_sha256,
 };
+
+#[cfg(test)]
+use umpire_backend_process::run_process;
 
 /// An admitted property result.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -64,6 +68,7 @@ pub struct TlcResult {
 #[derive(Clone, Debug)]
 pub struct Tlc {
     root: PathBuf,
+    origin: InvocationOrigin,
     jar: PathBuf,
     java: PathBuf,
     /// Bounds applied to every subprocess.
@@ -71,6 +76,16 @@ pub struct Tlc {
     /// Maximum simultaneous singleton recovery processes within one check. Must be positive.
     /// The default is at most two; gates must also bound concurrent test processes and invocations.
     pub property_workers: usize,
+}
+
+// Only successful pinned admission or the closed test renderer may assign provenance.
+#[derive(Clone, Debug)]
+enum InvocationOrigin {
+    Admitted(umpire_backend_process::work::TlcInvocation),
+    #[cfg(test)]
+    ProtocolFixture(umpire_backend_process::work::TlcInvocation),
+    #[cfg(test)]
+    Unclassified,
 }
 
 impl Tlc {
@@ -87,6 +102,7 @@ impl Tlc {
             .chain(module.metadata.negative.iter().map(|claim| claim.cfg.as_str()))
             .collect();
         let mut pending = Vec::new();
+        let identity = OnceLock::new();
         let mut result = self.check_inventory(
             &module.name,
             &module.tla,
@@ -94,6 +110,7 @@ impl Tlc {
             &schema,
             &inventory,
             0,
+            &identity,
             &mut pending,
         )?;
         for (index, cfg) in module
@@ -111,6 +128,7 @@ impl Tlc {
                 &schema,
                 &inventory,
                 index + 1,
+                &identity,
                 &mut pending,
             )?;
             for (operator, property) in additional.properties {
@@ -126,37 +144,54 @@ impl Tlc {
             }
             result.output.push_str(&additional.output);
         }
-        if all_verified(&result) {
-            for bundle in pending {
-                let _ = bundle.publish();
-            }
+        for bundle in pending {
+            let _ = bundle.publish();
         }
         Ok(result)
     }
 
     /// Admit the exact jar and mise-pinned Temurin JDK before any model check.
     pub fn discover(root: &Path) -> Result<Self, Refusal> {
-        let jar = format!("tla2tools-{JAR_VERSION}.jar");
-        PinnedJar::admit(root, CACHE, &jar, JAR_SHA256, |PinnedJar { root, jar, java }, scratch| {
-            let mut version = java_command(&java);
-            version.args(["-cp"]).arg(&jar).args(["tlc2.TLC", "-h"]).current_dir(scratch);
-            let (status, output) =
-                run_process(&mut version, scratch, "tlc-version", Limits::default(), None)?;
-            if status.code() != Some(1) || !output.contains(TLC_VERSION) {
-                return Err(Refusal(format!("wrong TLC version: {output}")));
-            }
-            Ok(Self {
-                root,
-                jar,
-                java,
-                limits: Limits::default(),
-                property_workers: std::thread::available_parallelism()
-                    .map_or(1, |n| n.get().min(2)),
-            })
-        })
+        PinnedJar::admit_mise(
+            root,
+            CACHE,
+            umpire_backend_process::tool_provider::JarTool::Tlc,
+            JAR_SHA256,
+            |PinnedJar { root, jar, java }, scratch| {
+                let limits = Limits::default();
+                let origin = umpire_backend_process::work::TlcInvocation::admitted(&java, &jar)?;
+                let mut version = java_command(&java);
+                version
+                    .arg(format!("-Xmx{}m", limits.heap_mb))
+                    .arg("-cp")
+                    .arg(&jar)
+                    .args(["tlc2.TLC", "-h"])
+                    .current_dir(scratch);
+                let (status, output) = run_process_observed(
+                    &mut version,
+                    scratch,
+                    "tlc-version",
+                    limits,
+                    None,
+                    &origin,
+                )?;
+                if status.code() != Some(1) || !output.contains(TLC_VERSION) {
+                    return Err(Refusal(format!("wrong TLC version: {output}")));
+                }
+                Ok(Self {
+                    origin: InvocationOrigin::Admitted(origin),
+                    root,
+                    jar,
+                    java,
+                    limits,
+                    property_workers: std::thread::available_parallelism()
+                        .map_or(1, |n| n.get().min(2)),
+                })
+            },
+        )
         .map_err(|Refusal(message)| {
             if message.starts_with("missing pinned jar") {
-                Refusal(format!("{message}; run bash scripts/fetch-tlc.sh"))
+                Refusal(format!("{message}; run mise exec -- cargo xtask fetch-tlc"))
             } else {
                 Refusal(message)
             }
@@ -175,7 +210,8 @@ impl Tlc {
         schema: &Schema,
     ) -> Result<TlcResult, Error> {
         let mut pending = Vec::new();
-        let result = self.check_inventory(name, tla, cfg, schema, &[cfg], 0, &mut pending);
+        let result =
+            self.check_inventory(name, tla, cfg, schema, &[cfg], 0, &OnceLock::new(), &mut pending);
         if result.as_ref().is_ok_and(all_verified) {
             for bundle in pending {
                 let _ = bundle.publish();
@@ -193,6 +229,7 @@ impl Tlc {
         schema: &Schema,
         inventory: &[&str],
         index: usize,
+        identity: &OnceLock<Result<(String, String), Refusal>>,
         pending: &mut Vec<Bundle>,
     ) -> Result<TlcResult, Error> {
         // Admission precedes identity work and cache access on both paths.
@@ -203,7 +240,25 @@ impl Tlc {
             std::env::var("UMPIRE_QUICK_CACHE").ok().as_deref(),
             std::env::var("UMPIRE_CACHE_DISABLE").ok().as_deref(),
         ) {
-            self.cache_bundle(name, tla, cfg, schema, inventory, index, &base, &properties).ok()
+            match self.cache_bundle(
+                name,
+                tla,
+                cfg,
+                schema,
+                inventory,
+                index,
+                &base,
+                &properties,
+                identity,
+            ) {
+                Ok(bundle) => Some(bundle),
+                Err(error) => {
+                    cache_report(format_args!(
+                        "TLC cache miss {name} configuration {index}: {error}"
+                    ));
+                    None
+                }
+            }
         } else {
             None
         };
@@ -223,13 +278,6 @@ impl Tlc {
             cache_report(format_args!(
                 "TLC cache miss {name} configuration {index} {}",
                 bundle.key
-            ));
-        } else if cache::enabled(
-            std::env::var("UMPIRE_QUICK_CACHE").ok().as_deref(),
-            std::env::var("UMPIRE_CACHE_DISABLE").ok().as_deref(),
-        ) {
-            cache_report(format_args!(
-                "TLC cache miss {name} configuration {index}: identity unavailable"
             ));
         }
         let result = self.check_strategy_cached(name, tla, cfg, schema, true, bundle.as_ref());
@@ -260,22 +308,14 @@ impl Tlc {
         index: usize,
         base: &str,
         properties: &[(String, String)],
+        identity: &OnceLock<Result<(String, String), Refusal>>,
     ) -> Result<Bundle, Refusal> {
         let root = cache::root()?;
-        let scratch = Scratch::new_in(&root, "quick-tlc-v1")?;
-        let identity = (|| {
-            let jar = bytes_sha256(&fs::read(&self.jar)?);
-            let mut command = java_command(&self.java);
-            command.arg("-version");
-            let (status, java) =
-                run_process(&mut command, scratch.path(), "identity", self.limits, None)?;
-            if !status.success() {
-                return Err(Refusal("Java cache identity unavailable".into()));
-            }
-            Ok((jar, java))
-        })();
-        let (jar, java) = scratch.finish(identity)?;
-        let (key, schema) = self.cache_key(name, tla, cfg, schema, inventory, index, &jar, &java);
+        let (jar, java) = identity
+            .get_or_init(|| self.cache_identity(&root))
+            .as_ref()
+            .map_err(|error| Refusal(error.0.clone()))?;
+        let (key, schema) = self.cache_key(name, tla, cfg, schema, inventory, index, jar, java);
         let mut expected = vec![cache::record_id(base)];
         if !properties.is_empty() {
             expected.push(cache::record_id(&property_cfg(base, properties)));
@@ -289,6 +329,44 @@ impl Tlc {
             replay: false,
             limits: self.limits,
         })
+    }
+
+    fn run_observed(
+        &self,
+        command: &mut std::process::Command,
+        directory: &Path,
+        label: &str,
+        dump: Option<&Path>,
+    ) -> Result<(std::process::ExitStatus, String), Refusal> {
+        match &self.origin {
+            InvocationOrigin::Admitted(origin) => {
+                run_process_observed(command, directory, label, self.limits, dump, origin)
+            }
+            #[cfg(test)]
+            InvocationOrigin::ProtocolFixture(origin) => {
+                run_process_observed(command, directory, label, self.limits, dump, origin)
+            }
+            #[cfg(test)]
+            InvocationOrigin::Unclassified => {
+                run_process(command, directory, label, self.limits, dump)
+            }
+        }
+    }
+
+    fn cache_identity(&self, root: &Path) -> Result<(String, String), Refusal> {
+        let scratch = Scratch::new_in(root, "quick-tlc-v1")?;
+        let identity = (|| {
+            let jar = bytes_sha256(&fs::read(&self.jar)?);
+            let mut command = java_command(&self.java);
+            command.arg("-version");
+            let (status, java) =
+                self.run_observed(&mut command, scratch.path(), "identity", None)?;
+            if !status.success() {
+                return Err(Refusal("Java cache identity unavailable".into()));
+            }
+            Ok((jar, java))
+        })();
+        scratch.finish(identity)
     }
 
     #[allow(clippy::too_many_arguments)]
@@ -571,8 +649,11 @@ impl Tlc {
             .arg(&dump)
             .arg(name)
             .current_dir(directory);
-        let (status, output) =
-            run_process(&mut command, directory, label, self.limits, Some(&dump))?;
+        if umpire_backend_process::work::directory()?.is_some() {
+            let source = fs::read(directory.join(format!("{name}.tla")))?;
+            command.env("UMPIRE_TLC_CONFIGURATION", structural_sha256(&(source, cfg)));
+        }
+        let (status, output) = self.run_observed(&mut command, directory, label, Some(&dump))?;
         let tla = fs::read_to_string(directory.join(format!("{name}.tla")))?;
         self.admit_execution(
             &tla,
@@ -1038,6 +1119,7 @@ mod tests {
         )?)?;
         let tlc = Tlc {
             root: PathBuf::from("/unused"),
+            origin: InvocationOrigin::Unclassified,
             jar: PathBuf::from("/unused"),
             java: PathBuf::from("/missing-java"),
             limits: Limits::default(),
@@ -1230,20 +1312,20 @@ mod tests {
                 !outside.join("tlc").exists(),
                 "escaping cache wrote outside the root before admission"
             );
-            let scripts = fake.join("scripts");
-            fs::create_dir(&scripts)?;
-            let script = scripts.join("fetch-tlc.sh");
-            fs::copy(root.join("scripts/fetch-tlc.sh"), &script)?;
-            let mut fetch = Command::new("bash");
-            fetch.arg(&script).current_dir(&fake);
-            let (status, output) =
-                run_process(&mut fetch, scratch.path(), "fetch-symlink", Limits::default(), None)?;
-            assert!(!status.success());
-            assert!(output.contains("TLC cache escapes repository"), "{output}");
-            assert!(
-                !outside.join("tlc").exists(),
-                "fetch script wrote through an escaping symlink"
-            );
+            fs::create_dir(fake.join("mise-tools"))?;
+            for config in
+                ["mise.toml", "mise.apalache.toml", "empty.toml", "mise.lock", "mise.apalache.lock"]
+            {
+                fs::write(fake.join("mise-tools").join(config), "")?;
+            }
+            let error = umpire_backend_process::tool_provider::command(
+                &fake,
+                umpire_backend_process::tool_provider::JarTool::Tlc,
+            )
+            .err()
+            .ok_or_else(|| Refusal("escaping provider cache admitted".into()))?;
+            assert!(error.to_string().contains("symlink"));
+            assert!(!outside.join("mise-jars").exists());
             Ok(())
         })();
         scratch.finish(result)
@@ -1258,8 +1340,13 @@ mod tests {
                 .err()
                 .ok_or_else(|| Refusal("missing jar admitted".into()))?;
             assert!(error.0.contains("missing pinned jar"));
-            fs::create_dir_all(scratch.path().join("build/tlc"))?;
-            fs::write(scratch.path().join("build/tlc/tla2tools-1.7.4.jar"), b"wrong version")?;
+            fs::create_dir_all(
+                scratch.path().join("build/mise-jars/data/installs/http-tlc/1.7.4"),
+            )?;
+            fs::write(
+                scratch.path().join("build/mise-jars/data/installs/http-tlc/1.7.4/tla2tools.jar"),
+                b"wrong version",
+            )?;
             fs::write(scratch.path().join("mise.toml"), "java = \"temurin-27\"\n")?;
             let error = Tlc::discover(scratch.path())
                 .err()
@@ -1292,3 +1379,6 @@ mod batch_tests;
 
 #[cfg(test)]
 mod cache_tests;
+
+#[cfg(test)]
+mod fixture;

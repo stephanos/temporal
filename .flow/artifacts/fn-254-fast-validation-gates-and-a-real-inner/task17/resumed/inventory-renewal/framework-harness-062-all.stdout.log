@@ -1,0 +1,15 @@
+bind::tests::cfg_representation_looks_inside_tuples_and_sequences: test
+emit::optional_tests::optional_default_forces_eager_checked_fallback_in_main_emission: test
+emit::optional_tests::priming_recurses_through_nested_vectors_and_three_children_without_changing_other_leaves: test
+emit::optional_tests::priming_visits_each_nominal_child_and_keeps_world_identity: test
+emit::optional_tests::signed_remainder_asserts_overflow_and_divides_parenthesised_operands: test
+emit::optional_tests::unsigned_division_has_no_overflow_guard: test
+names::optional_tests::rename_visits_nominal_construction_projection_and_both_default_children: test
+names::traversal_tests::rename_override_stops_before_replacement_children: test
+safety::value::optional_tests::negative_literal_divisor_is_parenthesised_in_the_remainder: test
+safety::value::optional_tests::present_optional_requires_fallback_validity_and_checks_some_encoding: test
+safety::value::optional_tests::signed_remainder_requires_nonzero_divisor_and_no_overflow: test
+safety::value::optional_tests::unsigned_division_has_no_overflow_guard: test
+values::tests::composite_values_accept_exact_shapes_only: test
+values::tests::enum_variants_admit_one_fieldless_payload_only: test
+values::tests::nominal_types_validate_descriptor_and_accept_exact_codes: test

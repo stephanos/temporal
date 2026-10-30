@@ -1,0 +1,24 @@
+---
+source: umpire/dev/testing/src/runner.rs
+---
+0: Model { lifecycle: Queued, attempt: 1, cancellation_pending: false, terminal_outcome: None, retained_failure: None, queued_budget: None, attempt_budget: None, execution_budget: None, heartbeat_budget: None }
+1: Model { lifecycle: Closed, attempt: 1, cancellation_pending: false, terminal_outcome: Canceled, retained_failure: None, queued_budget: None, attempt_budget: None, execution_budget: None, heartbeat_budget: None }
+2: Model { lifecycle: Executing, attempt: 1, cancellation_pending: false, terminal_outcome: None, retained_failure: None, queued_budget: None, attempt_budget: None, execution_budget: None, heartbeat_budget: None }
+3: Model { lifecycle: Executing, attempt: 1, cancellation_pending: true, terminal_outcome: None, retained_failure: None, queued_budget: None, attempt_budget: None, execution_budget: None, heartbeat_budget: None }
+4: Model { lifecycle: Closed, attempt: 1, cancellation_pending: false, terminal_outcome: Completed, retained_failure: None, queued_budget: None, attempt_budget: None, execution_budget: None, heartbeat_budget: None }
+5: Model { lifecycle: Closed, attempt: 1, cancellation_pending: false, terminal_outcome: Failed, retained_failure: PermanentWorker, queued_budget: None, attempt_budget: None, execution_budget: None, heartbeat_budget: None }
+6: Model { lifecycle: Queued, attempt: 2, cancellation_pending: false, terminal_outcome: None, retained_failure: RetryableWorker, queued_budget: None, attempt_budget: None, execution_budget: None, heartbeat_budget: None }
+7: Model { lifecycle: Closed, attempt: 1, cancellation_pending: false, terminal_outcome: Failed, retained_failure: RetryableWorker, queued_budget: None, attempt_budget: None, execution_budget: None, heartbeat_budget: None }
+8: Model { lifecycle: Closed, attempt: 2, cancellation_pending: false, terminal_outcome: Canceled, retained_failure: RetryableWorker, queued_budget: None, attempt_budget: None, execution_budget: None, heartbeat_budget: None }
+9: Model { lifecycle: Executing, attempt: 2, cancellation_pending: false, terminal_outcome: None, retained_failure: RetryableWorker, queued_budget: None, attempt_budget: None, execution_budget: None, heartbeat_budget: None }
+10: Model { lifecycle: Executing, attempt: 2, cancellation_pending: true, terminal_outcome: None, retained_failure: RetryableWorker, queued_budget: None, attempt_budget: None, execution_budget: None, heartbeat_budget: None }
+11: Model { lifecycle: Closed, attempt: 2, cancellation_pending: false, terminal_outcome: Completed, retained_failure: RetryableWorker, queued_budget: None, attempt_budget: None, execution_budget: None, heartbeat_budget: None }
+12: Model { lifecycle: Closed, attempt: 2, cancellation_pending: false, terminal_outcome: Failed, retained_failure: PermanentWorker, queued_budget: None, attempt_budget: None, execution_budget: None, heartbeat_budget: None }
+13: Model { lifecycle: Queued, attempt: 3, cancellation_pending: false, terminal_outcome: None, retained_failure: RetryableWorker, queued_budget: None, attempt_budget: None, execution_budget: None, heartbeat_budget: None }
+14: Model { lifecycle: Closed, attempt: 2, cancellation_pending: false, terminal_outcome: Failed, retained_failure: RetryableWorker, queued_budget: None, attempt_budget: None, execution_budget: None, heartbeat_budget: None }
+15: Model { lifecycle: Closed, attempt: 3, cancellation_pending: false, terminal_outcome: Canceled, retained_failure: RetryableWorker, queued_budget: None, attempt_budget: None, execution_budget: None, heartbeat_budget: None }
+16: Model { lifecycle: Executing, attempt: 3, cancellation_pending: false, terminal_outcome: None, retained_failure: RetryableWorker, queued_budget: None, attempt_budget: None, execution_budget: None, heartbeat_budget: None }
+17: Model { lifecycle: Executing, attempt: 3, cancellation_pending: true, terminal_outcome: None, retained_failure: RetryableWorker, queued_budget: None, attempt_budget: None, execution_budget: None, heartbeat_budget: None }
+18: Model { lifecycle: Closed, attempt: 3, cancellation_pending: false, terminal_outcome: Completed, retained_failure: RetryableWorker, queued_budget: None, attempt_budget: None, execution_budget: None, heartbeat_budget: None }
+19: Model { lifecycle: Closed, attempt: 3, cancellation_pending: false, terminal_outcome: Failed, retained_failure: PermanentWorker, queued_budget: None, attempt_budget: None, execution_budget: None, heartbeat_budget: None }
+20: Model { lifecycle: Closed, attempt: 3, cancellation_pending: false, terminal_outcome: Failed, retained_failure: RetryableWorker, queued_budget: None, attempt_budget: None, execution_budget: None, heartbeat_budget: None }

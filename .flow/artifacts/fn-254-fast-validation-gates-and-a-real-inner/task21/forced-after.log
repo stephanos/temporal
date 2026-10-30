@@ -1,0 +1,5 @@
+   Compiling umpire-suite v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/author/suite)
+      Timing report saved to /home/agent/.cache/codex-build/cargo-target/cargo-timings/cargo-timing-20261030T003931855Z-188e16e2988bfe38.html
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 3.26s
+  Executable unittests src/lib.rs (/home/agent/.cache/codex-build/cargo-target/debug/deps/umpire_suite-5a90196a3afc7667)
+  Executable tests/main.rs (/home/agent/.cache/codex-build/cargo-target/debug/deps/main-a0eae943d208ccef)

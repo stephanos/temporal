@@ -1,0 +1,15 @@
+{
+  "policy": "Raw process output retained byte for byte; only these exact raw-log paths are excluded from git whitespace checks. All source, mappings and receipts remain checked.",
+  "files": {
+    ".flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/task15/native-port-20261028/framework-clippy-pass2.log": "124edd6870fcc59bd7f78d576bd8d17c9f09c8d32922b28b5973bbe907816bb1",
+    ".flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/task15/native-port-20261028/framework-xtask-native-final.log": "ff04b549954e4be3227747ec843b074a20ecdee40fb3195fb8085a9b37b64429",
+    ".flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/task15/native-port-20261028/framework-guest-driver-native-final.log": "f88afb025f0691d95a438955dd0b97da31ba3a35f0aff2257a935449f7cbbc3b",
+    ".flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/task15/native-port-20261028/native-fetch-tlc.log": "88605cd85983b1bd47b80552ce89996df49039b3ec8532ff5a509ea750521c8c",
+    ".flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/task15/native-port-20261028/native-fetch-tlc.stderr.log": "9a2c420533f5b21db602275a23dfef4006073d8863212745ff8dd9002ca3a421",
+    ".flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/task15/native-port-20261028/framework-tlc-native-correct-package.log": "9165a71c90f71b34896178dfb36f3edb44f1a4511485fba426f967f51ef5f91f",
+    ".flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/task15/native-port-20261028/temporal-clippy-pass.log": "d0304616406bf8e05c78cb8b88f488669d44e8d03e9e591e92c6b6992f9ff3d8",
+    ".flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/task15/native-port-20261028/temporal-xtask-native-test-run-retry.log": "00f60b38c9b83a2d8a0f91b0f6ea04af0e6530fdf06598286334e22501d57fdc",
+    ".flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/task15/native-port-20261028/temporal-empty-target-red.log": "e4ab700896e178e32b3d2cdd32e44921f427c2de7000ad74a146c91320eb068e",
+    ".flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/task15/native-port-20261028/temporal-empty-target-green.log": "835c520138a35c0841930d0043dc1bfa3a38564b76958c840591144a8f2bb9f8"
+  }
+}

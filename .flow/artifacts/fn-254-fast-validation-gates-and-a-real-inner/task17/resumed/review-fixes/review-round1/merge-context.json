@@ -1,0 +1,9 @@
+{
+  "format_repair": true,
+  "reason": "Contracts multi-file anchor and integration finding layout did not parse. Original reports unchanged; CLI --merged-file supports repair.",
+  "command": "flowctl claude impl-review-fanout-finalize --rid 69374ba736a74a3cbf466335e820aa75 --merged-file .flow/tmp/fn25417-review-fixes/merged-review.md --needs-work-survivors 3 --json",
+  "verdict": "NEEDS_WORK",
+  "kept_unique_findings": 4,
+  "needs_work_survivors": 3,
+  "merge_plan_file": "Intent only; --merged-file used because two draw formats were unparsed."
+}

@@ -1,0 +1,16 @@
+{
+  "phase": "pre-cutover-stability-check",
+  "post_cutover_claim": false,
+  "result": "pass",
+  "before_observed_at": "2026-10-28T14:39:46.497556+00:00",
+  "after_observed_at": "2026-10-28T14:43:37.925610+00:00",
+  "git_archive_tree_before": "cb5223b9a4839233876c98cf6158a46dc9d97a19",
+  "git_archive_tree_after": "cb5223b9a4839233876c98cf6158a46dc9d97a19",
+  "added_paths": [],
+  "missing_paths": [],
+  "byte_mode_or_symlink_changes": [],
+  "cache_root_presence_changes": [],
+  "mtime_only_changes": [],
+  "unstable_reads": [],
+  "scope": "Only bounded selected roots; no historical ignored-cache or unobserved external-cache identity claim."
+}

@@ -1,0 +1,37 @@
+{
+  "command": [
+    "mise",
+    "exec",
+    "--",
+    "cargo",
+    "nextest",
+    "list",
+    "--locked",
+    "--manifest-path",
+    "model/umpire/Cargo.toml",
+    "-p",
+    "xtask",
+    "--lib",
+    "--message-format",
+    "json",
+    "--run-ignored",
+    "default",
+    "-E",
+    "package(=xtask)"
+  ],
+  "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-quick-resumed",
+  "target": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-selection-review/target",
+  "tmpdir": "/tmp/fn25417quick-pb7kzdqt",
+  "initial_target_bytes": 451678208,
+  "final_target_bytes": 451678208,
+  "exit": 0,
+  "guard_breach": null,
+  "samples": [
+    {
+      "seconds": 0.007,
+      "free_bytes": 11796971520,
+      "target_bytes": 451678208
+    }
+  ],
+  "seconds": 1.03
+}

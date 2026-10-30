@@ -1,4 +1,4 @@
-use super::{Gate, STAGES, boundary};
+use super::{Gate, boundary, scheduler};
 use crate::{Error, Result};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
@@ -126,7 +126,7 @@ fn snapshot(source: &Path, source_target: &Path, root: &Path, target: &Path) -> 
         excluded: [".git", "target", "build", ".bin"].map(String::from).to_vec(),
     })
 }
-pub(super) fn admit(manifest: &Path, gate: &Gate) -> Result<PathBuf> {
+pub(super) fn verify(manifest: &Path, gate: &Gate) -> Result<()> {
     let bytes =
         fs::read(manifest).map_err(|e| Error::Invalid(format!("standalone provenance: {e}")))?;
     let provenance: Provenance = serde_json::from_slice(&bytes)?;
@@ -141,15 +141,19 @@ pub(super) fn admit(manifest: &Path, gate: &Gate) -> Result<PathBuf> {
     {
         return Err(Error::Invalid("standalone provenance/context mismatch".into()));
     }
+    if inventory(&gate.root, &gate.target)? != provenance.inputs {
+        return Err(Error::Invalid("standalone provenance input hashes changed".into()));
+    }
+    local_configuration(&gate.root)?;
+    Ok(())
+}
+pub(super) fn admit(manifest: &Path, gate: &Gate) -> Result<PathBuf> {
+    verify(manifest, gate)?;
     for name in [".git", ".bin", "target"] {
         if gate.root.join(name).exists() {
             return Err(Error::Invalid(format!("unexpected standalone copied cache: {name}")));
         }
     }
-    if inventory(&gate.root, &gate.target)? != provenance.inputs {
-        return Err(Error::Invalid("standalone provenance input hashes changed".into()));
-    }
-    local_configuration(&gate.root)?;
     let records = manifest.with_file_name("stages.jsonl");
     if records.exists() {
         return Err(Error::Invalid("standalone recursion or reused stage receipt".into()));
@@ -157,7 +161,12 @@ pub(super) fn admit(manifest: &Path, gate: &Gate) -> Result<PathBuf> {
     Ok(records)
 }
 
-fn clean_command(gate: &Gate, root: &Path, target: &Path, program: &str) -> Result<Command> {
+fn clean_command(
+    gate: &Gate,
+    root: &Path,
+    target: &Path,
+    program: impl AsRef<std::ffi::OsStr>,
+) -> Result<Command> {
     let mut command = Command::new(program);
     command.env_clear();
     for name in [
@@ -214,14 +223,20 @@ fn clean_command(gate: &Gate, root: &Path, target: &Path, program: &str) -> Resu
         .env("GOENV", "off")
         .env("GOWORK", "off")
         .env("GOTOOLCHAIN", "local")
-        .env("NEXTEST_TEST_THREADS", "2")
         .env("UMPIRE_TOOL_ROOT", root)
         .env("UMPIRE_BACKENDS", "require")
         .env("UMPIRE_QUICK_CACHE", "0")
         .env("UMPIRE_CACHE_DISABLE", "1")
         .env("UMPIRE_STANDALONE_CHILD", "1")
         .env("MISE_AUTO_INSTALL", "false")
-        .env("MISE_EXEC_AUTO_INSTALL", "false");
+        .env("MISE_EXEC_AUTO_INSTALL", "false")
+        .env("MISE_TASK_PGID_MANAGED", "1");
+    super::admission::configure_clean(&mut command);
+    crate::test_run::configure(
+        &mut command,
+        true,
+        env::var_os("UMPIRE_APALACHE").is_some_and(|value| value == "require"),
+    );
     Ok(command)
 }
 fn refusal(result: Result<()>, expected: &str) -> Result<()> {
@@ -306,27 +321,14 @@ fn tool_versions(gate: &Gate, root: &Path, target: &Path, manifest: &Path) -> Re
         selected.push("cargo-nextest");
     }
     for tool in selected {
-        let mut command = clean_command(gate, root, target, "mise")?;
-        command.args([
-            "exec",
-            "--",
-            tool,
-            if tool == "java" {
-                "-version"
-            } else if tool == "go" {
-                "version"
-            } else {
-                "--version"
-            },
-        ]);
-        let output = command.output()?;
         let mut which = clean_command(gate, root, target, "mise")?;
         if matches!(tool, "rustc" | "cargo") {
             which.args(["exec", "--", "rustc", "--print", "sysroot"]);
         } else {
             which.args(["which", tool]);
         }
-        let selected = which.output()?;
+        let selected =
+            scheduler::capture_clean(&which, super::lease::DescendantPolicy::Orchestration)?;
         if !selected.status.success() {
             return Err(Error::Invalid(format!("standalone tool path admission failed: {tool}")));
         }
@@ -339,7 +341,17 @@ fn tool_versions(gate: &Gate, root: &Path, target: &Path, manifest: &Path) -> Re
             selected_path
         };
         let selected_path = fs::canonicalize(selected_path)?;
-        tools.insert(tool.into(), serde_json::json!({"exit": output.status.code(), "stdout": String::from_utf8_lossy(&output.stdout), "stderr": String::from_utf8_lossy(&output.stderr), "executable": selected_path, "executable_sha256": digest(&fs::read(&selected_path)?)}));
+        let executable_sha256 = digest(&fs::read(&selected_path)?);
+        let output = if tool == "java" {
+            let mut command = clean_command(gate, root, target, selected_path.as_os_str())?;
+            command.arg("-version");
+            scheduler::capture_clean(&command, super::lease::DescendantPolicy::Checker)?
+        } else {
+            let mut command = clean_command(gate, root, target, "mise")?;
+            command.args(["exec", "--", tool, if tool == "go" { "version" } else { "--version" }]);
+            scheduler::capture_clean(&command, super::lease::DescendantPolicy::Orchestration)?
+        };
+        tools.insert(tool.into(), serde_json::json!({"exit": output.status.code(), "stdout": String::from_utf8_lossy(&output.stdout), "stderr": String::from_utf8_lossy(&output.stderr), "executable": selected_path, "executable_sha256": executable_sha256}));
         fs::write(manifest.with_file_name("tools.json"), serde_json::to_vec_pretty(&tools)?)?;
         if !output.status.success() {
             return Err(Error::Invalid(format!("standalone pinned tool admission failed: {tool}")));
@@ -389,7 +401,7 @@ pub(super) fn run(gate: &Gate) -> Result<i32> {
     for (name, program, args) in [
         (
             "standalone-local-tools",
-            "mise",
+            std::ffi::OsString::from("mise"),
             vec![
                 "exec",
                 "--",
@@ -403,12 +415,12 @@ pub(super) fn run(gate: &Gate) -> Result<i32> {
                 "--bins",
             ],
         ),
-        ("standalone-tlc-tool", "/bin/bash", vec!["scripts/fetch-tlc.sh"]),
+        ("standalone-tlc-tool", target.join("debug/xtask").into_os_string(), vec!["fetch-tlc"]),
     ] {
         let mut command = clean_command(gate, &root, &target, program)?;
         command.args(args);
         let setup_started = Instant::now();
-        let code = gate.execute(name, command)?;
+        let code = gate.execute_clean(name, &command)?;
         record(
             &output.join("setup.jsonl"),
             name,
@@ -421,7 +433,7 @@ pub(super) fn run(gate: &Gate) -> Result<i32> {
     }
     let mut command = clean_command(gate, &root, &target, "mise")?;
     command.args(["exec", "--", "cargo", "xtask", "gate", "--standalone-child"]).arg(&manifest);
-    let code = gate.execute("standalone-child", command)?;
+    let code = gate.execute_clean("standalone-child", &command)?;
     finish(&output, &target, &manifest, code, started.elapsed().as_secs_f64())
 }
 fn artifact(path: &Path) -> serde_json::Value {
@@ -433,25 +445,53 @@ fn artifact(path: &Path) -> serde_json::Value {
     };
     serde_json::json!({"path": path, "sha256": bytes.map(|bytes| digest(&bytes)), "files": files})
 }
+fn gate_inventory_command(root: &Path) -> Command {
+    let mut command = Command::new("mise");
+    command
+        .current_dir(root)
+        .env("UMPIRE_FRAMEWORK_ROOT", root)
+        .env("MISE_AUTO_INSTALL", "false")
+        .env("MISE_EXEC_AUTO_INSTALL", "false")
+        .env("MISE_TASK_PGID_MANAGED", "1");
+    command
+}
 fn finish(output: &Path, target: &Path, manifest: &Path, code: i32, seconds: f64) -> Result<i32> {
     let records = fs::read_to_string(output.join("stages.jsonl")).unwrap_or_default();
     let stages = records
         .lines()
         .map(serde_json::from_str::<serde_json::Value>)
         .collect::<std::result::Result<Vec<_>, _>>()?;
-    let expected = STAGES
-        .iter()
-        .filter(|(name, _)| *name != "standalone")
-        .map(|(name, _)| *name)
-        .collect::<Vec<_>>();
+    let provenance: Provenance = serde_json::from_slice(&fs::read(manifest)?)?;
+    let mut command = gate_inventory_command(&provenance.root);
+    command.env("CARGO_TARGET_DIR", target);
+    let graph_inventory = scheduler::inventory(command, "gate:");
+    let inventory_error = graph_inventory.as_ref().err().map(ToString::to_string);
+    let expected = match graph_inventory {
+        Ok(names) => names,
+        Err(error) if code != 0 => {
+            let _ = error;
+            Vec::new()
+        }
+        Err(error) => return Err(error.into()),
+    }
+    .into_iter()
+    .map(|name| name.rsplit('/').next().unwrap_or(&name).to_owned())
+    .filter(|name| name != "standalone")
+    .collect::<Vec<_>>();
     let actual = stages.iter().filter_map(|value| value["stage"].as_str()).collect::<Vec<_>>();
-    let stages_complete = actual == expected && stages.iter().all(|value| value["exit"] == 0);
+    let stages_complete = actual.iter().copied().eq(expected.iter().map(String::as_str))
+        && stages.iter().all(|value| value["exit"] == 0);
+    if stages_complete && super::work_counts::owns_controller()? {
+        let path = output.join("stages.jsonl");
+        umpire_backend_process::work::record(
+            "child-receipts",
+            &format!("{}\t{}", super::work_counts::encode_path(&path), digest(records.as_bytes())),
+        )?;
+    }
     let mut binaries = serde_json::Map::new();
     for name in [
         "debug/xtask",
         "debug/umpire-guest-driver",
-        "xtask-bootstrap/debug/xtask",
-        "xtask-bootstrap/debug/umpire-guest-driver",
         "guest/panic-control-reports",
         "guest/current-contract-reports",
     ] {
@@ -480,7 +520,7 @@ fn finish(output: &Path, target: &Path, manifest: &Path, code: i32, seconds: f64
         (
             provenance.root.as_path(),
             &[
-                "build/tlc/tla2tools-1.7.4.jar",
+                "build/mise-jars/data/installs/http-tlc/1.7.4/tla2tools.jar",
                 ".bin/protoc-gen-go-v1.36.6",
                 ".bin/protoc-gen-go-grpc-v1.3.0",
             ][..],
@@ -498,9 +538,9 @@ fn finish(output: &Path, target: &Path, manifest: &Path, code: i32, seconds: f64
         output.join("result.json"),
         serde_json::to_vec_pretty(&serde_json::json!({
             "version": 1, "tier": "validate", "backend": "require", "apalache": env::var("UMPIRE_APALACHE").unwrap_or_else(|_| "skip (default)".into()),
-            "profile": "dev", "nextest_profile": "default", "compile_jobs": env::var("CARGO_BUILD_JOBS").ok(), "test_threads": 2, "skipped_child_stages": ["standalone"], "seconds": seconds, "child_exit": code, "complete": complete,
+            "profile": "dev", "nextest_profile": "required", "compile_jobs": env::var("CARGO_BUILD_JOBS").ok(), "test_threads": crate::test_run::test_threads(env::var_os("UMPIRE_APALACHE").is_some_and(|value| value == "require"), env::var_os("NEXTEST_TEST_THREADS").as_deref()), "skipped_child_stages": ["standalone"], "seconds": seconds, "child_exit": code, "complete": complete,
             "manifest_sha256": digest(&fs::read(manifest)?), "stages_sha256": digest(records.as_bytes()), "binaries": binaries,
-            "expected_stages": expected, "actual_stages": actual, "source_unchanged": source_unchanged, "artifacts": artifacts,
+            "expected_stages": expected, "inventory_error": inventory_error, "actual_stages": actual, "source_unchanged": source_unchanged, "artifacts": artifacts,
         }))?,
     )?;
     if code != 0 {
@@ -516,6 +556,77 @@ fn finish(output: &Path, target: &Path, manifest: &Path, code: i32, seconds: f64
 #[allow(clippy::unwrap_used, clippy::expect_used)]
 mod tests {
     use super::*;
+    #[test]
+    fn isolated_child_uses_the_reported_required_profile_and_thread_cap() {
+        for (apalache, inherited, expected) in [
+            ("skip", None, "4"),
+            ("skip", Some("99"), "4"),
+            ("skip", Some("2"), "2"),
+            ("skip", Some("1"), "1"),
+            ("skip", Some("malformed"), "4"),
+            ("skip", Some("0"), "4"),
+            ("require", Some("99"), "1"),
+            ("require", Some("1"), "1"),
+        ] {
+            let mut child = Command::new(env::current_exe().unwrap());
+            child
+                .args([
+                    "--exact",
+                    "gate::standalone::tests::isolated_child_policy_control",
+                    "--nocapture",
+                ])
+                .env("UMPIRE_APALACHE", apalache)
+                .env("UMPIRE_EXPECT_STANDALONE_THREADS", expected)
+                .env("CARGO_BUILD_JOBS", "99")
+                .env("GOMAXPROCS", "99")
+                .env("GOFLAGS", "-tags=strip-parent")
+                .env_remove("NEXTEST_TEST_THREADS");
+            if let Some(inherited) = inherited {
+                child.env("NEXTEST_TEST_THREADS", inherited);
+            }
+            let output = child.output().unwrap();
+            assert!(
+                output.status.success(),
+                "inherited={inherited:?}, apalache={apalache}: {output:?}"
+            );
+        }
+    }
+    #[test]
+    fn isolated_child_policy_control() {
+        let Ok(expected) = env::var("UMPIRE_EXPECT_STANDALONE_THREADS") else { return };
+        let directory = tempfile::tempdir().unwrap();
+        let source = directory.path().join("source");
+        fs::create_dir(&source).unwrap();
+        let root = directory.path().join("copy");
+        let target = directory.path().join("target");
+        let provenance = snapshot(&source, &source.join("target"), &root, &target).unwrap();
+        let manifest = directory.path().join("inputs.json");
+        fs::write(&manifest, serde_json::to_vec(&provenance).unwrap()).unwrap();
+        let gate = Gate {
+            root: source,
+            target: directory.path().join("native"),
+            home: directory.path().join("cargo"),
+            required: true,
+            timed: false,
+            child_records: None,
+        };
+        let mut command = clean_command(&gate, &root, &target, "/bin/sh").unwrap();
+        let output = command.args(["-c", "printf '%s:%s:%s:%s:%s:%s:%s' \"$NEXTEST_PROFILE\" \"$NEXTEST_TEST_THREADS\" \"$UMPIRE_QUICK_CACHE\" \"$UMPIRE_CACHE_DISABLE\" \"$CARGO_BUILD_JOBS\" \"$GOMAXPROCS\" \"$GOFLAGS\""]).output().unwrap();
+        assert!(output.status.success());
+        assert_eq!(finish(directory.path(), &target, &manifest, 37, 0.0).unwrap(), 37);
+        let receipt: serde_json::Value =
+            serde_json::from_slice(&fs::read(directory.path().join("result.json")).unwrap())
+                .unwrap();
+        assert_eq!(receipt["nextest_profile"], "required");
+        let threads: usize = expected.parse().unwrap();
+        assert_eq!(receipt["test_threads"], threads);
+        assert_eq!(receipt["child_exit"], 37);
+        assert_eq!(receipt["complete"], false);
+        assert_eq!(
+            String::from_utf8(output.stdout).unwrap(),
+            format!("required:{threads}:0:1:1:1:-p=1")
+        );
+    }
     #[test]
     fn copied_config_trust_is_limited_to_copy_and_owned_scratch() {
         let directory = tempfile::tempdir().unwrap();

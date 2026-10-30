@@ -1,0 +1,4 @@
+From /Users/stephan/Workspace/skunkworks/umpire/temporal
+ * [new ref]             ac60daaf47d2513b41eeff612f0e2758d33e186d -> refs/prerequisite/source
+From /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/consumer/source-preparation-3658582.bundle
+ * [new branch]          work/fn2583-consumers -> refs/recovery/candidate

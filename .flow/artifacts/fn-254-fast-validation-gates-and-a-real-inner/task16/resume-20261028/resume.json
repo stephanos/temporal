@@ -1,0 +1,56 @@
+{
+  "kind": "renewed-provider-proof-admission",
+  "task": "fn-254-fast-validation-gates-and-a-real-inner.16",
+  "recorded_utc": "2026-10-28T16:47:02.322974+00:00",
+  "accepted": true,
+  "state": "Task16 reviewed SHIP, closed in Flow and integrated into umpire; proof recovery verified and idle targets cleaned",
+  "owner_authorization": "Owner deferred migration and set active goal to work MILESTONES.md autonomously with parallel agents",
+  "source_head": "60f1c762a618d32478b58ae4e79c151f4355aeb3",
+  "historical_hold": "../../session-wrap-20261027/resource-hold-draft.json",
+  "retained_harness_unchanged": true,
+  "external_watchdog_reason": "Retained free-space guard polls source filesystem; standalone child builds on separate private /tmp filesystem. Watchdog adds 50GiB admission and unchanged30GiB free-space floor on both; retained30GiB growth guard unchanged.",
+  "original_output": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-resume-20261028-watchdog-01/proof-output",
+  "files": [
+    {
+      "path": "watchdog.py",
+      "sha256": "f853c35df5bb4e27acddcb96d0a93e10f82f814af5f778cc12e96bb1146a00b1",
+      "bytes": 4834
+    },
+    {
+      "path": "test_watchdog.py",
+      "sha256": "4d2fe5183aa7dc306a985a319a2eab4ca272384995e38413dec9d0beae112c15",
+      "bytes": 2322
+    },
+    {
+      "path": "controls.json",
+      "sha256": "713ca48d038d2be43e677d785d774a5779d979699deb352f5dc004d42fe8d470",
+      "bytes": 72
+    },
+    {
+      "path": "controls.log",
+      "sha256": "d72003e85988854d0dc0edf9fe6595880d5b42533743474e019288158d262a97",
+      "bytes": 378
+    },
+    {
+      "path": "admission.json",
+      "sha256": "3be02e491a224522ed67b39925917dfe9451b373209d503d39a22b1843a17d32",
+      "bytes": 4350
+    },
+    {
+      "path": "live-handle.json",
+      "sha256": "439de8cb0095b0620ddaabb59f84def18067dee44d3361ff24b21a56327dd7ce",
+      "bytes": 590
+    }
+  ],
+  "deferred": [
+    "Conductor formal review, verified Flow closure and committed integration",
+    "Broad final combined gates and timings remain task8",
+    "macOS runtime remains owner-deferred"
+  ],
+  "tier_line": "Tier: implementer - gpt-6.1-sol (explicit invocation) at medium effort (requested)",
+  "terminal_evidence": "../validation-60f1c762/resumed-watchdog/watchdog-result.json",
+  "task_done": true,
+  "integration_commit": "1b20fbe795",
+  "closure_commit": "36f2cd46c5d30748de93c987237a2b1926375a7d",
+  "cleanup": "../post-integration-cleanup-20261028/terminal-receipt.json"
+}

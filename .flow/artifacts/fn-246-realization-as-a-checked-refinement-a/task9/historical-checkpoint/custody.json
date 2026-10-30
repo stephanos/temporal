@@ -1,0 +1,9 @@
+{
+  "observed_at": "2026-10-30T01:26:37.672244+00:00",
+  "source_checkpoint": "eac683e6033c5861910fc0f0ed61f41b5e02946f",
+  "baseline": "d0469357c1",
+  "source_directory": ".flow/tmp/fn246-task9",
+  "verified_manifest_entries": 27,
+  "source_manifest_sha256": "69351d273795c1667d3d2bcf46e7b7b8375121b940d8f6ca91213f95da10db64",
+  "status": "Preserved historical evidence only. Its59 passing model-slice rows use the older c83e guest; this is not current-source or fn246.13 guest acceptance. Renew joined whole-prefix proofs after committed fn246.13 integration; full live umbrella remains separately open."
+}

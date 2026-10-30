@@ -1,0 +1,30 @@
+{
+  "objects": [
+    {
+      "source": "/home/agent/.cache/codex-build/fn258-final-pair-3f5-054/proof/umpire_temporal_guest.wasm",
+      "destination": "proof/umpire_temporal_guest.wasm",
+      "role": "fresh3f5Makefile guest equals committed canonical and terminal cmp/freshness commands",
+      "sha256": "d171b91861dba54e9c73682fb17a5a317180dba4e7c5b6c1b09f46667b337f5d",
+      "size": 3988382,
+      "mode": "0o644",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/d171b91861dba54e9c73682fb17a5a317180dba4e7c5b6c1b09f46667b337f5d",
+      "object_preexisted": true
+    },
+    {
+      "source": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/tmp80bpa0l5.tar.gz",
+      "destination": "paired-proof.tar.gz",
+      "role": "selected positiveguest/native producer inputs and complete failed-stage authority/evidence",
+      "sha256": "e1f49ddb6a2488c6360457934976f696c56b555adb8347e390a9d2e452d5d9b2",
+      "size": 386661685,
+      "mode": "0o600",
+      "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/e1f49ddb6a2488c6360457934976f696c56b555adb8347e390a9d2e452d5d9b2",
+      "object_preexisted": true
+    }
+  ],
+  "source_pair": {
+    "temporal": "3f5f613578f2857b738a7792fad08f12b3ea0a41",
+    "umpire": "05473210b48c3db862f22051eb7154ce98258f98"
+  },
+  "store": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects",
+  "scope": "Old pair terminal positive guest and failed broad gate only, not task4 success."
+}

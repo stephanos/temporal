@@ -83,15 +83,17 @@ Findings this spec acts on (verified 2026-10-25):
   - `model-check-changed` is removed.
 
   Errors: every stage still runs in `model-validate` and a failing stage still fails the gate with its own exit and name.
-- **R6:** Final warm measurements are recorded beside R1's historical references in `model/design/gate-speed.md`. `time-gate.sh` gains the realistic Model-edit inner loop. Execution targets: `model-quick` under 60 s for an activity edit, `model-check` under 3 min, TLC-required `model-validate` under 10 min. Errors: a missed target is reported with its cause, not relabelled as met; incomparable historical modes/workloads are separated and do not support an attributed speedup claim.
+- **R6:** Final warm measurements are recorded beside R1's historical references in `model/design/gate-speed.md`. The native gate timer ported by .15 gains the realistic Model-edit inner loop. Execution targets: `model-quick` under 60 s for an activity edit, `model-check` under 3 min, TLC-required `model-validate` under 10 min. Errors: a missed target is reported with its cause, not relabelled as met; incomparable historical modes/workloads are separated and do not support an attributed speedup claim.
 - **R7:** The framework's checks live in `model/umpire` and run without the Temporal tree. One framework entry point (decided in task .9) runs every framework stage: fmt, clippy, docs and tests of `umpire` crates; the stock, control and Kettle guests; core and Kettle protobuf; the generic and Kettle Go hosts; framework controls. The root `Makefile` keeps only Temporal steps and calls that entry point. Framework tools, pins and caches (TLC/Apalache jars, protoc generators, xtask modules) resolve relative to `model/umpire`, not the Temporal repository root. Errors: a control runs the framework entry point on a copy of `model/umpire` alone, with no `model/temporal` and no root `Makefile`, and it passes; a planted dependency from an `umpire` crate on a Temporal crate, or a Temporal name in `model/umpire`, fails the framework gate.
 The R7 tool contract also requires a dedicated guest-driver executable independent of the general xtask/gate executable. Guest cache invalidation follows the exact guest driver, current lockfile and compiler inputs. Unrelated general-CLI/gate implementation changes must not select a new guest cache. One admitted context owns framework tool/pin roots, caller workspace/output/target resolution, raw-OS environment encoding and canonical physical-to-logical remaps; commands do not rediscover these independently. Missing local pins or escaping/ambiguous roots refuse explicitly. These requirements retain existing compiler/lock/source admission and cache invalidation for actual guest-driver changes.
 
-- **R8:** Each gate stage has a committed budget in one table under `model/umpire` (plus a Temporal-side table for Temporal stages):
+- **R8:** Each gate stage has a committed budget in `model/umpire/dev/gate/budgets.toml` (plus `model/dev/gate/budgets.toml` for Temporal stages), as selected by .9:
   - work counts where the stage has them (test count, generated cases, corpus inputs, TLC launches), enforced hard;
   - a warm wall-time budget per stage and per tier.
 
   `time-gate` reports every stage against its budget. A work count above budget fails the stage. A wall-time overrun above a tolerance (proposal: 25%) is reported, and fails on a repeat run, so one slow run on a busy host does not fail the gate. Adding a stage without a budget entry fails the gate. Errors: a planted over-budget count, a planted unbudgeted stage and two consecutive planted slow runs each fail with the stage's name.
+
+- **R9:** Host build costs are reduced through lighter dev debuginfo in both independent Rust workspaces, measured local compiler-cache reuse across different checkout paths, and a measured mise-pinned mold adoption decision for supported Linux host targets. Errors: effective flags and cache statistics distinguish compilation reuse from Cargo Fresh and final links; incompatible source/compiler/profile/target inputs do not reuse stale compilation; missing pinned tools and cache failures remain visible under the existing fail-hard policy; bootstrap isolation, guest-driver wrapper/compiler/lock identity, optimized release/guest profiles, WASI linking and framework-only operation remain intact. No speedup is claimed without comparable workload evidence.
 
 ## Boundaries
 
@@ -118,6 +120,8 @@ Owner amendment, 2026-10-25: run focused checks for each implementation and defe
 <!-- scope: both -->
 
 2026-10-25: filed from the conversation above. The owner ranks fast feedback among the most important properties.
+
+Maintainability (plan review): duplication - producer tasks retain detailed measurements; .8 summarizes them by reference rather than duplicating raw observations in its combined table. Shared evidence/tool files intentionally serialize overlapping producers; structure - none identified.
 
 Rejected options:
 - **Dropping TLC from gates:** it is the independent checker.
@@ -168,18 +172,20 @@ conformance policy changes are authorized by this design.
 
 2026-10-25, owner: file the mise download work in fn-254. Task .16 follows .13/.14: framework-owned mise declarations provision pinned TLC and opt-in Apalache assets; bespoke download/extraction plumbing is removed. Task .10 can compose earlier against .13's existing stable provisioning commands; .16 preserves public entry-point/status behavior and renews changed-input callers, so provider replacement is not a .10 prerequisite. Runtime JAR checksum/path admission remains, since an installed mise artifact can be corrupted without a locked reinstall detecting it. This does not restore .14's removed tool-presence/version probes. Task .15 ports the resulting entry points without recreating native downloaders. Focused provider checks run in .16; broad gates remain in .8.
 
-Maintainability (plan review): duplication - task .10 repeated its validation-cadence paragraph; consolidated to one paragraph. structure - none identified. Ownership advisories are addressed with explicit .14/.15/.16 paths and .10 workflow/script ownership; existing shared-file pairs still serialize.
+Maintainability (plan review): duplication - task .10 repeated its validation-cadence paragraph; consolidated to one paragraph. Duplication also exists in tier targets repeated between timers and tables and in stage graph ownership; .12/.8 use the two selected tables and .17 removes or derives duplicate graphs. Structure - `Gate::full` collects scheduler, budget and backend-cap changes; .17 keeps scheduling beneath stable public entry points, .12 consumes its receipts for budget enforcement, and shared JVM admission remains explicit. Ownership advisories are addressed with explicit .14/.15/.16 paths and .10 workflow/script ownership; existing shared-file pairs still serialize.
 
 ### Framework feedback and parallel ownership refinement
 
 Frontload .10 immediately after committed .13/.9: an independently callable framework gate
 provides framework-only feedback without running Temporal stages or extracting a repository.
 Existing public provisioning commands suffice; .14 probe removal and .16 provider internals
-retain their contracts and do not block that checkpoint. Preserve .14 → .16 and .15 after
-.10/.14/.16. Schedule actual overlapping owners serially.
+retain their contracts and do not block that checkpoint. The checkpoint is now committed.
+The 2026-10-26 owner priority puts throughput .5/.17 before .16 provisioning and .15 ports.
+Schedule actual overlapping owners serially.
 
 Task .10 leaves the real Cargo test execution in working `test_run.rs` leaves and gate
-orchestration in its real gate module; no future command stub or extra task is introduced.
+orchestration in its real gate module. These delivered entry points remain real executable
+primitives; the owner's later explicit request adds .17 for uniform nextest and one stage DAG.
 Then .3 owns runner leaves/config/pins, while .6 owns quick CLI/Make/cache and their actual
 registrations/dependency edits. Their full Touches are disjoint, so admission can run both.
 Task .11 can additionally own gate-local standalone registration/controls without sharing
@@ -192,6 +198,75 @@ changed-input standalone proof. .3/.6/.11 feed exact inventory/tier facts to .12
 documentation to .8. No stage/test coverage, actual proof or committed-predecessor requirement
 is relaxed. Source parallelism still observes target/cache leases and bounded JVM resources.
 
+### Throughput priority refinement (2026-10-26)
+
+Owner: "let's file a task in fn-254 for this" and "priorizie work in fn-254 to enable faster validation gates asap", following the nextest/mise discussion.
+
+The current correct five-consumer quick workload passes in 444.027 s, including 388.875 s
+of realization compiler-admission tests despite 14 TLC cache hits. Earlier roughly 20 s
+runs omitted affected consumers and are historical incomplete coverage, not the current SLO.
+The isolated framework proof took 678.821 s cold, with 507.204 s in tests. These identify
+work to reduce; they do not justify attribution across different sources or workloads.
+
+Priority is .6's correct-selection/cache checkpoint, then .5's test granularity/compiler reuse,
+then new priority-0 .17's uniform nextest and single dependency/resource stage DAG. .5 exposes
+the framework's 24 serial fixtures as cases in the same binary, preserves both TLC renders,
+and batches/reuses compiler work without losing cases. Temporal's exact activity `fixtures`
+selector remains unchanged. .17 owns dependency-independent stage scheduling and failure
+cleanup, preferably through verified mise capabilities rather than a new custom scheduler;
+xtask retains project-specific executable checks. Keep one graph owner, not competing copies.
+
+Downloads .16 and shell ports .15 follow .17. Budget enforcement .12 follows .15 and consumes the final native timer, graph and counts; final measurements .8 follow .12. The budget tables remain `model/umpire/dev/gate/budgets.toml` and `model/dev/gate/budgets.toml`.
+fn-254 gets first admission to shared build/JVM/review capacity. Already running independent
+work may reach a safe checkpoint; disjoint source work need not stop. No fn-246 dependency
+is fabricated, and .7's committed fn-246 prerequisite remains intact.
+
+All Rust unit/integration production gate paths include nextest scheduling, including quick;
+Cargo retains doctests and compiler-only probes. Actual selected package/target/test/ignored
+semantics and zero-selection refusal must survive migration. Mise jobs, nextest slots and
+nested compiler/JVM workers share one bounded resource contract. Shared target locks and
+generated output/consumer edges determine legal overlap. Keep no-auto-install, cache-bypassing
+full validation, source-only standalone operation, caller context, named failures, owned sibling
+cleanup and invocation-local complete stage receipts. A changed scheduler gets focused real
+proof, including its standalone control, once frozen; unrelated final suites remain .8.
+
+
+### Residual build-cost amendment (2026-10-28)
+
+Owner: "file tasks to close gaps" after reviewing dev debuginfo, cross-worktree sccache,
+Linux mold and remaining integration binaries. Tasks .18–.20 close build-cost work left
+unimplemented by .4: its completion proves the cheaper test profile and 108-to-36 target
+consolidation, explicitly not a dev-profile change or alternate-linker measurement.
+Task .21 rechecks current residual framework targets against .4/.5's identity/isolation
+contracts and consolidates only safe candidates; explicit evidence can justify retaining
+separate targets. These tasks feed .8's combined measurement and current-input proof.
+The local compilation cache is not a semantic-result cache: full validation still executes
+every selected check and bypasses the quick TLC-result cache. .7 stays blocked until
+fn-246's committed whole-spec closure; .12 stays owner-paused in_progress; fn-258 stays deferred.
+Cache-enabled cold worktree/bootstrap builds disable incremental compilation; ordinary warm
+quick re-edits retain it. Task .19 measures both paths so cross-worktree hits cannot hide a
+warm-edit regression. Tasks .18–.21 share the evidence document and some compiler/tool inputs:
+execute these producers serially where their Touches overlap, regardless of dependency-ready
+status. Task .8 summarizes their detailed evidence by reference and renews guest freshness
+after changed dev-built driver bytes or admitted compiler/linker inputs; producer flag checks
+alone do not renew that proof.
+
+## Quick commands
+
+```bash
+cd model/umpire && mise exec -- cargo build --locked -p xtask --bin xtask --profile dev
+cd model && mise exec -- cargo build --locked -p temporal-xtask --bin temporal-xtask --profile dev
+```
+
+Run each command from the repository root. These are focused host-build checks; task-specific
+compiler/cache/linker/identity controls and .8's final full gates remain required.
+
+## Memory findings
+
+| Track | Category | Entry | Why relevant |
+| --- | --- | --- | --- |
+| bug | integration | `full-integration-gates-must-select-the-2026-09-04` | .21 must preserve complete selection and refuse accidental zero-case success. |
+
 ## Requirement coverage
 
 | Req | Description | Task(s) | Gap justification |
@@ -199,16 +274,16 @@ is relaxed. Source parallelism still observes target/cache leases and bounded JV
 | R1 | `model/design/gate-speed.md` consolidates existing historical gate, stage, binary/test, compile/link and TLC-launch evidence. The owner waived fresh baseline measurements on 2026-10-25; no new baseline gate or serial observer runs are required before optimization. Retain source, backend mode, workload, host/profile conditions and evidence references where available. Errors: missing costs/counts are explicitly unknown, structural predictions are labelled estimates, and differing modes/sources/coverage are never presented as equivalent measured runs. Correctness inventories before test migrations remain required by R4/R5. R6's final measurements remain required. | fn-254-fast-validation-gates-and-a-real-inner.1, fn-254-fast-validation-gates-and-a-real-inner.8 | — |
 | R2 | `make model-quick` exists. After an edit to `temporal/feature/activity/model.rs` it re-checks the activity natively and through the interpreter. It runs TLC only when the emitted TLA+ changed, and finishes in under 60 s warm. Errors: a changed emitted module always runs TLC fresh; a cache hit is labelled as such; `model-validate` never uses the cache; a planted stale entry with a different key is ignored. | fn-254-fast-validation-gates-and-a-real-inner.6 | — |
 | R3 | The TLC runner checks all properties of a module in one batched run and splits only on failure, with optional parallel property runs. Errors: an equivalence control over every TLC fixture and mutant shows identical verdicts and traces to per-property runs, including a module with two violated properties and a liveness violation under fairness. | fn-254-fast-validation-gates-and-a-real-inner.2 | — |
-| R4 | Tests run in parallel across binaries, with integration tests consolidated to one binary per crate where that cuts link time, and a cheaper test debuginfo profile. Errors: the full logical test inventory, including ignored status, is identical before and after under the checked identity mapping above; JVM-backed tests run in a bounded concurrency group. | fn-254-fast-validation-gates-and-a-real-inner.3, fn-254-fast-validation-gates-and-a-real-inner.4, fn-254-fast-validation-gates-and-a-real-inner.7 | — |
-| R5 | Gate composition: | fn-254-fast-validation-gates-and-a-real-inner.5 | — |
-| R6 | Final warm measurements are recorded beside R1's historical references in `model/design/gate-speed.md`. `time-gate.sh` gains the realistic Model-edit inner loop. Execution targets: `model-quick` under 60 s for an activity edit, `model-check` under 3 min, TLC-required `model-validate` under 10 min. Errors: a missed target is reported with its cause, not relabelled as met; incomparable historical modes/workloads are separated and do not support an attributed speedup claim. | fn-254-fast-validation-gates-and-a-real-inner.8 | — |
-| R7 | The framework's checks live in `model/umpire` and run without the Temporal tree. One framework entry point (decided in task .9) runs every framework stage: fmt, clippy, docs and tests of `umpire` crates; the stock, control and Kettle guests; core and Kettle protobuf; the generic and Kettle Go hosts; framework controls. The root `Makefile` keeps only Temporal steps and calls that entry point. Framework tools, pins and caches (TLC/Apalache jars, protoc generators, xtask modules) resolve relative to `model/umpire`, not the Temporal repository root. Errors: a control runs the framework entry point on a copy of `model/umpire` alone, with no `model/temporal` and no root `Makefile`, and it passes; a planted dependency from an `umpire` crate on a Temporal crate, or a Temporal name in `model/umpire`, fails the framework gate. | fn-254-fast-validation-gates-and-a-real-inner.10, fn-254-fast-validation-gates-and-a-real-inner.11, fn-254-fast-validation-gates-and-a-real-inner.13, fn-254-fast-validation-gates-and-a-real-inner.9 | — |
-| R8 | Each gate stage has a committed budget in one table under `model/umpire` (plus a Temporal-side table for Temporal stages): | fn-254-fast-validation-gates-and-a-real-inner.12 | — |
+| R4 | Tests run in parallel across binaries, with integration tests consolidated to one binary per crate where that cuts link time, and a cheaper test debuginfo profile. Errors: the full logical test inventory, including ignored status, is identical before and after under the checked identity mapping above; JVM-backed tests run in a bounded concurrency group. | fn-254-fast-validation-gates-and-a-real-inner.17, fn-254-fast-validation-gates-and-a-real-inner.18, fn-254-fast-validation-gates-and-a-real-inner.20, fn-254-fast-validation-gates-and-a-real-inner.21, fn-254-fast-validation-gates-and-a-real-inner.3, fn-254-fast-validation-gates-and-a-real-inner.4, fn-254-fast-validation-gates-and-a-real-inner.5, fn-254-fast-validation-gates-and-a-real-inner.7 | — |
+| R5 | Gate composition: | fn-254-fast-validation-gates-and-a-real-inner.17, fn-254-fast-validation-gates-and-a-real-inner.5 | — |
+| R6 | Final warm measurements are recorded beside R1's historical references in `model/design/gate-speed.md`. The native gate timer ported by .15 gains the realistic Model-edit inner loop. Execution targets: `model-quick` under 60 s for an activity edit, `model-check` under 3 min, TLC-required `model-validate` under 10 min. Errors: a missed target is reported with its cause, not relabelled as met; incomparable historical modes/workloads are separated and do not support an attributed speedup claim. | fn-254-fast-validation-gates-and-a-real-inner.8 | — |
+| R7 | The framework's checks live in `model/umpire` and run without the Temporal tree. One framework entry point (decided in task .9) runs every framework stage: fmt, clippy, docs and tests of `umpire` crates; the stock, control and Kettle guests; core and Kettle protobuf; the generic and Kettle Go hosts; framework controls. The root `Makefile` keeps only Temporal steps and calls that entry point. Framework tools, pins and caches (TLC/Apalache jars, protoc generators, xtask modules) resolve relative to `model/umpire`, not the Temporal repository root. Errors: a control runs the framework entry point on a copy of `model/umpire` alone, with no `model/temporal` and no root `Makefile`, and it passes; a planted dependency from an `umpire` crate on a Temporal crate, or a Temporal name in `model/umpire`, fails the framework gate. The R7 tool contract also requires a dedicated guest-driver executable independent of the general xtask/gate executable. Guest cache invalidation follows the exact guest driver, current lockfile and compiler inputs. Unrelated general-CLI/gate implementation changes must not select a new guest cache. One admitted context owns framework tool/pin roots, caller workspace/output/target resolution, raw-OS environment encoding and canonical physical-to-logical remaps; commands do not rediscover these independently. Missing local pins or escaping/ambiguous roots refuse explicitly. These requirements retain existing compiler/lock/source admission and cache invalidation for actual guest-driver changes. | fn-254-fast-validation-gates-and-a-real-inner.10, fn-254-fast-validation-gates-and-a-real-inner.11, fn-254-fast-validation-gates-and-a-real-inner.13, fn-254-fast-validation-gates-and-a-real-inner.14, fn-254-fast-validation-gates-and-a-real-inner.15, fn-254-fast-validation-gates-and-a-real-inner.16, fn-254-fast-validation-gates-and-a-real-inner.17, fn-254-fast-validation-gates-and-a-real-inner.19, fn-254-fast-validation-gates-and-a-real-inner.20, fn-254-fast-validation-gates-and-a-real-inner.9 | — |
+| R8 | Each gate stage has a committed budget in `model/umpire/dev/gate/budgets.toml` (plus `model/dev/gate/budgets.toml` for Temporal stages), as selected by .9: | fn-254-fast-validation-gates-and-a-real-inner.12 | — |
+| R9 | Host build costs are reduced through lighter dev debuginfo in both independent Rust workspaces, measured local compiler-cache reuse across different checkout paths, and a measured mise-pinned mold adoption decision for supported Linux host targets. Errors: effective flags and cache statistics distinguish compilation reuse from Cargo Fresh and final links; incompatible source/compiler/profile/target inputs do not reuse stale compilation; missing pinned tools and cache failures remain visible under the existing fail-hard policy; bootstrap isolation, guest-driver wrapper/compiler/lock identity, optimized release/guest profiles, WASI linking and framework-only operation remain intact. No speedup is claimed without comparable workload evidence. | fn-254-fast-validation-gates-and-a-real-inner.18, fn-254-fast-validation-gates-and-a-real-inner.19, fn-254-fast-validation-gates-and-a-real-inner.20 | — |
 
 ## Parked unknowns
 
 - How compile/link time splits against run time inside the 1,707 s `tests` stage (R1 measures it).
-- Whether TLC can report several violated properties exactly in one run, or batching must stop at the first violation and rerun the rest.
 
 ### Native tool simplification amendment
 

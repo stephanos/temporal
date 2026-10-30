@@ -1,0 +1,4 @@
+# github.com/temporalio/umpire/hosts/go/host
+../umpire/hosts/go/host/host.go:420:31: undefined: fn258_uncommitted_go_probe
+FAIL	go.temporal.io/server/common/testing/testpilot/temporal/act [build failed]
+FAIL

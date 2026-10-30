@@ -1,0 +1,124 @@
+{
+  "source_commit": "c88fdc550694020eb1c6a2e09577813d906c9ffe",
+  "original": "/Users/stephan/Workspace/skunkworks/umpire/temporal",
+  "clone": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn257-export-repro",
+  "source_identity": {
+    "head": "8bcf4c9fa67f87463ce9bb34c6e5e269e608113b",
+    "refs_sha256": "e0c5386c84166cddf5ed212eec9cdd39dff0d0e3f387dbce61d2b073fe45ce3a",
+    "worktrees": [
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24613-protocol",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2462-once-entity-lens",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2469-baseline",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2469-prefix",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2533-once-countdown-library",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn254-source-assembly",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25411-standalone",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25412-budget-wiring",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25414-probes",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25415-native-controls-v2",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25415-shell-finish",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-mise-adapter-v2",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2546-quick",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2555-once-miri",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2556-coverage-fixes",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2561-retirement",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2562-once-retirement",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/once2552-differential",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/once2556-coverage",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/prep2532-countdown",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/prep254-receipt-counts",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/prep25412-budgets",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/prep25415-proto",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/prep25415-scripts",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/prep25416-tools",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/prep25417-controls",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/prep25417-gate",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/prep25417-mise",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/prep25417-nextest",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/prep2545-compiler",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/prep2545-fixtures",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/prep2545-parser",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/prep2551-generator",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/prep2553-fuzz",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/prep2554-mutants"
+    ],
+    "shallow_file_sha256": "ef7d07756cb29242403b96f2ed65951e9edd7f8e20293ed90cefb4add39740b7"
+  },
+  "history_map_sha256": "bd604f49106e9687e0287ed5092664b5d32c26adf3ac4a907c86fa857f51d444",
+  "source_manifest_sha256": "41e7917631b3d18ed4a6ef6271267d3e61dc34fae2e483ab19451f594c2ad4cf",
+  "filter_module_sha256": "67447413e273fc76809289111748870b6f6072f08b17efe94863a92d810b7d94",
+  "filter_arguments": [
+    "--refs",
+    "HEAD",
+    "--prune-empty",
+    "always",
+    "--prune-degenerate",
+    "auto",
+    "--preserve-commit-hashes",
+    "--preserve-commit-encoding",
+    "--replace-refs",
+    "delete-no-add",
+    "--no-gc"
+  ],
+  "selected_files": 1178,
+  "ancestry_counts": {
+    "H": 7149,
+    "D_rust_birth": 1310,
+    "D_framework_rename": 1291,
+    "D_canonical_archive_move": 1223,
+    "D_sibling_archive_move": 1224,
+    "D_archive_join": 1222,
+    "D_host_birth": 1267,
+    "D_host_birth_other_lineage": 1266,
+    "D_host_move_inside_framework": 1209,
+    "D_independent_workspace": 94,
+    "D_native_tool_birth": 428,
+    "D_native_tool_split": 87,
+    "D_framework_script_localization": 92,
+    "D_package_role_layout": 577,
+    "R": 1225
+  },
+  "source_history_boundary": {
+    "repositories": {
+      "original": {
+        "shallow": true,
+        "boundary_entry_count": 1,
+        "unique_boundaries": [
+          "6e176bde5fc2d14241a863bb286a0d74aeafb6d9"
+        ],
+        "boundary_file_sha256": "ef7d07756cb29242403b96f2ed65951e9edd7f8e20293ed90cefb4add39740b7"
+      },
+      "clone": {
+        "shallow": true,
+        "boundary_entry_count": 213,
+        "unique_boundaries": [
+          "6e176bde5fc2d14241a863bb286a0d74aeafb6d9"
+        ],
+        "boundary_file_sha256": "f9c32f11e3ab324094d248c675b97f6c4db899e8db5495fc041ebdd75a28e55a"
+      }
+    },
+    "matching_unique_boundary_sets": true,
+    "available_ancestry_matches_recorded_H": true,
+    "cutoff_proofs": [
+      {
+        "cutoff": "6e176bde5fc2d14241a863bb286a0d74aeafb6d9",
+        "strict_ancestor_of_all_recorded_anchors": true,
+        "anchor_count": 13,
+        "inspected_prefixes": [
+          "model2/framework",
+          "model2/umpire",
+          "model/umpire",
+          "model2/hosts/go",
+          "model/hosts/go",
+          "model/dev/xtask"
+        ],
+        "selected_prefix_entries_at_cutoff": 0
+      }
+    ],
+    "limitation": "Export preserves only the supplied available source history. History before the recorded shallow cutoffs, including earlier LICENSE history, is unavailable and is not claimed as preserved. No fetching, unshallowing or shallow-file changes occur."
+  },
+  "pruning": "Prune empty projected single-parent commits and degenerate no-op merges; reset meaningful merges to their exact projected tree",
+  "partial_semantics": "--refs HEAD implies --partial: no other refs exist, origin remains local, automatic GC/reflog expiration is disabled; original unreachable monorepo objects remain until separately authorized clone-only cleanup after independent proof",
+  "support_disposition": "Retained separately under .history-support; no layout adaptation performed"
+}

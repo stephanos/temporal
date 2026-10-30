@@ -1,0 +1,6 @@
+{
+  "model/umpire/backends/process/src/support.rs": "9b550237605f6606ebbe0dd100b6e1a4317e12899084b5f1684c18d0f70a8430",
+  "model/umpire/backends/process/src/syscall.rs": "6ec80ab0081abbf02c2ef2934023f6f6d7559ebc24432038fe0fb38133a18011",
+  "model/umpire/backends/process/tests/process.rs": "698a76a530cb1a83bb723f029b5bb0a314447bef92f7780ea5ea6d22703e509c",
+  "model/umpire/backends/process/tests/fixtures/process_fixture.rs": "3e6266b305ce30eb615ddbb01c6827c638b3b714c26ef829510d5df8e87dc89d"
+}

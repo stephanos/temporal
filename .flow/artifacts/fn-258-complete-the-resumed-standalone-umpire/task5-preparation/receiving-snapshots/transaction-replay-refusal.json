@@ -1,0 +1,9 @@
+{
+  "result": "pass",
+  "isolated_repository": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-receiving-snapshots/transaction-test.git",
+  "exit": 128,
+  "diagnostic": "fatal: prepare: cannot lock ref 'refs/recovery/fn258/candidate-028': reference already exists\n",
+  "refs_unchanged": true,
+  "real_standalone_touched": false,
+  "transaction_sha256": "e1eca8201f668b52e10c863dfed14e6b12c12de75e112b1d60c76b7facafb488"
+}

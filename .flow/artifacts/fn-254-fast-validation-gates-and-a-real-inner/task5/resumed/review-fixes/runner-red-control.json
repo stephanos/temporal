@@ -1,0 +1,7 @@
+{
+  "candidate_only": true,
+  "root_untouched": true,
+  "mutation": "restore unconditional validate_text_snapshot loop only",
+  "green_sha256": "b18a9f74c2fff6a6005d3e36fcd9e3a109bc5be6db7e8c0b42a938b540f9c831",
+  "red_sha256": "0d44abd3c39b50e4ec70b4417f403abd4d83bfa7f29c675f7430a43d7574a507"
+}

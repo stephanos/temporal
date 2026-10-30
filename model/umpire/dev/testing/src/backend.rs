@@ -52,10 +52,12 @@ fn debug_value(ty: &Type, value: &Value) -> Result<String, Box<dyn std::error::E
 }
 
 fn bounded_debug(bounded: &umpire_dsl::__lifted::Bounded, raw: i128) -> String {
-    bounded.field.as_ref().map_or_else(
-        || format!("{}({raw})", bounded.name),
-        |field| format!("{} {{ {field}: {raw} }}", bounded.name),
-    )
+    let name = bounded.name.split('<').next().unwrap_or(&bounded.name);
+    let name = name.rsplit("::").next().unwrap_or(name);
+    bounded
+        .field
+        .as_ref()
+        .map_or_else(|| format!("{name}({raw})"), |field| format!("{name} {{ {field}: {raw} }}"))
 }
 
 fn state_text(module: &Module, state: &State) -> Result<String, Box<dyn std::error::Error>> {

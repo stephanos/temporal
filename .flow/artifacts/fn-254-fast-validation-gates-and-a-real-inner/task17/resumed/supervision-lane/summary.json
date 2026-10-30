@@ -1,0 +1,93 @@
+{
+  "result": "Scoped Linux supervision/lease implementation and controls green; not task17 closure",
+  "base_commit": "c958d34af0",
+  "source_manifest": "source-final.json",
+  "api": {
+    "exports": "framework gate::lease reexports DescendantPolicy,JvmLease,OwnedProcess; graph lane registers pubmodlease",
+    "JvmLease": [
+      "acquire()->io::Result<Self>",
+      "inherited_or_acquire()->io::Result<Self>"
+    ],
+    "OwnedProcess": [
+      "spawn(&Command,&Path,&File,&File,DescendantPolicy)->io::Result<Self>",
+      "spawn_leased(&Command,&Path,&File,&File,&JvmLease)->io::Result<Self>",
+      "spawn_leased_clean(&Command,&Path,&File,&File,&JvmLease)->io::Result<Self>",
+      "try_wait()->io::Result<Option<ExitStatus>>",
+      "Drop cancels via existing parent liveness pipe and waits/reaps"
+    ]
+  },
+  "lease_contract": {
+    "root": "canonical /tmp/umpire-validation-<actual UID>/jvm.lock; independent ofrepo,target,Cargohome,TMPDIR",
+    "admission": "0700ownedstable directory;0600UID-owned regular file,nlink1,O_NOFOLLOW|O_NONBLOCK,dev/ino verified before/after lock and before spawn",
+    "custody": "same openfiledescription duplicatedto reservedFD9 in supervisor and target; heldthrough Linux descendant cleanup; no explicitunlock/unlink/stalePIDrecovery",
+    "transport": "UMPIRE_JVM_LEASE_FD=9 locates descriptor only; actual descriptor must match canonicalhostfile and attain nonblocking exclusive lock; invalid locator/foreignfile refused",
+    "environment": "normal spawn inherits plus explicit removals; spawn_leased_clean starts empty+explicit additions+validatedlease locator; stdio separate rawfiles,stdin/dev/null",
+    "test_isolation": "lifecycle contention exercises private cfg(test) root so fullgate coarse global lease cannot deadlock itsowncontrols; no productionroot override"
+  },
+  "actual_proof": {
+    "library_tests": 19,
+    "process_integration_tests": 23,
+    "all_original_checker_controls_preserved": true,
+    "command_seconds": 4.80672775200037,
+    "clippy_seconds": 0.9321407919997,
+    "negative_control": "custody-red closes only supervisorFD9 after targetfork, failswith supervisorlostleasecustody; restore-finally and full42controls green",
+    "mise_transport": "mise-explicit-fd.json actual pinned mise2026.10.11 jobs2 prefixed tasks preserveFD9/sameinode; independentlyopenedfile cannotlock",
+    "meaningful_cases": [
+      "ownerSIGKILL,setsid escapedchild termination+reaping before independent contender entry",
+      "parent/copied native child handoff without reopen deadlock",
+      "forged locator+foreignregularFD9 reject before child body",
+      "symlinkroot/file,hardlink,FIFO/publicmodes/pathreplacement refusal",
+      "kernelrelease retains sameinode; no stalePIDdeletion",
+      "orchestration streams,exit37,cwd,environment;clean env+FD9 preserved"
+    ]
+  },
+  "dependencies": {
+    "registry_tuple_union": 119,
+    "registry_versions_checksums_unchanged": true,
+    "only_lock_edge_delta": "xtask -> umpire-backend-process in each workspace",
+    "Temporal": "promoteexistingxtaskdev edge to normal; no redundant Temporal->process edge",
+    "evidence": "dependency-projection.json"
+  },
+  "validation": [
+    "cargo test --locked -j1 -p umpire-backend-process --lib --test process -- --test-threads=1 --nocapture",
+    "cargo clippy --locked -j1 -p umpire-backend-process --all-targets --all-features -- -D warnings",
+    "rustfmt --edition2024 --check all5ownedRustfiles",
+    "git diff --check"
+  ],
+  "resource": {
+    "phase_budget_bytes": 805306368,
+    "guard_free_bytes": 8589934592,
+    "target_growth_bytes": 7709976,
+    "free_after_bytes": 11794485248,
+    "owned_build_JVM_Go_processes": [],
+    "compiler_admission_released": true,
+    "main_target_cache_retained": true
+  },
+  "limits_and_remaining": [
+    "Darwin existingChecker descendant prevention and root/platformcontrols preserved. NewOrchestration allows toolchildren and ownsordinary targetprocessgroup only; escaped/adopted Darwin cleanup remains unresolved and unproved. Linux tests do not establish portable acceptance.",
+    "Graph/quick publicentrypoint handoff/cancellation/receipt controls and frozen joined real standalone/quick proofs remain otherlane/root obligations; no actualJVM/Go/fullgate run here.",
+    "Before-source redcompile was blocked by explicit diskguard; tests were writtenfirst, sourceprepared perrootinstruction, then actual behavioral custody mutationred/restoredgreen executed once buildadmitted.",
+    "gate/lease.rs registration and affectedframework/Temporal xtask joinedlint are graph/root-owned; thislane strictlintcoversallprocess targets/features only."
+  ],
+  "finished_utc": "2026-10-27T00:11:28.365189+00:00",
+  "evidence_sha256": {
+    "build-baseline.json": "68603ad4f7f23a16855d4ef8cc5b0a33a865c5634e7842ec6bc4e35ef38b2504",
+    "clippy.json": "74563a8273c35b72d69ea072e2f89aef5df7a50a23c41dca2e31139913f38dfe",
+    "clippy.log": "60d6ebdb545f421ad2a0e986884635857ed7fa79463fbea312f4ddf669e7a162",
+    "custody-mutation.json": "ab1e8bd6d081a6f25d77aa55f935f0435bd9c28c56f5542bf6bf7af0bb504dff",
+    "custody-red.json": "6fae872cb3a1cee75d7f027bf97c8f9a58a3bec2edd7c904bb94ea136a42cfdd",
+    "custody-red.log": "63dd7a5022ed5301cd30fd52f371a51a4071cb8a011ab79ac80e38a96695eb7e",
+    "dependency-projection.json": "faa641d8776b3f32191f3ba0a1862d93fbeacdc05c3b04d834629e6f9690705e",
+    "initial-clippy.json": "39d6b5f338d8e35305c6b0e02941a7b9909d58a5b00cf71b844bc3561696e246",
+    "initial-clippy.log": "cf2d1e904205242a0e42f7f0b0cac5019506b79982a7dd2876bfcf47bd81a898",
+    "mise-explicit-fd.json": "448dcb16e65ea4efc0c8dbf8cf54b565ee32277325777becc02c79e7300497c3",
+    "mise-explicit-fd.log": "ba633fcfeedaaa75e9467c57a6cbc5377b4b539477fa2d0710580121431831cf",
+    "run-custody-red.py": "e4c98e199eee09667668d28940fae6925fd2c6f2892b3e36f4e4f4799f4dbb7d",
+    "run-focused.py": "262fd08d37e9480c84523c53984a058fe354aeaa47786a418e106a8dbc2838c2",
+    "source-final.json": "66101f649132c219ca156316bd90675b21343054614e657b9cea0f3bce32456c",
+    "source-prepared.json": "2de77ea68e119805648baa5c0ac4692839f2795ce7c712f136dc5c5760a20116",
+    "test-identities.json": "cfb731b8f0bbf49e84a0643341be97c7379fc8a9715c15134369f84422f0c046",
+    "tests.json": "1ba0580b76ccc0aacdbb8fbcf24f956066fce525db9e38a67db95ce6c55b6acb",
+    "tests.log": "fa6ff08bf47a12ac3f9f38161f7fb61698c6048de7906afe8c4f96fcf5a0746d"
+  }
+}

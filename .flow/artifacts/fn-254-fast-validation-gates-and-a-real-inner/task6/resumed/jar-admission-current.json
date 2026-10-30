@@ -1,0 +1,20 @@
+{
+  "command": [
+    "bash",
+    "model/scripts/fetch-tlc.sh"
+  ],
+  "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate",
+  "head": "fa1ccb8af1f16a472518f1734c0aa455831e4f92",
+  "started_utc": "2026-10-26T20:39:31.825269+00:00",
+  "environment_overrides": {
+    "CARGO_TARGET_DIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/target",
+    "TMPDIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/tmp",
+    "CARGO_INCREMENTAL": "0",
+    "CARGO_BUILD_JOBS": "2",
+    "RUST_TEST_THREADS": "2",
+    "MISE_TRUSTED_CONFIG_PATHS": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate:/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/target"
+  },
+  "exit_code": 127,
+  "elapsed_seconds": 0.008537333000020908,
+  "log_sha256": "6dddbe13a94449be670b7a55fa167a89dc0153d47222f9088ddc1a7da306b68a"
+}

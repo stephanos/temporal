@@ -1,0 +1,22 @@
+{
+  "argv": [
+    "mise",
+    "exec",
+    "--",
+    "go",
+    "list",
+    "-m",
+    "-json",
+    "github.com/temporalio/umpire/hosts/go",
+    "github.com/temporalio/umpire/reference/kettle",
+    "umpire.local/temporal"
+  ],
+  "cwd": "/home/agent/.cache/codex-build/tmp/fn258-final-pair-3f5-054/temporal",
+  "started_unix": 1793197604.2622163,
+  "ended_unix": 1793197604.269866,
+  "exit": 0,
+  "log": "/home/agent/.cache/codex-build/tmp/fn258-final-pair-3f5-054/execution-evidence/resolution-1793197604157921913/03-resolution.log",
+  "log_sha256": "afb70b02d5fce35997b6402ec1af9edb8c367e299e045d283bcff22939da7330",
+  "free_before": 55945650176,
+  "free_after": 55945646080
+}

@@ -1,0 +1,300 @@
+{
+  "branch_name": "fn-257-extract-the-standalone-umpire",
+  "completion_review_status": "not_required",
+  "completion_reviewed_at": "2026-10-27T15:01:24.585398Z",
+  "created_at": "2026-10-26T15:18:23.697164Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [],
+  "id": "fn-257-extract-the-standalone-umpire",
+  "impl_review_rounds": {
+    "fn-257-extract-the-standalone-umpire.1": 0,
+    "fn-257-extract-the-standalone-umpire.2": 0
+  },
+  "next_task": 1,
+  "plan_review_rounds": 0,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-10-26T17:03:02.669205Z",
+  "ready": true,
+  "retired": {
+    "by": [],
+    "reason": "moot"
+  },
+  "review_attempts": [
+    {
+      "artifact_sha256": "368ec494e11f764874b6dbf53a267005f7fd569f5a6c4104e7f52fb76938c179",
+      "backend": "codex",
+      "base_sha": "951c5516e9e7b3066e7e069adda9565cfd68844c",
+      "counter_kind": "plan",
+      "effort": "medium",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "c88fdc550694020eb1c6a2e09577813d906c9ffe",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 165468,
+      "output_sha256": "a5a32a3156da94e106c6c2494368b270d4928ae610d0ca7eb7c4712f8c7e96c8",
+      "reservation_id": "42ee19a7235049599e14b935bde67dc6",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-26T15:22:11.861163Z",
+      "tool_calls": 15,
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "c9a649e3631e3c2b1f270ab50e097f276be883af9f70f2db042bb98ba8a35b93",
+      "backend": "codex",
+      "base_sha": "c88fdc550694020eb1c6a2e09577813d906c9ffe",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "1ce541e39840f40d30eadcd3cfdfb2322f4d73cc",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 158,
+      "output_sha256": "6ff70da3d83706800ca3cabc6ba62603ba0485fcf5259d27f1be54ce68686975",
+      "reservation_id": "4797c20787d149f8bc70dbd71c612620",
+      "round_consumed": true,
+      "scope": "impl:fn-257-extract-the-standalone-umpire.1",
+      "superseded_by": null,
+      "task": "fn-257-extract-the-standalone-umpire.1",
+      "timestamp": "2026-10-26T15:35:19.337872Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "958d12b7a15c68c23bd1225413780f94638d4ce3fd7372388d66c73163ae37cb",
+      "backend": "codex",
+      "base_sha": "8bcf4c9fa67f87463ce9bb34c6e5e269e608113b",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-5a6233b614ccf8235cdcc7ac0e09bf12",
+            "classification": "introduced",
+            "findingId": "finding-5a6233b614ccf8235cdcc7ac0e09bf12",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "35efd6422e539e58c9d48a253c24226c8bc2e584",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 1019,
+      "output_sha256": "944671dbe37f442842adf94a46a8f6b3121e76e1feb672fff57b694f33396054",
+      "reservation_id": "8538daa56dc34ce791b7aa6676295cce",
+      "round_consumed": true,
+      "scope": "impl:fn-257-extract-the-standalone-umpire.2",
+      "superseded_by": null,
+      "task": "fn-257-extract-the-standalone-umpire.2",
+      "timestamp": "2026-10-26T16:27:25.989515Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "c713c53472884d6f2321db0579b8d0d8a068adbd0a52477003f277bc4a067676",
+      "backend": "codex",
+      "base_sha": "8bcf4c9fa67f87463ce9bb34c6e5e269e608113b",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-5a6233b614ccf8235cdcc7ac0e09bf12",
+            "classification": "introduced",
+            "findingId": "finding-5a6233b614ccf8235cdcc7ac0e09bf12",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 1,
+      "head_sha": "bfd362e34c571b595f4936476627748d1af3ca68",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 1125,
+      "output_sha256": "624a60cd5f60bb5dc90ac114ac56bcc06309eabf802dcdbfece57266a940e861",
+      "reservation_id": "453d985417994f38b57ad74892b9d875",
+      "round_consumed": true,
+      "scope": "impl:fn-257-extract-the-standalone-umpire.2",
+      "superseded_by": null,
+      "task": "fn-257-extract-the-standalone-umpire.2",
+      "timestamp": "2026-10-26T16:40:04.043261Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "dba13471728387be544d1762a747129ce91324fafc6863ae10247b1228e4883b",
+      "backend": "codex",
+      "base_sha": "951c5516e9e7b3066e7e069adda9565cfd68844c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-dca29978456535b6029747017857298c",
+            "classification": "introduced",
+            "findingId": "finding-dca29978456535b6029747017857298c",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 1,
+      "head_sha": "afe1d2ad048dfaa082066281eda7371fc8a03e32",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 912,
+      "output_sha256": "9e2299384a69c286cb0087df929912986fa8e87416491139b0cad1d71f4e9d19",
+      "reservation_id": "77206ca90ffd4dd5a1215cb554fdbbe5",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-26T16:58:06.567898Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "a414491c8212070d161778c5b2e3d7f5de3bbd9769d5a7b3857c894eeefc4a43",
+      "backend": "codex",
+      "base_sha": "951c5516e9e7b3066e7e069adda9565cfd68844c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-dca29978456535b6029747017857298c",
+            "classification": "introduced",
+            "findingId": "finding-dca29978456535b6029747017857298c",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 2,
+      "head_sha": "afe1d2ad048dfaa082066281eda7371fc8a03e32",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 417,
+      "output_sha256": "91a4571e07e34750a9ca83f9d86c59066176f917034c2e080743abd8de62ef3b",
+      "reservation_id": "7552ea7991fc49e8a62df238428ce518",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-26T17:03:02.659466Z",
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "impl:fn-257-extract-the-standalone-umpire.1": 1,
+    "impl:fn-257-extract-the-standalone-umpire.2": 2,
+    "plan": 3,
+    "plan#completion": 0
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "impl:fn-257-extract-the-standalone-umpire.1": 0,
+    "impl:fn-257-extract-the-standalone-umpire.2": 0,
+    "plan": 0
+  },
+  "spec_path": ".flow/specs/fn-257-extract-the-standalone-umpire.md",
+  "status": "done",
+  "title": "Extract the standalone Umpire repository and retain the local Temporal loop",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-10-27T15:01:24.585409Z",
+  "validation_review": {
+    "path": ".flow/artifacts/fn-257-extract-the-standalone-umpire/validation-cost-review-be1bf9b88bdd6fad0ff123050656112c3e1d52e3178f7213e5cfcf04611bd996.json",
+    "schema_version": 1,
+    "sha256": "be1bf9b88bdd6fad0ff123050656112c3e1d52e3178f7213e5cfcf04611bd996"
+  }
+}

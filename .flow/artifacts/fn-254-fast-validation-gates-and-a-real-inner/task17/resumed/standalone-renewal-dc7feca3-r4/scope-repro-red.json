@@ -1,0 +1,13 @@
+{
+  "command": [
+    "/tmp/umpire-fn25417-standalone-dc7feca3/proof-esl66Z/target/debug/deps/main-0f7e6d5d62e6cfac",
+    "--exact",
+    "gate_wiring::concurrent_duplicate_stage_claim_runs_leaf_exactly_once_and_preserves_receipt",
+    "--nocapture"
+  ],
+  "environment": {
+    "UMPIRE_GATE_SCOPE": "framework"
+  },
+  "seconds": 0.16732162499829428,
+  "exit": 101
+}

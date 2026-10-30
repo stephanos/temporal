@@ -1,0 +1,21 @@
+{
+  "export_head": "cf8bec4d6231302df54b57fccdc5bdb9d11552fc",
+  "commit_map_sha256": "ca451bdc256de0ecf6a2cff4383ad45cd740320e4518113070fc5c0f4d6f836a",
+  "independent_fresh_clones": 2,
+  "reproduced_head_and_commit_map": true,
+  "worktrees_compared": 36,
+  "dirty_paths_compared": 56,
+  "source_and_candidate_product_states_match_before_after_and_after_cleanup": true,
+  "original_source_commit_remains_available": true,
+  "scope": "Refs, worktree registry, index entries and every dirty/nonignored untracked path; clean files use Git status/index identity. Ignored cache bytes are not inventoried or modified.",
+  "root_allowed_changes": [
+    ".flow/**",
+    "MILESTONES.md",
+    "MIGRATE.md"
+  ],
+  "evidence": {
+    "preservation-before.json": "65f9fc1568998797b2e2b6728b8f534373834b60f9dd916177e2a03f1636d641",
+    "preservation-after.json": "65f9fc1568998797b2e2b6728b8f534373834b60f9dd916177e2a03f1636d641",
+    "preservation-after-cleanup.json": "65f9fc1568998797b2e2b6728b8f534373834b60f9dd916177e2a03f1636d641"
+  }
+}

@@ -34,7 +34,7 @@ func guest(t *testing.T, variable, name string) []byte {
 	}
 	wasm, err := os.ReadFile(path)
 	if err != nil {
-		t.Fatalf("%s required; build with scripts/tests/build-guests.sh: %v", name, err)
+		t.Fatalf("%s required; build from the framework root with mise exec -- cargo xtask build-guests: %v", name, err)
 	}
 	return wasm
 }

@@ -1,0 +1,26 @@
+   Compiling umpire-guest-driver v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2546-quick/model/umpire/dev/guest-driver)
+   Compiling xtask v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2546-quick/model/umpire/dev/xtask)
+   Compiling temporal-xtask v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2546-quick/model/dev/xtask)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.17s
+     Running unittests src/main.rs (/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2546-quick/quick/debug/deps/temporal_xtask-ec453d7574f7d635)
+
+running 1 test
+test quick::tests::bridge_selects_both_workspaces_and_the_authored_model_consumer ... FAILED
+
+failures:
+
+---- quick::tests::bridge_selects_both_workspaces_and_the_authored_model_consumer stdout ----
+
+thread 'quick::tests::bridge_selects_both_workspaces_and_the_authored_model_consumer' (572779) panicked at dev/xtask/src/quick/mod.rs:58:9:
+assertion `left == right` failed
+  left: ["/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2546-quick/model/temporal/feature=umpire-temporal-tests"]
+ right: ["/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2546-quick/model/temporal/feature=umpire-temporal-tests", "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2546-quick/model/temporal/feature=umpire-temporal", "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2546-quick/model/temporal/feature=umpire-temporal-api", "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2546-quick/model/temporal/feature=umpire-temporal-realization-macros"]
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    quick::tests::bridge_selects_both_workspaces_and_the_authored_model_consumer
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 8 filtered out; finished in 0.00s
+
+error: test failed, to rerun pass `-p temporal-xtask --bin temporal-xtask`

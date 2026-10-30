@@ -1,0 +1,5 @@
+checker_and_suite_share_one_fixture_producer: test
+runner_child: test
+suite_producer_rejects_unknown_and_ambiguous_outputs: test
+suite_snapshots_reject_nondeterministic_producers: test
+suite_snapshots_update_compare_and_reject_orphans: test

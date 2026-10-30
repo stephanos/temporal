@@ -1,0 +1,14 @@
+    Checking umpire-testing v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/dev/testing)
+    Checking manyhow v0.14.1
+    Checking umpire-dsl-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/author/dsl/macros)
+error: this boolean expression can be simplified
+  --> author/dsl/macros/tests/parser_refusals/mod.rs:47:16
+   |
+47 |             if !item.mac.path.segments.last().is_some_and(|part| part.ident == "compile_error") {
+   |                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `item.mac.path.segments.last().is_none_or(|part| part.ident != "compile_error")`
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#nonminimal_bool
+   = note: `-D clippy::nonminimal-bool` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::nonminimal_bool)]`
+
+error: could not compile `umpire-dsl-macros` (test "fixtures") due to 1 previous error

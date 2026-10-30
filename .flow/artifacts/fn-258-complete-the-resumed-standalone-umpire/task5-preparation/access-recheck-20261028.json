@@ -1,0 +1,36 @@
+{
+  "date": "2026-10-28",
+  "tool": "github_search_repositories",
+  "input": {
+    "org": "temporalio",
+    "query": "umpire",
+    "per_page": 5
+  },
+  "result": {
+    "content": [
+      {
+        "type": "text",
+        "text": "GitHub API error 422: {\"message\":\"Validation Failed\",\"errors\":[{\"message\":\"Access to the requested organization (temporalio) is blocked by SAML single sign-on. Your session or token does not satisfy the organization's or enterprise's conditional access policies. Confirm the policy requirements are met, then try again.\",\"resource\":\"Search\",\"field\":\"q\",\"code\":\"invalid\"}],\"documentation_url\":\"https://docs.github.com/v3/search/\",\"status\":\"422\"}"
+      }
+    ],
+    "structuredContent": {
+      "error": "GitHub API error 422: {\"message\":\"Validation Failed\",\"errors\":[{\"message\":\"Access to the requested organization (temporalio) is blocked by SAML single sign-on. Your session or token does not satisfy the organization's or enterprise's conditional access policies. Confirm the policy requirements are met, then try again.\",\"resource\":\"Search\",\"field\":\"q\",\"code\":\"invalid\"}],\"documentation_url\":\"https://docs.github.com/v3/search/\",\"status\":\"422\"}",
+      "error_code": "INVALID_ARGUMENT",
+      "error_data": {
+        "message": "Validation Failed",
+        "errors": [
+          {
+            "message": "Access to the requested organization (temporalio) is blocked by SAML single sign-on. Your session or token does not satisfy the organization's or enterprise's conditional access policies. Confirm the policy requirements are met, then try again.",
+            "resource": "Search",
+            "field": "q",
+            "code": "invalid"
+          }
+        ],
+        "documentation_url": "https://docs.github.com/v3/search/",
+        "status": "422"
+      }
+    },
+    "isError": true
+  },
+  "interpretation": "Organization SAML denies destination inspection; destination existence, history and permissions remain unknown. No external writes performed."
+}

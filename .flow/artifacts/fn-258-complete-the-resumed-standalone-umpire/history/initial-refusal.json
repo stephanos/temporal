@@ -1,0 +1,1 @@
+{"filter": "Initial original retained-tip assertion refused after successful rewriting because ac60 is projection-neutral; adapted only fn-258 tooling to accept zero map row with complete projection equality.", "verifier": "First adapted guard used raw zero string rather than parsed None; all other checks passed, corrected in new-only verifier."}

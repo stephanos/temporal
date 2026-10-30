@@ -1,0 +1,69 @@
+{
+  "source_base": "ac60daaf47d2513b41eeff612f0e2758d33e186d",
+  "candidate": "cde1ee67efd266a058193694c2ddb287598b9ea5",
+  "branch": "refs/heads/work/fn2583-consumers",
+  "bundle": "source-preparation-cde1ee6.bundle",
+  "standalone_pair": "05473210b48c3db862f22051eb7154ce98258f98",
+  "prior_candidates": [
+    "7e655da80b3810807cbd02a3ea29c26ceb9804e4",
+    "4035bb70fdf4c7ef074a8f05a02b19fb458c0b1d",
+    "3658582dac5b54c1f68c2eb54a312957c97e05b6",
+    "ec13057227cf2159482a793b227e32653e280057",
+    "3f5f613578f2857b738a7792fad08f12b3ea0a41"
+  ],
+  "final_delta": "Exactly one shipping shell control line changes after task3 source3f: expected model-update cache fields derive inherited values. Make/Rust/manifests/guest/runtime are byte-identical.",
+  "source_integration": "unmerged candidate; final publication/CI/cutover remains task5",
+  "bundle_sha256": "393cbf07c93779a5da2b594da1b36c8eb9d5efd6ca4f565d54d75db9e91774df",
+  "bundle_bytes": 260850,
+  "recovery": "bundle-recovery-cde1ee6.json",
+  "historical_source_record": "source-checkpoint.json",
+  "current_observed_pair": {
+    "temporal": "cde1ee67efd266a058193694c2ddb287598b9ea5",
+    "umpire": "05473210b48c3db862f22051eb7154ce98258f98",
+    "scope": "New independent preparation/tool/Go workspace metadata only; no broad validation executed"
+  },
+  "fresh_review": "Currentcde final Task4 source/validation review pending root; do not transfer historical task3 SHIP verdict.",
+  "previous_observed_pair": {
+    "temporal": "3f5f613578f2857b738a7792fad08f12b3ea0a41",
+    "umpire": "05473210b48c3db862f22051eb7154ce98258f98",
+    "focused_source_readiness": "Task3 reviewed/closed; historical16/7/Go/Make observations retained in readiness-3f5f613.json",
+    "whole_gate": "Task4 default run terminalFAILED2; retained explicitly in failed_previous_whole_gate"
+  },
+  "current_focused_pair_evidence": "../validation/consumer-cache-control-cde/checks.json",
+  "owner_task": "fn-258-complete-the-resumed-standalone-umpire.4",
+  "source_change_owner": "Task4 integration harness correction, not reopening Task2/Task3 closures",
+  "candidate_tree": "937680c4cc87d81ce4da6b0868863ea1a5fb9fd3",
+  "blob_identities": {
+    "Makefile": {
+      "git_blob": "602196da160b2dcba5c6ca543c73ee96bfd3099f",
+      "sha256": "4aece43b9fc591a0527712a81a399e507b8eae746622a3b3efc396e3c74c3954"
+    },
+    "model/scripts/test-model-wiring.sh": {
+      "git_blob": "8853cc431bc28e0b04be7db1322db1f4ec38bc24",
+      "sha256": "1150faecce6df0a0641de6e4e719dd6bf55dec6f616ed8c8314496f229b247e0"
+    },
+    "model/temporal/hosts/go/umpire_temporal_guest.wasm": {
+      "git_blob": "7bbc6b206fd2dda39316737a9b9815b6e5ee98ad",
+      "sha256": "d171b91861dba54e9c73682fb17a5a317180dba4e7c5b6c1b09f46667b337f5d"
+    }
+  },
+  "historical_task3_source": {
+    "candidate": "3f5f613578f2857b738a7792fad08f12b3ea0a41",
+    "current_source_snapshot": "current-source-3f5f613.json",
+    "readiness_snapshot": "readiness-3f5f613.json",
+    "review": "review-final-3f5f613/receipt.json",
+    "closure": "Task3 source readiness SHIP/closed at3f, not a full migration or cde gate verdict"
+  },
+  "current_validation_pointer": "../validation/current-pair-source.json",
+  "fresh_pair_preparation": "../validation/final-pair-cde-054/preparation.json",
+  "failed_previous_whole_gate": {
+    "pair": {
+      "temporal": "3f5f613578f2857b738a7792fad08f12b3ea0a41",
+      "umpire": "05473210b48c3db862f22051eb7154ce98258f98"
+    },
+    "exit": 2,
+    "evidence": "../validation/final-pair-3f5-054/failed-default-3f5/diagnosis.json"
+  },
+  "proof_rebind": "proof-rebind-cde1ee6.json",
+  "artifact_manifest": "current-artifact-manifest.json"
+}

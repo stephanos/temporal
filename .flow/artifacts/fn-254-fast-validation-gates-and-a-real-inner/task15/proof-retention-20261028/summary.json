@@ -1,0 +1,31 @@
+{
+  "accepted": true,
+  "manifest": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.recovery/fn25415-native-proof/manifests/68208a5aa0e5df79783d97b740a07da3f0808dce4935aa076450630a5183b610.json",
+  "manifest_sha256": "68208a5aa0e5df79783d97b740a07da3f0808dce4935aa076450630a5183b610",
+  "members": 4801,
+  "original_input_selection": 4799,
+  "extra_parent_components": 2,
+  "independent_cas_only_verification": true,
+  "verified_again_after_actual_parent_rebuild": true,
+  "source_reads_during_verification": false,
+  "alias_note": "Cargo nextest inventory relinked private driver alias to cached b2 bytes after gate-finishcf receipt. Exact cf bytes remain in two recorded copies; recovery map retains those and current alias separately. Original receipts are unchanged.",
+  "cleanup_performed": false,
+  "private_target_allocated_bytes_at_preparation": 6608592896,
+  "protected_shared_target": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/target",
+  "local_git_exclude": "/.recovery/ added only to .git/info/exclude; recovery bytes are not staged as code.",
+  "artifact_hashes": {
+    "tools-manifest.json": "50c5b44f10ff99378049d9a35658a5ea8ac9b8d11922aa742519cce599554e1c",
+    "parent-rebuild-observation.json": "9bb165ae9b28230e5523f31a8c1e25f8462836be3974c920e39480c087725d6c",
+    "README.md": "c646a852f62423752d13e318d4b0b2a627ebc754ec6be8f0a2b49687f5e41388",
+    "collection.stdout.json": "3b3b0faa5dfaacb8cbfa6eb0409a90afff7dc49a60e0f1261cc92f8828857501",
+    "independent-verification.json": "d01226de7437d88607c8e061cad41e756ec7f48fd681d4202da8caf3a8df8da8",
+    "controls.json": "b75b9b94c880017ec6abfa0481ae66cab744aec8ca519e3bd14d4e2119a19cdb",
+    "retention-manifests.tar.gz": "c4daac6ab36298e2aa46e4f1053f9017a95d928e669c7e7bd3a3cb1d8cfc4783",
+    "handover.json": "5f7fb4293c2b207c63169e627c4df634807c81b0be3f1efcd369abab1ad716a1",
+    "collection.stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "collect.py": "22378629f2c272e26bc6fa6d5e9d790461482e1f82dc73718c3d1f96f10e98e1",
+    "test_controls.py": "c73ad6278b9ee93d73af0b7568191b4110fb3c157fba3f8dd3fe1750981fd79c",
+    "independent-after-parent-rebuild.json": "d01226de7437d88607c8e061cad41e756ec7f48fd681d4202da8caf3a8df8da8",
+    "verify.py": "0c5ae955a82dc0efb1d4c129773f9466ec9e36b2567f80e157be56ba03ec6dca"
+  }
+}

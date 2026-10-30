@@ -1,0 +1,21 @@
+   Compiling umpire-testing v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/dev/testing)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.39s
+     Running unittests src/lib.rs (/home/agent/.cache/codex-build/cargo-target/debug/deps/umpire_testing-4e5f742f5e3af6e1)
+
+running 13 tests
+test backend::tests::nominal_debug_preserves_authored_shapes_and_exact_optional_codes ... ok
+test backend::tests::projection_refuses_state_or_edge_changes_without_a_real_edge ... ok
+test backend::tests::qualified_nominal_debug_matches_rust_without_changing_type_identity ... ok
+test backend::tests::replay_uses_checked_steps_without_panicking ... ok
+test backend::tests::agreement_compares_complete_sets_and_every_verdict ... ok
+test backend::tests::replay_uses_retained_starts_without_enumerating_again ... ok
+test backend::tests::replay_compares_the_typed_outcome_of_a_rejected_self_loop ... ok
+test backend::tests::actual_tlc_fact_traces_replay_exact_vectors ... ok
+test backend::tests::nonempty_facts_are_typed_and_preserved_on_observer_activation ... ok
+test snapshot_payload::tests::preserves_body_and_refuses_invalid_headers ... ok
+test source_edit_tests::source_edits_preserve_surrounding_text_and_unicode ... ok
+test backend::tests::typed_replay_identifies_the_exact_catalog_payload_without_display_identity ... ok
+test source_edit_tests::source_edits_refuse_missing_duplicate_and_empty_anchors ... ok
+
+test result: ok. 13 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

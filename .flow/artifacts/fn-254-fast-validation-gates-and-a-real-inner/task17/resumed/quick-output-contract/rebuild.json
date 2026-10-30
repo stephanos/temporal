@@ -1,0 +1,12 @@
+{
+  "command": [
+    "/bin/bash",
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/scripts/xtask.sh"
+  ],
+  "exit_code": 0,
+  "elapsed_seconds": 1.272135041999718,
+  "source_sha256": "a2dc3ba7691dd664c198b5cd372dcf42167375e453d6fdf4c3994ede0460b388",
+  "binary": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/target/xtask-bootstrap/debug/xtask",
+  "binary_sha256": "a486ab3967ab0b81c45f4e3cfa680ce8425abd96d5d4b620d3c8c17f4bb1e983",
+  "scope": "Actualproductionbootstraprebuildforselected-output-onlychange,noGo/Java/models"
+}

@@ -1,0 +1,29 @@
+{
+  "recorded_utc": "2026-10-28T20:04:33.761927+00:00",
+  "task": "fn-254-fast-validation-gates-and-a-real-inner.12",
+  "status": "in_progress",
+  "source_base": "c990b76b5d380b1dc2e684e2a8410cb1eaad0240",
+  "predecessor15_closure": "c990b76b5d380b1dc2e684e2a8410cb1eaad0240",
+  "predecessor15_done_verified": true,
+  "free_bytes": {
+    ".": 46191472640,
+    "/tmp": 50542063616
+  },
+  "admission_scope": "Source/focused validation; final broad gates/measurements stay task8. No50GiB full-standalone admission claimed.",
+  "retained_candidates": [
+    ".worktrees/fn25412-budget-wiring",
+    ".worktrees/prep25412-budgets"
+  ],
+  "research_inputs": [
+    ".flow/tmp/fn25412-go-count-research-20261028.md",
+    ".flow/tmp/fn25412-tlc-count-research-20261028.md"
+  ],
+  "priority": [
+    "Accurate Go terminal/inventory counts",
+    "Resolve synthetic TLC provenance and unknown starts without dropping controls",
+    "Integrate single-authority budget parser/retry candidate",
+    "Admit reviewed actual count tables and focused registration/retry controls"
+  ],
+  "protected_shared_target": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/target",
+  "migration": "Owner deferred; no restart"
+}

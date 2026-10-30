@@ -1,0 +1,23 @@
+{
+  "success": true,
+  "spec": "fn-254-fast-validation-gates-and-a-real-inner",
+  "root_errors": [],
+  "valid": true,
+  "errors": [],
+  "warnings": [
+    "Task fn-254-fast-validation-gates-and-a-real-inner.3: evidence commit a21f91b116748a720ff12c910b7d50b733f9ffa0 is not reachable from HEAD (orphaned by a history rewrite; recorded value left as-is)",
+    "Task fn-254-fast-validation-gates-and-a-real-inner.3: evidence commit 934fc8559d5f179b365929716b2f005f484efffa is not reachable from HEAD (orphaned by a history rewrite; recorded value left as-is)",
+    "Task fn-254-fast-validation-gates-and-a-real-inner.3: evidence commit 76fee4be039d28ae8e3c3261aace095d6b416902 is not reachable from HEAD (orphaned by a history rewrite; recorded value left as-is)",
+    "Task fn-254-fast-validation-gates-and-a-real-inner.3: evidence commit 71685512286d343ad1a59e3349e23688ea82663f is not reachable from HEAD (orphaned by a history rewrite; recorded value left as-is)",
+    "Task fn-254-fast-validation-gates-and-a-real-inner.3: evidence commit adf475da992685bd601254581e1d397136bd9463 is not reachable from HEAD (orphaned by a history rewrite; recorded value left as-is)",
+    "Task fn-254-fast-validation-gates-and-a-real-inner.3: evidence commit ba473b52be7800703ec60223ab40b206066ab56b is not reachable from HEAD (orphaned by a history rewrite; recorded value left as-is)",
+    "Task fn-254-fast-validation-gates-and-a-real-inner.3: evidence commit d49485e91f41cd4a1a808585a25ec13392945080 is not reachable from HEAD (orphaned by a history rewrite; recorded value left as-is)",
+    "Task fn-254-fast-validation-gates-and-a-real-inner.11: evidence commit e198ea9dd2 is not reachable from HEAD (orphaned by a history rewrite; recorded value left as-is)",
+    "Task fn-254-fast-validation-gates-and-a-real-inner.11: evidence commit 71f1fa6d11 is not reachable from HEAD (orphaned by a history rewrite; recorded value left as-is)",
+    "Task fn-254-fast-validation-gates-and-a-real-inner.11: evidence commit 66f53a87a4 is not reachable from HEAD (orphaned by a history rewrite; recorded value left as-is)",
+    "Task fn-254-fast-validation-gates-and-a-real-inner.11: evidence commit 6660073f42 is not reachable from HEAD (orphaned by a history rewrite; recorded value left as-is)",
+    "Task fn-254-fast-validation-gates-and-a-real-inner.14: evidence commit 5ba482b5b73ca4d85ab758568d9a25ec4c4126b4 is not reachable from HEAD (orphaned by a history rewrite; recorded value left as-is)",
+    "Task fn-254-fast-validation-gates-and-a-real-inner.14: evidence commit 773fb58152 is not reachable from HEAD (orphaned by a history rewrite; recorded value left as-is)"
+  ],
+  "task_count": 17
+}

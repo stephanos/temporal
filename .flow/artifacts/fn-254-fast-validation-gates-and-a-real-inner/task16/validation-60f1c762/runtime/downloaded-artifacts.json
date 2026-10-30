@@ -1,0 +1,12 @@
+[
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/clean/build/mise-jars/cache/downloads-cas/blobs/780225590d3daafc37b82d433f0fe0e2dfeaee43d0ec4c1530bb4caec3667025/apalache-0.62.4.tgz",
+    "bytes": 192038424,
+    "sha256": "b781b53bba32fac14ac2e02b0332e1dc2edc64cb7b850c0608d8142cc7aa2ef4"
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/frozen-provider-controls/runtime/clean/build/mise-jars/cache/downloads-cas/blobs/36e4d95a99aa33dde9ff7b288bf3092f3dfbb26e450fc9758ee765cdb250ce38/tla2tools.jar",
+    "bytes": 2274532,
+    "sha256": "936a262061c914694dfd669a543be24573c45d5aa0ff20a8b96b23d01e050e88"
+  }
+]

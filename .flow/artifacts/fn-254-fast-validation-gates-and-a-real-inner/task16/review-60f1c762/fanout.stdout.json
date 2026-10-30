@@ -1,0 +1,63 @@
+{
+  "success": true,
+  "type": "impl_review_fanout",
+  "phase": "dispatch",
+  "id": "fn-254-fast-validation-gates-and-a-real-inner.16",
+  "rid": "d56cefa991c84615bd07f20be7556d9b",
+  "reservation_id": "d56cefa991c84615bd07f20be7556d9b",
+  "standalone": false,
+  "dir": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25416-provider-adapt/.flow/review-fanout/d56cefa991c84615bd07f20be7556d9b",
+  "draws": [
+    {
+      "axis": "correctness",
+      "parse_status": {
+        "status": "unparsed",
+        "reason": "no-findings-container",
+        "block": null
+      },
+      "verdict": "SHIP",
+      "failed": false,
+      "failure_class": null,
+      "failure_message": null,
+      "session_id": "5a338041-0e1b-47d7-a2e3-e088be87ab57",
+      "model": "claude-fable-5-1",
+      "review_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25416-provider-adapt/.flow/review-fanout/d56cefa991c84615bd07f20be7556d9b/correctness.review.md",
+      "output_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25416-provider-adapt/.flow/review-fanout/d56cefa991c84615bd07f20be7556d9b/correctness.out.txt"
+    },
+    {
+      "axis": "contracts",
+      "parse_status": {
+        "status": "unparsed",
+        "reason": "invalid-anchor",
+        "block": 1
+      },
+      "verdict": "SHIP",
+      "failed": false,
+      "failure_class": null,
+      "failure_message": null,
+      "session_id": "dca60c2e-1fb3-4397-a27e-aec01cdf04b2",
+      "model": "claude-fable-5-1",
+      "review_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25416-provider-adapt/.flow/review-fanout/d56cefa991c84615bd07f20be7556d9b/contracts.review.md",
+      "output_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25416-provider-adapt/.flow/review-fanout/d56cefa991c84615bd07f20be7556d9b/contracts.out.txt"
+    },
+    {
+      "axis": "integration",
+      "parse_status": {
+        "status": "unparsed",
+        "reason": "invalid-anchor",
+        "block": 1
+      },
+      "verdict": "SHIP",
+      "failed": false,
+      "failure_class": null,
+      "failure_message": null,
+      "session_id": "6cc60a50-b46a-4453-8851-7ae12e17528e",
+      "model": "claude-fable-5-1",
+      "review_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25416-provider-adapt/.flow/review-fanout/d56cefa991c84615bd07f20be7556d9b/integration.review.md",
+      "output_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25416-provider-adapt/.flow/review-fanout/d56cefa991c84615bd07f20be7556d9b/integration.out.txt"
+    }
+  ],
+  "failed_draws": 0,
+  "merged": false,
+  "next": "merge the surviving draws' findings, then run: flowctl claude impl-review-fanout-finalize --rid d56cefa991c84615bd07f20be7556d9b --merge-plan <merge-plan.json>"
+}

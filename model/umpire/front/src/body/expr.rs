@@ -269,8 +269,8 @@ impl Environment {
                 self.rejected_call(call, state, locals, depth)?
             }
             RustExpr::Struct(value) => {
-                let name = value.path.get_ident().map(ToString::to_string);
-                let Some(descriptor) = name.as_ref().and_then(|name| self.bounded.get(name)) else {
+                let descriptor = self.bounded_descriptor(&value.path, expected)?;
+                let Some(descriptor) = descriptor.as_ref() else {
                     return self.err(node, "unsupported struct construction");
                 };
                 if locals.contains_key(&descriptor.name)
@@ -311,8 +311,13 @@ impl Environment {
                 {
                     return self.require(node, value, expected);
                 }
-                if let Some(value) = self.bounded_call(call, state, locals, depth)? {
+                if let Some(value) = self.bounded_call(call, state, locals, expected, depth)? {
                     return self.require(node, value, expected);
+                }
+                if let Some(value) =
+                    self.library_call(call, state, locals, expected, depth, false)?
+                {
+                    return Ok(value);
                 }
                 match self.vector_constructor(call, expected)? {
                     Some(value) => value,

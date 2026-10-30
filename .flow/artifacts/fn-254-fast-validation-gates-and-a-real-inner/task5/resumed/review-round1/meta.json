@@ -1,0 +1,81 @@
+{
+  "type": "impl_review_fanout",
+  "focus": "Review complete fn254.5 R4/R5 at fixed fdf115db99. ONLY task source changes in this diff; large raw historical runtime artifacts are supporting evidence, read summaries/current source before logs. Full contract/task and source-grounded .flow/tmp/fn254-jvm-parallel-shape/decision.md govern. 24independent frameworkfixturecases replace executing umbrella with complete registry/snapshot/consumer admission BEFORE selection, both renders perconsumer, allotheridentities retained. Freshrequired-TLC/cache-disabled fullfixture run83pass/1ignored,all84identities/191snapshots unchanged; twoactualcaseowners/fourchecker JVMs observed, everymodel/discoveryXmx512, observedRSS is not hardcap. ActualTemporalactivity passed native/interpreter/source-lift/TLC/realization coverage28freshchecks;202snapshots intact. Parser original79UI+4positive are61exactdiagnostic/span rows+18retainedrustc+4positive; two stay!cases deliberately restored because latermacro expansion. Fullmacro8pass. Registry6identities allrun incl18negative+1positive; supplemental2run1negative+1generatedAPIpositive. Strict7affectedclippy scopes,fmt/diff green. Profiles requiredglobal4/JVMgroup2 forTLC, explicitApalache temporaryglobal1 perdecisionuntilmixedproof; native skippedCPUdefault; directtest-run,gate,update,standalone child+truthfulreceipts controlled. Defaultalready skippedApalache; no newdefaultsaving claim. Mode/failfast/doctest/caller/authority behavior preserved; dead2Scala targetsremovedwithnorefs. CLI groups218framework/41Temporal includingignored,actualdefault217/39;119registrydependencytuples separatelyverifiedexact,bothlocksunchanged. Evidence task5/resumed/final-validation-summary.json,final-source-manifest.json,activity-and-membership-summary.json,framework-fixtures-required-summary.json,identity-dependency-audit.json,macro-before-after-comparison.json andTemporalcompiler summaries. Historicaltimings explicitlynotcausal speedup. Authoritativefulljoinedgates/finalmeasurements remain.8; .17exclusivelyownscross-invocationJVMlease,DAG,siblingcleanup; no second scheduler introduced. Check correctness/coverage/ownership/resource/interface gaps against these boundaries, not later tasks. Source cases/std errors preservedbyteforbyte; no goldensaccepted.",
+  "claim_token": null,
+  "id": "fn-254-fast-validation-gates-and-a-real-inner.5",
+  "standalone": false,
+  "base_branch": "890f7498b4",
+  "reviewed_base_sha": "890f7498b4f9c79c1e01b9081b5be3a3439b97e8",
+  "reviewed_head_sha": "fdf115db9986e67e20b2d9c5c1fdcb1afb741aa8",
+  "artifact_sha256": "59d07f7db5692fdc296e6ea1e8930070c2f709740b6875ecd2c4c299d6d7e4d2",
+  "reservation_id": "81b94a664e4b4012aace6c1e0fa7d73a",
+  "rid": "81b94a664e4b4012aace6c1e0fa7d73a",
+  "primary_axis": "correctness",
+  "draws": [
+    {
+      "axis": "correctness",
+      "parse_status": {
+        "status": "parsed",
+        "reason": null,
+        "block": null
+      },
+      "backend": "claude",
+      "model": "claude-fable-5-1",
+      "effort": "high",
+      "session_id": "6ddde0b9-a2d1-4745-b7ee-7db211a3892f",
+      "verdict": "SHIP",
+      "failed": false,
+      "failure_class": null,
+      "failure_message": null,
+      "exit_code": 0,
+      "started_at": "2026-10-26T23:23:25.164697Z",
+      "finished_at": "2026-10-26T23:30:00.539575Z",
+      "review_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/review-fanout/81b94a664e4b4012aace6c1e0fa7d73a/correctness.review.md",
+      "output_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/review-fanout/81b94a664e4b4012aace6c1e0fa7d73a/correctness.out.txt"
+    },
+    {
+      "axis": "contracts",
+      "parse_status": {
+        "status": "unparsed",
+        "reason": "invalid-anchor",
+        "block": 1
+      },
+      "backend": "claude",
+      "model": "claude-fable-5-1",
+      "effort": "high",
+      "session_id": "4d975984-5eed-4336-9d44-352b96fcdd83",
+      "verdict": "SHIP",
+      "failed": false,
+      "failure_class": null,
+      "failure_message": null,
+      "exit_code": 0,
+      "started_at": "2026-10-26T23:23:25.164916Z",
+      "finished_at": "2026-10-26T23:30:08.478132Z",
+      "review_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/review-fanout/81b94a664e4b4012aace6c1e0fa7d73a/contracts.review.md",
+      "output_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/review-fanout/81b94a664e4b4012aace6c1e0fa7d73a/contracts.out.txt"
+    },
+    {
+      "axis": "integration",
+      "parse_status": {
+        "status": "unparsed",
+        "reason": "invalid-anchor",
+        "block": 2
+      },
+      "backend": "claude",
+      "model": "claude-fable-5-1",
+      "effort": "high",
+      "session_id": "af1a88aa-32ac-4e82-8bf2-dbd6babdc481",
+      "verdict": "SHIP",
+      "failed": false,
+      "failure_class": null,
+      "failure_message": null,
+      "exit_code": 0,
+      "started_at": "2026-10-26T23:23:25.165337Z",
+      "finished_at": "2026-10-26T23:34:55.779576Z",
+      "review_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/review-fanout/81b94a664e4b4012aace6c1e0fa7d73a/integration.review.md",
+      "output_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/review-fanout/81b94a664e4b4012aace6c1e0fa7d73a/integration.out.txt"
+    }
+  ],
+  "receipt_path": "/tmp/impl-review-receipt-8f37faba39e2-fn-254-fast-validation-gates-and-a-real-inner.5.json",
+  "created_at": "2026-10-26T23:34:55.798385Z"
+}

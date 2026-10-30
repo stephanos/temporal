@@ -1,0 +1,145 @@
+{
+  "schema_version": 1,
+  "task": "fn-255-thorough-framework-testing-generated.3",
+  "kind": "unvalidated-source-preparation-checkpoint",
+  "date": "2026-10-27",
+  "base": "d67174c342f09a048a57dc8bb388be4f3709f01a",
+  "commits": [
+    "7010baad96ec230bd45eff977d218ab192f8464c"
+  ],
+  "branch": "work/fn2553-stable-harness",
+  "worktree": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2553-stable-harness",
+  "worktree_clean": true,
+  "preserve_worktree": true,
+  "scope": {
+    "changed_files": 52,
+    "diffstat": "52 files changed, 991 insertions(+)",
+    "stable_crate": "model/umpire/dev/decoder-testing",
+    "thin_fuzz_workspace": "model/umpire/fuzz",
+    "targets": 9,
+    "seed_files": 23,
+    "seed_bytes": 1036,
+    "source_test_files": [
+      "tests/corpus.rs",
+      "tests/harness.rs",
+      "tests/replay.rs",
+      "tests/timed_controls.rs"
+    ]
+  },
+  "source_sha256": {
+    "model/umpire/Cargo.toml": "95c190c2477485716ac05baf3b8256e608f4543842d9d63f5e7feb609ad640db",
+    "model/umpire/backends/tlc/Cargo.toml": "7770ec5270f91a05b22054d4855d72e1129b1d2ec2ce0b003711337a104f8d58",
+    "model/umpire/backends/tlc/src/runner.rs": "d8e68881f1eada996cabeaf15e6f5747deb3bbd2fce434e6ef43107a7882bc92",
+    "model/umpire/dev/decoder-testing/Cargo.toml": "12054bb53696e578f9df5696da787a7cfe2bb22959375df35f97eb94b63c05fc",
+    "model/umpire/dev/decoder-testing/README.md": "82ee91c3fad1c3685cf1dea8ea23638a08977876aab048729a29a071f5aa513f",
+    "model/umpire/dev/decoder-testing/src/corpus.rs": "c37a129e182fef241688ac6294dd1a36d8613908e54e8086d7cc9f610ed0c030",
+    "model/umpire/dev/decoder-testing/src/lib.rs": "984cf98a264f94493acbcd543f6005c354c3e620fd4a5804650817ee3bc110cd",
+    "model/umpire/dev/decoder-testing/src/replay.rs": "b4f2d816b3335baea0a05d91efe02066122272320245f34a157344a488c6f6be",
+    "model/umpire/dev/decoder-testing/tests/corpus.rs": "e9514999ab0b6296896fde25584cf4dcb29a2c88a2d23a9bd3d289c2524e3c09",
+    "model/umpire/dev/decoder-testing/tests/harness.rs": "9abe14a786d99b14beb114814074fe0f74430041c7dd27b881b7e4b3e8ad729b",
+    "model/umpire/dev/decoder-testing/tests/replay.rs": "d33bbc975a26042dadbccefe7a72299e72568a64e99a3a077fc0809fce09f993",
+    "model/umpire/dev/decoder-testing/tests/timed_controls.rs": "2a4a1f92b1aea6517691e719387be210993e4f49fa34b8abf445dafb5d182c29",
+    "model/umpire/fuzz/.cargo/config.toml": "346e3ffbcdf36b32cab885beb386754d8003670c895f1b509fcb751149bf83ad",
+    "model/umpire/fuzz/.gitignore": "0a798e9b33115a78fbfc3ec1ca452026f6332c011fca412a68bbff47c092a6ab",
+    "model/umpire/fuzz/Cargo.toml": "da5b08aceeb143537352764ce578989b69afe9852549424a58d1fc27341acdfe",
+    "model/umpire/fuzz/corpus/annotations/empty": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "model/umpire/fuzz/corpus/annotations/truncated": "428f6d7e89a1b345221f88db8af74389653730f048724e0dabece69990d6b7be",
+    "model/umpire/fuzz/corpus/annotations/valid": "a4e56d6f5ad57df17e49140b5af42784ff59f10052ff06493c81c20a9aaee593",
+    "model/umpire/fuzz/corpus/dispatch_prepare/explore": "c2fcf8f42a11595653f823d2319db12df1a89610eb6693e3e97ae3b20d18a7fd",
+    "model/umpire/fuzz/corpus/dispatch_prepare/malformed": "e26c06622896240abc65af5da860362b3c2601ddd9aea6461ad40bff593d7988",
+    "model/umpire/fuzz/corpus/dispatch_prepare/reset": "9d9f290527a6be626a8f5985b26e19b237b44872b03631811df4416fc1713178",
+    "model/umpire/fuzz/corpus/guest_dispatch/explore": "c2fcf8f42a11595653f823d2319db12df1a89610eb6693e3e97ae3b20d18a7fd",
+    "model/umpire/fuzz/corpus/guest_dispatch/reset": "9d9f290527a6be626a8f5985b26e19b237b44872b03631811df4416fc1713178",
+    "model/umpire/fuzz/corpus/guest_dispatch/unknown": "ad95131bc0b799c0b1af477fb14fcf26a6a9f76079e48bf090acb7e8367bfd0e",
+    "model/umpire/fuzz/corpus/runtime_decode/planted_panic": "e34fe2e3ceb623cb508292f8e8629e366fb8ccb9df697991cd773e3032b0d2f5",
+    "model/umpire/fuzz/corpus/runtime_decode/planted_slow": "3cd38665b2f23a085b5acdfde57c63e344bde7c17800e5651665652a82f3aea7",
+    "model/umpire/fuzz/corpus/runtime_decode/reset": "9d9f290527a6be626a8f5985b26e19b237b44872b03631811df4416fc1713178",
+    "model/umpire/fuzz/corpus/tlc_dump/duplicate": "1fb02e36cd98803ef7256e64af459425d8be11cfde3b463100221d5f571abe91",
+    "model/umpire/fuzz/corpus/tlc_dump/state": "d8a09aeed1e7048ece333ab8af251a9b67b816dd7cec9d8c58b5251d2cf5933f",
+    "model/umpire/fuzz/corpus/tlc_messages/finished": "ebd589a3504a30b2263d34257b5665be15ad8f99dc343f1e2938deee41855d10",
+    "model/umpire/fuzz/corpus/tlc_messages/truncated": "c2a3bd00f9ce9d1f338fc4f2b87ae3ecc82e7d92b1f41f9e9264ee4905a68621",
+    "model/umpire/fuzz/corpus/tlc_parse/finished": "ebd589a3504a30b2263d34257b5665be15ad8f99dc343f1e2938deee41855d10",
+    "model/umpire/fuzz/corpus/tlc_parse/fixture_summary": "a6052e950977cbbd2d296fe61b6288599eb009181f8c2a33f737c44cc71eb353",
+    "model/umpire/fuzz/corpus/tlc_parse/nested": "42ca3c8d8356701f75fbc4de8302c2314bb8060f7277db748515cd06f9ecf78d",
+    "model/umpire/fuzz/corpus/tlc_state/state": "b5130fd6a9ed3f5378c6d673a332dfa7c848aac4365dcb76a729a63d0a5bef9b",
+    "model/umpire/fuzz/corpus/tlc_state/wrong_type": "05ca55cb3c7491c6e0b0d112050658c05c555151b1624cb2f63e0b6433a4a1c5",
+    "model/umpire/fuzz/corpus/tlc_trace/backedge": "9ea32637df8dfe3ee335b13d66a08eadbcb9a213ad905ccbc6514f5c463f9d68",
+    "model/umpire/fuzz/corpus/tlc_trace/state": "bd47c88f308339284eccf63359e3f2ce5883a03ace65253296893eb2d420b5bc",
+    "model/umpire/fuzz/fuzz_targets/annotations.rs": "2e9c2e44d71b47a81139ba0ed03e8c71cc6c78c66ca7b61ffc99b51a77b950d2",
+    "model/umpire/fuzz/fuzz_targets/dispatch_prepare.rs": "f36fbdf1a139c9f597dbcd9b14a49590c34131152a3ae3d51b927e606ebfef8c",
+    "model/umpire/fuzz/fuzz_targets/guest_dispatch.rs": "b18e8a9cf7836af37fab31182e95efec3abba5bd71cbe8636dccd7be9f0a7ec9",
+    "model/umpire/fuzz/fuzz_targets/runtime_decode.rs": "9c7469d9d6b58f853cd71808849b822fdff769ec347cbe25a169eac151d3bc80",
+    "model/umpire/fuzz/fuzz_targets/tlc_dump.rs": "53276c0ad7cda0d79f46c922506ff3ba4510942482895fb91273f8714bf2278c",
+    "model/umpire/fuzz/fuzz_targets/tlc_messages.rs": "deefcd8a6310298157c0174022d028c1f3193c67efecba73e74d91c0e3286ca0",
+    "model/umpire/fuzz/fuzz_targets/tlc_parse.rs": "b2a27e8b446d5fe72acf9b6f20f1ab5371503a8228ed85d4bb1a6b576fc4dc34",
+    "model/umpire/fuzz/fuzz_targets/tlc_state.rs": "c37900fcd8e018d3d22bab44a826e96e5402c0fbe7ad0580c1fd16f7f6b158eb",
+    "model/umpire/fuzz/fuzz_targets/tlc_trace.rs": "9db4204f584327e8eac7e5cd0b09bbb42ff0577fa5101597f671843268684f55",
+    "model/umpire/fuzz/manifest.tsv": "ad6b0ebfd59146e40dffa2ffb333a5336c51c3aa883299926b10fcd0e94de7cc",
+    "model/umpire/fuzz/provenance.tsv": "7dcf5dbca11fa7b0c5360a863e445e7eb60e8fd9a7247669dd02deb8eafa3c9e",
+    "model/umpire/protocol/runtime/Cargo.toml": "d94345b43d69b7cc9f5b216e79b8ab55acb8e91d133dd8af1a73af9c5741102f",
+    "model/umpire/protocol/runtime/src/lib.rs": "cc0bc3deae7e635b47b851b979047cee580787983ef81dc36d7b2bb5992ee17a",
+    "model/umpire/protocol/runtime/src/runtime.rs": "d7654b0bddce618291273474916c56d49cc60cd50fb41ef67968cef4021359bb"
+  },
+  "original_candidate": {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/prep2553-fuzz",
+    "hash_manifest": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2553-stable-harness-original.json",
+    "files_unchanged": 45,
+    "dirty_checkout_preserved": true
+  },
+  "checks_actually_run": [
+    {
+      "command": "df -k .; Python shutil.disk_usage",
+      "result": "at least 30GiB free before worktree creation; final free bytes 37174079488"
+    },
+    {
+      "command": "git apply --check - (candidate five-file feature diff)",
+      "result": "passed against current integrated base before minimal patch application"
+    },
+    {
+      "command": "/home/agent/.rustup/toolchains/1.99.1-aarch64-unknown-linux-gnu/bin/rustfmt --check --edition 2024 --config skip_children=true model/umpire/dev/decoder-testing/src/*.rs model/umpire/dev/decoder-testing/tests/*.rs model/umpire/fuzz/fuzz_targets/*.rs model/umpire/protocol/runtime/src/lib.rs model/umpire/protocol/runtime/src/runtime.rs model/umpire/backends/tlc/src/runner.rs",
+      "result": "exit 0; syntax/format only"
+    },
+    {
+      "command": "git diff --cached --check",
+      "result": "exit 2 solely intentional trailing space in preserved truncated STARTMSG seed; source input not rewritten"
+    },
+    {
+      "command": "git diff --cached --check -- . ':!model/umpire/fuzz/corpus'",
+      "result": "exit 0"
+    },
+    {
+      "command": "Python stdlib pathlib/hashlib/json/tomllib source inventory checks",
+      "result": "all 45 candidate original hashes unchanged; 23 exact sorted unique corpus IDs and matching digests; source seed byte equality; exact provenance rows; nine wrapper registrations; stable manifests contain no libfuzzer-sys; local TOML parses; root crate membership present; no nested target or manufactured lockfile"
+    },
+    {
+      "command": "git status --porcelain; git diff --name-only BASE HEAD; git diff --shortstat BASE HEAD",
+      "result": "clean worktree; scope restricted to authorized source paths; 52 files, 991 insertions"
+    }
+  ],
+  "operations": {
+    "compiler_invocations": 0,
+    "cargo_resolution": 0,
+    "builds": 0,
+    "tests": 0,
+    "installs": 0,
+    "replay_runs": 0,
+    "fuzz_runs": 0,
+    "flow_state_writes": 0,
+    "review_verdicts": 0,
+    "pushes": 0,
+    "subagents": 0,
+    "owned_commands_running": 0
+  },
+  "limitations": [
+    "NOT BUILT; NOT RUNTIME VALIDATED; tests authored but never executed; no task completion or gate credit",
+    "fn-255.3 remains BLOCKED; committed fn-254.12 closure and authoritative work/time/memory/corpus/aggregate bounds must be admitted before execution",
+    "candidate runtime limits were preserved, not changed or admitted; table consumption and aggregate stage caps are remaining integration work",
+    "root Cargo.lock intentionally unchanged; nested fuzz Cargo.lock intentionally absent; locked builds are not yet supported for this source checkpoint",
+    "nightly/cargo-fuzz pin and component/tool admission intentionally deferred; no mise files changed",
+    "native xtask registration, command/test inventory, nextest ownership and deliberate quick selection/exclusion controls intentionally deferred; no xtask or gate changes",
+    "replay inherited Linux RLIMIT_AS restriction; Darwin replay explicitly refuses; platform and cancellation/descendant execution evidence remains unproven",
+    "single-process libFuzzer source uses existing supervisor; cleanup/cancellation and planted panic/slow behavior require future admitted tests",
+    "standalone containment and final gate/tier activation are unvalidated and deferred; no provider source changed"
+  ],
+  "handoff_boundary": "Source preparation unit checkpointed. Stop here at owner request; no next unit, integration, build, runtime run or task state change authorized by this handover. Creator preserves unfinished worktree until future integrated and validated boundary."
+}

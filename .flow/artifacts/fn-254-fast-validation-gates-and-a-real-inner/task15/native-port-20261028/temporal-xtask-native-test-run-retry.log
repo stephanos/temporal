@@ -1,0 +1,326 @@
+   Compiling temporal-xtask v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/dev/xtask)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.81s
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.04s
+────────────
+ Nextest run ID 16484a2f-9790-4ce4-98d6-d582d8326533 with nextest profile: required
+    Starting 38 tests across 2 binaries (3 tests skipped)
+  stdout ───
+
+    running 1 test
+    test absent_embedded_guest_fails_go_compilation ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 3 filtered out; finished in 0.08s
+
+
+  stdout ───
+
+    running 1 test
+    test actual_make_freshness_recipe_propagates_stale_failure ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 3 filtered out; finished in 0.16s
+
+
+  stdout ───
+
+    running 1 test
+    test public_fmt_finishes_while_host_lease_is_held ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 3 filtered out; finished in 0.26s
+
+
+  stdout ───
+
+    running 1 test
+    test gate::tests::full_gate_overrides_cache_and_preserves_failure ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 36 filtered out; finished in 0.03s
+
+  stderr ───
+    Temporal stage control failed (exit 37)
+
+  stdout ───
+
+    running 1 test
+    test gate::tests::invalid_working_directory_names_the_stage ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 36 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test gate::tests::missing_tool_control_child ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 36 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test gate::tests::missing_tool_reports_the_failed_stage ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 36 filtered out; finished in 0.03s
+
+
+  stdout ───
+
+    running 1 test
+    test make_paths::shipping_framework_make_bootstrap_preserves_relative_cargo_paths ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 3 filtered out; finished in 1.04s
+
+
+  stdout ───
+
+    running 1 test
+    test gate::tests::run_control_child ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 36 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test gate::tests::test_policy_control_child ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 36 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test gate::tests::optional_apalache_is_prepared_before_combined_scheduling ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 36 filtered out; finished in 0.76s
+
+
+  stdout ───
+
+    running 1 test
+    test gate::timing::tests::benchmark_selects_authoritative_package_runner_and_disables_caches ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 36 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test gate::timing::tests::source_edit_restores_original_content_after_failed_child ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 36 filtered out; finished in 0.03s
+
+
+  stdout ───
+
+    running 1 test
+    test gate::timing_controls::tests::soft_budget_defaults_equality_overrides_and_warning_order ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 36 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test guest_routes::tests::non_unicode_output_and_target_are_lossless ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 36 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test guest_routes::tests::raw_arguments_check_output_and_failure_status_survive_execution ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 36 filtered out; finished in 0.06s
+
+
+  stdout ───
+
+    running 1 test
+    test gate::tests::test_stage_propagates_required_policy_and_preserves_skipped_defaults ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 36 filtered out; finished in 0.32s
+
+
+  stdout ───
+
+    running 1 test
+    test guest_routes::tests::seven_packages_two_entries_preserve_caller_paths_and_exact_arguments ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 36 filtered out; finished in 0.47s
+
+
+  stdout ───
+
+    running 1 test
+    test model_controls::time_control_child ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 36 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test proto::bridge_controls::temporal_spec_composes_with_native_generation_freshness_and_refusals ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 36 filtered out; finished in 0.72s
+
+
+  stdout ───
+
+    running 1 test
+    test proto::tests::only_temporal_and_optional_check_are_admitted_before_execution ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 36 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test proto::tests::raw_repository_and_tool_paths_remain_lossless ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 36 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test proto::tests::temporal_inputs_subtree_and_repository_plugin_preserve_raw_paths_and_status ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 36 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test quick::tests::bridge_selects_both_workspaces_and_the_authored_model_consumer ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 36 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test build_guests::path_controls::relative_absolute_default_and_symlink_paths_preserve_temporal_guest ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 36 filtered out; finished in 2.47s
+
+
+  stdout ───
+
+    running 1 test
+    test retired_name_policy_controls::raw_path_bytes_and_io_failures_reach_native_policy ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 36 filtered out; finished in 0.16s
+
+
+  stdout ───
+
+    running 1 test
+    test retired_name_policy_controls::tool_failures_never_report_clean ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 36 filtered out; finished in 0.25s
+
+
+  stdout ───
+
+    running 1 test
+    test retired_names::tests::git_failures_malformed_inventory_and_raw_paths_are_preserved ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 36 filtered out; finished in 0.16s
+
+
+  stdout ───
+
+    running 1 test
+    retired Umpire crate names: clean
+    active.rs:1:umpire-wasm
+    active.rs:1:umpire_tests
+    active.rs:1:umpire/checker/src/lib.rs
+    active.rs:1:umpire-annotations
+    retired Umpire crate names: clean
+    test retired_names::tests::planted_names_fail_and_historical_paths_remain_excluded ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 36 filtered out; finished in 0.35s
+
+  stderr ───
+    retired Umpire crate name or path in active files
+    retired Umpire crate name or path in active files
+    retired Umpire crate name or path in active files
+    retired Umpire crate name or path in active files
+
+  stdout ───
+
+    running 1 test
+    test test_run::tests::binaries_then_doctests_exactly_once ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 36 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test test_run::tests::binary_failure_stops_before_doctests ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 36 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test test_run::tests::doctest_failure_preserves_status ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 36 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test test_run::tests::missing_runner_fails_without_fallback ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 36 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test test_run::tests::required_backend_policy_caps_inherited_threads_and_preserves_skipped_defaults ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 36 filtered out; finished in 0.01s
+
+
+  stdout ───
+
+    running 1 test
+    test test_run::tests::workspace_selection_rejects_an_unexpected_zero_test_run ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 36 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    Model orchestration and recipe controls passed (fake children; no execution evidence).
+    test model_controls::shipping_model_recipes_with_disposable_children ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 36 filtered out; finished in 2.48s
+
+
+  stdout ───
+
+    running 1 test
+    test gate::tests::actual_temporal_gate_wiring_and_named_failures ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 36 filtered out; finished in 12.23s
+
+
+  stdout ───
+
+    running 1 test
+    test retired_name_policy_controls::active_spellings_and_historical_exclusions ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 36 filtered out; finished in 9.99s
+
+
+────────────
+     Summary [  12.407s] 38 tests run: 38 passed, 3 skipped

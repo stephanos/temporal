@@ -1,0 +1,15 @@
+gate::tests::actual_temporal_gate_wiring_and_named_failures: test
+gate::tests::full_gate_overrides_cache_and_preserves_failure: test
+gate::tests::invalid_working_directory_names_the_stage: test
+gate::tests::missing_tool_control_child: test
+gate::tests::missing_tool_reports_the_failed_stage: test
+gate::tests::run_control_child: test
+gate::tests::test_policy_control_child: test
+gate::tests::test_stage_propagates_required_policy_and_preserves_skipped_defaults: test
+quick::tests::bridge_selects_both_workspaces_and_the_authored_model_consumer: test
+test_run::tests::binaries_then_doctests_exactly_once: test
+test_run::tests::binary_failure_stops_before_doctests: test
+test_run::tests::doctest_failure_preserves_status: test
+test_run::tests::missing_runner_fails_without_fallback: test
+test_run::tests::required_backend_policy_caps_inherited_threads_and_preserves_skipped_defaults: test
+test_run::tests::workspace_selection_rejects_an_unexpected_zero_test_run: test

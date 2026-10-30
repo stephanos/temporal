@@ -1,0 +1,105 @@
+{
+  "clones": [
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-history-reviewed-repro",
+      "bare": false,
+      "head": "a92db0610f13c9f623b526f2aa721abda69aa84d",
+      "dirty_status": "",
+      "unique_dirty_bytes": false,
+      "status": "protected until validation/review closure",
+      "regeneration": "Canonical filtered tree/history recover from current-history.bundle refs/heads/umpire-current; full source clone/fresh filtering requires frozen Temporal ac60daaf47d2513b41eeff612f0e2758d33e186d; synthetic controls regenerate with recorded control scripts."
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-history-unmapped-tip-reviewed",
+      "bare": true,
+      "head": "a92db0610f13c9f623b526f2aa721abda69aa84d",
+      "dirty_status": null,
+      "unique_dirty_bytes": "bare synthetic graph or inspect before cleanup",
+      "status": "protected until validation/review closure",
+      "regeneration": "Canonical filtered tree/history recover from current-history.bundle refs/heads/umpire-current; full source clone/fresh filtering requires frozen Temporal ac60daaf47d2513b41eeff612f0e2758d33e186d; synthetic controls regenerate with recorded control scripts."
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-history-final-export",
+      "bare": false,
+      "head": "a92db0610f13c9f623b526f2aa721abda69aa84d",
+      "dirty_status": "",
+      "unique_dirty_bytes": false,
+      "status": "protected until validation/review closure",
+      "regeneration": "Canonical filtered tree/history recover from current-history.bundle refs/heads/umpire-current; full source clone/fresh filtering requires frozen Temporal ac60daaf47d2513b41eeff612f0e2758d33e186d; synthetic controls regenerate with recorded control scripts."
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-history-reviewed-export",
+      "bare": false,
+      "head": "a92db0610f13c9f623b526f2aa721abda69aa84d",
+      "dirty_status": "",
+      "unique_dirty_bytes": false,
+      "status": "protected until validation/review closure",
+      "regeneration": "Canonical filtered tree/history recover from current-history.bundle refs/heads/umpire-current; full source clone/fresh filtering requires frozen Temporal ac60daaf47d2513b41eeff612f0e2758d33e186d; synthetic controls regenerate with recorded control scripts."
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-history-parent-negative",
+      "bare": true,
+      "head": "a92db0610f13c9f623b526f2aa721abda69aa84d",
+      "dirty_status": null,
+      "unique_dirty_bytes": "bare synthetic graph or inspect before cleanup",
+      "status": "protected until validation/review closure",
+      "regeneration": "Canonical filtered tree/history recover from current-history.bundle refs/heads/umpire-current; full source clone/fresh filtering requires frozen Temporal ac60daaf47d2513b41eeff612f0e2758d33e186d; synthetic controls regenerate with recorded control scripts."
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-history-export",
+      "bare": false,
+      "head": "a92db0610f13c9f623b526f2aa721abda69aa84d",
+      "dirty_status": "",
+      "unique_dirty_bytes": false,
+      "status": "protected until validation/review closure",
+      "regeneration": "Canonical filtered tree/history recover from current-history.bundle refs/heads/umpire-current; full source clone/fresh filtering requires frozen Temporal ac60daaf47d2513b41eeff612f0e2758d33e186d; synthetic controls regenerate with recorded control scripts."
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-history-parent-negative-recheck",
+      "bare": true,
+      "head": "a92db0610f13c9f623b526f2aa721abda69aa84d",
+      "dirty_status": null,
+      "unique_dirty_bytes": "bare synthetic graph or inspect before cleanup",
+      "status": "protected until validation/review closure",
+      "regeneration": "Canonical filtered tree/history recover from current-history.bundle refs/heads/umpire-current; full source clone/fresh filtering requires frozen Temporal ac60daaf47d2513b41eeff612f0e2758d33e186d; synthetic controls regenerate with recorded control scripts."
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-history-final-repro",
+      "bare": false,
+      "head": "a92db0610f13c9f623b526f2aa721abda69aa84d",
+      "dirty_status": "",
+      "unique_dirty_bytes": false,
+      "status": "protected until validation/review closure",
+      "regeneration": "Canonical filtered tree/history recover from current-history.bundle refs/heads/umpire-current; full source clone/fresh filtering requires frozen Temporal ac60daaf47d2513b41eeff612f0e2758d33e186d; synthetic controls regenerate with recorded control scripts."
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-history-repro",
+      "bare": false,
+      "head": "a92db0610f13c9f623b526f2aa721abda69aa84d",
+      "dirty_status": "",
+      "unique_dirty_bytes": false,
+      "status": "protected until validation/review closure",
+      "regeneration": "Canonical filtered tree/history recover from current-history.bundle refs/heads/umpire-current; full source clone/fresh filtering requires frozen Temporal ac60daaf47d2513b41eeff612f0e2758d33e186d; synthetic controls regenerate with recorded control scripts."
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-history-recovery",
+      "bare": false,
+      "head": "a92db0610f13c9f623b526f2aa721abda69aa84d",
+      "dirty_status": "",
+      "unique_dirty_bytes": false,
+      "status": "protected until validation/review closure",
+      "regeneration": "Canonical filtered tree/history recover from current-history.bundle refs/heads/umpire-current; full source clone/fresh filtering requires frozen Temporal ac60daaf47d2513b41eeff612f0e2758d33e186d; synthetic controls regenerate with recorded control scripts."
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-history-parent-reviewed",
+      "bare": true,
+      "head": "a92db0610f13c9f623b526f2aa721abda69aa84d",
+      "dirty_status": null,
+      "unique_dirty_bytes": "bare synthetic graph or inspect before cleanup",
+      "status": "protected until validation/review closure",
+      "regeneration": "Canonical filtered tree/history recover from current-history.bundle refs/heads/umpire-current; full source clone/fresh filtering requires frozen Temporal ac60daaf47d2513b41eeff612f0e2758d33e186d; synthetic controls regenerate with recorded control scripts."
+    }
+  ],
+  "cleanup_executed": false,
+  "bundle_sha256": "83cb7e061e8fea284108d8380f517b2179b70a1fb8924147e90aae0aa7acec19"
+}

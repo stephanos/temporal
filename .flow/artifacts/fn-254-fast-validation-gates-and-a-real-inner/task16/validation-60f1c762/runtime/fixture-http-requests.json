@@ -1,0 +1,26 @@
+[
+  {
+    "path": "/bad-checksum-tlc.jar",
+    "time": 1793128065.5276153
+  },
+  {
+    "path": "/bad-checksum-apalache.tgz",
+    "time": 1793128065.6016157
+  },
+  {
+    "path": "/hostile-archive-traversal.tgz",
+    "time": 1793128065.6785035
+  },
+  {
+    "path": "/hostile-archive-symlink.tgz",
+    "time": 1793128065.8074772
+  },
+  {
+    "path": "/interrupted-http.jar",
+    "time": 1793128066.04453
+  },
+  {
+    "path": "/interrupted-http.jar",
+    "time": 1793128068.0753946
+  }
+]

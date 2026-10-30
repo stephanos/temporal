@@ -1,0 +1,1 @@
+{"child_count_receipts":[],"count_authority":"exclusive-stage","count_error":null,"counts":{"discovered":5,"executed":3,"ignored":2,"skipped":0,"tlc_configurations":null,"tlc_launches":null},"error":null,"exit":0,"reason":null,"scope":"framework","seconds":0.757911083,"stage":"tests","state":"success"}

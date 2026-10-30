@@ -1,0 +1,44 @@
+{
+  "command": [
+    "mise",
+    "exec",
+    "--",
+    "cargo",
+    "clippy",
+    "--locked",
+    "-j1",
+    "-p",
+    "temporal-xtask",
+    "--all-targets",
+    "--all-features",
+    "--",
+    "-D",
+    "warnings"
+  ],
+  "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model",
+  "started_utc": "2026-10-26T23:41:37.688312+00:00",
+  "phase_baseline_bytes": {
+    "rust": 6786422657,
+    "go": 244873430
+  },
+  "phase_budget_bytes": 1610612736,
+  "environment": {
+    "CARGO_TARGET_DIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/target",
+    "TMPDIR": "/tmp/umpire-fn2545-review-fixes",
+    "CARGO_BUILD_JOBS": "1",
+    "CARGO_INCREMENTAL": "0",
+    "CARGO_PROFILE_DEV_DEBUG": "0",
+    "CARGO_PROFILE_TEST_DEBUG": "0",
+    "GOCACHE": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2545-temporal-api/go-cache",
+    "GOFLAGS": "-p=1",
+    "GOMAXPROCS": "1"
+  },
+  "BASH_ENV": "removed",
+  "execution_scope": "strict clippy compile only; test bodies not executed",
+  "exit_code": 0,
+  "elapsed_seconds": 0.4311063749992172,
+  "rust_phase_growth_bytes": 19020291,
+  "go_phase_growth_bytes": 0,
+  "free_after_bytes": 23274819584,
+  "log_sha256": "c1d14702df5d14e04f66c956154d3ab6fbd4474475afddede949c9cc7582b641"
+}

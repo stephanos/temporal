@@ -1,0 +1,15 @@
+orchestration control expected exit 0, got 2: make[1]: Entering directory '/tmp/umpire-fn25417-public-entry/tmp.yjvnshuj26'
+Time the model feedback loop (fn-210 R30)...
+step (warm)                         time
+backend modes: UMPIRE_BACKENDS=require UMPIRE_APALACHE=skip
+gate command: UMPIRE_TIME_STEPS=1 make -C /tmp/umpire-fn25417-public-entry/tmp.yjvnshuj26 model-check
+make[2]: Entering directory '/tmp/umpire-fn25417-public-entry/tmp.yjvnshuj26'
+gate stdout diagnostic
+gate stderr diagnostic
+make[2]: Leaving directory '/tmp/umpire-fn25417-public-entry/tmp.yjvnshuj26'
+inner source: inner.rs
+inner command: helper=$(bash "/tmp/umpire-fn25417-public-entry/tmp.yjvnshuj26/model/umpire/scripts/xtask.sh"); "$helper" test-run --package control-checker
+required bootstrap expected one compiler, got 99
+make[1]: *** [Makefile:4: model-time] Error 91
+make[1]: Leaving directory '/tmp/umpire-fn25417-public-entry/tmp.yjvnshuj26'
+make: *** [Makefile:7: model-validate] Error 2

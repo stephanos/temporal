@@ -1,0 +1,15 @@
+   Compiling xtask v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/dev/xtask)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 3.30s
+     Running tests/main.rs (/home/agent/.cache/codex-build/fn25417-work-counts/debug/deps/main-9aa119c53e40bbc0)
+
+running 5 tests
+test gate_wiring::outer_supervision_streams_separate_diagnostics_before_scheduler_completion ... ok
+test gate_wiring::supervision_ignores_obstructed_legacy_shared_scratch_parent ... ok
+test gate_wiring::supervision_public_fmt_finishes_while_host_lease_is_held ... ok
+test gate_wiring::supervision_public_fmt_reaps_background_children_before_returning_failure ... ok
+test gate_wiring::supervision_scratch_is_private_and_removed_after_success_and_failure ... fmt child diagnostic
+framework stage fmt failed (exit 37)
+ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 46 filtered out; finished in 0.43s
+

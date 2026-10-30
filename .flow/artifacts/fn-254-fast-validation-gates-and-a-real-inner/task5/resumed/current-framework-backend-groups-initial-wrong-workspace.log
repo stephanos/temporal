@@ -1,0 +1,2 @@
+error: package ID specification `umpire-apalache` did not match any packages
+error: command `/home/agent/.rustup/toolchains/1.99.1-aarch64-unknown-linux-gnu/bin/cargo '--color=auto' test --no-run --message-format json-render-diagnostics --package umpire-tla --package umpire-apalache --package umpire-tlc --test main --locked` exited with code 101

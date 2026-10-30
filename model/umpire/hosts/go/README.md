@@ -11,7 +11,7 @@ Build the stock and generic control guests with the unwind profile before runnin
 
 ```sh
 # From the framework root:
-bash scripts/tests/build-guests.sh
+mise exec -- cargo xtask build-guests
 # From hosts/go:
 target="${CARGO_TARGET_DIR:-$(cd ../.. && pwd)/target}"
 UMPIRE_CAUGHT_PANIC_WASM="$target/wasm32-wasip1/guest/caught_panic_control.wasm" \
@@ -66,7 +66,7 @@ The reusable runtime and ABI live in the export-free `umpire-runtime` crate. A s
 guest supplies its own Model and realization through `export_guest!`; this Go host
 transports their opaque Any payloads without importing their schemas. Native and Go
 controls pin old message bytes, refusal codes, independent instances and publication
-rollback. From the framework root, `bash scripts/proto-go.sh core --check` independently
+rollback. From the framework root, `mise exec -- cargo xtask proto-go core --check` independently
 checks pinned Go generation.
 
 The Rows benchmark includes protobuf marshal, guest allocation, memory write,

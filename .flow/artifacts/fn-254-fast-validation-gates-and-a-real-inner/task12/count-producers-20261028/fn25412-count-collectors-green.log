@@ -1,0 +1,76 @@
+   Compiling xtask v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/dev/xtask)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 3.36s
+     Running unittests src/lib.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/target/debug/deps/xtask-1d211dd4a177cc0d)
+
+running 38 tests
+test gate::work_counts::go_tests::observer_child ... ok
+test gate::work_counts::tests::doctest_summary_requires_every_actual_count ... ok
+test gate::work_counts::tests::doctests_refuse_missing_duplicate_and_mismatched_summaries ... ok
+test gate::work_counts::tests::missing_observations_remain_unknown_instead_of_zero ... ok
+test gate::work_counts::tests::doctest_color_is_normalized_only_for_private_observation ... ok
+test gate::work_counts::tests::observation_child ... ok
+
+running 1 test
+test gate::work_counts::tests::duplicate_and_unfinished_test_producers_are_refused ... ok
+test gate::work_counts::tests::inventory_requires_exact_cardinality_and_complete_selection_fields ... ok
+test gate::work_counts::tests::rejected_controller_child ... ok
+test gate::work_counts::tests::selected_tests_are_not_substituted_for_observed_execution ... ok
+test gate::work_counts::tests::child_count_authority_is_embedded_without_inclusive_parent_summing ... ok
+test gate::work_counts::tests::streaming_child ... ok
+test gate::work_counts::tests::only_observed_passes_link_the_admitted_test_binary_identity ... ok
+test gate::work_counts::tests::child_authority_paths_preserve_tabs_and_non_unicode_bytes ... ok
+test gate::work_counts::tests::structured_receipts_refuse_missing_partial_and_inconsistent_success_counts ... ok
+
+running 1 test
+test gate::work_counts::tests::observed_test_commands_and_real_launches_have_separate_counts ... ok
+test gate::work_counts::tests::supervisor_fork_and_unconfirmed_completion_do_not_claim_jvm_launches ... ok
+test gate::work_counts::tlc_observations::tests::counts_admitted_v2_but_preserves_unknown_legacy_completion ... ok
+running 1 test
+
+test gate::work_counts::tlc_observations::tests::counts_confirmed_v1_launches_and_deduplicates_configurations ... ok
+test gate::work_counts::tlc_observations::tests::empty_observations_do_not_prove_zero ... ok
+test gate::work_counts::tests::stage_collector_uses_the_count_boundary_for_successful_receipts ... ok
+test gate::work_counts::tlc_observations::tests::refuses_fixture_without_assertions_and_observed_parent_pass ... ok
+test gate::work_counts::tests::test_carrier_rejection_is_frozen_before_configured_path_can_change ... ok
+test gate::work_counts::tlc_observations::tests::refuses_authority_documents_when_all_fixture_events_are_missing ... ok
+test gate::work_counts::tlc_observations::tests::rejects_invalid_record_id_configuration_origin_cause_and_identity ... ok
+test gate::work_counts::tlc_observations::tests::rejects_missing_duplicate_mixed_and_unknown_records ... ok
+test gate::work_counts::tests::partial_unknown_and_overflowed_events_refuse_counts ... ok
+test gate::work_counts::tests::observation_child ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 137 filtered out; finished in 0.00s
+
+test gate::work_counts::tests::successful_test_stage_cannot_omit_its_producer ... ok
+test gate::work_counts::tests::observation_child ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 137 filtered out; finished in 0.07s
+
+test gate::work_counts::tests::malformed_counts_keep_the_real_failed_runner_status ... ok
+test gate::work_counts::tests::observation_child ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 137 filtered out; finished in 0.10s
+
+
+running 1 test
+test gate::work_counts::tests::observed_tools_stream_human_channels_while_pending_without_returning_them_twice ... ok
+test gate::work_counts::tests::observation_child ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 137 filtered out; finished in 0.10s
+
+
+running 1 test
+test gate::work_counts::go_tests::go_observer_preserves_failed_processes_and_refuses_incomplete_or_contradictory_counts ... ok
+test gate::work_counts::go_tests::go_observer_publishes_only_complete_actual_counts ... ok
+test gate::work_counts::tests::observation_child ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 137 filtered out; finished in 0.10s
+
+test gate::work_counts::tests::stage_receipt_combines_nextest_and_doctests_without_cross_scope_or_invocation_counts ... ok
+test gate::work_counts::tlc_observations::tests::rejects_other_binary_pass_and_crossed_fixture_parent_family ... ok
+test gate::work_counts::go_tests::real_go_producer_counts_roots_and_resolves_go_environment_configuration ... ok
+test gate::work_counts::tlc_observations::tests::refuses_unrecorded_or_partial_fixture_authority_files ... ok
+test gate::work_counts::tlc_observations::tests::closed_fixtures_require_positive_proof_and_never_hide_real_unknown ... ok
+test gate::work_counts::tlc_observations::tests::rejects_corrupted_crossed_or_unrecognized_fixture_proof ... ok
+
+test result: ok. 38 passed; 0 failed; 0 ignored; 0 measured; 100 filtered out; finished in 4.62s
+

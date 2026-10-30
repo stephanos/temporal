@@ -1,0 +1,30 @@
+{
+  "command": [
+    "git",
+    "clone",
+    "--shared",
+    "--no-checkout",
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal",
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate"
+  ],
+  "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal",
+  "environment_overrides": {
+    "CARGO_TARGET_DIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/target",
+    "TMPDIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/tmp",
+    "CARGO_INCREMENTAL": "0",
+    "CARGO_BUILD_JOBS": "2",
+    "CARGO_PROFILE_DEV_DEBUG": "0",
+    "CARGO_PROFILE_TEST_DEBUG": "0",
+    "RUST_TEST_THREADS": "2",
+    "MISE_AUTO_INSTALL": "false",
+    "MISE_EXEC_AUTO_INSTALL": "false",
+    "MISE_TRUSTED_CONFIG_PATHS": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate:/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/target"
+  },
+  "candidate_commit": "fa1ccb8af1f16a472518f1734c0aa455831e4f92",
+  "started_utc": "2026-10-26T20:24:39.515595+00:00",
+  "stdout": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/task6/resumed/candidate-clone.stdout.log",
+  "stderr": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/task6/resumed/candidate-clone.stderr.log",
+  "exit_code": 0,
+  "elapsed_seconds": 9.251388920994941,
+  "finished_utc": "2026-10-26T20:24:48.767106+00:00"
+}

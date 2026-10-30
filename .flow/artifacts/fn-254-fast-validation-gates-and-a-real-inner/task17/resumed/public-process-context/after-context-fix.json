@@ -1,0 +1,40 @@
+{
+  "command": [
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/target/xtask-bootstrap/debug/xtask",
+    "test-run",
+    "--package",
+    "umpire-backend-process"
+  ],
+  "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire",
+  "exit_code": 0,
+  "elapsed_seconds": 3.0282215850020293,
+  "stopped": null,
+  "head": "ede5fadc613e66ed33d083b4141a4ccf9dd2b76a",
+  "source_sha256": {
+    "model/umpire/backends/process/tests/process.rs": "22caa992c0786fd8423f3246debf99bb9254fa6dbb6d5f01c8f26ab4bea40796",
+    "model/umpire/backends/process/src/jar.rs": "872270576ae5eed7c7ad5615a2ca42809428291d154f01b2b8a55014dd806888",
+    "model/umpire/backends/process/src/support.rs": "ad97094d972ba0bffc939197d80c20fb23c7714cba6db1f901e322d613af4eb2",
+    "model/umpire/backends/process/src/lib.rs": "39878aead4ac08c9fe2f311553d724b1c288f0f8b3ac230c60671257933f9fab",
+    "model/umpire/backends/process/src/syscall.rs": "a2e4d4ced95a2ec342e5fa20aa17943f283911dd6542ae3a4af92fd41944952d",
+    "model/umpire/backends/process/src/fingerprint.rs": "73c7665b00f560b7e866faaa72484e325e5f1fcfb691351ccd879a1ad555df7a",
+    "model/umpire/backends/process/src/syscall/calls.rs": "fe89573d459c3c9cbfe432803d7e5be0f7eca0cb6e11c5ae19be36f1adc01a73",
+    "model/umpire/backends/process/tests/fixtures/process_fixture.rs": "ce9938d9caddabfc8390b8d1b57291c812eaf4f6ac198c05c9450e0014d48155"
+  },
+  "native_sha256": "862e9f613a84ffe59832379f521060461d6792285d4f2996023d79c2b03e1092",
+  "target_growth_bytes": 0,
+  "free_bytes": 13849096192,
+  "environment": {
+    "CARGO_BUILD_JOBS": "1",
+    "CARGO_INCREMENTAL": "0",
+    "CARGO_PROFILE_DEV_DEBUG": null,
+    "NEXTEST_PROFILE": "required",
+    "NEXTEST_TEST_THREADS": "4",
+    "UMPIRE_BACKENDS": "require",
+    "UMPIRE_APALACHE": "skip",
+    "UMPIRE_CACHE_DISABLE": "1"
+  },
+  "log_sha256": {
+    "after-context-fix.stdout.log": "df166913f47ff1f04202cae9b31df67ed272d692d99a0023a8117dc3029100dd",
+    "after-context-fix.stderr.log": "2d126d1f8a0b6b9a1b45c2cef7df88b556e4a3da86cdec9d4b86503a81122143"
+  }
+}

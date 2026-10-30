@@ -1,0 +1,8 @@
+{
+  "path": "model/temporal/feature/activity/model.rs",
+  "original_sha256": "6a05d02cbbda317d5e3f5806cd1012ea0475142cb6233d1e185325f37b988767",
+  "edited_sha256": "ee3f55d51c39770bd7207782490280526b0070155ac1e3bbbab1c59c59e3c4d8",
+  "restored_sha256": "6a05d02cbbda317d5e3f5806cd1012ea0475142cb6233d1e185325f37b988767",
+  "restored": true,
+  "curated_directory_restored": true
+}

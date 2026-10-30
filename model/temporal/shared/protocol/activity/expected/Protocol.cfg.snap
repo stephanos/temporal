@@ -1,0 +1,26 @@
+---
+source: umpire/dev/testing/src/runner.rs
+---
+SPECIFICATION Spec
+CONSTANT __umpire_world_maximum_attempts = 2
+CONSTANT __umpire_world_schedule_to_start = 2
+CONSTANT __umpire_world_start_to_close = 2
+CONSTANT __umpire_world_schedule_to_close = 0
+CONSTANT __umpire_world_heartbeat_timeout = 0
+CONSTANT __umpire_world_asynchronous_cancel = TRUE
+INVARIANT Invariant_selected_attempts
+INVARIANT Invariant_outcome_and_pending_are_distinct
+INVARIANT Invariant_exact_budget_arming
+INVARIANT Invariant_positive_bounded_budgets
+PROPERTY Post_terminal_is_final
+PROPERTY Post_rejection_preserves_full_state
+PROPERTY Post_attempt_changes_only_by_retry
+PROPERTY Post_heartbeat_resets_only_its_interval
+PROPERTY Post_retry_rearms_queue_preserves_execution
+PROPERTY Post_spanning_budget_never_increases
+PROPERTY Post_cancellation_request_preserves_running_timers
+PROPERTY Post_every_live_budget_descends
+PROPERTY Post_execution_expiry_dominates
+PROPERTY Post_local_expiry_priority_retains_its_cause
+PROPERTY Post_pending_failure_is_not_acknowledgement
+PROPERTY Post_pending_expiry_is_not_acknowledgement

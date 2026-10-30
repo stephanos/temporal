@@ -1,0 +1,15 @@
+[
+  "model/umpire/Cargo.lock",
+  "model/umpire/dev/fixtures/Cargo.toml",
+  "model/umpire/dev/testing/src/backend.rs",
+  "model/umpire/dev/testing/src/backend_tests.rs",
+  "model/umpire/dev/fixtures/fixtures/countdowns/expected/Clock.cfg.snap",
+  "model/umpire/dev/fixtures/fixtures/countdowns/expected/Clock.tla.snap",
+  "model/umpire/dev/fixtures/fixtures/countdowns/expected/lift.txt.snap",
+  "model/umpire/dev/fixtures/fixtures/countdowns/expected/report.txt.snap",
+  "model/umpire/dev/fixtures/fixtures/countdowns/expected/rows.txt.snap",
+  "model/umpire/dev/fixtures/fixtures/countdowns/expected/states.txt.snap",
+  "model/umpire/dev/fixtures/fixtures/countdowns/expected/tlc.txt.snap",
+  "model/umpire/dev/fixtures/fixtures/countdowns/model.rs",
+  "model/umpire/dev/fixtures/fixtures/countdowns/tests.rs"
+]

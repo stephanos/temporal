@@ -1,0 +1,384 @@
+{
+  "kind": "validated-source-checkpoint-not-task-completion",
+  "baseline": "c68571b04c",
+  "backend_dependency": {
+    "original_commit": "db17edb783",
+    "local_cherry_pick": "b138acfc56",
+    "source_sha256": {
+      "model/umpire/backends/process/src/support.rs": "ad97094d972ba0bffc939197d80c20fb23c7714cba6db1f901e322d613af4eb2",
+      "model/umpire/backends/process/src/syscall.rs": "570294524b200841ec54a357dd887da63a0c724fd32bd99e30c6a2cfc40e05bd",
+      "model/umpire/backends/process/src/syscall/calls.rs": "fe89573d459c3c9cbfe432803d7e5be0f7eca0cb6e11c5ae19be36f1adc01a73",
+      "model/umpire/backends/process/tests/fixtures/process_fixture.rs": "ce9938d9caddabfc8390b8d1b57291c812eaf4f6ac198c05c9450e0014d48155",
+      "model/umpire/backends/process/tests/process.rs": "4365b3a72640952a7a5801a019d5d9a67e06d68a0d8454c0d05ad11a9d15f9a6"
+    }
+  },
+  "source_sha256": {
+    "model/dev/xtask/src/gate.rs": "1267cfa219f9ea2b51974c4eb0a618ee38d4dd399a57af528c0b87fe8a2c23a3",
+    "model/umpire/dev/xtask/src/gate.rs": "6b82c576735e40441e7bcdee762bc927f8da5853e33593e017cef2bad0eea774",
+    "model/umpire/dev/xtask/src/gate/scheduler.rs": "b49aa51331169475c9ae7af1f083e4b0f4349102035904ed178eb06a93271586",
+    "model/umpire/dev/xtask/src/gate/standalone.rs": "b78a074422860f14262b6622db6b57e8f0df4976d38d38181a4592a9de6c9740",
+    "model/umpire/dev/xtask/src/quick/mod.rs": "4df09131d551d1d29c94ba9aaa63f022af476cb04d7aab83480b59e5acaded0c",
+    "model/umpire/dev/xtask/src/quick/selection.rs": "587be84f98aa52c8018983e4f0e851303f2ad54a8493a4bc286811f9e0eda01f",
+    "model/umpire/dev/xtask/src/quick/tests.rs": "32fd9736298a3910d4957a8f358c583faf40b3b6e4ff6ccb4821f0c6dcb12e82",
+    "model/umpire/dev/xtask/src/test_run.rs": "8de81c52b013a986c54df121d2b96539bcddd3a7a502b675839de6bb975e58cd"
+  },
+  "runs": {
+    "framework-clippy-final": {
+      "command": [
+        "cargo",
+        "+1.99.1",
+        "clippy",
+        "--manifest-path",
+        "model/umpire/Cargo.toml",
+        "--locked",
+        "-p",
+        "xtask",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "status": 0,
+      "guard": null,
+      "seconds": 2.0305652618408203,
+      "cache_kib": 6465228,
+      "free_bytes": 15463985152
+    },
+    "framework-focused-restored": {
+      "command": [
+        "cargo",
+        "+1.99.1",
+        "nextest",
+        "run",
+        "--manifest-path",
+        "model/umpire/Cargo.toml",
+        "--locked",
+        "-p",
+        "xtask",
+        "--lib",
+        "-E",
+        "test(gate::) | test(test_run::) | test(quick::)",
+        "--test-threads",
+        "1",
+        "--no-tests",
+        "fail"
+      ],
+      "status": 100,
+      "guard": null,
+      "seconds": 4.190569877624512,
+      "cache_kib": 6464972,
+      "free_bytes": 10904936448
+    },
+    "framework-final-green": {
+      "command": [
+        "cargo",
+        "+1.99.1",
+        "nextest",
+        "run",
+        "--manifest-path",
+        "model/umpire/Cargo.toml",
+        "--locked",
+        "-p",
+        "xtask",
+        "--lib",
+        "-E",
+        "test(gate::) | test(test_run::) | test(quick::)",
+        "--test-threads",
+        "1",
+        "--no-tests",
+        "fail"
+      ],
+      "status": 0,
+      "guard": null,
+      "seconds": 6.142769813537598,
+      "cache_kib": 6465224,
+      "free_bytes": 15649959936
+    },
+    "admission-red": {
+      "command": [
+        "cargo",
+        "+1.99.1",
+        "nextest",
+        "run",
+        "--manifest-path",
+        "model/umpire/Cargo.toml",
+        "--locked",
+        "-p",
+        "xtask",
+        "--lib",
+        "-E",
+        "test(global_fallback_compiles_zero_harness)",
+        "--test-threads",
+        "1",
+        "--no-tests",
+        "fail"
+      ],
+      "status": 100,
+      "guard": null,
+      "seconds": 2.035583734512329,
+      "cache_kib": 6465224,
+      "free_bytes": 15650127872
+    },
+    "temporal-focused": {
+      "command": [
+        "cargo",
+        "+1.99.1",
+        "nextest",
+        "run",
+        "--manifest-path",
+        "model/Cargo.toml",
+        "--locked",
+        "-p",
+        "temporal-xtask",
+        "--bin",
+        "temporal-xtask",
+        "-E",
+        "test(gate::) | test(test_run::)",
+        "--test-threads",
+        "1",
+        "--no-tests",
+        "fail"
+      ],
+      "status": 0,
+      "guard": null,
+      "seconds": 18.481873512268066,
+      "cache_kib": 6465224,
+      "free_bytes": 15650480128
+    },
+    "framework-clippy-restored": {
+      "command": [
+        "cargo",
+        "+1.99.1",
+        "clippy",
+        "--manifest-path",
+        "model/umpire/Cargo.toml",
+        "--locked",
+        "-p",
+        "xtask",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "status": 101,
+      "guard": null,
+      "seconds": 2.027722120285034,
+      "cache_kib": 6465232,
+      "free_bytes": 15464095744
+    },
+    "framework-green": {
+      "command": [
+        "cargo",
+        "+1.99.1",
+        "nextest",
+        "run",
+        "--manifest-path",
+        "model/umpire/Cargo.toml",
+        "--locked",
+        "-p",
+        "xtask",
+        "--lib",
+        "-E",
+        "test(gate::) | test(test_run::) | test(quick::)",
+        "--test-threads",
+        "1",
+        "--no-tests",
+        "fail"
+      ],
+      "status": 0,
+      "guard": null,
+      "seconds": 6.481727838516235,
+      "cache_kib": 6464972,
+      "free_bytes": 15649419264
+    },
+    "raw-leaf-red": {
+      "command": [
+        "cargo",
+        "+1.99.1",
+        "nextest",
+        "run",
+        "--manifest-path",
+        "model/umpire/Cargo.toml",
+        "--locked",
+        "-p",
+        "xtask",
+        "--lib",
+        "-E",
+        "test(stage_reaps_background_children) | test(quick_leaf_reaps_background_children)",
+        "--test-threads",
+        "1",
+        "--no-tests",
+        "fail",
+        "--no-fail-fast"
+      ],
+      "status": 100,
+      "guard": null,
+      "seconds": 2.040229558944702,
+      "cache_kib": 6465224,
+      "free_bytes": 15650189312
+    },
+    "framework-public-controls": {
+      "command": [
+        "cargo",
+        "+1.99.1",
+        "nextest",
+        "run",
+        "--manifest-path",
+        "model/umpire/Cargo.toml",
+        "--locked",
+        "-p",
+        "xtask",
+        "--test",
+        "main",
+        "-E",
+        "test(gate_wiring::) | test(gate_graph::)",
+        "--test-threads",
+        "1",
+        "--no-tests",
+        "fail"
+      ],
+      "status": 0,
+      "guard": null,
+      "seconds": 77.85121393203735,
+      "cache_kib": 6465328,
+      "free_bytes": 15449329664
+    },
+    "framework-clippy": {
+      "command": [
+        "cargo",
+        "+1.99.1",
+        "clippy",
+        "--manifest-path",
+        "model/umpire/Cargo.toml",
+        "--locked",
+        "-p",
+        "xtask",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "status": 101,
+      "guard": null,
+      "seconds": 2.036472797393799,
+      "cache_kib": 6465208,
+      "free_bytes": 15649906688
+    },
+    "framework-sealed-green": {
+      "command": [
+        "cargo",
+        "+1.99.1",
+        "nextest",
+        "run",
+        "--manifest-path",
+        "model/umpire/Cargo.toml",
+        "--locked",
+        "-p",
+        "xtask",
+        "--lib",
+        "-E",
+        "test(gate::) | test(test_run::) | test(quick::)",
+        "--test-threads",
+        "1",
+        "--no-tests",
+        "fail"
+      ],
+      "status": 0,
+      "guard": null,
+      "seconds": 6.138223886489868,
+      "cache_kib": 6465328,
+      "free_bytes": 15449280512
+    },
+    "temporal-clippy": {
+      "command": [
+        "cargo",
+        "+1.99.1",
+        "clippy",
+        "--manifest-path",
+        "model/Cargo.toml",
+        "--locked",
+        "-p",
+        "temporal-xtask",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "status": 0,
+      "guard": null,
+      "seconds": 2.0389623641967773,
+      "cache_kib": 6465240,
+      "free_bytes": 15463788544
+    },
+    "framework-focused": {
+      "command": [
+        "cargo",
+        "+1.99.1",
+        "nextest",
+        "run",
+        "--manifest-path",
+        "model/umpire/Cargo.toml",
+        "--locked",
+        "-p",
+        "xtask",
+        "--lib",
+        "-E",
+        "test(gate::) | test(test_run::) | test(quick::)",
+        "--test-threads",
+        "1",
+        "--no-tests",
+        "fail"
+      ],
+      "status": 100,
+      "guard": null,
+      "seconds": 4.077990293502808,
+      "cache_kib": 6464968,
+      "free_bytes": 10904584192
+    }
+  },
+  "results": {
+    "framework_focused": "67 passed",
+    "temporal_focused": "14 passed;1 outside filter skipped",
+    "framework_public_gate_controls": "28 passed",
+    "framework_strict_clippy": "passed",
+    "temporal_strict_clippy": "passed",
+    "raw_leaf_mutation": "both child-cleanup tests failed as expected; restored green",
+    "admission_mutation": "global fallback refused umpire as expected; restored green"
+  },
+  "resources": {
+    "target": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/target",
+    "baseline_kib": 6464360,
+    "final_kib": 6465328,
+    "growth_kib": 968,
+    "maximum_growth_mib": 512,
+    "minimum_free_gib": 8,
+    "guard_trips": 0,
+    "free_bytes": 15447552000
+  },
+  "output_contract": {
+    "preserved": "cwd, explicit environment, output capture/stream channels, selected packages/targets/filters, eligible separate doctests, named stage failures, exit37 and public signal143",
+    "supervisor_boundary": "missing/nonexecutable target now reports native child diagnostic and named failed-stage status1 instead of private Command spawn Err; invalid cwd remains named io::Error",
+    "java_version": "resolves canonical pinned binary and hash before direct clean Checker launch; no mise intermediary"
+  },
+  "production_raw_launches_remaining": [
+    {
+      "file": "model/umpire/dev/xtask/src/gate/scheduler.rs",
+      "command": "mise tasks ls --json",
+      "role": "read-only DAG inventory"
+    },
+    {
+      "file": "model/umpire/dev/xtask/src/gate/boundary.rs",
+      "command": "grep retired-name scan",
+      "role": "read-only source scanning"
+    }
+  ],
+  "limitations": [
+    "No actual Darwin run",
+    "No arbitrary guardian SIGKILL or crashing controller proof",
+    "No real Java tool-version execution or Java/Go semantic suite in this lane",
+    "No full production quick/global workspace execution",
+    "No standalone full validation renewal",
+    "No throughput/task-complete claim"
+  ],
+  "generated_output_removed": "model/dev/xtask/control-relative-target (1464KiB test-owned invocation receipts)"
+}

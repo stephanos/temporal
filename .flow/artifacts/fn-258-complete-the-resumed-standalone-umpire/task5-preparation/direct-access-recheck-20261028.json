@@ -1,0 +1,24 @@
+{
+  "date": "2026-10-28",
+  "tool": "github_fetch",
+  "url": "https://api.github.com/repos/temporalio/umpire",
+  "result": {
+    "content": [
+      {
+        "type": "text",
+        "text": "GitHub API error 403: {\"message\":\"Resource protected by organization SAML enforcement. You must grant your OAuth token access to an organization within this enterprise. The 'temporalio' organization has enabled or enforced SAML SSO.\\nTo access this repository, visit https://github.com/orgs/temporalio/sso (ephemeral authorization request redacted) and try your request again.\\n\",\"documentation_url\":\"https://docs.github.com/rest/repos/repos#get-a-repository\",\"status\":\"403\"}"
+      }
+    ],
+    "structuredContent": {
+      "error": "GitHub API error 403: {\"message\":\"Resource protected by organization SAML enforcement. You must grant your OAuth token access to an organization within this enterprise. The 'temporalio' organization has enabled or enforced SAML SSO.\\nTo access this repository, visit https://github.com/orgs/temporalio/sso (ephemeral authorization request redacted) and try your request again.\\n\",\"documentation_url\":\"https://docs.github.com/rest/repos/repos#get-a-repository\",\"status\":\"403\"}",
+      "error_code": "FORBIDDEN",
+      "error_data": {
+        "message": "Resource protected by organization SAML enforcement. You must grant your OAuth token access to an organization within this enterprise. The 'temporalio' organization has enabled or enforced SAML SSO.\nTo access this repository, visit https://github.com/orgs/temporalio/sso (ephemeral authorization request redacted) and try your request again.\n",
+        "documentation_url": "https://docs.github.com/rest/repos/repos#get-a-repository",
+        "status": "403"
+      }
+    },
+    "isError": true
+  },
+  "interpretation": "Direct repository GET denied by SAML403. Contents/history/permissions still unknown. Ephemeral SSO authorization URL was presented to user and redacted from versioned evidence. No remote writes."
+}

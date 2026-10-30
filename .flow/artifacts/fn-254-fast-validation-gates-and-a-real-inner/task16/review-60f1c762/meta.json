@@ -1,0 +1,81 @@
+{
+  "type": "impl_review_fanout",
+  "focus": "Review the frozen provider diff only: exact TLC1.7.4/Apalache0.62.4 mise assets and hashes, isolated jar context, opt-in and no-auto-install contracts, runtime regular-file/no-symlink/hash admission, concurrency/interruption/cleanup and .17 custody, caller/backend status, changed UTF8/path-list contract, standalone path renewal. Current green proof and historical-material reuse are retained at /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/task16/validation-60f1c762/summary.json and control-mapping.json and input-reuse.json; new watchdog terminal evidence is resumed-watchdog/watchdog-result.json in that same directory. Exact60f new standalone passed17stages,914discovered911executed3ignored with unchangedsource and cleanup; historical267/16/5 controls are labeled historical, not substituted currentfullproof. Broad task8 timings and Darwin runtime deferred. Assess concrete task-scope defects; do not reopen migration, which is owner-deferred. Writer Codex; configured reviewer Claude different family.",
+  "claim_token": null,
+  "id": "fn-254-fast-validation-gates-and-a-real-inner.16",
+  "standalone": false,
+  "base_branch": "f0a82c7a969ec6fd1717a73f98536d3b9c6fe8ee",
+  "reviewed_base_sha": "f0a82c7a969ec6fd1717a73f98536d3b9c6fe8ee",
+  "reviewed_head_sha": "60f1c762a618d32478b58ae4e79c151f4355aeb3",
+  "artifact_sha256": "7104e67ff1b135d68a0870c43b93924988e8c0013ebeeea363ea4cd61bd2d277",
+  "reservation_id": "d56cefa991c84615bd07f20be7556d9b",
+  "rid": "d56cefa991c84615bd07f20be7556d9b",
+  "primary_axis": "correctness",
+  "draws": [
+    {
+      "axis": "correctness",
+      "parse_status": {
+        "status": "unparsed",
+        "reason": "no-findings-container",
+        "block": null
+      },
+      "backend": "claude",
+      "model": "claude-fable-5-1",
+      "effort": "high",
+      "session_id": "5a338041-0e1b-47d7-a2e3-e088be87ab57",
+      "verdict": "SHIP",
+      "failed": false,
+      "failure_class": null,
+      "failure_message": null,
+      "exit_code": 0,
+      "started_at": "2026-10-28T17:03:20.204441Z",
+      "finished_at": "2026-10-28T17:10:10.342153Z",
+      "review_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25416-provider-adapt/.flow/review-fanout/d56cefa991c84615bd07f20be7556d9b/correctness.review.md",
+      "output_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25416-provider-adapt/.flow/review-fanout/d56cefa991c84615bd07f20be7556d9b/correctness.out.txt"
+    },
+    {
+      "axis": "contracts",
+      "parse_status": {
+        "status": "unparsed",
+        "reason": "invalid-anchor",
+        "block": 1
+      },
+      "backend": "claude",
+      "model": "claude-fable-5-1",
+      "effort": "high",
+      "session_id": "dca60c2e-1fb3-4397-a27e-aec01cdf04b2",
+      "verdict": "SHIP",
+      "failed": false,
+      "failure_class": null,
+      "failure_message": null,
+      "exit_code": 0,
+      "started_at": "2026-10-28T17:03:20.204580Z",
+      "finished_at": "2026-10-28T17:11:46.180163Z",
+      "review_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25416-provider-adapt/.flow/review-fanout/d56cefa991c84615bd07f20be7556d9b/contracts.review.md",
+      "output_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25416-provider-adapt/.flow/review-fanout/d56cefa991c84615bd07f20be7556d9b/contracts.out.txt"
+    },
+    {
+      "axis": "integration",
+      "parse_status": {
+        "status": "unparsed",
+        "reason": "invalid-anchor",
+        "block": 1
+      },
+      "backend": "claude",
+      "model": "claude-fable-5-1",
+      "effort": "high",
+      "session_id": "6cc60a50-b46a-4453-8851-7ae12e17528e",
+      "verdict": "SHIP",
+      "failed": false,
+      "failure_class": null,
+      "failure_message": null,
+      "exit_code": 0,
+      "started_at": "2026-10-28T17:03:20.204697Z",
+      "finished_at": "2026-10-28T17:12:03.431563Z",
+      "review_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25416-provider-adapt/.flow/review-fanout/d56cefa991c84615bd07f20be7556d9b/integration.review.md",
+      "output_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25416-provider-adapt/.flow/review-fanout/d56cefa991c84615bd07f20be7556d9b/integration.out.txt"
+    }
+  ],
+  "receipt_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-resume-review/review.json",
+  "created_at": "2026-10-28T17:12:03.585974Z"
+}

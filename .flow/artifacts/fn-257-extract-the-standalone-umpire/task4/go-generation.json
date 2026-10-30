@@ -1,0 +1,95 @@
+{
+  "started_at": "2026-10-26T17:26:10.215263+00:00",
+  "repository": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2574-consumers",
+  "framework": "/Users/stephan/Workspace/skunkworks/umpire/umpire",
+  "baseline_commit": "63f5c334c07c1b70139337f195cb65f07594b995",
+  "framework_head": "cf8bec4d6231302df54b57fccdc5bdb9d11552fc",
+  "input_sha256": {
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2574-consumers/model/temporal/proto/umpire/temporal/v1/temporal.proto": "4a68267023bb52c4d8dfff6fdca6cde9c6f8b85170df65ee31881428f8b330fb",
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2574-consumers/model/temporal/proto/umpire/temporal/v1/probe.proto": "78d2ed0479203adb87440008315febd1332aae40e8e95244ac3d07e7d88f7d12",
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2574-consumers/model/temporal/proto/umpire/temporal/v1/activity.proto": "957bbbf25036d02885d1c3727176d1c46fa81d2a81a6e60306ee0d8d2bf4ec2c",
+    "/Users/stephan/Workspace/skunkworks/umpire/umpire/protocol/proto/umpire/annotations/v1/annotations.proto": "55e0186d86bea83ba6da6be208312b04c520ddd07809ce6c1e98def1d95dec67",
+    "/home/agent/.local/share/mise/installs/protoc/29.5/include/google/protobuf/any.proto": "bcf5de6ce463b1a38ff76b77955aa7e580b4ec12af34a927b1d45c9efb0faf66"
+  },
+  "output_before_sha256": {
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2574-consumers/model/temporal/hosts/go/umpire/temporal/v1/temporal.pb.go": "fcc799ed406b242aa7a69484bfd6b1f2f8cee1c602e8f80f51ebb8eac4eb7764",
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2574-consumers/model/temporal/hosts/go/umpire/temporal/v1/probe.pb.go": "a9483cb7aa5b984d5d1ca30c7073cd301b28f9580e32ab9a5f36270f9b95c646",
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2574-consumers/model/temporal/hosts/go/umpire/temporal/v1/activity.pb.go": "081aa6932c1c3a340306784aeb10c178a1acb5e6db5b759dd2df3f03b5c656cd"
+  },
+  "tool_sha256": {
+    "/home/agent/.local/share/mise/installs/protoc/29.5/bin/protoc": "77dc1e969324c70938e294cef8b7320ce01d94665171113bcf60361672d826e0",
+    "/Users/stephan/Workspace/skunkworks/umpire/umpire/.bin/protoc-gen-go-v1.36.6": "d2bca6bbfb18ba08d1cc8f5b0d4bb3f1d3f984845b95b53c84ee10a0ebc6e640"
+  },
+  "generator_script_sha256": {
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2574-consumers/model/scripts/proto-go.sh": "bf7c36f30b38ec436990dbfb97dd58271dafac33431d76b2910f27cf31f46650"
+  },
+  "commands": [
+    {
+      "argv": [
+        "/home/agent/.local/share/mise/installs/protoc/29.5/bin/protoc",
+        "--version"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2574-consumers",
+      "environment": {
+        "MISE_AUTO_INSTALL": "false",
+        "MISE_EXEC_AUTO_INSTALL": "false"
+      },
+      "exit_code": 0,
+      "stdout": "libprotoc 29.5\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/Users/stephan/Workspace/skunkworks/umpire/umpire/.bin/protoc-gen-go-v1.36.6",
+        "--version"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2574-consumers",
+      "environment": {
+        "MISE_AUTO_INSTALL": "false",
+        "MISE_EXEC_AUTO_INSTALL": "false"
+      },
+      "exit_code": 0,
+      "stdout": "protoc-gen-go-v1.36.6 v1.36.6\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/home/agent/.local/share/mise/installs/protoc/29.5/bin/protoc",
+        "--plugin=protoc-gen-go=/Users/stephan/Workspace/skunkworks/umpire/umpire/.bin/protoc-gen-go-v1.36.6",
+        "--proto_path=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2574-consumers/model/temporal/proto",
+        "--proto_path=/Users/stephan/Workspace/skunkworks/umpire/umpire/protocol/proto",
+        "--go_out=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2574-consumers/model/temporal/hosts/go",
+        "--go_opt=paths=source_relative",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2574-consumers/model/temporal/proto/umpire/temporal/v1/temporal.proto",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2574-consumers/model/temporal/proto/umpire/temporal/v1/probe.proto",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2574-consumers/model/temporal/proto/umpire/temporal/v1/activity.proto"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2574-consumers",
+      "environment": {
+        "MISE_AUTO_INSTALL": "false",
+        "MISE_EXEC_AUTO_INSTALL": "false"
+      },
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  ],
+  "execution_limit": "Source generation only; no tests/builds/gates/install/fetch/tidy; no freshness --check; no semantic golden updates or Git mutations.",
+  "output_after_sha256": {
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2574-consumers/model/temporal/hosts/go/umpire/temporal/v1/temporal.pb.go": "fcc799ed406b242aa7a69484bfd6b1f2f8cee1c602e8f80f51ebb8eac4eb7764",
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2574-consumers/model/temporal/hosts/go/umpire/temporal/v1/probe.pb.go": "797b5dc935f89a784885da6ec12a07ac9c1660abd1a8a4190bccbd93d85ddb33",
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2574-consumers/model/temporal/hosts/go/umpire/temporal/v1/activity.pb.go": "081aa6932c1c3a340306784aeb10c178a1acb5e6db5b759dd2df3f03b5c656cd"
+  },
+  "changed_outputs": [
+    "model/temporal/hosts/go/umpire/temporal/v1/probe.pb.go"
+  ],
+  "inputs_unchanged_after_generation": true,
+  "finished_at": "2026-10-26T17:26:10.261648+00:00",
+  "source_checks": {
+    "only_generated_change": "probe.pb.go import identity and generator import ordering; descriptor bytes and declarations unchanged",
+    "all_other_outputs_unchanged": true,
+    "schema_inputs_unchanged": true,
+    "git_diff_check_exit_code": 0,
+    "execution_checks": "deferred under validation hold"
+  }
+}

@@ -1,11 +1,20 @@
 # System workspace tool bridge
 
-`cargo xtask` from the outer Model workspace forwards to the independent framework
-CLI at `umpire/dev/xtask`. Guest commands execute the native framework CLI directly: the five
-framework guest packages compile in `umpire/`, while other packages retain the outer
-workspace. Output and target paths resolve before changing directories. Compiler
-wrapping and cache admission stay in the dedicated framework guest driver.
+From `model/`, use `mise exec -- cargo xtask <command>`. The bridge delegates reusable
+commands to the independent framework CLI at `umpire/dev/xtask`. Guest commands route
+the five framework guest packages to `umpire/`; `umpire-temporal-guest` and custom
+packages use the system workspace. Output, Cargo home and target paths resolve
+against the caller before changing directories. Compiler wrapping and cache admission
+stay in the dedicated framework guest driver.
 
-This package also retains repository Make freshness, embedded-guest refusal and
-historical retired-name controls. They bootstrap current local native tools through
-the framework script before invoking them.
+`gate` runs the combined framework and system graph. `proto-go temporal [--check]`
+owns the system's protobuf selector; run `core` or `kettle` from `model/umpire` instead.
+`build-guests` builds the Temporal guest. `time` measures the combined gate and the
+edited-package benchmark; `make model-validate` selects the TLC-required combined
+run. The bridge's forwarded `validate` command retains framework-only scope.
+
+`timing-controls` and `proto-controls` run selected Rust controls through the shared
+test runner. Repository Make freshness, guest routing, embedded-guest refusal and
+retired-name controls remain system-owned. The two minimal `scripts/xtask.sh` files
+bootstrap current native tools; the former orchestration and control scripts are
+native commands and Rust tests.

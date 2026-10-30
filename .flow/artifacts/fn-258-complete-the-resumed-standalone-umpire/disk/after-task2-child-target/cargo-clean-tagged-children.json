@@ -1,0 +1,72 @@
+[
+  {
+    "command": [
+      "mise",
+      "exec",
+      "--",
+      "cargo",
+      "clean",
+      "--target-dir",
+      "/home/agent/.cache/codex-build/tmp/umpire-standalone-Bnt8GY/target/guest-cache/f0f05f7fda2ab4a76453069c43072797caa0380231b41ee90093e19a9fc03210/wasm32-wasip1"
+    ],
+    "exit_code": 0,
+    "stdout": "",
+    "stderr": "     Removed 568 files, 213.7MiB total\n"
+  },
+  {
+    "command": [
+      "mise",
+      "exec",
+      "--",
+      "cargo",
+      "clean",
+      "--target-dir",
+      "/home/agent/.cache/codex-build/tmp/umpire-standalone-Bnt8GY/target/tests/runtime-capability-controls/target"
+    ],
+    "exit_code": 0,
+    "stdout": "",
+    "stderr": "     Removed 661 files, 305.0MiB total\n"
+  },
+  {
+    "command": [
+      "mise",
+      "exec",
+      "--",
+      "cargo",
+      "clean",
+      "--target-dir",
+      "/home/agent/.cache/codex-build/tmp/umpire-standalone-Bnt8GY/target/tests/trybuild/aarch64-unknown-linux-gnu"
+    ],
+    "exit_code": 0,
+    "stdout": "",
+    "stderr": "     Removed 2438 files, 843.4MiB total\n"
+  },
+  {
+    "command": [
+      "mise",
+      "exec",
+      "--",
+      "cargo",
+      "clean",
+      "--target-dir",
+      "/home/agent/.cache/codex-build/tmp/umpire-standalone-Bnt8GY/target/wasm32-wasip1"
+    ],
+    "exit_code": 0,
+    "stdout": "",
+    "stderr": "     Removed 205 files, 27.7MiB total\n"
+  },
+  {
+    "command": [
+      "mise",
+      "exec",
+      "--",
+      "cargo",
+      "clean",
+      "--target-dir",
+      "/home/agent/.cache/codex-build/tmp/umpire-standalone-Bnt8GY/target/xtask-bootstrap"
+    ],
+    "exit_code": 0,
+    "stdout": "",
+    "stderr": "     Removed 527 files, 435.8MiB total\n"
+  }
+]

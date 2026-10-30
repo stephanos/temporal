@@ -21,6 +21,8 @@ pub(crate) fn arguments(root: &Path, supplied: Vec<OsString>) -> io::Result<Vec<
         arguments.extend(["--map".into(), mapping]);
     }
     arguments.extend([
+        "--compile-only".into(),
+        "umpire-temporal-guest".into(),
         "--always".into(),
         "umpire-temporal-tests".into(),
         "--test-target".into(),
@@ -63,6 +65,9 @@ mod tests {
         .collect();
         assert_eq!(mappings, expected);
         assert!(arguments.windows(2).any(|pair| pair == ["--always", "umpire-temporal-tests"]));
+        assert!(
+            arguments.windows(2).any(|pair| pair == ["--compile-only", "umpire-temporal-guest"])
+        );
         assert!(
             arguments
                 .windows(2)

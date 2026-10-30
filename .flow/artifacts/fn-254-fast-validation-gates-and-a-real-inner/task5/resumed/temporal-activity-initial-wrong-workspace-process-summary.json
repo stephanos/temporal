@@ -1,0 +1,13 @@
+{
+  "samples": 0,
+  "maxima": {
+    "test_owners": 0,
+    "jvm_owners": 0,
+    "checker_jvms": 0,
+    "all_jvms": 0,
+    "aggregate_jvm_rss_bytes": 0
+  },
+  "java_processes": [],
+  "peak_samples": [],
+  "rss_is_observed_not_a_hard_cap": true
+}

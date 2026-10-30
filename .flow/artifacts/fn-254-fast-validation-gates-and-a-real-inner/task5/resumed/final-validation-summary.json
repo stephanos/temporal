@@ -1,0 +1,279 @@
+{
+  "result": "all admitted task5 focused runtime/compiler/profile checks and final strict affected lint/fmt green",
+  "source_manifest": "final-source-manifest.json",
+  "documentation_delta_only": [
+    "model/umpire/author/dsl/macros/tests/parser_refusals/MAPPING.md"
+  ],
+  "runtime_evidence_projection": "parser-fixture-source-after.json plus final-source-manifest.json doc delta; no behavioral source changes",
+  "strict_lint_receipts": {
+    "final-clippy-temporal-registry-supplemental": {
+      "command": [
+        "mise",
+        "exec",
+        "--",
+        "cargo",
+        "clippy",
+        "--locked",
+        "-j1",
+        "-p",
+        "umpire-temporal",
+        "--test",
+        "registry",
+        "--test",
+        "supplemental_admission",
+        "--all-features",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model",
+      "exit_code": 0,
+      "elapsed_seconds": 10.325716629999079
+    },
+    "final-clippy-temporal-xtask": {
+      "command": [
+        "mise",
+        "exec",
+        "--",
+        "cargo",
+        "clippy",
+        "--locked",
+        "-j1",
+        "-p",
+        "temporal-xtask",
+        "--all-targets",
+        "--all-features",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model",
+      "exit_code": 0,
+      "elapsed_seconds": 0.5971145830008027
+    },
+    "final-clippy-umpire-dsl-macros": {
+      "command": [
+        "mise",
+        "exec",
+        "--",
+        "cargo",
+        "clippy",
+        "--locked",
+        "-j1",
+        "-p",
+        "umpire-dsl-macros",
+        "--all-targets",
+        "--all-features",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire",
+      "exit_code": 0,
+      "elapsed_seconds": 1.2559505000008357
+    },
+    "final-clippy-umpire-fixtures": {
+      "command": [
+        "mise",
+        "exec",
+        "--",
+        "cargo",
+        "clippy",
+        "--locked",
+        "-j1",
+        "-p",
+        "umpire-fixtures",
+        "--all-targets",
+        "--all-features",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire",
+      "exit_code": 0,
+      "elapsed_seconds": 8.881839421001132
+    },
+    "final-clippy-umpire-testing": {
+      "command": [
+        "mise",
+        "exec",
+        "--",
+        "cargo",
+        "clippy",
+        "--locked",
+        "-j1",
+        "-p",
+        "umpire-testing",
+        "--all-targets",
+        "--all-features",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire",
+      "exit_code": 0,
+      "elapsed_seconds": 0.6945688760006306
+    },
+    "final-clippy-umpire-tlc": {
+      "command": [
+        "mise",
+        "exec",
+        "--",
+        "cargo",
+        "clippy",
+        "--locked",
+        "-j1",
+        "-p",
+        "umpire-tlc",
+        "--all-targets",
+        "--all-features",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire",
+      "exit_code": 0,
+      "elapsed_seconds": 0.5392145839996374
+    },
+    "final-clippy-xtask": {
+      "command": [
+        "mise",
+        "exec",
+        "--",
+        "cargo",
+        "clippy",
+        "--locked",
+        "-j1",
+        "-p",
+        "xtask",
+        "--all-targets",
+        "--all-features",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire",
+      "exit_code": 0,
+      "elapsed_seconds": 2.9924129600003653
+    },
+    "final-fmt-framework": {
+      "command": [
+        "mise",
+        "exec",
+        "--",
+        "cargo",
+        "fmt",
+        "-p",
+        "xtask",
+        "-p",
+        "umpire-testing",
+        "-p",
+        "umpire-fixtures",
+        "-p",
+        "umpire-dsl-macros",
+        "-p",
+        "umpire-tlc",
+        "--",
+        "--check"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire",
+      "exit_code": 0,
+      "elapsed_seconds": 0.21826570899975195
+    },
+    "final-fmt-temporal": {
+      "command": [
+        "mise",
+        "exec",
+        "--",
+        "cargo",
+        "fmt",
+        "-p",
+        "temporal-xtask",
+        "-p",
+        "umpire-temporal",
+        "--",
+        "--check"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model",
+      "exit_code": 0,
+      "elapsed_seconds": 0.17227562500011118
+    }
+  },
+  "combined_cache_growth_bytes": 102076141,
+  "admitted_cache_growth_bytes": 1610612736,
+  "free_after_bytes": 23053193216,
+  "locks_unchanged": true,
+  "snapshots_unchanged_count": 202,
+  "new_source_or_golden_fixes": [],
+  "macro_comparison": "macro-before-after-comparison.json",
+  "gate_obligations": [
+    {
+      "scope": "framework xtask/lib/main gate_wiring/standalone; Temporal thin bridge",
+      "evidence": [
+        "xtask-focused-summary.json",
+        "temporal-xtask-summary.json"
+      ],
+      "result": "34lib,13gatewiring,6standalone,12Temporalbridge passed; existing identity/mode/failfast/doctest controls retained"
+    },
+    {
+      "scope": "parser rows and fixture consumers",
+      "evidence": [
+        "parser-fixture-summary.json",
+        "fixture-identity-equivalence.json"
+      ],
+      "result": "2parser controls/61rows;9consumer controls;84identities retain60existing plus24splitfixtures and soleignored timing"
+    },
+    {
+      "scope": "full DSL compiler/positive/wrapper fixtures",
+      "evidence": [
+        "macro-fixtures-summary.json"
+      ],
+      "result": "8/8nextest,18originalrustc refusals+4positive files,61parserrows; no expected diagnostics relaxed"
+    },
+    {
+      "scope": "full required framework fixtures",
+      "evidence": [
+        "framework-fixtures-required-summary.json"
+      ],
+      "result": "83pass+1ignored,24newcases allrun;422freshTLC executions;observed2owners/4checkerJVMs;allobservedchecker/discovery Xmx512m"
+    },
+    {
+      "scope": "Temporal descriptor/build/compiler contracts",
+      "evidence": [
+        "temporal-api-prerequisite-summary.json",
+        "temporal-macros-registry-summary.json",
+        "temporal-supplemental-registry-runtime-summary.json"
+      ],
+      "result": "authoritative rootdescriptor make-q0;API+macro libs;registry6/6union incl18negative+1positive; supplemental2/2 incl1negative+1positive;actual Go linker retained"
+    },
+    {
+      "scope": "Temporal activity and current group membership",
+      "evidence": [
+        "activity-and-membership-summary.json",
+        "temporal-activity-required-summary.json",
+        "current-membership-summary.json"
+      ],
+      "result": "activity1pass/40filtered native/interpreter/lift/TLC/realization,28freshTLC; currentlogicalgroups218framework/41Temporal,defaultselected217/39,119registrydependencytuples preserved"
+    },
+    {
+      "scope": "final strict clippy/fmt",
+      "evidence": [
+        "final-clippy-temporal-registry-supplemental",
+        "final-clippy-temporal-xtask",
+        "final-clippy-umpire-dsl-macros",
+        "final-clippy-umpire-fixtures",
+        "final-clippy-umpire-testing",
+        "final-clippy-umpire-tlc",
+        "final-clippy-xtask",
+        "final-fmt-framework",
+        "final-fmt-temporal"
+      ],
+      "result": "7strictclippy scopes,2fmt checks; sourcebuildscripts/dependent API and realization macros compiled by Temporal registry/supplemental scope"
+    }
+  ],
+  "remaining_owner_obligations": [
+    "Root fresh implementation review and task8 joined shipping validation remain owner-controlled; no Flow closure or broad workspace/full Go gate claimed."
+  ],
+  "lease_released": true,
+  "finished_utc": "2026-10-26T23:20:38.716296+00:00"
+}

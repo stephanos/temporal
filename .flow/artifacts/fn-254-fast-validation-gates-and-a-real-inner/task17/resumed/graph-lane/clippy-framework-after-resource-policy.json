@@ -1,0 +1,49 @@
+{
+  "command": [
+    "mise",
+    "exec",
+    "--",
+    "cargo",
+    "clippy",
+    "--locked",
+    "-j1",
+    "-p",
+    "xtask",
+    "--all-targets",
+    "--all-features",
+    "--",
+    "-D",
+    "warnings"
+  ],
+  "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire",
+  "source_head": "a040731568ed166aaf979420c2edecd45f62a205",
+  "environment": {
+    "CARGO_TARGET_DIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/target",
+    "TMPDIR": "/tmp/umpire-fn25417-graph",
+    "CARGO_BUILD_JOBS": "1",
+    "CARGO_INCREMENTAL": "0",
+    "CARGO_PROFILE_DEV_DEBUG": "0",
+    "CARGO_PROFILE_TEST_DEBUG": "0"
+  },
+  "BASH_ENV": "removed",
+  "phase_baseline": {
+    "target_bytes": 4848566272,
+    "free_bytes": 11790151680,
+    "created_utc": "2026-10-27T00:17:35.812172+00:00"
+  },
+  "phase_budget_bytes": 1610612736,
+  "free_guard_bytes": 8589934592,
+  "exit_code": 101,
+  "guard_breach": null,
+  "seconds": 1.0292372500007332,
+  "samples": [
+    {
+      "seconds": 0.022,
+      "target_growth_bytes": 50016256,
+      "free_bytes": 12581621760
+    }
+  ],
+  "final_target_growth_bytes": 50372608,
+  "free_after_bytes": 12581167104,
+  "log_sha256": "475e3d02810e18edaf8ee2d59163e5dbd73efe5e7484c5b44306cf8de3916139"
+}

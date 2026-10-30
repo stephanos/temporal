@@ -1,0 +1,28 @@
+---
+source: umpire/dev/testing/src/runner.rs
+---
+starts: 1
+reached: 16
+emitted: 54
+evaluated: 160
+refused: 106
+depth: 4
+cut: false
+outcome: Verified
+claim selected_attempts: Verified
+claim outcome_and_pending_are_distinct: Verified
+claim exact_budget_arming: Verified
+claim positive_bounded_budgets: Verified
+claim terminal_is_final: Verified
+claim rejection_preserves_full_state: Verified
+claim attempt_changes_only_by_retry: Verified
+claim heartbeat_resets_only_its_interval: Verified
+claim retry_rearms_queue_preserves_execution: Verified
+claim spanning_budget_never_increases: Verified
+claim cancellation_request_preserves_running_timers: Verified
+claim every_live_budget_descends: Verified
+claim execution_expiry_dominates: Verified
+claim local_expiry_priority_retains_its_cause: Verified
+claim pending_failure_is_not_acknowledgement: Verified
+claim pending_expiry_is_not_acknowledgement: Verified
+vacuity: none

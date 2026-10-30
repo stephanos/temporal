@@ -1,0 +1,96 @@
+   Compiling xtask v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire/dev/xtask)
+    Finished `test` profile [unoptimized] target(s) in 1.78s
+     Running unittests src/lib.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/target/debug/deps/xtask-5278851f012b60dc)
+
+running 59 tests
+test gate::admission::tests::clean_policy_keeps_stripped_flags_out_and_native_policy_keeps_defaults ... ok
+test gate::admission::tests::required_tool_policy_caps_work_and_retains_other_caller_flags ... ok
+test gate::boundary::tests::character_literals_and_lifetimes_cannot_hide_source_escapes ... ok
+test gate::boundary::tests::character_recognition_requires_a_valid_closed_literal ... ok
+test gate::boundary::tests::declared_unused_dependency_escape_is_refused_before_cargo ... ok
+test gate::boundary::tests::external_target_alias_cannot_hide_source_subtree ... ok
+test gate::boundary::tests::organization_exception_preserves_occurrence_token_boundaries ... ok
+test gate::boundary::tests::source_escape_is_structural_and_contained_deep_paths_work ... ok
+test gate::boundary::tests::target_cannot_hide_sources ... ok
+test gate::scheduler::inventory_controls::assumed_env_object_and_incomplete_metadata_are_refused ... ok
+test gate::scheduler::inventory_controls::duplicate_metadata_and_nonliteral_dependency_are_refused ... ok
+test gate::scheduler::inventory_controls::upstream_env_directive_array_preserves_logical_order_and_dependencies ... ok
+test gate::scheduler::receipt_controls::failed_invocation_distinguishes_cancelled_and_not_started_without_accepting_missing_success ... ok
+test gate::scheduler::receipt_controls::scoped_receipts_keep_duplicate_public_names_and_logical_order ... ok
+test gate::standalone::tests::copied_config_trust_is_limited_to_copy_and_owned_scratch ... ok
+test gate::standalone::tests::copy_refuses_existing_and_dangling_source_symlinks ... ok
+test gate::standalone::tests::copy_uses_current_bytes_and_excludes_only_generated_roots ... ok
+test gate::standalone::tests::isolated_child_policy_control ... ok
+test gate::standalone::tests::isolated_child_uses_the_reported_required_profile_and_thread_cap ... ok
+test gate::standalone::tests::report_directory_artifact_hashes_every_generated_file ... ok
+test gate::tests::real_stage_child_receives_cache_bypass_and_required_mode ... framework stage exit-control failed (exit 37)
+ok
+test quick::tests::deleted_source_ownership_does_not_require_the_file_to_exist ... ok
+test quick::tests::explicit_compiler_only_packages_must_belong_to_an_admitted_workspace ... ok
+test quick::tests::external_build_inputs_and_unknown_sources_remain_conservative ... ok
+test quick::tests::framework_abi_guests_are_explicit_compiler_only_consumers ... ok
+test quick::tests::git_selection_includes_staged_unstaged_untracked_renamed_and_deleted_paths ... ok
+test quick::tests::global_and_unmapped_inputs_select_whole_workspace_and_reverse_dependents ... ok
+test quick::tests::mapped_external_sources_and_unchanged_invocations_keep_explicit_execution ... ok
+test quick::tests::metadata_named_checkout_ancestors_do_not_hide_external_build_inputs ... ok
+test quick::tests::metadata_preserves_doctests_without_requesting_binary_only_docs ... ok
+test quick::tests::model_edits_ignore_reported_non_model_metadata_and_docs ... ok
+test quick::tests::options_reject_unknown_flags_and_relative_workspaces ... ok
+test quick::tests::package_filters_only_narrow_unchanged_or_exclusively_mapped_feature_edits ... ok
+test quick::tests::renamed_sources_select_both_owners_with_metadata_changes ... ok
+test quick::tests::reverse_dependencies_merge_workspace_specific_ids_by_manifest ... ok
+test quick::tests::shared_feature_inputs_select_every_direct_consumer_and_reverse_guest ... ok
+test quick::tests::shared_kettle_model_seeds_source_consumers_and_reverse_guest ... ok
+test quick::tests::stage_receipt_reports_elapsed_and_spawn_failure_without_success_status ... ok
+test quick::tests::stage_receipts_label_formatting_and_preserve_success_and_failure_statuses ... ok
+test quick::tests::workspace_documentation_can_supply_executable_test_inputs ... ok
+test quick::tests::workspace_execution_checks_build_only_consumers_then_batches_tests_and_scoped_docs ... quick: stage=compile workspace=/tmp/umpire-fn25417-graph/.tmpIELArL packages=guest command=cd "/tmp/umpire-fn25417-graph/.tmpIELArL" && CONTROL_COMPILE_EXIT="0" CONTROL_DOC_EXIT="0" CONTROL_LIST_EXIT="0" CONTROL_ROOT="/tmp/umpire-fn25417-graph/.tmpIELArL" CONTROL_RUN_EXIT="0" "/bin/sh" "/tmp/umpire-fn25417-graph/.tmpIELArL/cargo.sh" "check" "--locked" "--all-targets" "-p" "guest"
+quick: stage=compile workspace=/tmp/umpire-fn25417-graph/.tmpIELArL packages=guest elapsed=0.000s exit=0
+quick: stage=test-inventory workspace=/tmp/umpire-fn25417-graph/.tmpIELArL packages=api,guest,fixtures command=cd "/tmp/umpire-fn25417-graph/.tmpIELArL" && CONTROL_COMPILE_EXIT="0" CONTROL_DOC_EXIT="0" CONTROL_LIST_EXIT="0" CONTROL_ROOT="/tmp/umpire-fn25417-graph/.tmpIELArL" CONTROL_RUN_EXIT="0" "/bin/sh" "/tmp/umpire-fn25417-graph/.tmpIELArL/cargo.sh" "nextest" "list" "--locked" "--message-format" "json" "--run-ignored" "default" "-p" "api" "-p" "guest" "-p" "fixtures" "-E" "(package(=api)) | (package(=guest)) | (package(=fixtures) & kind(test) & binary(=fixtures) & test(=fixtures))"
+quick: stage=test-inventory workspace=/tmp/umpire-fn25417-graph/.tmpIELArL packages=api,guest,fixtures elapsed=0.001s exit=0
+quick: stage=test workspace=/tmp/umpire-fn25417-graph/.tmpIELArL packages=api,guest,fixtures command=cd "/tmp/umpire-fn25417-graph/.tmpIELArL" && CONTROL_COMPILE_EXIT="0" CONTROL_DOC_EXIT="0" CONTROL_LIST_EXIT="0" CONTROL_ROOT="/tmp/umpire-fn25417-graph/.tmpIELArL" CONTROL_RUN_EXIT="0" "/bin/sh" "/tmp/umpire-fn25417-graph/.tmpIELArL/cargo.sh" "nextest" "run" "--locked" "--fail-fast" "--run-ignored" "default" "--status-level" "slow" "--final-status-level" "slow" "--success-output" "never" "--failure-output" "immediate-final" "--no-tests" "fail" "-p" "api" "-p" "guest" "-p" "fixtures" "-E" "(package(=api)) | (package(=guest)) | (package(=fixtures) & kind(test) & binary(=fixtures) & test(=fixtures))"
+quick: stage=test workspace=/tmp/umpire-fn25417-graph/.tmpIELArL packages=api,guest,fixtures elapsed=0.000s exit=0
+quick: stage=doctest workspace=/tmp/umpire-fn25417-graph/.tmpIELArL packages=api,guest,fixtures command=cd "/tmp/umpire-fn25417-graph/.tmpIELArL" && CONTROL_COMPILE_EXIT="0" CONTROL_DOC_EXIT="0" CONTROL_LIST_EXIT="0" CONTROL_ROOT="/tmp/umpire-fn25417-graph/.tmpIELArL" CONTROL_RUN_EXIT="0" "/bin/sh" "/tmp/umpire-fn25417-graph/.tmpIELArL/cargo.sh" "test" "--doc" "--locked" "-p" "api" "--" "--nocapture"
+quick: stage=doctest workspace=/tmp/umpire-fn25417-graph/.tmpIELArL packages=api,guest,fixtures elapsed=0.000s exit=0
+quick: stage=compile workspace=/tmp/umpire-fn25417-graph/.tmpIELArL packages=guest command=cd "/tmp/umpire-fn25417-graph/.tmpIELArL" && CONTROL_COMPILE_EXIT="13" CONTROL_DOC_EXIT="0" CONTROL_LIST_EXIT="0" CONTROL_ROOT="/tmp/umpire-fn25417-graph/.tmpIELArL" CONTROL_RUN_EXIT="0" "/bin/sh" "/tmp/umpire-fn25417-graph/.tmpIELArL/cargo.sh" "check" "--locked" "--all-targets" "-p" "guest"
+quick: stage=compile workspace=/tmp/umpire-fn25417-graph/.tmpIELArL packages=guest elapsed=0.000s exit=13
+quick: stage=compile workspace=/tmp/umpire-fn25417-graph/.tmpIELArL packages=guest command=cd "/tmp/umpire-fn25417-graph/.tmpIELArL" && CONTROL_COMPILE_EXIT="0" CONTROL_DOC_EXIT="0" CONTROL_LIST_EXIT="17" CONTROL_ROOT="/tmp/umpire-fn25417-graph/.tmpIELArL" CONTROL_RUN_EXIT="0" "/bin/sh" "/tmp/umpire-fn25417-graph/.tmpIELArL/cargo.sh" "check" "--locked" "--all-targets" "-p" "guest"
+quick: stage=compile workspace=/tmp/umpire-fn25417-graph/.tmpIELArL packages=guest elapsed=0.000s exit=0
+quick: stage=test-inventory workspace=/tmp/umpire-fn25417-graph/.tmpIELArL packages=api,guest,fixtures command=cd "/tmp/umpire-fn25417-graph/.tmpIELArL" && CONTROL_COMPILE_EXIT="0" CONTROL_DOC_EXIT="0" CONTROL_LIST_EXIT="17" CONTROL_ROOT="/tmp/umpire-fn25417-graph/.tmpIELArL" CONTROL_RUN_EXIT="0" "/bin/sh" "/tmp/umpire-fn25417-graph/.tmpIELArL/cargo.sh" "nextest" "list" "--locked" "--message-format" "json" "--run-ignored" "default" "-p" "api" "-p" "guest" "-p" "fixtures" "-E" "(package(=api)) | (package(=guest)) | (package(=fixtures) & kind(test) & binary(=fixtures) & test(=fixtures))"
+quick: stage=test-inventory workspace=/tmp/umpire-fn25417-graph/.tmpIELArL packages=api,guest,fixtures elapsed=0.001s exit=17
+quick: stage=compile workspace=/tmp/umpire-fn25417-graph/.tmpIELArL packages=guest command=cd "/tmp/umpire-fn25417-graph/.tmpIELArL" && CONTROL_COMPILE_EXIT="0" CONTROL_DOC_EXIT="0" CONTROL_LIST_EXIT="0" CONTROL_ROOT="/tmp/umpire-fn25417-graph/.tmpIELArL" CONTROL_RUN_EXIT="29" "/bin/sh" "/tmp/umpire-fn25417-graph/.tmpIELArL/cargo.sh" "check" "--locked" "--all-targets" "-p" "guest"
+quick: stage=compile workspace=/tmp/umpire-fn25417-graph/.tmpIELArL packages=guest elapsed=0.000s exit=0
+quick: stage=test-inventory workspace=/tmp/umpire-fn25417-graph/.tmpIELArL packages=api,guest,fixtures command=cd "/tmp/umpire-fn25417-graph/.tmpIELArL" && CONTROL_COMPILE_EXIT="0" CONTROL_DOC_EXIT="0" CONTROL_LIST_EXIT="0" CONTROL_ROOT="/tmp/umpire-fn25417-graph/.tmpIELArL" CONTROL_RUN_EXIT="29" "/bin/sh" "/tmp/umpire-fn25417-graph/.tmpIELArL/cargo.sh" "nextest" "list" "--locked" "--message-format" "json" "--run-ignored" "default" "-p" "api" "-p" "guest" "-p" "fixtures" "-E" "(package(=api)) | (package(=guest)) | (package(=fixtures) & kind(test) & binary(=fixtures) & test(=fixtures))"
+quick: stage=test-inventory workspace=/tmp/umpire-fn25417-graph/.tmpIELArL packages=api,guest,fixtures elapsed=0.001s exit=0
+quick: stage=test workspace=/tmp/umpire-fn25417-graph/.tmpIELArL packages=api,guest,fixtures command=cd "/tmp/umpire-fn25417-graph/.tmpIELArL" && CONTROL_COMPILE_EXIT="0" CONTROL_DOC_EXIT="0" CONTROL_LIST_EXIT="0" CONTROL_ROOT="/tmp/umpire-fn25417-graph/.tmpIELArL" CONTROL_RUN_EXIT="29" "/bin/sh" "/tmp/umpire-fn25417-graph/.tmpIELArL/cargo.sh" "nextest" "run" "--locked" "--fail-fast" "--run-ignored" "default" "--status-level" "slow" "--final-status-level" "slow" "--success-output" "never" "--failure-output" "immediate-final" "--no-tests" "fail" "-p" "api" "-p" "guest" "-p" "fixtures" "-E" "(package(=api)) | (package(=guest)) | (package(=fixtures) & kind(test) & binary(=fixtures) & test(=fixtures))"
+quick: stage=test workspace=/tmp/umpire-fn25417-graph/.tmpIELArL packages=api,guest,fixtures elapsed=0.000s exit=29
+quick: stage=compile workspace=/tmp/umpire-fn25417-graph/.tmpIELArL packages=guest command=cd "/tmp/umpire-fn25417-graph/.tmpIELArL" && CONTROL_COMPILE_EXIT="0" CONTROL_DOC_EXIT="37" CONTROL_LIST_EXIT="0" CONTROL_ROOT="/tmp/umpire-fn25417-graph/.tmpIELArL" CONTROL_RUN_EXIT="0" "/bin/sh" "/tmp/umpire-fn25417-graph/.tmpIELArL/cargo.sh" "check" "--locked" "--all-targets" "-p" "guest"
+quick: stage=compile workspace=/tmp/umpire-fn25417-graph/.tmpIELArL packages=guest elapsed=0.000s exit=0
+quick: stage=test-inventory workspace=/tmp/umpire-fn25417-graph/.tmpIELArL packages=api,guest,fixtures command=cd "/tmp/umpire-fn25417-graph/.tmpIELArL" && CONTROL_COMPILE_EXIT="0" CONTROL_DOC_EXIT="37" CONTROL_LIST_EXIT="0" CONTROL_ROOT="/tmp/umpire-fn25417-graph/.tmpIELArL" CONTROL_RUN_EXIT="0" "/bin/sh" "/tmp/umpire-fn25417-graph/.tmpIELArL/cargo.sh" "nextest" "list" "--locked" "--message-format" "json" "--run-ignored" "default" "-p" "api" "-p" "guest" "-p" "fixtures" "-E" "(package(=api)) | (package(=guest)) | (package(=fixtures) & kind(test) & binary(=fixtures) & test(=fixtures))"
+quick: stage=test-inventory workspace=/tmp/umpire-fn25417-graph/.tmpIELArL packages=api,guest,fixtures elapsed=0.002s exit=0
+quick: stage=test workspace=/tmp/umpire-fn25417-graph/.tmpIELArL packages=api,guest,fixtures command=cd "/tmp/umpire-fn25417-graph/.tmpIELArL" && CONTROL_COMPILE_EXIT="0" CONTROL_DOC_EXIT="37" CONTROL_LIST_EXIT="0" CONTROL_ROOT="/tmp/umpire-fn25417-graph/.tmpIELArL" CONTROL_RUN_EXIT="0" "/bin/sh" "/tmp/umpire-fn25417-graph/.tmpIELArL/cargo.sh" "nextest" "run" "--locked" "--fail-fast" "--run-ignored" "default" "--status-level" "slow" "--final-status-level" "slow" "--success-output" "never" "--failure-output" "immediate-final" "--no-tests" "fail" "-p" "api" "-p" "guest" "-p" "fixtures" "-E" "(package(=api)) | (package(=guest)) | (package(=fixtures) & kind(test) & binary(=fixtures) & test(=fixtures))"
+quick: stage=test workspace=/tmp/umpire-fn25417-graph/.tmpIELArL packages=api,guest,fixtures elapsed=0.000s exit=0
+quick: stage=doctest workspace=/tmp/umpire-fn25417-graph/.tmpIELArL packages=api,guest,fixtures command=cd "/tmp/umpire-fn25417-graph/.tmpIELArL" && CONTROL_COMPILE_EXIT="0" CONTROL_DOC_EXIT="37" CONTROL_LIST_EXIT="0" CONTROL_ROOT="/tmp/umpire-fn25417-graph/.tmpIELArL" CONTROL_RUN_EXIT="0" "/bin/sh" "/tmp/umpire-fn25417-graph/.tmpIELArL/cargo.sh" "test" "--doc" "--locked" "-p" "api" "--" "--nocapture"
+quick: stage=doctest workspace=/tmp/umpire-fn25417-graph/.tmpIELArL packages=api,guest,fixtures elapsed=0.000s exit=37
+ok
+test test_run::tests::binaries_then_doctests_exactly_once ... ok
+test test_run::tests::binary_failure_stops_before_doctests ... ok
+test test_run::tests::compiler_only_admission_is_explicit_and_keeps_discovered_tests_in_the_batch ... ok
+test test_run::tests::doctest_failure_preserves_status ... ok
+test test_run::tests::exact_predicates_use_nextest_escape_sequences_without_embedded_quotes ... ok
+test test_run::tests::explicit_compiler_only_batches_do_not_claim_zero_test_execution ... ok
+test test_run::tests::filtered_doctests_keep_exact_selection ... ok
+test test_run::tests::inventory_admission_refuses_each_empty_package_and_exact_fixture_selection ... ok
+test test_run::tests::inventory_failure_preserves_status_and_never_executes_the_batch ... ok
+test test_run::tests::missing_runner_fails_without_fallback ... ok
+test test_run::tests::required_backend_policy_caps_inherited_threads_and_preserves_skipped_defaults ... ok
+test test_run::tests::scoped_package_admission_uses_membership_and_actual_doctest_targets ... ok
+test test_run::tests::scoped_runner_child ... ok
+test test_run::tests::scoped_runner_executes_inventory_tests_and_docs_with_the_same_admitted_policy ... ok
+test test_run::tests::selected_binary_failure_and_doctest_failure_preserve_status ... ok
+test test_run::tests::selected_empty_batch_and_spawn_failure_do_not_fall_back ... ok
+test test_run::tests::selected_packages_share_one_nextest_batch_and_only_eligible_doctests ... ok
+test test_run::tests::workspace_selection_rejects_an_unexpected_zero_test_run ... ok
+
+test result: ok. 59 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.14s
+

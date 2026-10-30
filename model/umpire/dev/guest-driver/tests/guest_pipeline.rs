@@ -37,7 +37,7 @@ fn guest_build_check_and_artifact_refusals() {
 }
 
 #[test]
-fn cold_shell_bootstrap_and_cached_native_validation() {
+fn cold_retained_bootstrap_and_cached_native_validation() {
     let f = Fixture::new();
     fs::write(f.root.join("out.wasm"), b"\0asm\x01\0\0\0").unwrap();
     code(
@@ -75,14 +75,11 @@ fn cold_bootstrap_failure_never_builds_or_publishes() {
 }
 
 #[test]
-fn shell_caller_relative_paths_and_changed_inputs_select_new_cache() {
+fn native_caller_relative_paths_and_changed_inputs_select_new_cache() {
     let f = Fixture::new();
     let original = f.command(false, true);
-    let mut command = Command::new("/bin/bash");
-    command
-        .arg(f.model.join("scripts/guest.sh"))
-        .args(["example-guest", "relative output.wasm"])
-        .current_dir(&f.root);
+    let mut command = Command::new(crate::driver_binary());
+    command.args(["guest", "example-guest", "relative output.wasm"]).current_dir(&f.root);
     for (key, value) in original.get_envs() {
         if let Some(value) = value {
             command.env(key, value);
@@ -141,4 +138,44 @@ fn relative_cargo_home_stays_with_distinct_caller_for_probes_metadata_and_build(
             code(&result, 0);
         }
     }
+}
+
+#[test]
+fn retained_bootstrap_stdout_selects_executable_and_native_route_creates_output() {
+    let f = Fixture::new();
+    let output = f.bootstrap_command().output().unwrap();
+    code(&output, 0);
+    let tool =
+        f.root.join("custom target").canonicalize().unwrap().join("xtask-bootstrap/debug/xtask");
+    let mut expected = tool.as_os_str().as_encoded_bytes().to_vec();
+    expected.push(b'\n');
+    assert_eq!(output.stdout, expected);
+    assert!(tool.is_file());
+    assert!(tool.with_file_name("umpire-guest-driver").is_file());
+    assert!(!f.root.join("out.wasm").exists());
+    code(&f.command(false, true).output().unwrap(), 0);
+    assert_eq!(fs::read(f.root.join("out.wasm")).unwrap(), b"\0asm\x01\0\0\0");
+    assert_eq!(fs::read(f.root.join("bootstrap-path")).unwrap(), expected);
+}
+
+#[test]
+fn missing_mise_refuses_bootstrap_without_fallback_cargo() {
+    let f = Fixture::new();
+    let bin = f.root.join("bootstrap-only bin");
+    fs::create_dir(&bin).unwrap();
+    for (name, executable) in [("dirname", "/usr/bin/dirname"), ("mkdir", "/bin/mkdir")] {
+        std::os::unix::fs::symlink(executable, bin.join(name)).unwrap();
+    }
+    support::executable(
+        &bin.join("cargo"),
+        "#!/bin/bash\n: > \"$FIXTURE/fallback-cargo\"\nexit 0\n",
+    );
+    let output = f.bootstrap_command().env("PATH", &bin).output().unwrap();
+    code(&output, 1);
+    assert_eq!(output.stdout, b"");
+    assert!(String::from_utf8_lossy(&output.stderr).contains("mise"));
+    assert!(String::from_utf8_lossy(&output.stderr).contains("xtask bootstrap failed"));
+    assert!(!f.root.join("fallback-cargo").exists());
+    assert!(!f.root.join("guest-built").exists());
+    assert!(!f.root.join("out.wasm").exists());
 }

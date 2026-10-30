@@ -1,0 +1,56 @@
+{
+  "source_commit": "8350ba8f03312d6675145693614b6276672f6941",
+  "scope": "Native Rust nextest/doctest and TLC count producers integrated into existing stage receipts",
+  "stage_counts": [
+    "discovered",
+    "executed",
+    "ignored",
+    "skipped",
+    "tlc_launches",
+    "tlc_configurations"
+  ],
+  "authority": "exclusive-stage; child raw records embedded with exact path_bytes and digest; child counts are never added to inclusive parent totals",
+  "test_identity": "actual same-selection nextest list plus unique terminal identities; direct handoff reuses scoped admission inventory",
+  "test_totals": "discovered = executed + ignored + skipped across separately paired nextest and doctest producer completions",
+  "tlc_totals": "six confirmed launches include one existing admission -h JVM; five model launches cover three exact source/configuration identities",
+  "refusal": "missing/partial/duplicate producers, missing/malformed/inconsistent successful count objects and absent standalone child authority refuse; real failed statuses retain priority",
+  "output": "private nextest JSON; caller streaming preserved; ANSI normalization affects private parsing only",
+  "raw_path_framing": "bounded hex event path encoding; exact Unix path_bytes provenance, optional UTF-8 path rendering",
+  "no_observation": "ordinary unscheduled quick/test-run adds no discovery or output changes; unobserved TLC/configuration metrics remain null",
+  "real_results": {
+    "colored_full_rust": {
+      "discovered": 5,
+      "executed": 3,
+      "ignored": 2,
+      "skipped": 0
+    },
+    "selected_rust": {
+      "discovered": 5,
+      "executed": 2,
+      "ignored": 2,
+      "skipped": 1
+    },
+    "real_nextest_failure_exit": 100,
+    "real_early_streaming": [
+      "nextest stderr",
+      "doctest stdout"
+    ],
+    "tlc_launches": 6,
+    "tlc_configurations": 3
+  },
+  "controls": "20 producer tests (including child actors), with durable raw path and structured receipt admission controls; scoped clippy/fmt pass",
+  "earlier_focused_evidence": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25417-work-counts/sealed-checks.json",
+  "earlier_broader_evidence": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25417-work-counts/final-checks.json",
+  "unadapted": [
+    "Go-host test counts",
+    "other unadapted modalities"
+  ],
+  "deferred_to_budget_admission": "Add real Go/other work producers before admitting R8 count tables; budget tables, enforcement, calibration and retry policy remain .12",
+  "pending_conductor_gates": [
+    "real standalone on integrated source",
+    "configured fresh-context reviews"
+  ],
+  "registry_and_coverage": "No registry table or authored Model/test selection removed; original lifecycle/lease policy retained",
+  "raw_directory": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25417-work-counts/final",
+  "binaries": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25417-work-counts/final/binaries.json"
+}

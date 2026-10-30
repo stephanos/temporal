@@ -1,0 +1,113 @@
+{
+  "before": {
+    "sources": {
+      "temporal": "3f5f613578f2857b738a7792fad08f12b3ea0a41",
+      "umpire": "05473210b48c3db862f22051eb7154ce98258f98"
+    },
+    "target": "/home/agent/.cache/codex-build/fn258-final-pair-3f5-054",
+    "target_exists": false,
+    "free_bytes": 55946653696,
+    "additional_reservation_gib": 0,
+    "guest_sha256": "d171b91861dba54e9c73682fb17a5a317180dba4e7c5b6c1b09f46667b337f5d",
+    "workspace_sha256": "5e6ca8f10d627f4d5743ce4f9d2d49e12a67cb0172c3254f021f6c51ce3150db",
+    "step": "resolution"
+  },
+  "after": {
+    "temporal": {
+      "head": "3f5f613578f2857b738a7792fad08f12b3ea0a41",
+      "status": ""
+    },
+    "umpire": {
+      "head": "05473210b48c3db862f22051eb7154ce98258f98",
+      "status": ""
+    }
+  },
+  "commands": [
+    {
+      "argv": [
+        "mise",
+        "exec",
+        "--",
+        "cargo",
+        "metadata",
+        "--manifest-path",
+        "/home/agent/.cache/codex-build/tmp/fn258-final-pair-3f5-054/temporal/model/Cargo.toml",
+        "--locked",
+        "--format-version",
+        "1"
+      ],
+      "cwd": "/home/agent/.cache/codex-build/tmp/fn258-final-pair-3f5-054/temporal",
+      "started_unix": 1793197604.1581414,
+      "ended_unix": 1793197604.2057087,
+      "exit": 0,
+      "log": "/home/agent/.cache/codex-build/tmp/fn258-final-pair-3f5-054/execution-evidence/resolution-1793197604157921913/00-resolution.log",
+      "log_sha256": "dff00dfa48086291f97fc6cddaa4c390f054d212a11805ead9fe929386c59a54",
+      "free_before": 55946637312,
+      "free_after": 55946047488
+    },
+    {
+      "argv": [
+        "mise",
+        "exec",
+        "--",
+        "cargo",
+        "metadata",
+        "--manifest-path",
+        "/home/agent/.cache/codex-build/tmp/fn258-final-pair-3f5-054/temporal/model/design/native-symbolic/Cargo.toml",
+        "--locked",
+        "--format-version",
+        "1"
+      ],
+      "cwd": "/home/agent/.cache/codex-build/tmp/fn258-final-pair-3f5-054/temporal",
+      "started_unix": 1793197604.2062733,
+      "ended_unix": 1793197604.252866,
+      "exit": 0,
+      "log": "/home/agent/.cache/codex-build/tmp/fn258-final-pair-3f5-054/execution-evidence/resolution-1793197604157921913/01-resolution.log",
+      "log_sha256": "ccac44eaa2e9147c4ad19626ddc5705492929e5c08c618c0d158952b8b2a9504",
+      "free_before": 55946043392,
+      "free_after": 55945662464
+    },
+    {
+      "argv": [
+        "mise",
+        "exec",
+        "--",
+        "go",
+        "env",
+        "GOWORK"
+      ],
+      "cwd": "/home/agent/.cache/codex-build/tmp/fn258-final-pair-3f5-054/temporal",
+      "started_unix": 1793197604.2533934,
+      "ended_unix": 1793197604.2620604,
+      "exit": 0,
+      "log": "/home/agent/.cache/codex-build/tmp/fn258-final-pair-3f5-054/execution-evidence/resolution-1793197604157921913/02-resolution.log",
+      "log_sha256": "34ea00b2b9e9a0c63f49b95a635a3c9716844aaa98cb90c1acf28431f6495794",
+      "free_before": 55945658368,
+      "free_after": 55945654272
+    },
+    {
+      "argv": [
+        "mise",
+        "exec",
+        "--",
+        "go",
+        "list",
+        "-m",
+        "-json",
+        "github.com/temporalio/umpire/hosts/go",
+        "github.com/temporalio/umpire/reference/kettle",
+        "umpire.local/temporal"
+      ],
+      "cwd": "/home/agent/.cache/codex-build/tmp/fn258-final-pair-3f5-054/temporal",
+      "started_unix": 1793197604.2622163,
+      "ended_unix": 1793197604.269866,
+      "exit": 0,
+      "log": "/home/agent/.cache/codex-build/tmp/fn258-final-pair-3f5-054/execution-evidence/resolution-1793197604157921913/03-resolution.log",
+      "log_sha256": "afb70b02d5fce35997b6402ec1af9edb8c367e299e045d283bcff22939da7330",
+      "free_before": 55945650176,
+      "free_after": 55945646080
+    }
+  ],
+  "guest_sha256": "d171b91861dba54e9c73682fb17a5a317180dba4e7c5b6c1b09f46667b337f5d",
+  "scope": "Command receipts only; final acceptance/Flow state and proof recovery remain root-controlled."
+}

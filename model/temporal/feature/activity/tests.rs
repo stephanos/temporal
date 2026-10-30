@@ -518,7 +518,7 @@ fn selected_world_registers_closure_and_failure_progress() {
         world().progress().iter().map(|claim| claim.name).collect::<Vec<_>>(),
         [
             "eventually_closed",
-            "pending_retryable_failure_cancels",
+            "pending_retryable_failure_fails",
             "pending_nonretryable_failure_fails",
             "ordinary_retry_rearms",
             "ordinary_retry_at_cap_fails",

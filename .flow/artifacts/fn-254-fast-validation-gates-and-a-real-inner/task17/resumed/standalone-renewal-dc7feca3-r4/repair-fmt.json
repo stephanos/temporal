@@ -1,0 +1,14 @@
+{
+  "command": [
+    "mise",
+    "exec",
+    "--",
+    "cargo",
+    "fmt",
+    "--all",
+    "--check"
+  ],
+  "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire",
+  "exit": 0,
+  "seconds": 1.4598322500023642
+}

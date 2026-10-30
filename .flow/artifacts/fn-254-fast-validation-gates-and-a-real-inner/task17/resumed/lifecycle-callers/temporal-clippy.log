@@ -1,0 +1,5 @@
+    Checking umpire-guest-driver v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-lifecycle-callers/model/umpire/dev/guest-driver)
+    Checking umpire-backend-process v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-lifecycle-callers/model/umpire/backends/process)
+    Checking xtask v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-lifecycle-callers/model/umpire/dev/xtask)
+    Checking temporal-xtask v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-lifecycle-callers/model/dev/xtask)
+    Finished `dev` profile [unoptimized] target(s) in 0.77s

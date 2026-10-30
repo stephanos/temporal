@@ -1,0 +1,229 @@
+{
+  "type": "impl_review",
+  "id": "branch",
+  "mode": "claude",
+  "base": "d1634eb04e",
+  "verdict": "SHIP",
+  "session_id": "568943b1-2439-407c-95a0-e394460aecaf",
+  "model": "claude-fable-5-1",
+  "effort": "high",
+  "spec": "claude:claude-fable-5-1:high",
+  "timestamp": "2026-10-28T15:34:01.313216Z",
+  "review": "## Issue 1\n- **Severity**: P2\n- **Confidence**: 75\n- **Classification**: introduced\n- **File:Line**: .flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/task5-preparation/verify-current-refresh.py:48\n- **R-IDs**: [R6]\n- **Title**: Verify the committed recovery bundle copy\n- **Problem**: All three draws: current checks hash only the external recovery bundle. Hash/size-bind the committed receiving-snapshots/prepared-snapshots.bundle as well, including corruption refusal and stable inventory coverage.\n\n## Issue 2\n- **Severity**: P3\n- **Confidence**: 75\n- **Classification**: introduced\n- **File:Line**: .flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/task5-preparation/receiving-snapshots/README.md:19\n- **R-IDs**: [R6]\n- **Title**: Qualify host-specific verifier dependencies\n- **Problem**: Correctness2/contracts4: rerun currently requires original checkout path, live worktrees and external recovery stores. State that exact precondition rather than imply relocation portability; source data need not change.\n\n## Issue 3\n- **Severity**: P3\n- **Confidence**: 75\n- **Classification**: introduced\n- **File:Line**: .flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/task5-preparation/receiving-snapshots/verify-snapshots.py:178\n- **R-IDs**: [R6]\n- **Title**: Compute support and deletion recovery claims\n- **Problem**: Correctness3: actual scripts do not compute the28 canonical-history support reachability or beforeimage_blobs_not_in_target_bundle claims. Verify actual canonical reachability and bundle reachability, publish computed results and explicit recovery for any missing blobs.\n\n## Issue 4\n- **Severity**: P3\n- **Confidence**: 75\n- **Classification**: introduced\n- **File:Line**: .flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/task5-preparation/refresh-current-readiness.py:57\n- **R-IDs**: [R6]\n- **Title**: Derive tracker counts from observations\n- **Problem**: Correctness4/contracts3: compute unique requested_task count and assert uniqueness instead of literal60 in refresh and verification receipts.\n\n## Issue 5\n- **Severity**: P3\n- **Confidence**: 75\n- **Classification**: introduced\n- **File:Line**: .flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/task5-preparation/receiving-snapshots/README.md:31\n- **R-IDs**: [R6]\n- **Title**: Correct transaction line count\n- **Problem**: Correctness5/contracts2: transaction is48refs/51lines, including start prepare commit.\n\n## Issue 6\n- **Severity**: P2\n- **Confidence**: 75\n- **Classification**: introduced\n- **File:Line**: .flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/task5-preparation/receiving-snapshots/snapshot_common.py:100\n- **R-IDs**: [R6]\n- **Title**: Cover actual canonical system import spellings\n- **Problem**: Integration1: system-import probe omits actual go.temporal.io/ and temporal API spellings prohibited by source policy. Check actual import/dependency forms and add corresponding refusal controls; do not discard legitimate fixture bytes or silently skip impure candidate paths.\n\n## Issue 7\n- **Severity**: P3\n- **Confidence**: 75\n- **Classification**: introduced\n- **File:Line**: .flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/task5-preparation/refresh-current-readiness.py:19\n- **R-IDs**: [R6]\n- **Title**: Bind clean worktree claim to its own HEAD\n- **Problem**: Integration3: assert consumer worktree HEAD equals3f5 in addition to branch-ref identity before claiming clean at that revision.\n\n## Issue 8\n- **Severity**: P3\n- **Confidence**: 75\n- **Classification**: introduced\n- **File:Line**: .flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/task5-preparation/verify-current-refresh.py:38\n- **R-IDs**: [R6]\n- **Title**: Compare current and frozen receiving identity maps\n- **Problem**: Integration4: prove actual candidate IDs, source heads, receiver refs and provisional mappings match frozen48plan after excluding observational recovery metadata.\n\nFormat-repaired merge of actual three SHIP reviews; correctness used an invalid composite anchor. Duplicates collapsed onto these eight issues. Raw reviews unchanged. Source selection independence is intentional; optional refactors/shared-oracle merging declined because they weaken independent verification or identify no current failing requirement. Verdict is preparation fitness only; no actual receivers/publication/cutover or task5 completion claimed.\n\n```json\n{\"classification_counts\":{\"introduced\":8,\"pre_existing\":0},\"unaddressed\":[]}\n```\n\n<verdict>SHIP</verdict>\n",
+  "focus": "Branch-scoped PREPARATION REVIEW ONLY for fn258 R6 receiving recovery. Task5 not admitted; task4 final runtime gates execute outside this repo. Fixed root HEAD764fafd7ff. Review only task5-preparation/disposition-overlay.py, current tracker/refresh evidence and receiving-snapshots/{README,selection-policy,snapshot_common,build-snapshots,verify-snapshots,prepared-targets,target-summary,verification,proposed-create-only-transaction,root-review-inputs}. Other large validation/log/cleanup diffs are out of scope.\n\n48 full framework-only snapshots/50 explicitly new agent custody commits are prepared in an isolated store. Exact1.75MB bundle is committed at receiving-snapshots/prepared-snapshots.bundle. No fabricated original authorship or monorepo parent history: original Temporal refs/history retained and eight-ref source bundle independently recovered7210 available commits. Independent full raw-tree/byte verification covers57286 records,1942net+1931mapped deletions and16 refusal controls. Candidates039/075 retain committed/rawdirty variants and raw indexes/working bytes/three unmerged stages in linked custody archives, without conflict resolution or buildability claims.\n\nSource-prefix qualification reuses approved historical boundaries. Only049 at86f812692797a0e3451133f0d59f382818584312 has exact four-path/mode/blob ownership correction: parent model/dev/xtask is temporal-xtask extension/scanner consumer controls, while separate model/umpire/dev/xtask is generic and retained. Complete evidence: candidate-049-consumer-prefix.json. No global898 boundary relaxation. No consumer/Model/Scala/tracker imports. Mixed history-support28 blobs are proved retained in canonical export ancestry, outside receiving trees. Proposed51-line create-only transaction was tested only in isolated bare, including replay refusal. Actual48 receiver refs/imports remain absent, canonical standalone054 HEAD/tree/refs/rawindex/workbytes and54 relevant source refs unchanged.\n\nOverlay88entries/81originals/15controls preserves originalR1/fn257 data and eight byte-exact historical reports. Current pair3f5/054, task1/2/3DONE and task4inprogress bind actual CLI flow-state and committed markdown receipts.60 current CLI observations include22 differences from definition JSON, whose todo status is explicitly definition-only. Frozen input locators now identify actual *.input.json paths plus historical_original_path; all50 targetOIDs unchanged and schema correction reproducible.\n\nAssess data loss, source purity, collisions, deletions, recovery, create-only transaction and tracker/prerequisite provenance. Actual ref import/creation waits for task4 acceptance, task5 admission and review. Verdict is preparation fitness only, never full R6 acceptance: actual dispositions/receivers, destination access/publication/CI/cutover/postarchive comparison remain open. Runtime source R2/R3/R4 was reviewed separately; do not re-review it or rely on live R5 results.",
+  "introduced_count": 8,
+  "pre_existing_count": 0,
+  "unaddressed": [],
+  "draws": [
+    {
+      "axis": "correctness",
+      "model": "claude-fable-5-1",
+      "session_id": "568943b1-2439-407c-95a0-e394460aecaf",
+      "verdict": "SHIP",
+      "failed": false
+    },
+    {
+      "axis": "contracts",
+      "model": "claude-fable-5-1",
+      "session_id": "a7c5d87d-e603-4002-99c9-e1e7176c2d8f",
+      "verdict": "SHIP",
+      "failed": false
+    },
+    {
+      "axis": "integration",
+      "model": "claude-fable-5-1",
+      "session_id": "1b1b9966-62fe-44a4-b91b-97d42ddfe4f9",
+      "verdict": "SHIP",
+      "failed": false
+    }
+  ],
+  "rid": "fa309dea5e6eeb51c521dc37dcddfc12",
+  "reviewed_head_sha": "764fafd7ffa50209585defbced03e09b6113a81d",
+  "findings": {
+    "schemaVersion": 1,
+    "sourceReceiptId": "review-48845194d91e3e48c5a9c1eec29dc1bace1509566a3b792414894cd777fa72c1",
+    "reviewKind": "implementation",
+    "backend": "claude",
+    "round": 1,
+    "baseSha": "d1634eb04e058229bffef1457280d6292804de8e",
+    "headSha": "764fafd7ffa50209585defbced03e09b6113a81d",
+    "items": [
+      {
+        "id": "finding-1a4a9b36779008f2dc8214d1c704d4cf",
+        "ordinal": 1,
+        "severity": "P2",
+        "confidence": 75,
+        "classification": "introduced",
+        "status": "open",
+        "title": "Verify the committed recovery bundle copy",
+        "body": "All three draws: current checks hash only the external recovery bundle. Hash/size-bind the committed receiving-snapshots/prepared-snapshots.bundle as well, including corruption refusal and stable inventory coverage.",
+        "rIds": [
+          "R6"
+        ],
+        "anchor": {
+          "path": ".flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/task5-preparation/verify-current-refresh.py",
+          "side": "head",
+          "startLine": 48,
+          "baseSha": "d1634eb04e058229bffef1457280d6292804de8e",
+          "headSha": "764fafd7ffa50209585defbced03e09b6113a81d"
+        },
+        "firstSeenReceiptId": "review-48845194d91e3e48c5a9c1eec29dc1bace1509566a3b792414894cd777fa72c1",
+        "lastSeenReceiptId": "review-48845194d91e3e48c5a9c1eec29dc1bace1509566a3b792414894cd777fa72c1"
+      },
+      {
+        "id": "finding-2e22dd38c2b50b48940c911a2ca8b4ab",
+        "ordinal": 6,
+        "severity": "P2",
+        "confidence": 75,
+        "classification": "introduced",
+        "status": "open",
+        "title": "Cover actual canonical system import spellings",
+        "body": "Integration1: system-import probe omits actual go.temporal.io/ and temporal API spellings prohibited by source policy. Check actual import/dependency forms and add corresponding refusal controls; do not discard legitimate fixture bytes or silently skip impure candidate paths.",
+        "rIds": [
+          "R6"
+        ],
+        "anchor": {
+          "path": ".flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/task5-preparation/receiving-snapshots/snapshot_common.py",
+          "side": "head",
+          "startLine": 100,
+          "baseSha": "d1634eb04e058229bffef1457280d6292804de8e",
+          "headSha": "764fafd7ffa50209585defbced03e09b6113a81d"
+        },
+        "firstSeenReceiptId": "review-48845194d91e3e48c5a9c1eec29dc1bace1509566a3b792414894cd777fa72c1",
+        "lastSeenReceiptId": "review-48845194d91e3e48c5a9c1eec29dc1bace1509566a3b792414894cd777fa72c1"
+      },
+      {
+        "id": "finding-9efadec8912167d71e17154c3123201b",
+        "ordinal": 2,
+        "severity": "P3",
+        "confidence": 75,
+        "classification": "introduced",
+        "status": "open",
+        "title": "Qualify host-specific verifier dependencies",
+        "body": "Correctness2/contracts4: rerun currently requires original checkout path, live worktrees and external recovery stores. State that exact precondition rather than imply relocation portability; source data need not change.",
+        "rIds": [
+          "R6"
+        ],
+        "anchor": {
+          "path": ".flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/task5-preparation/receiving-snapshots/README.md",
+          "side": "head",
+          "startLine": 19,
+          "baseSha": "d1634eb04e058229bffef1457280d6292804de8e",
+          "headSha": "764fafd7ffa50209585defbced03e09b6113a81d"
+        },
+        "firstSeenReceiptId": "review-48845194d91e3e48c5a9c1eec29dc1bace1509566a3b792414894cd777fa72c1",
+        "lastSeenReceiptId": "review-48845194d91e3e48c5a9c1eec29dc1bace1509566a3b792414894cd777fa72c1"
+      },
+      {
+        "id": "finding-902816f5dfc118f8d5a61de24defc2c7",
+        "ordinal": 3,
+        "severity": "P3",
+        "confidence": 75,
+        "classification": "introduced",
+        "status": "open",
+        "title": "Compute support and deletion recovery claims",
+        "body": "Correctness3: actual scripts do not compute the28 canonical-history support reachability or beforeimage_blobs_not_in_target_bundle claims. Verify actual canonical reachability and bundle reachability, publish computed results and explicit recovery for any missing blobs.",
+        "rIds": [
+          "R6"
+        ],
+        "anchor": {
+          "path": ".flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/task5-preparation/receiving-snapshots/verify-snapshots.py",
+          "side": "head",
+          "startLine": 178,
+          "baseSha": "d1634eb04e058229bffef1457280d6292804de8e",
+          "headSha": "764fafd7ffa50209585defbced03e09b6113a81d"
+        },
+        "firstSeenReceiptId": "review-48845194d91e3e48c5a9c1eec29dc1bace1509566a3b792414894cd777fa72c1",
+        "lastSeenReceiptId": "review-48845194d91e3e48c5a9c1eec29dc1bace1509566a3b792414894cd777fa72c1"
+      },
+      {
+        "id": "finding-4f12514361bd8028ea7f2033210218ee",
+        "ordinal": 4,
+        "severity": "P3",
+        "confidence": 75,
+        "classification": "introduced",
+        "status": "open",
+        "title": "Derive tracker counts from observations",
+        "body": "Correctness4/contracts3: compute unique requested_task count and assert uniqueness instead of literal60 in refresh and verification receipts.",
+        "rIds": [
+          "R6"
+        ],
+        "anchor": {
+          "path": ".flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/task5-preparation/refresh-current-readiness.py",
+          "side": "head",
+          "startLine": 57,
+          "baseSha": "d1634eb04e058229bffef1457280d6292804de8e",
+          "headSha": "764fafd7ffa50209585defbced03e09b6113a81d"
+        },
+        "firstSeenReceiptId": "review-48845194d91e3e48c5a9c1eec29dc1bace1509566a3b792414894cd777fa72c1",
+        "lastSeenReceiptId": "review-48845194d91e3e48c5a9c1eec29dc1bace1509566a3b792414894cd777fa72c1"
+      },
+      {
+        "id": "finding-c54226651fc0ecf3a3d3fc93831ee40e",
+        "ordinal": 5,
+        "severity": "P3",
+        "confidence": 75,
+        "classification": "introduced",
+        "status": "open",
+        "title": "Correct transaction line count",
+        "body": "Correctness5/contracts2: transaction is48refs/51lines, including start prepare commit.",
+        "rIds": [
+          "R6"
+        ],
+        "anchor": {
+          "path": ".flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/task5-preparation/receiving-snapshots/README.md",
+          "side": "head",
+          "startLine": 31,
+          "baseSha": "d1634eb04e058229bffef1457280d6292804de8e",
+          "headSha": "764fafd7ffa50209585defbced03e09b6113a81d"
+        },
+        "firstSeenReceiptId": "review-48845194d91e3e48c5a9c1eec29dc1bace1509566a3b792414894cd777fa72c1",
+        "lastSeenReceiptId": "review-48845194d91e3e48c5a9c1eec29dc1bace1509566a3b792414894cd777fa72c1"
+      },
+      {
+        "id": "finding-2e4f68489a9d7405d6cc54cc8f0b9bc3",
+        "ordinal": 7,
+        "severity": "P3",
+        "confidence": 75,
+        "classification": "introduced",
+        "status": "open",
+        "title": "Bind clean worktree claim to its own HEAD",
+        "body": "Integration3: assert consumer worktree HEAD equals3f5 in addition to branch-ref identity before claiming clean at that revision.",
+        "rIds": [
+          "R6"
+        ],
+        "anchor": {
+          "path": ".flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/task5-preparation/refresh-current-readiness.py",
+          "side": "head",
+          "startLine": 19,
+          "baseSha": "d1634eb04e058229bffef1457280d6292804de8e",
+          "headSha": "764fafd7ffa50209585defbced03e09b6113a81d"
+        },
+        "firstSeenReceiptId": "review-48845194d91e3e48c5a9c1eec29dc1bace1509566a3b792414894cd777fa72c1",
+        "lastSeenReceiptId": "review-48845194d91e3e48c5a9c1eec29dc1bace1509566a3b792414894cd777fa72c1"
+      },
+      {
+        "id": "finding-54cd3b6d508349c4b74bb2273433c3b6",
+        "ordinal": 8,
+        "severity": "P3",
+        "confidence": 75,
+        "classification": "introduced",
+        "status": "open",
+        "title": "Compare current and frozen receiving identity maps",
+        "body": "Integration4: prove actual candidate IDs, source heads, receiver refs and provisional mappings match frozen48plan after excluding observational recovery metadata.",
+        "rIds": [
+          "R6"
+        ],
+        "anchor": {
+          "path": ".flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/task5-preparation/verify-current-refresh.py",
+          "side": "head",
+          "startLine": 38,
+          "baseSha": "d1634eb04e058229bffef1457280d6292804de8e",
+          "headSha": "764fafd7ffa50209585defbced03e09b6113a81d"
+        },
+        "firstSeenReceiptId": "review-48845194d91e3e48c5a9c1eec29dc1bace1509566a3b792414894cd777fa72c1",
+        "lastSeenReceiptId": "review-48845194d91e3e48c5a9c1eec29dc1bace1509566a3b792414894cd777fa72c1"
+      }
+    ]
+  }
+}

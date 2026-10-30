@@ -12,5 +12,5 @@
   "spec_path": ".flow/tasks/fn-240-symbolic-back-end-models-as-btor2.4.md",
   "status": "todo",
   "title": "Fixture consumer: expected/symbolic.txt and symbolic/paths, UMPIRE_BACKENDS=require gating, ownership registration, Kettle goldens, DESIGN and MILESTONES",
-  "updated_at": "2026-10-24T22:12:59.499608Z"
+  "updated_at": "2026-10-26T05:37:51.615743Z"
 }

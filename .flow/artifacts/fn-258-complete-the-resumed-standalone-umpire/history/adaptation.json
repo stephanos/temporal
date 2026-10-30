@@ -1,0 +1,6 @@
+{
+  "source_commit": "ac60daaf47d2513b41eeff612f0e2758d33e186d",
+  "original_filter_sha256": "7a3f5a6bea1d4d3f0432c83106b28301059d34d4167873642990f7a6fc908702",
+  "original_verifier_sha256": "23a9f59a7adc3fead1acb34dab4782248d0cb1c1b84d21e3d9df69e00d838169",
+  "changes": "Fixed source/inventory/task defaults; current map ancestry commands and representative logs fully recomputed at ac60. Corrected filter and independent verifier require exact reachable graph equality with nonzero map values and unique ordered source retained frontier equal to checkpoint. Two fresh isolated exports regenerate all canonical preflight/result bindings; original commit maps/checkpoint/bundle unchanged. Authentic old verifier regression fixture passes unmapped same-tree and foreign-parent tips; corrected verifier rejects both. Current_source_map and algorithm inventory count rebuilt from current manifest; original investigation objects/gap statements explicitly qualified as frozen c88 provenance."
+}

@@ -1,0 +1,50 @@
+{
+  "version": 2,
+  "status": "reviewed_source_candidate_task3_done_final_pair_validation_and_cutover_open",
+  "consumer": "3f5f613578f2857b738a7792fad08f12b3ea0a41",
+  "framework": "05473210b48c3db862f22051eb7154ce98258f98",
+  "current_consumer": "3f5f613578f2857b738a7792fad08f12b3ea0a41",
+  "current_framework": "05473210b48c3db862f22051eb7154ce98258f98",
+  "current_source": "current-source.json",
+  "framework_at_initial_checks": "ac79114a9ad43a9d9fc2a022d07406d217878760",
+  "initial_checks": {
+    "record": "readiness-initial-3658582.json",
+    "sha256": "c0bb0ed3419e9bc1f59eb62f4b0bb8b96a27f08d463befbf740322aec248f6c5",
+    "consumer_field_in_original_record": "3658582dac5b54c1f68c2eb54a312957c97e05b6",
+    "actual_pair_git_head_at_initial_checks": "4035bb70fdf4c7ef074a8f05a02b19fb458c0b1d",
+    "framework_at_initial_checks": "ac79114a9ad43a9d9fc2a022d07406d217878760",
+    "historical_claims": "Original bytes retained exactly; original metadata/counts/check results are observations at the revisions named there, not reruns on this candidate."
+  },
+  "latest_executed_clean_pair": {
+    "consumer": "3f5f613578f2857b738a7792fad08f12b3ea0a41",
+    "framework": "05473210b48c3db862f22051eb7154ce98258f98",
+    "binding": "current-pair-3f5-054/receipt.json",
+    "binding_sha256": "1cc2b927dbc188775f7cf59ff264ce706bbe30a4175bdb8e0b082312c50e940d",
+    "scope": "Actual current-pair all-target/all-feature check,16unit+7integration controls, Makeguards and automatic parent Go workspace/all3module directories. Both checkouts clean."
+  },
+  "current_source_followup": {
+    "observed_guard_and_docs_candidate": "ec13057227cf2159482a793b227e32653e280057",
+    "final_comment_candidate": "3f5f613578f2857b738a7792fad08f12b3ea0a41",
+    "evidence_manifest": "readiness-followup-ec13057/manifest.json",
+    "evidence_manifest_sha256": "143fd05817c3dc339db2e88a8f565546b448e60b56a4807fde79810e576cb2c2",
+    "assessment": "readiness-followup-ec13057/consumer-followup-assessment.json",
+    "workspace_output": "readiness-followup-ec13057/consumer-parent-workspace.json",
+    "scope": "Four actual missing-sibling failures, red/green shipping script control, four fake-child shell suites, explicit Go parent workspace/module Dirs, static/docs checks; final child changes only a Go package comment."
+  },
+  "proof_rebinding": "proof-rebind-3f5f613.json",
+  "guest_freshness_status": "Expired for new Makefile bytes; root retains canonical guest unchanged, task4 must run current-input freshness.",
+  "review_dispositions": "review-dispositions-3f5f613.json",
+  "limits": [
+    "Broad final gates and currentinput guestfreshness remain task4; sourcecutover/CIactivation remain task5.",
+    "Original main checkout parent has no go.work and was not modified; exact current disposable pair has verified automatic parent discovery.",
+    "Nonblocking repository-escaping Markdown host-guide links assigned task5 final documentation synchronization."
+  ],
+  "previous_executed_clean_pair": {
+    "consumer": "3658582dac5b54c1f68c2eb54a312957c97e05b6",
+    "framework": "05473210b48c3db862f22051eb7154ce98258f98",
+    "binding": "readiness-logs/readiness-054-binding.json",
+    "binding_sha256": "28982df49bbebd5bf2c179569e2863c09d18750d2fce183011ee31ca16bd9b9b",
+    "scope": "All-target/all-feature compilation plus16unit/7integration controls actually executed on this clean365/054 pair."
+  },
+  "review": "review-final-3f5f613/receipt.json"
+}

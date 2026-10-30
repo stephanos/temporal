@@ -1,0 +1,10 @@
+{
+  "success": true,
+  "tests_run": 4,
+  "failures": 0,
+  "errors": 0,
+  "finish_sha256": "d721624c1b3ae7db09030f21a1e71d2c08b21fe6d1e118b8640b4614598ffbcc",
+  "real_cleanup_executed": false,
+  "real_cargo_executed": false,
+  "scope": "tiny fake logs and fake /proc tree only"
+}

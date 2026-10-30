@@ -1,0 +1,11 @@
+   Compiling umpire-testing v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/dev/testing)
+   Compiling umpire-dsl-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/author/dsl/macros)
+    Finished `test` profile [unoptimized] target(s) in 7.67s
+     Running tests/fixtures.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/target/debug/deps/fixtures-8ce12c9c4d1e8341)
+
+running 2 tests
+test parser_refusals::diagnostic_capture_keeps_duplicate_messages_at_distinct_locations ... ok
+test parser_refusals::parser_refusals_preserve_messages_and_authored_locations ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 6 filtered out; finished in 0.01s
+

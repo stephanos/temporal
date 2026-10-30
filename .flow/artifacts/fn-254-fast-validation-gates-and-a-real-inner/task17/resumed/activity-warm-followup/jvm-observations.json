@@ -1,0 +1,48 @@
+{
+  "sample_period_seconds": 1.0,
+  "sampled_jvm_processes": 1,
+  "sampled_concurrent_jvms": 1,
+  "sampled_concurrent_framework_owners": 1,
+  "overlap_receipt": [
+    {
+      "at": 1793075060.7695765,
+      "owners": [
+        {
+          "pid": 756860,
+          "start_time": "2807545",
+          "case": "fixtures",
+          "argv0": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/target/debug/deps/fixtures-198ccb187adf2b77",
+          "fd9": {
+            "device": 29,
+            "inode": 10669829,
+            "target": "/tmp/umpire-validation-1000/jvm.lock"
+          },
+          "meaning": "direct child of actual nextest run controller; case supplied by same ancestry"
+        }
+      ]
+    }
+  ],
+  "sampled_max_individual_jvm_rss_kib": 39168,
+  "sampled_max_summed_jvm_rss_kib": 39168,
+  "meaning": "RSS is sampled observation, not a hard peak or total-memory limit",
+  "discovery_unique": 0,
+  "discovery_heap_cap_observed": null,
+  "model_and_discovery_heap_cap_observed": null,
+  "java_host_lease_capability_and_scope_locators_absent_in_all_samples": true,
+  "java_fd9_reuse_note": "Some JVMs reopen numeric slot9 for sockets; no sampled slot9 matches the host lease dev/inode",
+  "owned_fd9_device_inode": [
+    [
+      29,
+      10669829
+    ]
+  ],
+  "theoretical_policy": "required global4 / JVM group2 / per-check recovery2;4heap-capped checker JVMs",
+  "cleanup": {
+    "live": {},
+    "all_observed_owned_pids_absent": true
+  },
+  "model_heap_cap_observed": null,
+  "discovery_observation_note": "No discovery JVM caught by1s sampler in this run; prior first-use and Kettle observations remain separate. No additional Java probe ran.",
+  "sampled_model_jvm_processes": 0,
+  "sampled_version_probe_processes": 1
+}

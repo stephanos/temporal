@@ -4,7 +4,8 @@
   "claimed_at": null,
   "created_at": "2026-10-25T17:33:37.258746Z",
   "depends_on": [
-    "fn-253-reusable-deadline-countdowns-for-models.1"
+    "fn-253-reusable-deadline-countdowns-for-models.1",
+    "fn-253-reusable-deadline-countdowns-for-models.7"
   ],
   "id": "fn-253-reusable-deadline-countdowns-for-models.9",
   "priority": null,
@@ -12,5 +13,5 @@
   "spec_path": ".flow/tasks/fn-253-reusable-deadline-countdowns-for-models.9.md",
   "status": "todo",
   "title": "Activity World: maximum_attempts as a Finite wrapper",
-  "updated_at": "2026-10-25T17:33:37.258746Z"
+  "updated_at": "2026-10-26T05:38:20.553383Z"
 }

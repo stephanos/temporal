@@ -203,7 +203,7 @@ pub mod activity {
                 }
                 Worker::RespondFailed { retryable } if self.phase == Phase::Started => {
                     if retryable && self.cancel_requested {
-                        self.phase = Phase::Canceled;
+                        self.phase = Phase::Failed;
                         self.clear_terminal();
                     } else if retryable && self.attempt < world.maximum_attempts {
                         self.retry(world);
@@ -300,7 +300,7 @@ pub mod activity {
         #[effect]
         fn expire_attempt(&mut self, world: &World) {
             if self.cancel_requested {
-                self.phase = Phase::Canceled;
+                self.phase = Phase::TimedOut;
                 self.clear_terminal();
             } else if self.attempt < world.maximum_attempts {
                 self.retry(world);
@@ -605,7 +605,7 @@ pub mod activity {
                         || (before.heartbeat_remaining.is_some()
                             && before.heartbeat_remaining.unwrap_or(Remaining { ticks: 0 }).ticks
                                 <= 1))
-                    || (before.cancel_requested && self.phase == Phase::Canceled)
+                    || (before.cancel_requested && self.phase == Phase::TimedOut)
                     || (!before.cancel_requested
                         && before.attempt < world.maximum_attempts
                         && self.phase == Phase::Scheduled)
@@ -674,11 +674,11 @@ pub mod activity {
         }
 
         #[progress]
-        fn pending_retryable_failure_cancels(&self, world: &World) -> LeadsTo {
+        fn pending_retryable_failure_fails(&self, world: &World) -> LeadsTo {
             path![
                 world.asynchronous_cancel && self.phase == Phase::Started && self.cancel_requested,
                 ..=1,
-                self.phase == Phase::Canceled
+                self.phase == Phase::Failed
             ]
             .assuming(only([Worker::RespondFailed { retryable: true }]))
         }

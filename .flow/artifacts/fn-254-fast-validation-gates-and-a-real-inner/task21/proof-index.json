@@ -1,0 +1,29 @@
+{
+  "task": "fn-254.21",
+  "files": {
+    "affected-run.log": "5653b5efc50e3be1bfbcc0251a22807b1706e7ef41eec3660c66c9a06ae9bb9b",
+    "clippy.log": "0f4caa1e86fde5a165cdf8df337b55ee96445c543c08b813c05f8fe4eb2f6343",
+    "fmt.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "forced-after-timings.html": "dbfa0ef3d6bb27894997a9ebdc17f08c86ac1c6627603b69ae797abb459070fa",
+    "forced-after.json": "dab280b0e33e6a3594579e0a8870e2e29ac02d2702861eec62374825914a0f29",
+    "forced-after.log": "35904fee957e6299f2c0a19e544e26e91931c904eaef19b4afa67244774b7f5e",
+    "forced-before-timings.html": "36ef91bad413312c33f1f80218015de1a50ee0f6ac7084f63b6f09ba510feb40",
+    "forced-before.json": "5923e9c7865ff769a84c8087ea58561b406b4415c0e59f9bf22fe61faf6994f8",
+    "forced-before.log": "01dbded8cb793d4fb103571767ab6ef1057f97609a81ea65b55532ddf3bc0478",
+    "identities.json": "2eee7d4836e973b29d3ffd4eef79ce66e054be91646db28e6d498e2fd1b4de8f",
+    "inventory-after-scoped.json": "1eb03aea1b6861bc01f417d09560a2b4906c4b00ac6472f0d6b7ae3f62c22bf0",
+    "inventory-after-scoped.log": "df2f70440170203a635e9841771261595514935081085cbbf144c7c9796eab1f",
+    "inventory-after.json": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "inventory-after.log": "118a397bbf909ed14a09b22748f7d090b8e8a5f4021a3f78f1704734b04d58a3",
+    "inventory-before.json": "0a409977c7846bb5bc8d1f506eee4266d52463e78a121cc5b65108118710f964",
+    "inventory-before.log": "427e002a9e22545c00b1534d1d9461f4257fb2f7d3a95535393d76c0818a11d0",
+    "metadata-after.json": "1ae1c83479c0ec368c96ead4cd28b464386da2e85247971a276ff232f1b5ce59",
+    "metadata-before.json": "a8d3db048bb135d15adb0772adeaaa5b2fcf6b9207bccb5f6056ede8a173151e",
+    "missing-case.log": "6db6f6ed01032b8453ebe97678c3846303a8ca17153f22ea4c14ae02f800868d",
+    "protected-before.json": "28a537cf4af311e7f6f899e6a8cef9ba53f2760f7cef78b097c5280b95534ed6",
+    "retired-target.log": "4eb0b297f1203e16b98219d2b150a1d92e7a08d52b6fcbdda1c36379119ea5cb",
+    "selection-refusals.json": "3dab924059a37062e97a64c09d9c37e07d95233b5c16b50a7a482721d83c7a62",
+    "source-paths.json": "e466814dad57cca9fa197d7ce1194df9389cf4a428f76a66230838faa015a813",
+    "summary.md": "e8b9f92ed391dcf908e60a49923dc794a98fc24feaea3da6ce9234ff61517e5e"
+  }
+}

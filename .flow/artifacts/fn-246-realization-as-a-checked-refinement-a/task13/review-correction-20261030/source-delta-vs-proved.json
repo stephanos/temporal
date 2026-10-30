@@ -1,0 +1,26 @@
+{
+  "source_sha256": {
+    "model/temporal/shared/protocol/activity/README.md": {
+      "proof_sha256": "7b3bf5cc63a0e900b1511f2010add118140587c95118650513974e4e332da47d",
+      "correction_sha256": "2bd261f40713b18094eb38cfe50a3a18a2e1d62728d48ea3f378b419f340a9ee"
+    },
+    "model/temporal/shared/protocol/activity/parameters_tests.rs": {
+      "proof_sha256": "d3a8d95f4e96b6521dce21e24a7510e0ba4e7c8faf4b5898de9152af276f9bdb",
+      "correction_sha256": "b122ce376745638a3353fc1166b04d5d65aa4bb3befcc8adf06a8de17f143da9"
+    },
+    "model/temporal/shared/protocol/activity/tests.rs": {
+      "proof_sha256": "3957106f3090f5da3730e7cc7083267ac9360059c9e75a88f0ab474c79207a7c",
+      "correction_sha256": "66183801d5e1b9b320829fc388cbc80315158fdcd8083c1e6f1a0d018b345d5d"
+    },
+    "model/temporal/shared/protocol/activity/view.rs": {
+      "proof_sha256": "a74aafcd238c188ee5e4e3f23c071d7aeead36c9a305beaaf9f463094d4933ae",
+      "correction_sha256": "4d1ae58add87eeb2e4ea617f9860a1275ea6d26add2877104d849720e0b77326"
+    }
+  },
+  "driver_guest_source_sha256": {
+    "model/dev/xtask/tests/make_paths.rs": {
+      "proof_sha256": "6cbdb1e5c3c471c83d3565a6b0089298e7cc0e224cee1ef67faa48410cb18e80",
+      "correction_sha256": "e34fa349f0ce13e59916b6793f7d5b1d9fa519d27c66d27829ee0c132ae6fe1c"
+    }
+  }
+}

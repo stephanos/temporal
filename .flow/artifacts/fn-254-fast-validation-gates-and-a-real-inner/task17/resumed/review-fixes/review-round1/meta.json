@@ -1,0 +1,81 @@
+{
+  "type": "impl_review_fanout",
+  "focus": "Review task17 production code and tests against its full acceptance: one authoritative mise DAG with native supervision only; nextest and separate doctest equivalence; caller/target/cache/no-auto-install contracts; shared cross-invocation JVM lease and isolated-child descriptor handoff; fail-fast, named simultaneous failures, owned cancellation and reaping; strict lossless exclusive stage/count receipts and child authority; startup controller role frozen across executable replacement. Latest accepted evidence is task17/resumed/final-c5189bd3/summary.json, standalone/summary.json and activity/summary.json, plus controller-admission-replacement. Earlier owner-stop, failed standalone and pending producer records are historical and superseded. Source candidate c5189bd3 has no production changes through this review HEAD. Preserve explicit owner Darwin execution deferral; unadapted Go counts and mixed-control TLC unknowns remain null and task12 owns budget admission, while task8 owns unrelated combined final gates and unmet timing targets. Task257 retirement and future task8 cost hypotheses are context only. Find concrete defects in changed behavior; do not demand excluded downstream milestones or reduced coverage.",
+  "claim_token": null,
+  "id": "fn-254-fast-validation-gates-and-a-real-inner.17",
+  "standalone": false,
+  "base_branch": "c958d34af0",
+  "reviewed_base_sha": "c958d34af0c1f00479ddabf6b207aa2949200201",
+  "reviewed_head_sha": "884794b82546a6a029f8bf4ba2faa98e84afcf8f",
+  "artifact_sha256": "61382aa19bee5f40d3762791b110b99ee3d136381693a19aa5ebc7836d700052",
+  "reservation_id": "69374ba736a74a3cbf466335e820aa75",
+  "rid": "69374ba736a74a3cbf466335e820aa75",
+  "primary_axis": "correctness",
+  "draws": [
+    {
+      "axis": "correctness",
+      "parse_status": {
+        "status": "parsed",
+        "reason": null,
+        "block": null
+      },
+      "backend": "claude",
+      "model": "claude-opus-5-5",
+      "effort": "high",
+      "session_id": "16e2f742-a1a6-4dd0-9b67-9382ca3055aa",
+      "verdict": "NEEDS_WORK",
+      "failed": false,
+      "failure_class": null,
+      "failure_message": null,
+      "exit_code": 0,
+      "started_at": "2026-10-27T18:20:56.426003Z",
+      "finished_at": "2026-10-27T18:28:57.655915Z",
+      "review_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/review-fanout/69374ba736a74a3cbf466335e820aa75/correctness.review.md",
+      "output_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/review-fanout/69374ba736a74a3cbf466335e820aa75/correctness.out.txt"
+    },
+    {
+      "axis": "contracts",
+      "parse_status": {
+        "status": "unparsed",
+        "reason": "invalid-anchor",
+        "block": 1
+      },
+      "backend": "claude",
+      "model": "claude-opus-5-5",
+      "effort": "high",
+      "session_id": "0a6804d4-b083-4182-a638-be7fe1b0181a",
+      "verdict": "NEEDS_WORK",
+      "failed": false,
+      "failure_class": null,
+      "failure_message": null,
+      "exit_code": 0,
+      "started_at": "2026-10-27T18:20:56.426185Z",
+      "finished_at": "2026-10-27T18:25:52.291783Z",
+      "review_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/review-fanout/69374ba736a74a3cbf466335e820aa75/contracts.review.md",
+      "output_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/review-fanout/69374ba736a74a3cbf466335e820aa75/contracts.out.txt"
+    },
+    {
+      "axis": "integration",
+      "parse_status": {
+        "status": "unparsed",
+        "reason": "no-findings-container",
+        "block": null
+      },
+      "backend": "claude",
+      "model": "claude-opus-5-5",
+      "effort": "high",
+      "session_id": "2c9bec3b-9097-463e-ba02-e2f9fc033e7d",
+      "verdict": "SHIP",
+      "failed": false,
+      "failure_class": null,
+      "failure_message": null,
+      "exit_code": 0,
+      "started_at": "2026-10-27T18:20:56.426327Z",
+      "finished_at": "2026-10-27T18:30:09.971391Z",
+      "review_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/review-fanout/69374ba736a74a3cbf466335e820aa75/integration.review.md",
+      "output_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/review-fanout/69374ba736a74a3cbf466335e820aa75/integration.out.txt"
+    }
+  ],
+  "receipt_path": "/tmp/impl-review-receipt-8f37faba39e2-fn-254-fast-validation-gates-and-a-real-inner.17.json",
+  "created_at": "2026-10-27T18:30:10.035935Z"
+}

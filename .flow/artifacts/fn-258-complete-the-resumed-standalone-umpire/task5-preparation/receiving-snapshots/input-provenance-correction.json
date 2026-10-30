@@ -1,0 +1,11 @@
+{
+  "status": "metadata locator correction only",
+  "previous_prepared_manifest_sha256": "f7c701dbd53db23637eafdf55d941f846ecd5373405070c4f6939e98718c2363",
+  "corrected_prepared_manifest_sha256": "a39de496637de89cb759a2c2d527605eec61a8ac402186ee44f8b649319884ef",
+  "prior_input_bindings": "provenance-before-correction/input-bindings.json",
+  "old_manifest_reconstructible_exactly_by_substituting_prior_bindings": true,
+  "new_path_semantics": "path names actual frozen file whose bytes are hashed; historical_original_path separately names superseded live locator",
+  "custody_commit_messages_embed_input_schema_or_manifest_hash": false,
+  "all50_commit_and_tree_oids_unchanged": true,
+  "source_objects_modified": false
+}

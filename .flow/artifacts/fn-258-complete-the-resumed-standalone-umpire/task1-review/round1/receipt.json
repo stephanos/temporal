@@ -1,0 +1,168 @@
+{
+  "base": "05051b84a1",
+  "draws": [
+    {
+      "axis": "correctness",
+      "failed": false,
+      "model": "claude-fable-5-1",
+      "session_id": "fb239416-72a5-4333-b6fd-127935d94c8a",
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "axis": "contracts",
+      "failed": false,
+      "model": "claude-fable-5-1",
+      "session_id": "afa4c6fb-5c03-41af-8756-5f0a65c3311e",
+      "verdict": "SHIP"
+    },
+    {
+      "axis": "integration",
+      "failed": false,
+      "model": "claude-fable-5-1",
+      "session_id": "67828bee-52cb-467f-ab0c-7b0584bca4aa",
+      "verdict": "NEEDS_WORK"
+    }
+  ],
+  "effort": "high",
+  "findings": {
+    "backend": "claude",
+    "baseSha": "05051b84a18f29e8cafbfa6b5ac57981a2aee72f",
+    "headSha": "ba8ede3a6a078d3ede43245a7764c081a5daa1d6",
+    "items": [
+      {
+        "anchor": {
+          "baseSha": "05051b84a18f29e8cafbfa6b5ac57981a2aee72f",
+          "headSha": "ba8ede3a6a078d3ede43245a7764c081a5daa1d6",
+          "path": ".flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/history/verify-export.py",
+          "side": "head",
+          "startLine": 251
+        },
+        "body": "The fn-257 verifier pinned the export tip with `mapping[SOURCE] == checkpoint`. The fn-258 adaptation relaxes this to `mapping[SOURCE] in {checkpoint, None}`. When the source tip is projection-neutral (the actual case here: the ac60 row is zero), nothing bounds the checkpoint to the commit map. The remaining checks are one-directional: every retained mapped commit must be reachable from the checkpoint, and the checkpoint tree must equal the manifest. Concrete failing scenario: in an export clone run `git commit-tree a92db06^{tree} -p a92db06 -m injected` and pass that commit as `--checkpoint`. All 627 retained commits are reachable, the pruned ac60 frontier is still `{a92db06}` with an equal tree, the final tree equals the 1,189-file manifest, and the worktree checks pass. The verifier reports `pass` for a history containing an unmapped commit with arbitrary author, date and message. The README claims the zero row is accepted only \"alongside ... independent neutrality/reachability checks\", but reachability alone does not establish that the exported history consists of exactly the mapped commits. The negative controls (file corruption, missing map row, injected sibling parent) do not exercise this path. The committed evidence itself is sound because a92db06 is the mapped image of 192dd9ce (commit-map row 736), so this is a verifier gap rather than a bad artifact.",
+        "classification": "introduced",
+        "confidence": 75,
+        "firstSeenReceiptId": "review-4ca043158e1e28b63f652c46565a225da0a54d895ed8b109b22feafaf48703e0",
+        "id": "finding-39d40696bcb2460191bf94a82dd90ab1",
+        "lastSeenReceiptId": "review-4ca043158e1e28b63f652c46565a225da0a54d895ed8b109b22feafaf48703e0",
+        "ordinal": 1,
+        "rIds": [
+          "R2"
+        ],
+        "severity": "P1",
+        "status": "open",
+        "suggestion": "After building `export_graph`, add `require(set(export_graph) == {new for new in mapping.values() if new}, \"export-graph-bounded\", ...)`, and when `mapping[SOURCE]` is None additionally require that the checkpoint is a member of the pruned source's computed retained frontier. Re-run verification and add a negative control for an unmapped tip commit.",
+        "title": "The fn-257 verifier pinned the export tip with `mapping[SOURCE] == checkpoint`"
+      },
+      {
+        "anchor": {
+          "baseSha": "05051b84a18f29e8cafbfa6b5ac57981a2aee72f",
+          "headSha": "ba8ede3a6a078d3ede43245a7764c081a5daa1d6",
+          "path": ".flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/history/prepare-history-map.py",
+          "side": "head",
+          "startLine": 31
+        },
+        "body": "The rebinding script recomputes `count`, `sha256_sorted_lf_terminated` and `members` for every ancestry set but leaves each `definition_command` untouched, so the committed `history-map.json` now records `git rev-list c88fdc55...` at line 159 next to a count of 7261, which is ac60's ancestry (c88's is 7149). The same stale revision appears in all thirteen `D_*` definitions (lines 164-224) and in `representative_history[].command` (line 2063), whose `history_commit_count` and hashes were never recomputed at ac60. A reader reproducing the map by its own recorded commands gets a mismatch on every set.",
+        "classification": "introduced",
+        "confidence": 100,
+        "firstSeenReceiptId": "review-4ca043158e1e28b63f652c46565a225da0a54d895ed8b109b22feafaf48703e0",
+        "id": "finding-a5b8092454a43495383626c7f4a75ee6",
+        "lastSeenReceiptId": "review-4ca043158e1e28b63f652c46565a225da0a54d895ed8b109b22feafaf48703e0",
+        "ordinal": 5,
+        "rIds": [
+          "R2"
+        ],
+        "severity": "P2",
+        "status": "open",
+        "suggestion": "In `prepare-history-map.py`, rewrite each `definition_command` with `SOURCE` and either recompute the representative histories at ac60 or record explicitly that they are c88-bound provenance. Regenerate `history-map.json` and `history-map-reproduced.json`; the verifier reads neither field, so hashes bound into `preflight.json` and `verification.json` will change but the proof logic will not.",
+        "title": "The rebinding script recomputes `count`, `sha256_sorted_lf_terminated` and `members` for every ancestry set but leaves each `definition_command` untouched, so the committed `history-map"
+      },
+      {
+        "anchor": {
+          "baseSha": "05051b84a18f29e8cafbfa6b5ac57981a2aee72f",
+          "headSha": "ba8ede3a6a078d3ede43245a7764c081a5daa1d6",
+          "path": ".flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/history/isolation-controls.json",
+          "side": "head",
+          "startLine": 5
+        },
+        "body": "The `source-refused` control's diagnostic is \"Reports must remain outside the filtered clone\", i.e. it tripped the report-dir guard at `export-history.py:313`, not the \"original repository cannot be filtered\" guard at line 80. README states this control proves source filtering is refused; it proves a refusal, but the identity guard was never reached. The invocation arguments are not recorded.",
+        "classification": "introduced",
+        "confidence": 100,
+        "firstSeenReceiptId": "review-4ca043158e1e28b63f652c46565a225da0a54d895ed8b109b22feafaf48703e0",
+        "id": "finding-4152c065e1cc26083e14e5c5fb6214ac",
+        "lastSeenReceiptId": "review-4ca043158e1e28b63f652c46565a225da0a54d895ed8b109b22feafaf48703e0",
+        "ordinal": 4,
+        "rIds": [
+          "R2"
+        ],
+        "severity": "P3",
+        "status": "open",
+        "suggestion": "Re-run with the report dir outside the source root so line 80 is the guard that fires, and record the arguments in the control entry.",
+        "title": "The `source-refused` control's diagnostic is \"Reports must remain outside the filtered clone\", i"
+      },
+      {
+        "anchor": {
+          "baseSha": "05051b84a18f29e8cafbfa6b5ac57981a2aee72f",
+          "headSha": "ba8ede3a6a078d3ede43245a7764c081a5daa1d6",
+          "path": ".flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/source/candidate-ledger.py",
+          "side": "head",
+          "startLine": 125
+        },
+        "body": "Dirty paths observed in the standalone `umpire` repository are assigned ownership `framework` without being inserted into `path_mappings`. The verifier at line 229 then rejects every such path with \"candidate path lacks ownership mapping\". Any future `--capture` taken while the standalone worktree is dirty produces a ledger that fails its own verification. The current run passed only because the standalone checkout was clean at observation time.",
+        "classification": "introduced",
+        "confidence": 75,
+        "firstSeenReceiptId": "review-4ca043158e1e28b63f652c46565a225da0a54d895ed8b109b22feafaf48703e0",
+        "id": "finding-d47577dccde77aa0afa60ba269dc4404",
+        "lastSeenReceiptId": "review-4ca043158e1e28b63f652c46565a225da0a54d895ed8b109b22feafaf48703e0",
+        "ordinal": 2,
+        "rIds": [
+          "R1"
+        ],
+        "severity": "P3",
+        "status": "open",
+        "suggestion": "Route standalone dirty paths through `ownership()` with a framework rule, or skip the mapping check for non-temporal entries.",
+        "title": "Dirty paths observed in the standalone `umpire` repository are assigned ownership `framework` without being inserted into `path_mappings`"
+      },
+      {
+        "anchor": {
+          "baseSha": "05051b84a18f29e8cafbfa6b5ac57981a2aee72f",
+          "headSha": "ba8ede3a6a078d3ede43245a7764c081a5daa1d6",
+          "path": ".flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/source/candidate-ledger.py",
+          "side": "head",
+          "startLine": 146
+        },
+        "body": "`for-each-ref --contains <original_head>` runs with `check=True`. If an original candidate's head object has been pruned, this raises `CalledProcessError` and aborts the capture instead of recording the candidate as missing with its recovery gap. Lines 115 and 223 are similarly inconsistent: capture tolerates a missing merge-base, verification does not, so an orphan branch would crash verification without a report.",
+        "classification": "introduced",
+        "confidence": 75,
+        "firstSeenReceiptId": "review-4ca043158e1e28b63f652c46565a225da0a54d895ed8b109b22feafaf48703e0",
+        "id": "finding-4b4152750e3508a3aa6ce5e67cba450a",
+        "lastSeenReceiptId": "review-4ca043158e1e28b63f652c46565a225da0a54d895ed8b109b22feafaf48703e0",
+        "ordinal": 3,
+        "rIds": [
+          "R1"
+        ],
+        "severity": "P3",
+        "status": "open",
+        "suggestion": "Guard the `--contains` call on `original_head_object_present` and make the verify-side merge-base call `check=False` with an explicit error entry.",
+        "title": "for-each-ref --contains <original_head>` runs with `check=True"
+      }
+    ],
+    "reviewKind": "implementation",
+    "round": 1,
+    "schemaVersion": 1,
+    "sourceReceiptId": "review-4ca043158e1e28b63f652c46565a225da0a54d895ed8b109b22feafaf48703e0"
+  },
+  "focus": "Task1 only: renewed immutable inventory, complete candidate/recovery ownership, isolated refreshed export/map and independent preservation/equivalence evidence. Product/standalone/consumer behavior and task2-5 acceptance are explicitly outside this review. Review actual script/evidence relationships, failure controls, source mutation safety and all R1/R2 task1 acceptance.",
+  "id": "fn-258-complete-the-resumed-standalone-umpire.1",
+  "introduced_count": 5,
+  "mode": "claude",
+  "model": "claude-fable-5-1",
+  "pre_existing_count": 0,
+  "review": "## Issue 1\n- **Severity**: P1\n- **Title**: The fn-257 verifier pinned the export tip with `mapping[SOURCE] == checkpoint`\n- **Confidence**: 75\n- **Classification**: introduced\n- **Problem**: The fn-257 verifier pinned the export tip with `mapping[SOURCE] == checkpoint`. The fn-258 adaptation relaxes this to `mapping[SOURCE] in {checkpoint, None}`. When the source tip is projection-neutral (the actual case here: the ac60 row is zero), nothing bounds the checkpoint to the commit map. The remaining checks are one-directional: every retained mapped commit must be reachable from the checkpoint, and the checkpoint tree must equal the manifest. Concrete failing scenario: in an export clone run `git commit-tree a92db06^{tree} -p a92db06 -m injected` and pass that commit as `--checkpoint`. All 627 retained commits are reachable, the pruned ac60 frontier is still `{a92db06}` with an equal tree, the final tree equals the 1,189-file manifest, and the worktree checks pass. The verifier reports `pass` for a history containing an unmapped commit with arbitrary author, date and message. The README claims the zero row is accepted only \"alongside ... independent neutrality/reachability checks\", but reachability alone does not establish that the exported history consists of exactly the mapped commits. The negative controls (file corruption, missing map row, injected sibling parent) do not exercise this path. The committed evidence itself is sound because a92db06 is the mapped image of 192dd9ce (commit-map row 736), so this is a verifier gap rather than a bad artifact.\n- **Suggestion**: After building `export_graph`, add `require(set(export_graph) == {new for new in mapping.values() if new}, \"export-graph-bounded\", ...)`, and when `mapping[SOURCE]` is None additionally require that the checkpoint is a member of the pruned source's computed retained frontier. Re-run verification and add a negative control for an unmapped tip commit.\n- **File:Line**: .flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/history/verify-export.py:251\n- **R-IDs**: R2\n\n## Issue 2\n- **Severity**: P3\n- **Title**: Dirty paths observed in the standalone `umpire` repository are assigned ownership `framework` without being inserted into `path_mappings`\n- **Confidence**: 75\n- **Classification**: introduced\n- **Problem**: Dirty paths observed in the standalone `umpire` repository are assigned ownership `framework` without being inserted into `path_mappings`. The verifier at line 229 then rejects every such path with \"candidate path lacks ownership mapping\". Any future `--capture` taken while the standalone worktree is dirty produces a ledger that fails its own verification. The current run passed only because the standalone checkout was clean at observation time.\n- **Suggestion**: Route standalone dirty paths through `ownership()` with a framework rule, or skip the mapping check for non-temporal entries.\n- **File:Line**: .flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/source/candidate-ledger.py:125\n- **R-IDs**: R1\n\n## Issue 3\n- **Severity**: P3\n- **Title**: `for-each-ref --contains <original_head>` runs with `check=True`\n- **Confidence**: 75\n- **Classification**: introduced\n- **Problem**: `for-each-ref --contains <original_head>` runs with `check=True`. If an original candidate's head object has been pruned, this raises `CalledProcessError` and aborts the capture instead of recording the candidate as missing with its recovery gap. Lines 115 and 223 are similarly inconsistent: capture tolerates a missing merge-base, verification does not, so an orphan branch would crash verification without a report.\n- **Suggestion**: Guard the `--contains` call on `original_head_object_present` and make the verify-side merge-base call `check=False` with an explicit error entry.\n- **File:Line**: .flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/source/candidate-ledger.py:146\n- **R-IDs**: R1\n\n## Issue 4\n- **Severity**: P3\n- **Title**: The `source-refused` control's diagnostic is \"Reports must remain outside the filtered clone\", i\n- **Confidence**: 100\n- **Classification**: introduced\n- **Problem**: The `source-refused` control's diagnostic is \"Reports must remain outside the filtered clone\", i.e. it tripped the report-dir guard at `export-history.py:313`, not the \"original repository cannot be filtered\" guard at line 80. README states this control proves source filtering is refused; it proves a refusal, but the identity guard was never reached. The invocation arguments are not recorded.\n- **Suggestion**: Re-run with the report dir outside the source root so line 80 is the guard that fires, and record the arguments in the control entry.\n- **File:Line**: .flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/history/isolation-controls.json:5\n- **R-IDs**: R2\n\n## Issue 5\n- **Severity**: P2\n- **Title**: The rebinding script recomputes `count`, `sha256_sorted_lf_terminated` and `members` for every ancestry set but leaves each `definition_command` untouched, so the committed `history-map\n- **Confidence**: 100\n- **Classification**: introduced\n- **Problem**: The rebinding script recomputes `count`, `sha256_sorted_lf_terminated` and `members` for every ancestry set but leaves each `definition_command` untouched, so the committed `history-map.json` now records `git rev-list c88fdc55...` at line 159 next to a count of 7261, which is ac60's ancestry (c88's is 7149). The same stale revision appears in all thirteen `D_*` definitions (lines 164-224) and in `representative_history[].command` (line 2063), whose `history_commit_count` and hashes were never recomputed at ac60. A reader reproducing the map by its own recorded commands gets a mismatch on every set.\n- **Suggestion**: In `prepare-history-map.py`, rewrite each `definition_command` with `SOURCE` and either recompute the representative histories at ac60 or record explicitly that they are c88-bound provenance. Regenerate `history-map.json` and `history-map-reproduced.json`; the verifier reads neither field, so hashes bound into `preflight.json` and `verification.json` will change but the proof logic will not.\n- **File:Line**: .flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/history/prepare-history-map.py:31\n- **R-IDs**: R2\n\n```json\n{\"classification_counts\": {\"introduced\": 5, \"pre_existing\": 0}, \"unaddressed\": [], \"suppressed_count\": {}}\n```\n\n<verdict>NEEDS_WORK</verdict>\n",
+  "review_reservation_id": "57d5dfcaae9747caa1a0c48efea27843",
+  "rid": "57d5dfcaae9747caa1a0c48efea27843",
+  "session_id": "fb239416-72a5-4333-b6fd-127935d94c8a",
+  "spec": "claude:claude-fable-5-1:high",
+  "timestamp": "2026-10-28T05:30:41.886190Z",
+  "type": "impl_review",
+  "unaddressed": [],
+  "verdict": "NEEDS_WORK"
+}

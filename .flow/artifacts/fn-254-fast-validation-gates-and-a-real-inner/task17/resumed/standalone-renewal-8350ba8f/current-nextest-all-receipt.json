@@ -1,0 +1,20 @@
+{
+  "command": [
+    "mise",
+    "exec",
+    "--",
+    "cargo",
+    "nextest",
+    "list",
+    "--workspace",
+    "--locked",
+    "--message-format",
+    "json",
+    "--run-ignored",
+    "all"
+  ],
+  "cwd": "/tmp/umpire-fn25417-standalone-8350ba8f/proof-zBSpnB/framework",
+  "exit": 0,
+  "seconds": 5.523568168995553,
+  "stdout_sha256": "660b53c2977fd518f89344e4c6cc747ffa8e7b045de45d1ccf706628df129569"
+}

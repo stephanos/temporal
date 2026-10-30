@@ -1,0 +1,33 @@
+{
+  "source": "05473210b48c3db862f22051eb7154ce98258f98",
+  "source_tree": "46829511b6d582b40f3fa5095f42bdf980c7d466",
+  "cwd": "/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout",
+  "argv": [
+    "make",
+    "check"
+  ],
+  "environment": {
+    "CARGO_BUILD_JOBS": "1",
+    "CARGO_INCREMENTAL": "0",
+    "NEXTEST_TEST_THREADS": "4",
+    "RUST_TEST_THREADS": "1",
+    "GOMAXPROCS": "1",
+    "GOFLAGS": "-p=1",
+    "CGO_ENABLED": "0",
+    "MISE_AUTO_INSTALL": "false",
+    "MISE_EXEC_AUTO_INSTALL": "false",
+    "MISE_NOT_FOUND_AUTO_INSTALL": "false",
+    "MISE_TRUSTED_CONFIG_PATHS": "/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321",
+    "CARGO_TARGET_DIR": "/home/agent/.cache/codex-build/fn258-standalone-0547321"
+  },
+  "backend_mode": "default (UMPIRE_BACKENDS and UMPIRE_APALACHE unset)",
+  "free_before_bytes": 55984750592,
+  "reserved_additional_gib_estimate": 2,
+  "target_existed_before": true,
+  "log": "make-check.log",
+  "exit_code": 0,
+  "seconds": 272.948165505004,
+  "log_sha256": "826ba85dc219b58d47685d6c94e055c464c7085bdad43021637f6f161f33d648",
+  "free_after_bytes": 56060030976,
+  "source_status_after": ""
+}

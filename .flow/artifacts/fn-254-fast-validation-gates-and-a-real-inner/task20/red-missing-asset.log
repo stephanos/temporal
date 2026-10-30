@@ -1,0 +1,22 @@
+   Compiling umpire-guest-driver v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/dev/guest-driver)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.20s
+     Running tests/main.rs (/home/agent/.cache/codex-build/fn25420-mold/debug/deps/main-f2fa5674b583bda5)
+
+running 1 test
+test linker::linux_linker_is_scoped_and_requires_the_pinned_tool ... FAILED
+
+failures:
+
+---- linker::linux_linker_is_scoped_and_requires_the_pinned_tool stdout ----
+
+thread 'linker::linux_linker_is_scoped_and_requires_the_pinned_tool' (380714) panicked at dev/guest-driver/tests/linker.rs:48:5:
+assertion failed: !command().status()?.success()
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    linker::linux_linker_is_scoped_and_requires_the_pinned_tool
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 33 filtered out; finished in 0.00s
+
+error: test failed, to rerun pass `-p umpire-guest-driver --test main`

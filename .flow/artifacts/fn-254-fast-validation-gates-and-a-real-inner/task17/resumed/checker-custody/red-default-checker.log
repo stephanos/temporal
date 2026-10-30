@@ -1,0 +1,24 @@
+   Compiling umpire-backend-process v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-supervision-resumed/model/umpire/backends/process)
+    Finished `test` profile [unoptimized] target(s) in 0.95s
+     Running tests/process.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/target/debug/deps/process-dd3f0d78e1007fbe)
+
+running 2 tests
+test checker_inheritance_is_optional_and_invalid_present_custody_refuses_before_launch ... 
+thread 'checker_inheritance_is_optional_and_invalid_present_custody_refuses_before_launch' (671604) panicked at backends/process/tests/process.rs:772:9:
+assertion `left == right` failed: malformed: 
+  left: true
+ right: false
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+FAILED
+test default_checker_guardian_retains_inherited_custody_without_delegating_to_target ... Error: Refusal("Checker guardian lost inherited lease custody: No such file or directory (os error 2)")
+FAILED
+
+failures:
+
+failures:
+    checker_inheritance_is_optional_and_invalid_present_custody_refuses_before_launch
+    default_checker_guardian_retains_inherited_custody_without_delegating_to_target
+
+test result: FAILED. 0 passed; 2 failed; 0 ignored; 0 measured; 23 filtered out; finished in 0.05s
+
+error: test failed, to rerun pass `-p umpire-backend-process --test process`

@@ -1,0 +1,30 @@
+{
+  "result": "pass",
+  "controls": [
+    {
+      "name": "file-bytes",
+      "refused": true
+    },
+    {
+      "name": "file-mode",
+      "refused": true
+    },
+    {
+      "name": "symlink-target",
+      "refused": true
+    },
+    {
+      "name": "missing-file",
+      "refused": true
+    },
+    {
+      "name": "cache-appears",
+      "refused": true
+    },
+    {
+      "name": "archive-removed",
+      "refused": true
+    }
+  ],
+  "source_mutations": false
+}

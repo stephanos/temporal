@@ -1,0 +1,363 @@
+{
+  "policy_observed_at": "2026-10-26T16:52:00.831679+00:00",
+  "user_approval": "yes do it: one coordinator, up to four implementation workers, separate review lane; starting point to measure",
+  "policy": {
+    "coordinators": 1,
+    "max_implementation_workers": 4,
+    "max_active_review_rounds": 1,
+    "integration_owner": "coordinator",
+    "source_ownership": "disjoint worker lanes; coordinator admits any nested implementation delegation"
+  },
+  "baseline": {
+    "verified_flow_closures": [
+      {
+        "id": "fn-257.1",
+        "status": "done",
+        "claimed_at": "2026-10-26T15:23:45.996133Z",
+        "done_observed_at": "2026-10-26T15:35:48.997947Z",
+        "claim_to_done_seconds": 723.001814
+      },
+      {
+        "id": "fn-257.2",
+        "status": "done",
+        "claimed_at": "2026-10-26T15:38:25.434531Z",
+        "done_observed_at": "2026-10-26T16:50:32.250127Z",
+        "claim_to_done_seconds": 4326.815596
+      }
+    ],
+    "observed_initial_review_rounds": [
+      {
+        "rid": "4797c20787d149f8bc70dbd71c612620",
+        "task": "fn-257-extract-the-standalone-umpire.1",
+        "started_at": "2026-10-26T15:30:50.612716+00:00",
+        "finished_at": "2026-10-26T15:34:50.447069+00:00",
+        "wall_seconds": 239.834353,
+        "axes": 3
+      },
+      {
+        "rid": "8538daa56dc34ce791b7aa6676295cce",
+        "task": "fn-257-extract-the-standalone-umpire.2",
+        "started_at": "2026-10-26T16:18:17.329685+00:00",
+        "finished_at": "2026-10-26T16:22:37.926940+00:00",
+        "wall_seconds": 260.597255,
+        "axes": 3
+      }
+    ],
+    "attribution": "Historical mixed-scope task observations; not a post-policy speedup comparison. Preparation before claim and exact coordinator/worker time are not reconstructed.",
+    "worker_time_seconds": null,
+    "rework_time_seconds": null
+  },
+  "blockers_observed": [
+    {
+      "kind": "validation_hold",
+      "observed_at": "2026-10-26T16:52:00.831679+00:00",
+      "impact": "runtime/guest/consumer gates cannot establish completion while held"
+    },
+    {
+      "kind": "destination_access",
+      "observed_at": "2026-10-26T16:52:00.831679+00:00",
+      "impact": "CLI401 and connected-app SAML403 keep destination contents/permissions unknown"
+    }
+  ],
+  "events": [
+    {
+      "at": "2026-10-26T16:52:00.831679+00:00",
+      "type": "policy_applied"
+    },
+    {
+      "at": "2026-10-26T16:59:10.501164+00:00",
+      "type": "implementation_dispatched",
+      "agent": "/root/impl_native_probe",
+      "task": "fn-257.4",
+      "scope": "retained native-symbolic probe sibling paths",
+      "mode": "provisional source only; validation held"
+    },
+    {
+      "at": "2026-10-26T17:27:25.731221+00:00",
+      "type": "source_handoff_observed",
+      "agent": "/root/impl_native_probe",
+      "task": "fn-257.4",
+      "scope": "native-symbolic sibling paths",
+      "validated": false,
+      "timing": "observation time only; execution start/end not reconstructed"
+    },
+    {
+      "at": "2026-10-26T17:27:25.731221+00:00",
+      "type": "source_handoff_observed",
+      "agent": "/root/impl_standalone_docs",
+      "task": "fn-257.3",
+      "scope": "portable root documentation and CI; followup corrected Apalache mode",
+      "validated": false,
+      "timing": "observation time only; execution start/end not reconstructed"
+    },
+    {
+      "at": "2026-10-26T17:27:25.731221+00:00",
+      "type": "source_handoff_observed",
+      "agent": "/root/impl_standalone_go",
+      "task": "fn-257.3",
+      "scope": "canonical Go identities and generic generation",
+      "validated": false,
+      "timing": "observation time only; execution start/end not reconstructed"
+    },
+    {
+      "at": "2026-10-26T17:27:25.731221+00:00",
+      "type": "source_handoff_observed",
+      "agent": "/root/impl_multirepo_quick",
+      "task": "fn-257.7",
+      "scope": "multi-repository quick sources and regression cases",
+      "validated": false,
+      "timing": "observation time only; execution start/end not reconstructed"
+    },
+    {
+      "at": "2026-10-26T17:27:25.731221+00:00",
+      "type": "source_handoff_observed",
+      "agent": "/root/impl_standalone_go",
+      "scope": "Temporal generation: one generated import changed",
+      "validated": false
+    },
+    {
+      "at": "2026-10-26T17:27:25.731221+00:00",
+      "type": "implementation_active_observed",
+      "agent": "/root/extraction_portability",
+      "scope": "paired CI interface source preparation",
+      "validated": false
+    },
+    {
+      "at": "2026-10-26T17:27:25.731221+00:00",
+      "type": "review_active_observed",
+      "agent": "/root/standalone_source_review",
+      "scope": "frozen standalone f7b42ce25558344ea2d38f1e05d002259427a8f6",
+      "validated": false
+    },
+    {
+      "at": "2026-10-26T17:30:25.953507+00:00",
+      "type": "source_review_handoff_observed",
+      "agent": "/root/standalone_source_review",
+      "head": "f7b42ce25558344ea2d38f1e05d002259427a8f6",
+      "findings": 0,
+      "validated": false
+    },
+    {
+      "at": "2026-10-26T17:30:25.953507+00:00",
+      "type": "source_handoff_observed",
+      "agent": "/root/extraction_portability",
+      "scope": "inactive paired CI interface and activation map",
+      "validated": false
+    },
+    {
+      "at": "2026-10-26T17:30:25.953507+00:00",
+      "type": "review_active_observed",
+      "agent": "/root/paired_source_review",
+      "head": "91547f57ec192d576a13056ce570c8bf47e441bf",
+      "validated": false
+    },
+    {
+      "at": "2026-10-26T17:31:04.871440+00:00",
+      "type": "source_review_handoff_observed",
+      "agent": "/root/paired_source_review",
+      "head": "91547f57ec192d576a13056ce570c8bf47e441bf",
+      "findings": 0,
+      "validated": false
+    },
+    {
+      "at": "2026-10-26T20:20:24.285100+00:00",
+      "type": "validation_hold_lifted",
+      "authorization": "User: no new validation yet - is void now",
+      "next_scope": "focused migration validation; publication still access-blocked"
+    },
+    {
+      "at": "2026-10-26T20:20:24.285100+00:00",
+      "type": "validation_dispatched",
+      "agent": "/root/impl_multirepo_quick",
+      "task": "fn-257.7",
+      "scope": "focused xtask quick unit controls; isolated bounded target"
+    },
+    {
+      "at": "2026-10-26T21:24:43.363970+00:00",
+      "type": "verified_task_closure",
+      "task": "fn-254.6",
+      "source_head": "cdfd3720c83bcdbcb836f77b36326e255e01ddc2",
+      "status": "done",
+      "claimed_at": "2026-10-26T01:17:29.095031Z",
+      "done_at": "2026-10-26T21:24:07.324271Z",
+      "claim_to_done_seconds": 72398.22924,
+      "attribution": "Historical claim spans holds, source preparation and other sessions; not active worker time or causal concurrency speedup.",
+      "reviews": [
+        {
+          "rid": "ab3fbc55f0034d1faac0c1324866ec36",
+          "result": "NEEDS_WORK",
+          "max_draw_seconds": 674.8
+        },
+        {
+          "result": "SHIP",
+          "kind": "single fix re-review",
+          "wall_seconds": null
+        },
+        {
+          "rid": "ad8f5a8e4cd5472bbdf4d93191c2be92",
+          "result": "SHIP",
+          "max_draw_seconds": 162.9
+        }
+      ],
+      "source_rework": "Cache configuration publication/identity/diagnostics and quick source ownership/metadata/docs selection corrected, with red-green controls.",
+      "current_shipping_workload": {
+        "consumers": 6,
+        "cold_seconds": 254.858,
+        "warm_seconds": 129.783,
+        "target_seconds": 60,
+        "target_met": false
+      },
+      "deferred": "Full joined gates and final measurements remain fn-254.8."
+    },
+    {
+      "at": "2026-10-26T22:37:19.097771+00:00",
+      "type": "verified_task_closure",
+      "task": "fn-255.1",
+      "status": "done",
+      "claimed_at": "2026-10-26T20:56:30.471681Z",
+      "done_at": "2026-10-26T22:04:10.362826Z",
+      "claim_to_done_seconds": 4059.891145,
+      "closure_commit": "5d5d498f0927daec44186bf177a4751575bcd1b1",
+      "source_checkpoint": "dddeead063",
+      "reviews": [
+        {
+          "rid": "323a48392a034ca18d569d7b5e1e6da0",
+          "result": "SHIP",
+          "max_draw_seconds": 379.1
+        },
+        {
+          "rid": "5ed27c0c9b114641b6b94d17883916c8",
+          "result": "SHIP",
+          "max_draw_seconds": 165.1
+        }
+      ],
+      "verification": "141 archive members and6graph pairs independently checked; fresh no-build preflight/process controls; runtime evidence source-projected.",
+      "source_rework": "Uncompiled proposal corrected, complete batching/shrinking/refusal/outcome controls measured; six provenance/budget/preflight follow-ups addressed.",
+      "attribution": "Observed claim-to-done spans source work, validation, other sessions and review waits; not isolated worker time or causal concurrency speedup.",
+      "deferred": "Maintained harness and gate/budget activation remain later tasks.",
+      "integration_commit": "142f7de90cfc4c6d79427aa74e0141235c446509"
+    },
+    {
+      "at": "2026-10-26T23:49:14.245503+00:00",
+      "type": "verified_task_closure",
+      "task": "fn-254.5",
+      "status": "done",
+      "source_head": "85c0a39f8a",
+      "claimed_at": "2026-10-26T21:32:12.050233+00:00",
+      "done_at": "2026-10-26T23:48:44.483151+00:00",
+      "claim_to_done_seconds": 8192.432918,
+      "reviews": [
+        {
+          "rid": "81b94a664e4b4012aace6c1e0fa7d73a",
+          "result": "SHIP",
+          "axes": 3,
+          "max_draw_seconds": 690.6,
+          "accepted_followups": 4
+        },
+        {
+          "rid": "6123c05d6b554f9fb57748df542d09d3",
+          "result": "SHIP",
+          "axes": 1,
+          "max_draw_seconds": 214.4,
+          "introduced_findings": 0
+        }
+      ],
+      "source_rework": "Preserved lower caller thread limits and truthful standalone receipts; restored UI glob/update repair; removed duplicate Temporal policy; failing old-source controls retained.",
+      "verification": "Required framework83pass/1ignored,422fresh TLC; Temporalactivity28fresh TLC; complete compiler coverage and strict focused checks;119dependencytuples,202snapshots andbothlocks unchanged.",
+      "attribution": "Mixed source/check/review time, including read-only successor research; no causal concurrency or cache speedup attribution.",
+      "deferred": "Cross-invocation admission/DAG.17, counters/budgets.12 and finaljoined gates/measurements.8."
+    },
+    {
+      "at": "2026-10-30T00:48:21.830082Z",
+      "type": "verified_task_closure",
+      "task": "fn-254.21",
+      "status": "done",
+      "source_head": "7e433489e9",
+      "claimed_at": "2026-10-30T00:35:58.414667Z",
+      "done_at": "2026-10-30T00:48:21.830082Z",
+      "claim_to_done_seconds": 743.415415,
+      "reviews": [
+        {
+          "rid": "9317bd92f700472f9897d8e797ddac96",
+          "result": "SHIP",
+          "axes": 3,
+          "max_draw_seconds": 278.5,
+          "introduced_actionable_findings": 0
+        }
+      ],
+      "verification": "393-case bijection; 328 protected hashes; four byte-identical relocations; 95 affected tests, focused fmt/strict Clippy pass.",
+      "source_rework": "No source rework. Compact contracts FYI parser format repaired in merge without verdict changes.",
+      "attribution": "Mixed implementation, shared-target wait and review time; build timings incomparable and no causal speedup attributed.",
+      "deferred": "Full/backend-mode matrix and final gates fn-254.8; paused budgets .12 unchanged."
+    },
+    {
+      "at": "2026-10-30T01:17:32.299169Z",
+      "type": "verified_task_closure",
+      "task": "fn-254.20",
+      "status": "done",
+      "source_head": "827b76300d",
+      "claimed_at": "2026-10-30T00:35:58.141562Z",
+      "done_at": "2026-10-30T01:17:32.299169Z",
+      "claim_to_done_seconds": 2494.157607,
+      "reviews": [
+        {
+          "rid": "df6dadca15d44fa6810ab3c9f2537478",
+          "result": "NEEDS_WORK",
+          "axes": 3,
+          "max_draw_seconds": 461.4,
+          "retained_findings": 1
+        },
+        {
+          "session_id": "8441d095-3d39-4fa4-98a8-77420a65aeee",
+          "result": "SHIP",
+          "axes": 1,
+          "duration_seconds": null
+        }
+      ],
+      "source_rework": "Explicit Make Cargo config removes43-unit fingerprint flips; final reviewer-requested canonical test fixture root verified with symlink TMPDIR red/green.",
+      "verification": "39 guest-driver tests,5 Temporal integration,symlink control,strict scoped lint/fmt,standalone bootstrap,WASI host units,guest byte/sidecar invariance and native/WASM parity pass.",
+      "attribution": "Matched link-only medians0.230219s vs0.081408s; no whole-build or cross-host speedup attribution. Claim-to-done includes queue/review/rework while countdown work ran independently.",
+      "deferred": "Full current-input/combined/standalone gates .8; unchanged broad lint failures retained; cache .19 blocked and budgets .12 paused."
+    },
+    {
+      "at": "2026-10-30T01:24:52.880271Z",
+      "type": "verified_task_closure",
+      "task": "fn-253.5",
+      "status": "done",
+      "source_head": "3d10f5abfb",
+      "claimed_at": "2026-10-30T00:35:58.786001Z",
+      "done_at": "2026-10-30T01:24:52.880271Z",
+      "claim_to_done_seconds": 2934.09427,
+      "reviews": [
+        {
+          "rid": "12bf50f66d284029a4907ecf308fbc61",
+          "result": "SHIP",
+          "axes": 3,
+          "max_draw_seconds": 397.1,
+          "accepted_followups": 1
+        },
+        {
+          "rid": "b11a07b1efbe4d179d9507228245a916",
+          "result": "SHIP",
+          "axes": 1,
+          "max_draw_seconds": 76.1,
+          "introduced_actionable_findings": 0
+        }
+      ],
+      "source_rework": "Display-only nominal Debug reconstruction; narrow documented source-mutant import exception and exact replacement helper reuse.",
+      "verification": "Required fixture3, testing-lib13, DSL-boundary7; four required mutants freshly reverified after helper reuse; strict focused Clippy/fmt pass.",
+      "attribution": "Includes source work, priority waits, compilation and sequential review queue; no causal speedup attribution.",
+      "deferred": "Activity cleanup/pattern/adoption/final gates retain listed dependencies and source ownership."
+    },
+    {
+      "at": "2026-10-30T00:40:10.402928+00:00",
+      "type": "verified_tooling_blocker",
+      "task": "fn-254.19",
+      "status": "blocked",
+      "counts_as_closure": false,
+      "evidence": ".flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/task19/measurements.json",
+      "reason": "Pinned sccache Rust cross-checkout normalization unsupported; actual1.99.1 A/B/A cache control retains two checkout misses and same-checkout hit. No narrowed substitute implemented."
+    }
+  ],
+  "measurement_limits": "Source handoffs are work-in-progress, not verified closures. Mixed scope, unknown exact worker times and validation/access blockers prevent a causal concurrency speedup estimate."
+}

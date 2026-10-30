@@ -1,0 +1,21 @@
+{
+  "source": "ac79114a9ad43a9d9fc2a022d07406d217878760",
+  "command": "make validate",
+  "result": "failed: required tests could not locate unprovisioned pinned TLC jar; no standalone child ran",
+  "gate_log_sha256": "86100627bb2b009cfcac4595c7924504b12ec61a237103aa9d54597f4cac0375",
+  "receipts_archive_sha256": "8c32a23ca0afb4a356e09dbc38c50fd1fed76834ab03d2e2735b284d8c5c6dc1",
+  "generated_inputs_archive_sha256": "e4267a7f95d31bbf7400eb1b4fdebd6e559ab59161c0ecc3f9cb1c549cddf3a1",
+  "target_absent_after_cleanup": true,
+  "remaining_allocated_bytes_removed": 3390881792,
+  "initial_allocation": "4.3GiB du observation before Cargo cleaned tagged child outputs",
+  "cleanup_note": "Cargo cleaned actual tagged children first. Untagged orchestration remainder guard initially rejected unlisted rustdoc/trybuild outputs; inspected and archived generated inputs before removing only this exact idle task cache. No Cargo tag was fabricated.",
+  "before_df": "Filesystem        1B-blocks         Used   Available Use% Mounted on\nhost           994662584320 942168993792 52493590528  95% /Users/stephan/Workspace/skunkworks\noverlay        210241560576 144532910080 54954455040  73% /\n",
+  "after_df": "Filesystem        1B-blocks         Used   Available Use% Mounted on\nhost           994662584320 942169387008 52493197312  95% /Users/stephan/Workspace/skunkworks\noverlay        210241560576 141142028288 58345336832  71% /\n",
+  "source_checkout_retained": "/home/agent/.cache/codex-build/tmp/fn258-standalone-ac79114/checkout",
+  "protected_targets": [
+    "fn258-consumer",
+    "fn258-framework",
+    "cargo-target",
+    "tmp"
+  ]
+}

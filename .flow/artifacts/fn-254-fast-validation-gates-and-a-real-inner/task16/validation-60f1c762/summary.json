@@ -1,0 +1,68 @@
+{
+  "task": "fn-254-fast-validation-gates-and-a-real-inner.16",
+  "status": "scoped-validation-accepted-awaiting-formal-review",
+  "source_head": "60f1c762a618d32478b58ae4e79c151f4355aeb3",
+  "review_baseline": "f0a82c7a969ec6fd1717a73f98536d3b9c6fe8ee",
+  "standalone": {
+    "accepted": true,
+    "seconds": 978.9493264670018,
+    "nextest_inventory_count": 909,
+    "nextest_ignored": 2,
+    "child_counts": {
+      "discovered": 914,
+      "executed": 911,
+      "ignored": 3,
+      "skipped": 0,
+      "tlc_configurations": null,
+      "tlc_launches": null
+    },
+    "doctests": {
+      "suite_summaries": 24,
+      "passed": 4,
+      "failed": 0,
+      "ignored": 1,
+      "measured": 0,
+      "filtered_out": 0
+    },
+    "stages": 17,
+    "source_unchanged": true,
+    "parent_own_counts_not_double_charged": true,
+    "owned_cleanup": {
+      "live": {},
+      "all_observed_owned_pids_absent": true
+    }
+  },
+  "focused_checks": {
+    "framework_process_xtask_tlc_apalache": "267/267 passed on locked production inputs; exact changed-root controls renewed later",
+    "system_locked_gate_and_required_apalache_callers": "16/16 passed",
+    "final_root_guards_and_scoped_context": "5/5 passed after separate genuine red runs",
+    "clippy": "framework and system scoped all-targets/all-features passed; changed provider/CLI renewed; current full standalone clippy passed",
+    "fmt": "both workspaces passed",
+    "source_boundary": "complete actual boundary passed after preserving the first failed standalone proof"
+  },
+  "runtime_releases": {
+    "older_validated_head": "d4a79702ce170f35698fe736fb72792f55c2d3af",
+    "clean_tlc_install_and_native_model_execution": true,
+    "clean_apalache_install_and_native_bounded_execution": true,
+    "separate_archive_and_jar_hashes": "runtime/downloaded-artifacts.json and runtime/installed-artifacts.json",
+    "reuse": "input-reuse.json",
+    "default_excludes_apalache": true,
+    "required_opt_in": true
+  },
+  "contract_changes": [
+    "Mise owns complete archive extraction, installation locking and best-effort download/extraction leftovers. Native capture cleanup and runtime file/hash admission remain.",
+    "Pinned upstream requires UTF8 canonical roots and representable path-list entries; unsupported roots now receive native InvalidInput/status1 before mise/data/capture effects. Other native raw-OS-path and receipt contracts remain."
+  ],
+  "raw_archive": {
+    "path": "raw-output.tar.gz",
+    "bytes": 2489028,
+    "sha256": "e8b088d9432dc5ff6ce77168e1c0e23bafd23017c388ecd5af4bd1cc3d40bb3e",
+    "members": 7560,
+    "verified": true,
+    "contains_release_assets_or_executables": false
+  },
+  "remaining": [
+    "Conductor-owned formal review, Flow closure and integration. No final task8 combined gates/timing claim."
+  ],
+  "platform": "Linux runtime evidence; no Darwin runtime acceptance inferred"
+}

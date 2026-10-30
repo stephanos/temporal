@@ -1,0 +1,15 @@
+---
+source: dev/testing/src/runner.rs
+---
+starts: 1
+reached: 4
+emitted: 6
+evaluated: 8
+refused: 2
+depth: 3
+cut: false
+outcome: Verified
+claim within: Verified
+claim priority: Verified
+claim descends: Verified
+vacuity: none

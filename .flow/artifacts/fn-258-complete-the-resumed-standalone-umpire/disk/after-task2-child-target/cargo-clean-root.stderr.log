@@ -1,0 +1,3 @@
+error: cannot clean `/home/agent/.cache/codex-build/tmp/umpire-standalone-Bnt8GY/target`: missing or invalid `CACHEDIR.TAG` file
+  |
+  = note: cleaning has been aborted to prevent accidental deletion of unrelated files

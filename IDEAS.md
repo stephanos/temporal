@@ -1,7 +1,6 @@
 - allow a property to be a "warning" only
 - a madlips: show new users a model subset/snippet and ask them what should go into the `___` part(s)
 - A whole-project check to alert on unused global vals and types: the lifter already reads the compiled models with Scala's TASTy inspector; a gate step could collect every top-level val, def, type and object under model/temporal, plus every reference to them, and fail on any that's never referenced
-- use Scala's `compiletime.error("<<= is removed; migrate to := instead")`?
 - gzip generated JSON files
 - follow https://arxiv.org/pdf/2410.02307 and try to apply Umpire on etcd and so on
-- Apalache publishes Scala libraries (tla-ir/tla-io, since 0.59) with a typed TLA+ builder and a type-annotation-aware printer
+- try https://github.com/danwt/specl over TLC

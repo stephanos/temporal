@@ -1,0 +1,25 @@
+{
+  "source_before_sha256": "41764ebc639e72d8cb183bb5b7e594c1cda2ee325a167bc678f31b90b9afee71",
+  "binary_before_sha256": "7e4a4762686922940551a320323a462759eaeaf18fe47e6308d40f309a2577f4",
+  "tmpdir": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25420/symlink-tmp",
+  "physical_tmpdir": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25420/symlink-tmp-real",
+  "red_exit": 101,
+  "red_log": "symlink-red.log",
+  "source_after_sha256": "e34fa349f0ce13e59916b6793f7d5b1d9fa519d27c66d27829ee0c132ae6fe1c",
+  "source_paths": [
+    "model/dev/xtask/tests/make_paths.rs"
+  ],
+  "fix": "Canonicalize newly created fixture make root before passing to Make or building exact expected paths, matching existing sibling control",
+  "green_command": "TMPDIR=<private symlink> BASH_ENV=/dev/null CARGO_TARGET_DIR=/home/agent/.cache/codex-build/fn25420-mold mise exec -- cargo test --locked -p temporal-xtask --test main shipping_temporal_make_loads -- --nocapture",
+  "green_exit": 0,
+  "tests_passed": 1,
+  "format": "cargo fmt --check -p temporal-xtask: pass",
+  "clippy": "cargo clippy --locked -p temporal-xtask --test main -- -D warnings: pass",
+  "log_hashes": {
+    "symlink-red.log": "8324b045fb7d53bb80fa63a5e7c034c49d92a78167176d89d8a9f7876b8f2b48",
+    "symlink-green.log": "28e6b86acc2c166a0cfe5f16bdf4227f3f5cbb16df7204a3571c2b21537cdc65",
+    "symlink-fmt.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "symlink-clippy.log": "540903940def683e2acdd79aee806271e3fdcc2d016e879201e2b492af916a16"
+  },
+  "historical_make_proof": "not modified"
+}

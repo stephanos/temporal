@@ -1,0 +1,19 @@
+{
+  "command": [
+    "/home/agent/.rustup/toolchains/1.99.1-aarch64-unknown-linux-gnu/bin/rustc",
+    "--edition=2024",
+    "--crate-name",
+    "fn25412_count_proof",
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25412-count-producer-proof/probe.rs",
+    "--extern",
+    "xtask=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/target/debug/libxtask.rlib",
+    "--extern",
+    "umpire_backend_process=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/target/debug/deps/libumpire_backend_process-0779bb8e204ef569.rlib",
+    "-L",
+    "dependency=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/target/debug/deps",
+    "-o",
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25412-count-producer-proof/probe"
+  ],
+  "exit": 0,
+  "source_sha256": "37fc5d911e5ae8ea10d8b60104276b99f5d4a5abc5f32839a7f639fc5cbc980f"
+}

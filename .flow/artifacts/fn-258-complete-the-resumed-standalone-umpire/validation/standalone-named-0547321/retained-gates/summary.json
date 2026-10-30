@@ -1,0 +1,104 @@
+{
+  "source_commit": "05473210b48c3db862f22051eb7154ce98258f98",
+  "source_tree": "46829511b6d582b40f3fa5095f42bdf980c7d466",
+  "commands": {
+    "make-check": {
+      "receipt": "make-check/command.json",
+      "native_run": "/home/agent/.cache/codex-build/fn258-standalone-0547321/gate-receipts/gate-3896264-1793197198117320136",
+      "run_id": "gate-3896264-1793197198117320136",
+      "runner_seconds": 272.948165505004,
+      "stage_count": 18,
+      "successful_stages": 17,
+      "skipped_stages": [
+        "standalone"
+      ],
+      "counts": {
+        "discovered": 915,
+        "executed": 912,
+        "ignored": 3,
+        "skipped": 0
+      },
+      "test_producers": {
+        "3899152-0": {
+          "discovered": 910,
+          "executed": 908,
+          "ignored": 2,
+          "skipped": 0
+        },
+        "3899152-171": {
+          "discovered": 5,
+          "executed": 4,
+          "ignored": 1,
+          "skipped": 0
+        }
+      },
+      "backend_mode": "default (UMPIRE_BACKENDS and UMPIRE_APALACHE unset)",
+      "target_existed_before": true,
+      "native_channel_ordered_subsequence_matches": {
+        "stdout": true,
+        "stderr": true
+      },
+      "binding_method": "Each complete native stdout/stderr channel is an exact ordered subsequence of its matching sealed Make log; invocation order and measured durations corroborate the association. Original command JSON did not record a native gate ID, so this is independently matched association, not an original explicit run-ID seal.",
+      "source_cleanliness": "Runner source_status_after was empty at completion; source HEAD/tree in receipt match054. No active release source or output was inspected."
+    },
+    "make-time": {
+      "receipt": "make-time/command.json",
+      "native_run": "/home/agent/.cache/codex-build/fn258-standalone-0547321/gate-receipts/gate-3917126-1793197470946652849",
+      "run_id": "gate-3917126-1793197470946652849",
+      "runner_seconds": 112.5601406779897,
+      "stage_count": 18,
+      "successful_stages": 17,
+      "skipped_stages": [
+        "standalone"
+      ],
+      "counts": {
+        "discovered": 915,
+        "executed": 912,
+        "ignored": 3,
+        "skipped": 0
+      },
+      "test_producers": {
+        "3919271-0": {
+          "discovered": 910,
+          "executed": 908,
+          "ignored": 2,
+          "skipped": 0
+        },
+        "3919271-167": {
+          "discovered": 5,
+          "executed": 4,
+          "ignored": 1,
+          "skipped": 0
+        }
+      },
+      "backend_mode": "default (UMPIRE_BACKENDS and UMPIRE_APALACHE unset)",
+      "target_existed_before": true,
+      "native_channel_ordered_subsequence_matches": {
+        "stdout": true,
+        "stderr": true
+      },
+      "binding_method": "Each complete native stdout/stderr channel is an exact ordered subsequence of its matching sealed Make log; invocation order and measured durations corroborate the association. Original command JSON did not record a native gate ID, so this is independently matched association, not an original explicit run-ID seal.",
+      "source_cleanliness": "Runner source_status_after was empty at completion; source HEAD/tree in receipt match054. No active release source or output was inspected."
+    }
+  },
+  "time_measurements": {
+    "make_check_wall_seconds": 272.948165505004,
+    "make_time_wall_seconds": 112.5601406779897,
+    "make_time_gate_seconds": 102.122,
+    "make_time_inner_seconds": 10.343,
+    "legacy_gate_soft_seconds": 60,
+    "legacy_inner_soft_seconds": 10,
+    "gate_soft_target_missed": true,
+    "inner_soft_target_missed": true,
+    "inner_loop_test_count": "not separately observed in these receipts; do not reuse the full tests-stage count for the inner loop"
+  },
+  "temperature": "Existing owned parent cache reused. First named check rebuilt some crates; subsequent time is warmer. Neither is the independently isolated cold required proof.",
+  "required_cold_proof": "../standalone-0547321: distinct earlier054 make validate evidence, already retained and verified; no new required-TLC or cold-child claim here.",
+  "release": "Active separate HOST release target/log intentionally not read or modified; no release result included.",
+  "retained_named_records": 178,
+  "unique_objects": 142,
+  "archive_members": 768,
+  "source_or_parenttarget_modified": false,
+  "original_logs_and_json_bytes_preserved": true,
+  "result": "pass"
+}

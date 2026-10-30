@@ -1,0 +1,62 @@
+{
+  "baseline_head": "60f1c762a618d32478b58ae4e79c151f4355aeb3",
+  "current_source_head": "9babff6c815beb7cff92d7001f647ddca19663bf",
+  "current_source_status": "",
+  "archive": ".flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/task16/validation-60f1c762/raw-output.tar.gz",
+  "archive_sha256": "e8b088d9432dc5ff6ce77168e1c0e23bafd23017c388ecd5af4bd1cc3d40bb3e",
+  "archive_manifest": ".flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/task16/validation-60f1c762/raw-output-manifest.json",
+  "archive_manifest_sha256": "5ce8051519775854fa6ccc2915714b7bea9fc51c77b68bf12116d25c62d89774",
+  "members": {
+    "standalone-current/child-inventory-identities.json": {
+      "sha256": "9d68bb65c49df7e065257d016fa80806979e20f6fc8cd9933962ce8257aca33f",
+      "bytes": 130486,
+      "extracted_to": "baseline-child-inventory-identities.json",
+      "recorded_manifest_match": true
+    },
+    "standalone-current/child-nextest-all.stdout.log": {
+      "sha256": "7f76626f31f9660677ab6f8a39314e853a7bb0c7b4794ac61ea91b236d8ae48a",
+      "bytes": 167389,
+      "extracted_to": "baseline-child-nextest-all.stdout.log",
+      "recorded_manifest_match": true
+    },
+    "standalone-current/validation.json": {
+      "sha256": "d419322cc7f30eb438c7422f4d84ff29dbb47b83588d89c18da7f309eba962d9",
+      "bytes": 37025,
+      "extracted_to": "baseline-validation.json",
+      "recorded_manifest_match": true
+    },
+    "standalone-current/source-before.json": {
+      "sha256": "1503e2b7a6667417c5155b94f220e9128e0926b2037dcd29024e9d9cdda0380b",
+      "bytes": 443205,
+      "extracted_to": "baseline-source-before.json",
+      "recorded_manifest_match": true
+    }
+  },
+  "baseline_runtime": {
+    "nextest_identities": 909,
+    "ignored": 2,
+    "child_counts": {
+      "discovered": 914,
+      "executed": 911,
+      "ignored": 3,
+      "skipped": 0,
+      "tlc_configurations": null,
+      "tlc_launches": null
+    },
+    "doctests": {
+      "suite_summaries": 24,
+      "passed": 4,
+      "failed": 0,
+      "ignored": 1,
+      "measured": 0,
+      "filtered_out": 0
+    },
+    "scope": "framework standalone child only; not Temporal workspace",
+    "current_inventory_claim": false
+  },
+  "source_map_handover_inputs": {
+    ".flow/tmp/fn25415-caller-controls-handover.json": "988bc023062912b593ff55999359db93e45134f1e29bdea3ec6b11cb40e1396c",
+    ".flow/tmp/fn25415-framework-handover.json": "9461b1c04d2c068f87acf98b8d8c5934e25ac3e131fd32045b7da5fb5c462c70",
+    ".flow/tmp/fn25415-framework-gate-handover.json": "f662b5d9e996d718b10ce1e4e9078c6eec5fd2f035104992b2822430d29f2d6b"
+  }
+}

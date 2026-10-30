@@ -1,0 +1,13 @@
+{
+  "scope": "Exact raw logs retained byte-for-byte; only these two files excluded from staged whitespace style checks",
+  "files": [
+    {
+      "path": ".flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/task15/source-join-20261028/model-controls-green.log",
+      "sha256": "9a97b66eea881a338dee609c611e40b40bb04ccedcb37c2e2ec947bedecc7a34"
+    },
+    {
+      "path": ".flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/task15/source-join-20261028/native-leaves-symlink-green.log",
+      "sha256": "126f8fe0d4a2c392c67f84967a2fbc34e06bc1f3cd43319add61342ca3782eaa"
+    }
+  ]
+}

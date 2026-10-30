@@ -1,0 +1,21 @@
+{
+  "source_commit": "c88fdc550694020eb1c6a2e09577813d906c9ffe",
+  "export_commit": "cf8bec4d6231302df54b57fccdc5bdb9d11552fc",
+  "local_checkout": ".flow/tmp/fn257-export",
+  "reproduced_checkout": ".flow/tmp/fn257-export-repro",
+  "recovery_bundle": ".flow/artifacts/fn-257-extract-the-standalone-umpire/task2/export-history.bundle",
+  "bundle_size": 3112032,
+  "bundle_sha256": "21ce0a3878b553b7279912b3cb4887f56a2f9735dbcf48daf3f03b4f407ff37a",
+  "bundle_heads": [
+    "cf8bec4d6231302df54b57fccdc5bdb9d11552fc refs/heads/umpire"
+  ],
+  "active_files": 1178,
+  "historical_support_files_for_separate_adaptation": 30,
+  "retained_commits": 581,
+  "projection_neutral_pruned_commits": 6568,
+  "available_original_commits": 7149,
+  "source_history_limit": "Supplied source ancestry stops at 2026-02-05, before all recorded Rust births. Earlier ancestry including prior LICENSE history is unavailable and is not claimed recovered.",
+  "unchanged_semantics": "Export compares raw source bytes/modes and every historical projection; no layout/import/protocol adaptation occurred.",
+  "runtime_validation": "Not run under recorded validation hold; task 5 remains required.",
+  "destination": "Unknown: HTTP401; no remote writes or source removal."
+}

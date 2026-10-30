@@ -1,0 +1,73 @@
+cwd: /Users/stephan/Workspace/skunkworks/umpire/umpire
+BASH_ENV unset; CARGO_BUILD_JOBS=4; CARGO_TARGET_DIR=/home/agent/.cache/codex-build/fn258-framework
+
+$ mise exec -- cargo clippy -p xtask --locked --all-targets --all-features -- -D warnings
+    Checking cfg-if v1.0.5
+    Checking libc v0.2.191
+    Checking typenum v1.20.1
+    Checking serde_core v1.0.229
+    Checking const-oid v0.10.2
+    Checking linux-raw-sys v0.12.1
+    Checking bitflags v2.13.2
+    Checking rustix v1.1.5
+    Checking hybrid-array v0.4.15
+    Checking getrandom v0.4.3
+    Checking cpufeatures v0.3.1
+    Checking fastrand v2.5.0
+    Checking winnow v1.0.4
+    Checking crypto-common v0.2.2
+    Checking block-buffer v0.12.1
+    Checking once_cell v1.21.4
+    Checking toml_parser v1.1.5+spec-1.1.0
+    Checking toml_datetime v1.1.2+spec-1.1.0
+    Checking serde_spanned v1.1.2
+    Checking thiserror v2.0.21
+    Checking digest v0.11.3
+    Checking zmij v1.0.23
+    Checking memchr v2.8.3
+    Checking sha2 v0.11.1
+    Checking simd-adler32 v0.3.10
+    Checking adler2 v2.0.1
+    Checking itoa v1.0.18
+    Checking miniz_oxide v0.9.1
+    Checking serde_json v1.0.154
+    Checking tempfile v3.27.0
+    Checking serde v1.0.229
+    Checking toml v1.1.8+spec-1.1.0
+    Checking crc32fast v1.5.3
+    Checking filetime v0.2.29
+    Checking tar v0.4.46
+    Checking flate2 v1.1.10
+    Checking umpire-backend-process v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/umpire/backends/process)
+    Checking umpire-guest-driver v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/umpire/dev/guest-driver)
+    Checking xtask v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/umpire/dev/xtask)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 2.22s
+exit: 0
+
+$ mise exec -- cargo test -p xtask --lib gate::boundary::tests --locked
+   Compiling xtask v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/umpire/dev/xtask)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.52s
+     Running unittests src/lib.rs (/home/agent/.cache/codex-build/fn258-framework/debug/deps/xtask-8caf09c57cd2e690)
+
+running 11 tests
+test gate::boundary::tests::character_recognition_requires_a_valid_closed_literal ... ok
+test gate::boundary::tests::declared_unused_dependency_escape_is_refused_before_cargo ... ok
+test gate::boundary::tests::external_target_alias_cannot_hide_source_subtree ... ok
+test gate::boundary::tests::target_cannot_hide_sources ... ok
+test gate::boundary::tests::source_escape_is_structural_and_contained_deep_paths_work ... ok
+test gate::boundary::tests::unchanged_root_license_is_the_only_content_exception ... ok
+test gate::boundary::tests::license_digest_policy_is_required_and_canonical ... ok
+test gate::boundary::tests::descriptor_policy_requires_canonical_paths_and_digests ... ok
+test gate::boundary::tests::organization_exception_preserves_occurrence_token_boundaries ... ok
+test gate::boundary::tests::character_literals_and_lifetimes_cannot_hide_source_escapes ... ok
+test gate::boundary::tests::generated_descriptor_exception_preserves_content_and_source_boundaries ... ok
+
+test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 85 filtered out; finished in 0.06s
+
+exit: 0
+
+$ /home/agent/.rustup/toolchains/1.99.1-aarch64-unknown-linux-gnu/bin/rustfmt --check --edition 2024 dev/xtask/src/gate/boundary.rs
+exit: 0
+
+$ git diff --check -- dev/xtask/src/gate/boundary.rs
+exit: 0

@@ -1,0 +1,6 @@
+{
+  "retention_recheck": "Cleanup helper import initially also executed the retention script top-level, renewing this directory retention observations/manifests before cleanup. The same content-addressed archive digest and all1931members were verified again; original failure/generation/guest source receipt files were not rewritten.",
+  "corrected": "retain-audit.py now has an explicit main guard; future imports only expose read-only helpers.",
+  "archive_sha256": "e1f49ddb6a2488c6360457934976f696c56b555adb8347e390a9d2e452d5d9b2",
+  "source_failure_manifest_metadata": "Original validation/final-pair-3f5-054/failed-default-3f5 manifests remain unchanged; protected external source files independently checked before/after."
+}

@@ -1,0 +1,25 @@
+{
+  "finding": "contracts:1; merged issue2",
+  "reviewed_head": "884794b82546a6a029f8bf4ba2faa98e84afcf8f",
+  "red": {
+    "exit_code": 1,
+    "diagnostic": "CI mise 2026.8.16 is below required 2026.10.11"
+  },
+  "green": {
+    "exit_code": 0,
+    "command": "env -u BASH_ENV /bin/bash model/scripts/test-model-wiring.sh",
+    "scope": "Actual recipe wiring controls with fake children; no hosted CI execution claim"
+  },
+  "version": "2026.10.11",
+  "ci_binary_platform": "linux-x64",
+  "binary_sha256": "f9612efcddda0ae55b62d3b6f82a6c860d5b54ebee0807d4f1a1d578055e1607",
+  "jobs_updated": 4,
+  "new_control": "CI action pins must meet both actual task config min_version floors",
+  "harness_note": "Host BASH_ENV forces a startup cwd; clean-shell rerun removes it. Initial post-fix diagnostic failures were harness context, not passing evidence.",
+  "files": {
+    "SHASUMS256.txt": "b13767ecd48dcd40376b741635dc54169cca77168cc108c899819bd428922346",
+    "verified-release.json": "4734e8a59b664105b70357c38d4dd4f180884e159a351fbccaba9db761c3bf8d",
+    "wiring-red.log": "e24b6cd08492e53b8a402aefa89ed4aeea71f35733d9f4402424220ae7d6352b",
+    "wiring-green.log": "99afa08e0096015c8b73d978f8c0836a8ca64eb39425217cb4ea97e177f6cdd5"
+  }
+}

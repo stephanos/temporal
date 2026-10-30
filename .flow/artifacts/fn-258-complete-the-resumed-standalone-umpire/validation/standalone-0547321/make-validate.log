@@ -1,0 +1,109 @@
+   Compiling libc v0.2.191
+   Compiling proc-macro2 v1.0.107
+   Compiling cfg-if v1.0.5
+   Compiling quote v1.0.47
+   Compiling unicode-ident v1.0.27
+   Compiling serde_core v1.0.229
+   Compiling typenum v1.20.1
+   Compiling syn v3.0.9
+   Compiling hybrid-array v0.4.15
+   Compiling getrandom v0.4.3
+   Compiling rustix v1.1.5
+   Compiling crypto-common v0.2.2
+   Compiling block-buffer v0.12.1
+   Compiling zmij v1.0.23
+   Compiling const-oid v0.10.2
+   Compiling bitflags v2.13.2
+   Compiling linux-raw-sys v0.12.1
+   Compiling thiserror v2.0.21
+   Compiling digest v0.11.3
+   Compiling cpufeatures v0.3.1
+   Compiling once_cell v1.21.4
+   Compiling serde_json v1.0.154
+   Compiling serde v1.0.229
+   Compiling winnow v1.0.4
+   Compiling fastrand v2.5.0
+   Compiling thiserror-impl v2.0.21
+   Compiling toml_parser v1.1.5+spec-1.1.0
+   Compiling serde_derive v1.0.229
+   Compiling sha2 v0.11.1
+   Compiling tempfile v3.27.0
+   Compiling toml_datetime v1.1.2+spec-1.1.0
+   Compiling serde_spanned v1.1.2
+   Compiling memchr v2.8.3
+   Compiling itoa v1.0.18
+   Compiling crc32fast v1.5.3
+   Compiling toml v1.1.8+spec-1.1.0
+   Compiling simd-adler32 v0.3.10
+   Compiling adler2 v2.0.1
+   Compiling miniz_oxide v0.9.1
+   Compiling filetime v0.2.29
+   Compiling flate2 v1.1.10
+   Compiling tar v0.4.46
+   Compiling umpire-backend-process v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout/backends/process)
+   Compiling umpire-guest-driver v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout/dev/guest-driver)
+   Compiling xtask v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout/dev/xtask)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 3.84s
+backend modes: UMPIRE_BACKENDS=require UMPIRE_APALACHE=skip (default)
+[gate:fmt] $ exec "$UMPIRE_GATE_EXECUTABLE" gate --scheduled-stage fmt
+[gate:proto-tools] $ exec "$UMPIRE_GATE_EXECUTABLE" gate --scheduled-stage proto-tools
+[gate:retired-names] $ exec "$UMPIRE_GATE_EXECUTABLE" gate --scheduled-stage retired-names
+[gate:fmt] fmt                               0.655s
+[gate:retired-names] Finished in 665.7ms
+[gate:fmt] Finished in 683.9ms
+[gate:proto-tools] proto-tools                       1.092s
+[gate:proto-tools] Finished in 1.12s
+[gate:timing-controls] $ exec "$UMPIRE_GATE_EXECUTABLE" gate --scheduled-stage timing-controls
+[gate:timing-controls] timing-controls                   0.063s
+[gate:timing-controls] timing-controls                   0.062s
+[gate:timing-controls] Finished in 148.4ms
+[gate:protobuf-controls] $ exec "$UMPIRE_GATE_EXECUTABLE" gate --scheduled-stage protobuf-controls
+[gate:protobuf-controls] protobuf-controls                 0.154s
+[gate:protobuf-controls] Finished in 177.4ms
+[gate:protobuf-freshness] $ exec "$UMPIRE_GATE_EXECUTABLE" gate --scheduled-stage protobuf-freshness
+[gate:protobuf-freshness] protobuf-freshness                0.053s
+[gate:protobuf-freshness] Finished in 84.3ms
+[gate:kettle-protobuf-freshness] $ exec "$UMPIRE_GATE_EXECUTABLE" gate --scheduled-stage kettle-protobuf-freshness
+[gate:kettle-protobuf-freshness] kettle-protobuf-freshness         0.053s
+[gate:kettle-protobuf-freshness] Finished in 86.1ms
+[gate:capability-controls] $ exec "$UMPIRE_GATE_EXECUTABLE" gate --scheduled-stage capability-controls
+[gate:capability-controls] capability-controls               0.167s
+[gate:capability-controls] Finished in 200.4ms
+[gate:source-boundary] $ exec "$UMPIRE_GATE_EXECUTABLE" gate --scheduled-stage source-boundary
+[gate:source-boundary] Finished in 823.1ms
+[gate:clippy] $ exec "$UMPIRE_GATE_EXECUTABLE" gate --scheduled-stage clippy
+[gate:clippy] clippy                           51.177s
+[gate:clippy] Finished in 51.21s
+[gate:docs] $ exec "$UMPIRE_GATE_EXECUTABLE" gate --scheduled-stage docs
+[gate:docs] docs                             16.198s
+[gate:docs] Finished in 16.23s
+[gate:tests] $ exec "$UMPIRE_GATE_EXECUTABLE" gate --scheduled-stage tests
+[gate:tests] tests                             1.149s
+[gate:tests] tests                            502.073s
+[gate:tests] Finished in 504.25s
+[gate:wasm32-wasip1] $ exec "$UMPIRE_GATE_EXECUTABLE" gate --scheduled-stage wasm32-wasip1
+[gate:wasm32-wasip1] wasm32-wasip1                    23.715s
+[gate:wasm32-wasip1] Finished in 23.76s
+[gate:core-wasm-clippy] $ exec "$UMPIRE_GATE_EXECUTABLE" gate --scheduled-stage core-wasm-clippy
+[gate:core-wasm-clippy] core-wasm-clippy                 24.403s
+[gate:core-wasm-clippy] Finished in 24.49s
+[gate:wasm-guest] $ exec "$UMPIRE_GATE_EXECUTABLE" gate --scheduled-stage wasm-guest
+[gate:wasm-guest] wasm-guest                       259.238s
+[gate:wasm-guest] Finished in 259.30s
+[gate:go-host] $ exec "$UMPIRE_GATE_EXECUTABLE" gate --scheduled-stage go-host
+[gate:go-host] go-host                          17.801s
+[gate:go-host] Finished in 17.84s
+[gate:kettle-go-host] $ exec "$UMPIRE_GATE_EXECUTABLE" gate --scheduled-stage kettle-go-host
+[gate:kettle-go-host] kettle-go-host                   42.290s
+[gate:kettle-go-host] Finished in 42.33s
+[gate:standalone] standalone proof: /home/agent/.cache/codex-build/tmp/umpire-standalone-Bnt8GY (tier=validate, TLC=require)
+[gate:standalone] $ exec "$UMPIRE_GATE_EXECUTABLE" gate --scheduled-stage standalone
+[gate:standalone] standalone-local-tools           13.597s
+[gate:standalone] standalone-tlc-tool               1.039s
+[gate:standalone] standalone-child                 717.401s
+[gate:standalone] Finished in 737.56s
+Finished in 1679.71s
+inner loop (edit+test)           24.162s
+gate total 1679.762s; inner loop 24.162s
+note: gate over soft target (60s)
+note: inner loop over soft target (10s)

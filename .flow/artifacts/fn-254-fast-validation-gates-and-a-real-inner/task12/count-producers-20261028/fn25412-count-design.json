@@ -1,0 +1,152 @@
+{
+  "version": 1,
+  "task": "fn-254.12",
+  "role": "thinking-scout/design",
+  "source_head": "d2c0ee93b8a03767f5ac7b64c90d94d03e99d569",
+  "decision_status": "recommendation_root_owns_api",
+  "report": ".flow/tmp/fn25412-count-design.md",
+  "report_sha256": "67bdfab511d6979590e581a19e4d5c24a616f2aad847f14f2dffe1132d8173aa",
+  "decisions": [
+    "Use one canonical WorkCounts and explicit observation/applicability evidence.",
+    "Add TLC-private typed invocation provenance and closed linked fixture authority; retain conservative unclassified fallback.",
+    "Use existing spawn_clean for admitted synthetic target commands to exclude BASH_ENV and exported functions.",
+    "Keep v1 finish0 unknown; preserve every control and real cache-child attribution.",
+    "Do not modify syscall exec path unless real residual non-start evidence requires it.",
+    "Derive applicability from actual completed dispatch branches and observer scopes, never count nulls or budget declarations."
+  ],
+  "anchors": {
+    "argv_detection": "model/umpire/backends/process/src/work.rs:81",
+    "boolean_terminal": "model/umpire/backends/process/src/work.rs:103",
+    "owned_spawn_and_finish": "model/umpire/backends/process/src/support.rs:451",
+    "clean_spawn": "model/umpire/backends/process/src/support.rs:193",
+    "env_clear_unsupported": "model/umpire/backends/process/src/support.rs:173",
+    "java_environment": "model/umpire/backends/process/src/support.rs:109",
+    "candidate_exec_boundary": "model/umpire/backends/process/src/syscall.rs:797",
+    "jar_public_fields": "model/umpire/backends/process/src/jar.rs:11",
+    "jar_time_of_admission_limit": "model/umpire/backends/process/src/jar.rs:44",
+    "real_admission": "model/umpire/backends/tlc/src/runner.rs:139",
+    "common_execution": "model/umpire/backends/tlc/src/runner.rs:561",
+    "batch_fixture": "model/umpire/backends/tlc/src/runner/batch_tests.rs:17",
+    "cache_fixture": "model/umpire/backends/tlc/src/runner/cache_tests.rs:503",
+    "real_cache_child": "model/umpire/backends/tlc/src/runner/cache_tests.rs:389",
+    "count_type": "model/umpire/dev/xtask/src/gate/work_counts.rs:16",
+    "count_validation": "model/umpire/dev/xtask/src/gate/work_counts.rs:137",
+    "child_success_restriction": "model/umpire/dev/xtask/src/gate/work_counts.rs:198",
+    "collector": "model/umpire/dev/xtask/src/gate/work_counts.rs:243",
+    "aggregate": "model/umpire/dev/xtask/src/gate/work_counts.rs:324",
+    "unknown_control": "model/umpire/dev/xtask/src/gate/work_counts.rs:746",
+    "empty_unknown_control": "model/umpire/dev/xtask/src/gate/work_counts.rs:709",
+    "scheduled_receipt": "model/umpire/dev/xtask/src/gate/scheduler.rs:143",
+    "framework_dispatch": "model/umpire/dev/xtask/src/gate.rs:171",
+    "system_dispatch": "model/dev/xtask/src/gate.rs:240",
+    "standalone_setup_and_child": "model/umpire/dev/xtask/src/gate/standalone.rs:410"
+  },
+  "source_files": [
+    {
+      "path": "AGENTS.md",
+      "sha256": "932de2327ec129e91e1fea98bc9b77b270fd8bbe3390bd31bef3d96ed86cc9d0"
+    },
+    {
+      "path": "model/README.md",
+      "sha256": "b962ad41bf24ce66979a0157f36f4cace85b1f4c51a63673bd50fd61b52c835b"
+    },
+    {
+      "path": ".plans/UMPIRE4_SPEC.md",
+      "sha256": "ce167b2fd9132b6d4103133649bdab5f67136959f68d835656b44a0715097cb7"
+    },
+    {
+      "path": ".plans/UMPIRE4_VISION.md",
+      "sha256": "f1eedcf1479f8ba0302fc5a7b20b90ad1662a2627bc46b47f4c52dfedf12788c"
+    },
+    {
+      "path": ".plans/UMPIRE_MODULES.md",
+      "sha256": "e7283e0abe8c7dc258cd60d91e443b7a3db2b239c25925b2500f686a1acbda75"
+    },
+    {
+      "path": ".flow/tmp/fn25412-tlc-count-research-20261028.md",
+      "sha256": "e548b8d3217063c732de30a893dbac19a09afbb617b360615b555a37531e0e6d"
+    },
+    {
+      "path": "model/umpire/backends/process/src/work.rs",
+      "sha256": "6b072ac516dc4699ea6195ba33c2c1b651a58b9c6e5c7a0c3878668d8cb1ae61"
+    },
+    {
+      "path": "model/umpire/backends/process/src/support.rs",
+      "sha256": "e588f59a87e505a39e9bf7f9ea3c26c9a459189a157d42f881c7e0590b8c91b2"
+    },
+    {
+      "path": "model/umpire/backends/process/src/syscall.rs",
+      "sha256": "a2e4d4ced95a2ec342e5fa20aa17943f283911dd6542ae3a4af92fd41944952d"
+    },
+    {
+      "path": "model/umpire/backends/process/src/jar.rs",
+      "sha256": "035d1cee3d244c6add6e6472853f9e0dbab883a49f03b39fe4fdd5926b2eebb5"
+    },
+    {
+      "path": "model/umpire/backends/tlc/src/runner.rs",
+      "sha256": "095e741147410309ab2c762bfc9bb0985bc389127fa9ceb7879e1b997696e7b6"
+    },
+    {
+      "path": "model/umpire/backends/tlc/src/runner/batch_tests.rs",
+      "sha256": "d41e06e09bbea453b987f721d95b53ed332fc120a7037f69ca4997da2596483e"
+    },
+    {
+      "path": "model/umpire/backends/tlc/src/runner/cache_tests.rs",
+      "sha256": "19965ef2dbfbd0737a0f15cf1dc6b398ef62d8d4e6d3c8d511512a4a2cf3ba01"
+    },
+    {
+      "path": "model/umpire/dev/xtask/src/gate/work_counts.rs",
+      "sha256": "9a6f31882b4aace847fcd4e05a7632a8d6f00a2fba6631894c630a7a92bd4aa2"
+    },
+    {
+      "path": "model/umpire/dev/xtask/src/gate/scheduler.rs",
+      "sha256": "d8473ce1c438e6556abf790a91c9ce5274b3d39b38cee972cacdf42c0e3781cf"
+    },
+    {
+      "path": "model/umpire/dev/xtask/src/gate/tasks.toml",
+      "sha256": "348ddfdd3d7384476f85acbcd72dc32ce875f70e3066f65d2bd751b815d9a5b8"
+    },
+    {
+      "path": "model/umpire/dev/xtask/src/gate/standalone.rs",
+      "sha256": "32f19651a23325d43f0cd0c8d510da4226717b22a12618beb2f439d909b7c017"
+    },
+    {
+      "path": "model/dev/xtask/src/gate.rs",
+      "sha256": "0b2213a97203d47953c9a32aca229a3fd5958e35db6c669c80d409cc350fb597"
+    }
+  ],
+  "historical_counts": {
+    "attempts": 836,
+    "started": 752,
+    "unknown": 84,
+    "acceptance": false,
+    "individual_reconstruction_performed": false
+  },
+  "no_exec_channel_reason": "Execsuccess cannot prove TLCstarted or explain a successful synthetic script. Known historical unknown families are synthetic. Current source shows no required postfork genuine nonstart case.",
+  "real_blockers": [
+    "Current code lacks a closed fixture authority and complete observer-scope authority; these must be implemented and controlled before numeric budget admission.",
+    "Any residual admitted-real unknown in fresh selected inventory must remain unknown pending investigation; historical arithmetic cannot close it.",
+    "Donor f7ad9c4e58 and 4835a4734a remain unvalidated; adapt source selectively and remove duplicate WorkCounts."
+  ],
+  "validation_performed": {
+    "source_reads": true,
+    "runtime": false,
+    "builds": false,
+    "tests": false,
+    "review_verdict": false
+  },
+  "mutations": {
+    "allowed_artifacts": [
+      ".flow/tmp/fn25412-count-design.md",
+      ".flow/tmp/fn25412-count-design.json"
+    ],
+    "source": false,
+    "git": false,
+    "flow": false,
+    "remote": false
+  },
+  "owner_deferred": [
+    "full-gate/final timing in .8",
+    "migration"
+  ]
+}

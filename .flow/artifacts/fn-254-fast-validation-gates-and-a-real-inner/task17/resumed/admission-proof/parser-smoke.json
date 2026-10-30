@@ -1,0 +1,7 @@
+{
+  "scope": "pure inventory parser control with tiny synthetic text/JSON; no Cargo, nativeentrypoint or testbody executed",
+  "proc_macro_unit_normalization": true,
+  "ignored_flags_preserved": true,
+  "filter_mismatches_excluded": true,
+  "default_selected_excludes_ignored": true
+}

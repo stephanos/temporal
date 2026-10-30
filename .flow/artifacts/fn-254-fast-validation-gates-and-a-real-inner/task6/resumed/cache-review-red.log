@@ -1,0 +1,78 @@
+   Compiling umpire-tlc v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/backends/tlc)
+    Finished `test` profile [unoptimized] target(s) in 1.73s
+     Running unittests src/lib.rs (.flow/tmp/fn2546-resumed/target/debug/deps/umpire_tlc-c27645a3e9684dea)
+
+running 12 tests
+test runner::cache_tests::cache_child ... ok
+test runner::cache_tests::every_effective_identity_input_invalidates ... ok
+test cache::tests::root_admission_rejects_symlinks_and_relative_paths ... ok
+test runner::cache_tests::invalid_cached_batch_refuses_before_any_singleton_recovery ... ok
+test runner::tests::escaping_cache_symlinks_are_refused_before_creating_files ... ok
+test runner::cache_tests::manifest_integrity_limits_and_interrupted_publication ... ok
+test runner::cache_tests::concurrent_writers_and_readers_see_only_complete_bundles ... ok
+
+thread 'runner::cache_tests::cache_root_refusal_reports_its_cause_without_following_symlinks' (116906) panicked at backends/tlc/src/runner/cache_tests.rs:631:9:
+TLC cache miss M configuration 0: identity unavailable
+TLC execute M record 27fe2c1301d1485ed573a461e3423919f7994b5ec6b858789de6520a33cde065
+TLC execute M record 22e0f5c97191fe0a924818cff3f8fbbecb3a12bf83429835aec4b47af5a6c54e
+
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+test runner::cache_tests::cache_root_refusal_reports_its_cause_without_following_symlinks ... FAILED
+
+thread 'runner::cache_tests::verified_configuration_publishes_despite_refuted_sibling' (116914) panicked at backends/tlc/src/runner/cache_tests.rs:599:9:
+assertion `left == right` failed
+  left: 2
+ right: 1
+test runner::cache_tests::verified_configuration_publishes_despite_refuted_sibling ... FAILED
+test runner::cache_tests::populated_cache_hits_and_authoritative_disable_runs_fresh ... ok
+
+thread 'runner::cache_tests::identity_refreshes_between_module_calls_and_is_shared_between_configurations' (116910) panicked at backends/tlc/src/runner/cache_tests.rs:460:5:
+
+running 1 test
+test runner::cache_tests::cache_child ... FAILED
+
+failures:
+
+failures:
+    runner::cache_tests::cache_child
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 25 filtered out; finished in 0.78s
+
+TLC cache miss M configuration 0 6c722273b605077c2387e761783a7ec1a8cadcfa12d4877b87b9144fe111edb3
+TLC execute M record 27fe2c1301d1485ed573a461e3423919f7994b5ec6b858789de6520a33cde065
+TLC execute M record 22e0f5c97191fe0a924818cff3f8fbbecb3a12bf83429835aec4b47af5a6c54e
+TLC cache miss M configuration 1 b7573f3cf5a05318176691a016f6fb16759f6630ecf334c6d6b4b023c5632db2
+TLC execute M record 27fe2c1301d1485ed573a461e3423919f7994b5ec6b858789de6520a33cde065
+TLC execute M record f82a82a3675e8e970eac1a13bf485da03243555d60d76364029c64215d50c81d
+TLC cache miss M configuration 0 a8bc08ad78b18d1fb4504486e9f737231fe723becdde3636319e6f1b775006a3
+TLC execute M record 27fe2c1301d1485ed573a461e3423919f7994b5ec6b858789de6520a33cde065
+TLC execute M record 22e0f5c97191fe0a924818cff3f8fbbecb3a12bf83429835aec4b47af5a6c54e
+TLC cache miss M configuration 1 d642298d2f7e2c80d113540a2e4e1b63e1277d7d0de991f46f4b30715d4da409
+TLC execute M record 27fe2c1301d1485ed573a461e3423919f7994b5ec6b858789de6520a33cde065
+TLC execute M record f82a82a3675e8e970eac1a13bf485da03243555d60d76364029c64215d50c81d
+TLC cache miss M configuration 0 51398674880f72cc192082fef3d9af070e79e45241ff4c0ae49b2aaec2dea6b7
+TLC execute M record 27fe2c1301d1485ed573a461e3423919f7994b5ec6b858789de6520a33cde065
+TLC execute M record 22e0f5c97191fe0a924818cff3f8fbbecb3a12bf83429835aec4b47af5a6c54e
+TLC cache miss M configuration 1 930f778194886aab75ddb8827c0c2c0f81667a756bf90ae798a51c6e33af1284
+TLC execute M record 27fe2c1301d1485ed573a461e3423919f7994b5ec6b858789de6520a33cde065
+TLC execute M record f82a82a3675e8e970eac1a13bf485da03243555d60d76364029c64215d50c81d
+
+thread 'runner::cache_tests::cache_child' (116943) panicked at backends/tlc/src/runner/cache_tests.rs:407:13:
+assertion `left == right` failed
+  left: 6
+ right: 3
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+test runner::cache_tests::identity_refreshes_between_module_calls_and_is_shared_between_configurations ... FAILED
+test runner::cache_tests::failures_refutations_and_incomplete_modules_never_publish ... ok
+
+failures:
+
+failures:
+    runner::cache_tests::cache_root_refusal_reports_its_cause_without_following_symlinks
+    runner::cache_tests::identity_refreshes_between_module_calls_and_is_shared_between_configurations
+    runner::cache_tests::verified_configuration_publishes_despite_refuted_sibling
+
+test result: FAILED. 9 passed; 3 failed; 0 ignored; 0 measured; 14 filtered out; finished in 1.74s
+
+error: test failed, to rerun pass `-p umpire-tlc --lib`

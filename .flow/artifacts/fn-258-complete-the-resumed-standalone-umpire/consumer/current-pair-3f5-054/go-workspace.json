@@ -1,0 +1,36 @@
+{
+  "observed_pair": {
+    "temporal": "3f5f613578f2857b738a7792fad08f12b3ea0a41",
+    "umpire": "05473210b48c3db862f22051eb7154ce98258f98"
+  },
+  "GOWORK": "/home/agent/.cache/codex-build/tmp/fn258-pair/go.work",
+  "selection": "Automatic upward discovery with GOWORK unset; direct pinned Go executable",
+  "modules": [
+    {
+      "Path": "github.com/temporalio/umpire/hosts/go",
+      "Main": true,
+      "Dir": "/home/agent/.cache/codex-build/tmp/fn258-pair/umpire/hosts/go",
+      "GoMod": "/home/agent/.cache/codex-build/tmp/fn258-pair/umpire/hosts/go/go.mod",
+      "GoVersion": "1.27.0"
+    },
+    {
+      "Path": "github.com/temporalio/umpire/reference/kettle",
+      "Main": true,
+      "Dir": "/home/agent/.cache/codex-build/tmp/fn258-pair/umpire/reference/kettle",
+      "GoMod": "/home/agent/.cache/codex-build/tmp/fn258-pair/umpire/reference/kettle/go.mod",
+      "GoVersion": "1.27.0"
+    },
+    {
+      "Path": "umpire.local/temporal",
+      "Main": true,
+      "Dir": "/home/agent/.cache/codex-build/tmp/fn258-pair/temporal/model/temporal/hosts/go",
+      "GoMod": "/home/agent/.cache/codex-build/tmp/fn258-pair/temporal/model/temporal/hosts/go/go.mod",
+      "GoVersion": "1.27.0"
+    }
+  ],
+  "all_dirs_verified": true,
+  "workspace_sha256_before": "801520e81bdfd161b9c38ddb19e5d1e87e53b8ddfbc4bb0571c31bf2af3cfff5",
+  "workspace_sha256_after": "801520e81bdfd161b9c38ddb19e5d1e87e53b8ddfbc4bb0571c31bf2af3cfff5",
+  "no_workspace_overwrite": true,
+  "canonical_guest_sha256": "d171b91861dba54e9c73682fb17a5a317180dba4e7c5b6c1b09f46667b337f5d"
+}

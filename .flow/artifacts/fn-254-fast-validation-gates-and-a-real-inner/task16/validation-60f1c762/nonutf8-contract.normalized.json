@@ -1,0 +1,23 @@
+{
+  "command": [
+    {
+      "bytes_hex": "2f55736572732f7374657068616e2f576f726b73706163652f736b756e6b776f726b732f756d706972652f74656d706f72616c2f2e666c6f772f746d702f666e32353431362d70726f76696465722d76616c69646174696f6e2f7461726765742f64656275672f787461736b",
+      "utf8": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/target/debug/xtask",
+      "repr": "'/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/target/debug/xtask'"
+    },
+    {
+      "bytes_hex": "66657463682d746c63",
+      "utf8": "fetch-tlc",
+      "repr": "'fetch-tlc'"
+    },
+    {
+      "bytes_hex": "2f746d702f756d706972652d666e32353431362d6e6f6e757466382d313836343933352f6672616d65776f726b2dff",
+      "utf8": null,
+      "repr": "'/tmp/umpire-fn25416-nonutf8-1864935/framework-\\udcff'"
+    }
+  ],
+  "exit": 1,
+  "seconds": 1.2347805420067743,
+  "root_path_hex": "2f746d702f756d706972652d666e32353431362d6e6f6e757466382d313836343933352f6672616d65776f726b2dff",
+  "raw_source_sha256": "358aded61a8be8172673f67d80acd465b4eb9ec72cbd399ee57bf6853510d9e8"
+}

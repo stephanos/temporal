@@ -1,0 +1,99 @@
+{
+  "status": "read-only readiness; no task15 implementation or dependency advancement",
+  "researcher": "provisioning_readiness",
+  "integrated_head": "f0a82c7a969ec6fd1717a73f98536d3b9c6fe8ee",
+  "provider_prepared_merge": "d89b10d52da97b10924306cb25860b19aef733ff",
+  "source_refs": {
+    "protobuf": [
+      "e2c89a40ec"
+    ],
+    "capability_guest_build": [
+      "9672338c8f"
+    ],
+    "guest_routing_bootstrap": [
+      "c23d895868"
+    ],
+    "guest_callers": [
+      "234221b313",
+      "cdf775d453"
+    ],
+    "timing": [
+      "ef62e0129d",
+      "4bcfeac29c",
+      "c8ec4c76d6",
+      "8409c8bff6"
+    ],
+    "make_wiring": [
+      "1e63b872b3",
+      "28b2bbcef4"
+    ],
+    "retired_names": [
+      "0f4ab5aec8",
+      "dde04758b4"
+    ],
+    "gate_callers_fixtures": [
+      "8f6ab7b40b",
+      "445b2b937e",
+      "b613c30bec",
+      "356d752d12",
+      "7cf05d1c53"
+    ],
+    "other_deletion_docs": [
+      "e894f469ca",
+      "fc71b308c7",
+      "5b0d98fc68"
+    ]
+  },
+  "current_shells": [
+    "model/scripts/fetch-tlc.sh",
+    "model/scripts/guest-freshness.sh",
+    "model/scripts/guest.sh",
+    "model/scripts/proto-go.sh",
+    "model/scripts/retired-names.sh",
+    "model/scripts/test-capabilities.sh",
+    "model/scripts/test-model-validate.sh",
+    "model/scripts/test-model-wiring.sh",
+    "model/scripts/test-time-gate.sh",
+    "model/scripts/tests/build-guests.sh",
+    "model/scripts/tests/guest-roots.sh",
+    "model/scripts/tests/proto-go.sh",
+    "model/scripts/time-gate.sh",
+    "model/scripts/xtask.sh",
+    "model/umpire/scripts/fetch-tlc.sh",
+    "model/umpire/scripts/guest-freshness.sh",
+    "model/umpire/scripts/guest.sh",
+    "model/umpire/scripts/proto-go.sh",
+    "model/umpire/scripts/proto-tools.sh",
+    "model/umpire/scripts/retired-names.sh",
+    "model/umpire/scripts/test-capabilities.sh",
+    "model/umpire/scripts/test-time-gate.sh",
+    "model/umpire/scripts/tests/bootstrap.sh",
+    "model/umpire/scripts/tests/build-guests-controls.sh",
+    "model/umpire/scripts/tests/build-guests.sh",
+    "model/umpire/scripts/tests/proto-go.sh",
+    "model/umpire/scripts/tests/proto-tools.sh",
+    "model/umpire/scripts/time-gate.sh",
+    "model/umpire/scripts/xtask.sh"
+  ],
+  "prepared_source_snapshot": "7cf05d1c53",
+  "prepared_shell_mapping": {
+    "model/umpire/scripts/xtask.sh": "retain minimal framework bootstrap",
+    "model/scripts/xtask.sh": "retain thin Temporal forwarding bootstrap",
+    "model/umpire/scripts/test-time-gate.sh": "framework timing_controls.rs and native timing tests",
+    "model/scripts/test-time-gate.sh": "Temporal warning, model-validation and wiring controls",
+    "model/scripts/test-model-validate.sh": "Temporal gate/model_validate_controls.rs",
+    "model/scripts/test-model-wiring.sh": "Temporal tests/wiring.rs updated for current controls"
+  },
+  "gaps": [
+    "Extract committed objects selectively; do not use dirty unresolved source-assembly or replace whole dispatch/gate files.",
+    "Prepared raw spawn/status timing and pipe-reader threads must use current owned scheduler/cancellation/lease/count interfaces.",
+    "Keep current test-run --package route, batched nextest and separate doctest authority.",
+    "Preserve .16 fetch/tool_provider/JAR admission; adapt process controls to actual .16 changes.",
+    "Register capability-controls/build-guests once; prepared dispatcher has duplicate arms.",
+    "Native Make controls need current prerequisites, bootstrap budgets, quick admission and CI mise-floor checks.",
+    "Update standalone setup, both gate adapters, guest-driver/Go callers and maintained docs; framework remains free of Temporal names.",
+    "Port all four remaining control shells before claiming the two-bootstrap final inventory.",
+    "Retired-name Rust regex compatibility is an owner-authorized intentional change, requiring existing malformed/raw-path/Git-failure/planted-name coverage."
+  ],
+  "execution_gate": "Wait for committed task16 closure, then compile/focused native and real-leaf wiring controls, guest-driver/TLC/process tests, fmt/clippy/reference inventory, changed standalone; unrelated final combined gates remain task8."
+}

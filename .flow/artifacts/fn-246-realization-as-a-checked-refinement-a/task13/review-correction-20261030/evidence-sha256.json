@@ -1,0 +1,70 @@
+{
+  "before.json": {
+    "bytes": 1520,
+    "sha256": "85a9e17cd4c0e6acfd206df5db28871697273b01f2f48a44cd72e8b61856da63"
+  },
+  "clippy.log": {
+    "bytes": 4134,
+    "sha256": "078838280d48fbceb66dd4ccee67fc03d7367ddac874888def888275d286167f"
+  },
+  "commands.json": {
+    "bytes": 1983,
+    "sha256": "5cd47556a24c8c0c4f4586a5c1735d0d9ede02ee01871715813e9414e368368f"
+  },
+  "correction.patch": {
+    "bytes": 3231,
+    "sha256": "5c6f0adcef0df153d12fc9c194ce019f11f1d0a321403ab86fca452619a8f48f"
+  },
+  "fixtures-native-final.log": {
+    "bytes": 7471,
+    "sha256": "0b91152df8fc8a3cf935c700a0bdab21f1578a6147853956aceae44847d191eb"
+  },
+  "fixtures-native.log": {
+    "bytes": 7642,
+    "sha256": "47289560b29f7a9e1b1ae0cdc0aba712f86670d9119ff1eadd00121ad10084f8"
+  },
+  "fmt-focused-renewed.log": {
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "fmt-focused.log": {
+    "bytes": 1214,
+    "sha256": "3d3b76f219243d1a9d34f56f58fe39ddec175ebedf0dbc8597677387aab248a7"
+  },
+  "guest-applicability.json": {
+    "bytes": 991,
+    "sha256": "16ed3355faddaa45fb9e1c420a2c4fb3082c623145515272929b1ba32a2437bb"
+  },
+  "guest-freshness.log": {
+    "bytes": 43337,
+    "sha256": "17d4e1955cff814d265ab5e5db81d9c703402549aa1cb7063b2cf9befa57fb99"
+  },
+  "handoff.json": {
+    "bytes": 3073,
+    "sha256": "e49f219342f2855895b459b9d0ff81a12b3e0f9aa303a79d4250b93c035efc77"
+  },
+  "protocol-mutants.txt": {
+    "bytes": 29374,
+    "sha256": "3305dfb6e6077f07bf6b58dbfd2c10f0b1035c38e2d4d6c2ebdaafd449ad202f"
+  },
+  "protocol-required.log": {
+    "bytes": 3553,
+    "sha256": "2fdc030ee6acfb118e194b9621ca5bc64644a87b6f0b5890dfec7e8a2e03e07b"
+  },
+  "protocol-scopes.txt": {
+    "bytes": 19843,
+    "sha256": "8aed8885ef20bd8ca1c637a60571748e91466343d6f575be5d9a90468ecd80ea"
+  },
+  "retained-feature-proof-reuse.json": {
+    "bytes": 12357,
+    "sha256": "74d36c2ce5cf30d3622c520e0127689336e69a7f3725ccf9b24068085472f956"
+  },
+  "source-delta-vs-proved.json": {
+    "bytes": 1309,
+    "sha256": "fcd66679709f253ecb028c1d278b8ae47034302c03f54c02ee00bf0d4a390e8f"
+  },
+  "source-manifest.json": {
+    "bytes": 45410,
+    "sha256": "eeeb9c585b7b370e6f1c854ba5bf829871a730431059024411bdb00c0c5e3f00"
+  }
+}

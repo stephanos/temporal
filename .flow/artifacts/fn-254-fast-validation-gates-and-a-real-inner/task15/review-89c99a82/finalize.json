@@ -1,0 +1,31 @@
+{
+  "success": true,
+  "type": "impl_review",
+  "id": "fn-254-fast-validation-gates-and-a-real-inner.15",
+  "verdict": "SHIP",
+  "session_id": "10797867-0c53-4b4a-8ce3-3270f41de3fa",
+  "mode": "claude",
+  "model": "claude-fable-5-1",
+  "effort": "high",
+  "spec": "claude:claude-fable-5-1:high",
+  "standalone": false,
+  "review": "Coordinator format repair only. The sole integration follow-up draw returned raw SHIP; the original correctness/contracts SHIP reports remain preserved. The reviewer confirms R7 met and the post-review fixes integrate with unchanged callers and ownership. No reviewer verdict or requirement is changed.\n\n## Issue 1\n- **Severity**: P3\n- **Title**: Test executable helper duplicates an existing control helper\n- **Confidence**: 75\n- **Classification**: introduced\n- **Problem**: timing_interrupt_controls.rs copies the small executable helper from model_controls.rs instead of sharing it through script_control_support.\n- **Suggestion**: Optional consolidation into test support; no demonstrated behavioral defect blocks the current change.\n- **File:Line**: model/dev/xtask/src/gate/timing_interrupt_controls.rs:20\n- **R-IDs**: []\n\n## Issue 2\n- **Severity**: P3\n- **Title**: Other existing empty-target conversions retain inconsistent fallback behavior\n- **Confidence**: 75\n- **Classification**: pre_existing\n- **Problem**: Unchanged proto context, framework/Temporal gate receipt paths and quick selection paths can still resolve an empty target value to the caller directory. These sites were outside this fix delta; the reviewer classifies the issue as pre-existing and nonblocking.\n- **Suggestion**: Track as a separate consistency follow-up, preserving current caller contracts.\n- **File:Line**: model/umpire/dev/xtask/src/proto.rs:47\n- **R-IDs**: []\n\nThe stale source-edit test name, more-specific optional framework provisioning guidance, repeated-control cost and a realistic Model-content-edit benchmark remain nonblocking follow-ups; the last two belong to task8's open measurement obligations. Exact full proof stays scoped to9bab; current fixes have focused runtime/package/lint evidence. Manual whitespace checks were run with exact raw-log exclusions recorded by hash.\n\n```json\n{\"suppressed_count\":{\"25\":1},\"classification_counts\":{\"introduced\":1,\"pre_existing\":1},\"unaddressed\":[]}\n```\n\n<verdict>SHIP</verdict>\n",
+  "draws": [
+    {
+      "axis": "integration",
+      "model": "claude-fable-5-1",
+      "session_id": "10797867-0c53-4b4a-8ce3-3270f41de3fa",
+      "verdict": "SHIP",
+      "failed": false
+    }
+  ],
+  "needs_work_survivors": null,
+  "suppressed_count": {
+    "25": 1
+  },
+  "introduced_count": 1,
+  "pre_existing_count": 1,
+  "unaddressed": [],
+  "review_rounds": 0,
+  "review_rounds_cap": 8
+}

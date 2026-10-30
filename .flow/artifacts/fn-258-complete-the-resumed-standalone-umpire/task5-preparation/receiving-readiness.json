@@ -1,0 +1,261 @@
+{
+  "status": "CURRENT source cde/054 observation; historical3f5 focused readiness; task4 active; R6 incomplete",
+  "observed_utc": "2026-10-28T15:51:25.752639+00:00",
+  "current_pair": {
+    "temporal": "cde1ee67efd266a058193694c2ddb287598b9ea5",
+    "umpire": "05473210b48c3db862f22051eb7154ce98258f98"
+  },
+  "consumer_worktree_clean_now": true,
+  "consumer_worktree": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2583-consumers",
+  "source_readiness_closures": {
+    "path": "source-readiness-closures.json",
+    "sha256": "99330c52a93b64db01a18acc3899fea0ffdd2bef243e09b3a458aa406cf0e4d6",
+    "source": "flowctl show --json; status_source flow-state",
+    "task1": "done",
+    "task2": "done source-readiness",
+    "task3": "done source-readiness at historical3f5; currentcde harness correction owned by fn258.4",
+    "task4": "in_progress broad pair/current-input freshness proof",
+    "persistent_committed_summaries": [
+      {
+        "task": "fn-258-complete-the-resumed-standalone-umpire.1",
+        "path": ".flow/tasks/fn-258-complete-the-resumed-standalone-umpire.1.md",
+        "committed_blob": "d5cca5e6a62a9567b13a90bacf0b7ea543f0ab8c",
+        "sha256": "8f3e8a608906c9e0860258425d2874bab4f957db1e8312ed2d8750b8ffad4470",
+        "latest_path_commit": "26fcbb6bdbe273e2b0bf5db2739e4d0e5fa34ffe"
+      },
+      {
+        "task": "fn-258-complete-the-resumed-standalone-umpire.2",
+        "path": ".flow/tasks/fn-258-complete-the-resumed-standalone-umpire.2.md",
+        "committed_blob": "26e2203e753ac65f13ee2d014f3dc5c63ab36acf",
+        "sha256": "c95e6c52a51ac8eddad92ac14a63369c59729af479e16cca4ab4d983e09160cd",
+        "latest_path_commit": "c258547ed5cc7d2ddc2247fce956dc5bb8504d32"
+      },
+      {
+        "task": "fn-258-complete-the-resumed-standalone-umpire.3",
+        "path": ".flow/tasks/fn-258-complete-the-resumed-standalone-umpire.3.md",
+        "committed_blob": "791a67a89c241e53e11d90c5f0269bdeb5821268",
+        "sha256": "fa4e33d1d4affcd8b9118a2f744d0f8e2fca7b115b027a6abbfd268574264df3",
+        "latest_path_commit": "c51c7fa54c569a1f235e72eef0e18350348ed146"
+      }
+    ]
+  },
+  "tracker_statuses": {
+    "path": "current-tracker-observations.json",
+    "sha256": "9f2bb610b5c9db7ae70da99ad96519256af15a40fb9ca40ef65733c9513eaea8",
+    "unique_task_count": 60,
+    "definition_vs_current_differences": [
+      {
+        "id": "fn-258-complete-the-resumed-standalone-umpire.1",
+        "definition_only": "todo",
+        "current_observed": "done",
+        "status_source": "flow-state"
+      },
+      {
+        "id": "fn-246-realization-as-a-checked-refinement-a.13",
+        "definition_only": "todo",
+        "current_observed": "in_progress",
+        "status_source": "flow-state"
+      },
+      {
+        "id": "fn-246-realization-as-a-checked-refinement-a.9",
+        "definition_only": "todo",
+        "current_observed": "in_progress",
+        "status_source": "flow-state"
+      },
+      {
+        "id": "fn-254-fast-validation-gates-and-a-real-inner.17",
+        "definition_only": "todo",
+        "current_observed": "done",
+        "status_source": "flow-state"
+      },
+      {
+        "id": "fn-254-fast-validation-gates-and-a-real-inner.16",
+        "definition_only": "todo",
+        "current_observed": "blocked",
+        "status_source": "flow-state"
+      },
+      {
+        "id": "fn-254-fast-validation-gates-and-a-real-inner.5",
+        "definition_only": "todo",
+        "current_observed": "done",
+        "status_source": "flow-state"
+      },
+      {
+        "id": "fn-254-fast-validation-gates-and-a-real-inner.10",
+        "definition_only": "todo",
+        "current_observed": "done",
+        "status_source": "flow-state"
+      },
+      {
+        "id": "fn-254-fast-validation-gates-and-a-real-inner.11",
+        "definition_only": "todo",
+        "current_observed": "done",
+        "status_source": "flow-state"
+      },
+      {
+        "id": "fn-254-fast-validation-gates-and-a-real-inner.13",
+        "definition_only": "todo",
+        "current_observed": "done",
+        "status_source": "flow-state"
+      },
+      {
+        "id": "fn-254-fast-validation-gates-and-a-real-inner.14",
+        "definition_only": "todo",
+        "current_observed": "done",
+        "status_source": "flow-state"
+      },
+      {
+        "id": "fn-254-fast-validation-gates-and-a-real-inner.3",
+        "definition_only": "todo",
+        "current_observed": "done",
+        "status_source": "flow-state"
+      },
+      {
+        "id": "fn-254-fast-validation-gates-and-a-real-inner.4",
+        "definition_only": "todo",
+        "current_observed": "done",
+        "status_source": "flow-state"
+      },
+      {
+        "id": "fn-254-fast-validation-gates-and-a-real-inner.6",
+        "definition_only": "todo",
+        "current_observed": "done",
+        "status_source": "flow-state"
+      },
+      {
+        "id": "fn-255-thorough-framework-testing-generated.1",
+        "definition_only": "todo",
+        "current_observed": "done",
+        "status_source": "flow-state"
+      },
+      {
+        "id": "fn-255-thorough-framework-testing-generated.2",
+        "definition_only": "todo",
+        "current_observed": "blocked",
+        "status_source": "flow-state"
+      },
+      {
+        "id": "fn-255-thorough-framework-testing-generated.3",
+        "definition_only": "todo",
+        "current_observed": "blocked",
+        "status_source": "flow-state"
+      },
+      {
+        "id": "fn-255-thorough-framework-testing-generated.4",
+        "definition_only": "todo",
+        "current_observed": "blocked",
+        "status_source": "flow-state"
+      },
+      {
+        "id": "fn-255-thorough-framework-testing-generated.5",
+        "definition_only": "todo",
+        "current_observed": "blocked",
+        "status_source": "flow-state"
+      },
+      {
+        "id": "fn-255-thorough-framework-testing-generated.6",
+        "definition_only": "todo",
+        "current_observed": "blocked",
+        "status_source": "flow-state"
+      },
+      {
+        "id": "fn-256-retire-the-scala-era-build-and-go.1",
+        "definition_only": "todo",
+        "current_observed": "blocked",
+        "status_source": "flow-state"
+      },
+      {
+        "id": "fn-258-complete-the-resumed-standalone-umpire.3",
+        "definition_only": "todo",
+        "current_observed": "done",
+        "status_source": "flow-state"
+      },
+      {
+        "id": "fn-258-complete-the-resumed-standalone-umpire.2",
+        "definition_only": "todo",
+        "current_observed": "done",
+        "status_source": "flow-state"
+      }
+    ],
+    "definition_statuses": "Definition-only, not authoritative lifecycle. Current overlay uses captured flowctl statuses; e.g fn254.17 is done."
+  },
+  "historical_focused_pair": {
+    "receipt": ".flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/consumer/current-pair-3f5-054/receipt.json",
+    "sha256": "1cc2b927dbc188775f7cf59ff264ce706bbe30a4175bdb8e0b082312c50e940d",
+    "status": "PASS",
+    "unit_tests": 16,
+    "integration_tests": 7,
+    "pair": {
+      "temporal": "3f5f613578f2857b738a7792fad08f12b3ea0a41",
+      "umpire": "05473210b48c3db862f22051eb7154ce98258f98"
+    },
+    "historical_only": true,
+    "checks": [
+      {
+        "name": "workspace-compilation",
+        "exit": 0,
+        "log": ".flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/consumer/current-pair-3f5-054/workspace-compilation.log",
+        "sha256": "2a48522d8c36fa7daeae649d74aa5a0e7587d6ce7eacfbcd55e0cc3b9b58ce12"
+      },
+      {
+        "name": "bridge-controls",
+        "exit": 0,
+        "log": ".flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/consumer/current-pair-3f5-054/bridge-controls.log",
+        "sha256": "9a76d5a0d53cff34742bc23451dcc2eaa2e50968dd54cb1fc5f62f8a7a43ae92"
+      },
+      {
+        "name": "make-guard-controls",
+        "exit": 0,
+        "log": ".flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/consumer/current-pair-3f5-054/make-guard-controls.log",
+        "sha256": "55d7aa258569a7ada904a14d477f27d14a7b69882fdc1db3605067ef99257e7c"
+      }
+    ],
+    "guest_regenerated": false,
+    "guest_freshness_qualification": "No new freshness claim; changed Makefile input remains task4 work.",
+    "workspace_observation": {
+      "path": ".flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/consumer/current-pair-3f5-054/go-workspace.json",
+      "sha256": "919db35c57664141c88980f677a8dfc743906968ece4c0bcd365df1b0b6d4994",
+      "all3_module_dirs_verified": true,
+      "parent_workspace_not_overwritten": true
+    },
+    "scope": "Focused all-target/all-feature compilation,16unit+7integration,Makeguard and parent-Go-workspace observations only. No broad task4/guest-freshness/activation claim."
+  },
+  "current_source_qualification": {
+    "owner": "fn-258-complete-the-resumed-standalone-umpire.4",
+    "scope": "cde integration-harness correction only; task3 remains historically closed at3f5",
+    "new_focused_Go_workspace_or_wholegate_claim": false,
+    "new_fresh_pair_emptytarget_proof": "PENDING",
+    "prior_full_paired_default": "3f5/054 FAILED exit2; preserved under validation/final-pair-3f5-054/failed-default-3f5"
+  },
+  "receiving_state": {
+    "actual_real_refs": "48 UNCREATED/UNVERIFIED",
+    "isolated_snapshot_targets": 48,
+    "new_custody_commits": 50,
+    "proof": "receiving-snapshots/verification.json",
+    "proof_sha256": "89845045fc8bd54f13bb1cf7ce2a42ba465a5e1bec4e34c23d44b90d374daeff",
+    "source_only_ownership_correction": "Exact four files in049; source retained, original maps unchanged",
+    "real_transfers": 0,
+    "R6_complete": false
+  },
+  "custody": {
+    "manifest": "custody/custody-manifest.json",
+    "verification": "custody/custody-verification.json",
+    "manifest_sha256": "1dae55fbfecb66279b09387e335ec069cdebfd275b12036faeb6869362fcd34b",
+    "verification_sha256": "61132b0ba70f2b0ac71b6d30e5b5d8dacd2ddd484b8062c18c7b0f3dd4c26157",
+    "scope": "039/075 raw/index custody and six source-only committed freezes verified; historical ignored uncertainty retained, no blanket full preservation/accepted disposition."
+  },
+  "dated_supersession": {
+    "previous_observed_utc": "2026-10-28T07:29:33.648163+00:00",
+    "historical_readiness": "historical-preparation-3658582/receiving-readiness.json",
+    "historical_sha256": "4580ea3992694df3ee572093c7dcb63c72820baa6480fdf2323edbed80ad0170",
+    "previous_statement": "consumer365 worktree had7 pending tracked missing-sibling/docs/wiring edits",
+    "current_observation": "superseded first by committed3f5f613, now cde1ee67 with ownHEAD/ref/clean checked; historical bytes retained; historical bytes retained exactly, not relabeled"
+  },
+  "historical_snapshot_inputs": "receiving-snapshots/*.input.json remain exact old overlay/plan/custody inputs; prepared50 commit/tree OIDs unchanged by current-only refresh",
+  "open_boundaries": [
+    "task4 broad proof/current-input guestfreshness active",
+    "root review and explicit actual import/ref admission",
+    "destination SSO/access/history inspection/publication/fetchable CI activation",
+    "source-cutover/removal authorization and post-cutover proof"
+  ]
+}

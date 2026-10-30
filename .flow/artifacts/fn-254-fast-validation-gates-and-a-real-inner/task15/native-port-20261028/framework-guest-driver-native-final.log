@@ -1,0 +1,319 @@
+   Compiling umpire-guest-driver v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/dev/guest-driver)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 2.87s
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.03s
+────────────
+ Nextest run ID 6c746f15-972f-42e5-979c-8bed6e237bf8 with nextest profile: required
+    Starting 38 tests across 3 binaries
+  stdout ───
+
+    running 1 test
+    test context::tests::caller_paths_preserve_relative_and_absolute_os_bytes ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 4 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test context::tests::local_tool_admission_refuses_missing_configuration_and_escaping_links ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 4 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test context::tests::driver_lock_and_compiler_each_invalidate_cache ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 4 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test context::tests::raw_context_roundtrips_and_longest_root_drives_flags_and_identity ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 4 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test guest::tests::invalid_guest_arguments_are_refused_before_tool_discovery ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 4 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test guest_identity::compiler::dependency_identity_and_transitive_variants_propagate ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 32 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test guest_identity::compiler::build_std_requires_wasm_marker_and_trusted_source_or_rust_src_coordinate ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 32 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test guest_identity::compiler::inherited_jobserver_descriptor_reaches_direct_compiler_child ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 32 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test guest_identity::compiler::invalid_or_missing_dependency_sidecars_and_macro_collisions_refuse ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 32 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test guest_identity::compiler::missing_ambiguous_and_malformed_lock_maps_refuse ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 32 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test guest_identity::compiler::missing_required_inputs_and_option_values_refuse ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 32 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test guest_identity::compiler::native_macro_identity_ignores_host_configuration_but_retains_argv_and_collisions ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 32 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test guest_identity::compiler::os_bytes_and_lexical_root_boundaries_are_preserved ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 32 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test guest_identity::compiler::portable_identity_replaces_guest_metadata_and_remaps_generated_paths ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 32 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test guest_identity::compiler::package_features_profile_compiler_and_closure_remain_distinct ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 32 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test guest_identity::compiler::probes_pass_through_without_guest_environment ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 32 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test guest_identity::compiler::previous_wrapper_and_loader_environment_keep_raw_os_bytes ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 32 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test guest_identity::lock::ambiguous_name_version_coordinates_are_marked_unavailable ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 32 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test guest_identity::compiler::sidecar_precedes_child_and_cleanup_preserves_exit_launch_and_signal_outcomes ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 32 filtered out; finished in 0.01s
+
+
+  stdout ───
+
+    running 1 test
+    test guest_identity::lock::checksum_changes_propagate_through_normal_and_all_platform_build_edges ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 32 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test guest_identity::lock::malformed_native_documents_and_graphs_are_rejected ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 32 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test guest_identity::current_inputs::native_toml_accepts_current_documents_and_rejects_malformed_input ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 32 filtered out; finished in 0.01s
+
+
+  stdout ───
+
+    running 1 test
+    test guest_identity::lock::content_addressed_publication_is_repeatable_and_portable ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 32 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test guest_identity::lock::sourced_entries_are_required_but_git_checksums_are_optional ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 32 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test guest_identity::support::canonical_hash_uses_sorted_json_and_known_sha256 ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 32 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test guest_identity::lock::unified_edges_and_edge_topology_change_ancestor_identity ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 32 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test guest_identity::lock::unrelated_and_dev_only_dependencies_do_not_change_guest_closures ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 32 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test guest_identity::support::sidecar_lease_serializes_failure_cleanup_and_refuses_symlink ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 32 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test guest_identity::support::publication_is_complete_under_concurrent_writers_and_cleans_rename_failure ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 32 filtered out; finished in 0.01s
+
+
+  stdout ───
+
+    running 1 test
+    test guest_pipeline::cold_bootstrap_failure_never_builds_or_publishes ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 32 filtered out; finished in 0.02s
+
+
+  stdout ───
+
+    running 1 test
+    test guest_pipeline::loader_inheritance_survives_orchestration_environment_purge ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 32 filtered out; finished in 0.10s
+
+
+  stdout ───
+
+    running 1 test
+    test guest_pipeline::missing_mise_refuses_bootstrap_without_fallback_cargo ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 32 filtered out; finished in 0.01s
+
+
+  stdout ───
+
+    running 1 test
+    test guest_identity::compiler::actual_rustc_compiles_portable_native_macro_sidecars ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 32 filtered out; finished in 0.23s
+
+
+  stdout ───
+
+    running 1 test
+    test guest_pipeline::native_caller_relative_paths_and_changed_inputs_select_new_cache ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 32 filtered out; finished in 0.19s
+
+
+  stdout ───
+
+    running 1 test
+    test guest_pipeline::retained_bootstrap_stdout_selects_executable_and_native_route_creates_output ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 32 filtered out; finished in 0.13s
+
+
+  stdout ───
+
+    running 1 test
+    test guest_pipeline::cold_retained_bootstrap_and_cached_native_validation ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 32 filtered out; finished in 0.45s
+
+
+  stdout ───
+
+    running 1 test
+    test guest_pipeline::relative_cargo_home_stays_with_distinct_caller_for_probes_metadata_and_build ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 32 filtered out; finished in 0.42s
+
+
+  stdout ───
+
+    running 1 test
+    test guest_pipeline::guest_build_check_and_artifact_refusals ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 32 filtered out; finished in 1.02s
+
+
+────────────
+     Summary [   1.061s] 38 tests run: 38 passed, 0 skipped
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.03s
+   Doc-tests umpire_guest_driver
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

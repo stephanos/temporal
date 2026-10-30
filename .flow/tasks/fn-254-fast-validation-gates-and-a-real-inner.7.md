@@ -11,11 +11,11 @@ Apply .4's consolidation to `model/temporal/**`.
 
 **Size:** S
 **Files:** `model/temporal/**/tests/*.rs`.
-**Touches:** [model/temporal/**/tests/**, model/temporal/**/Cargo.toml, model/temporal/testing/*.rs, model/scripts/**, model/umpire/**/gate-budgets*]
+**Touches:** [model/temporal/**/tests/**, model/temporal/**/Cargo.toml, model/temporal/testing/*.rs, model/scripts/**, model/dev/gate/budgets.toml, model/umpire/dev/gate/budgets.toml]
 
 ### Approach
 - Same rules and exceptions as .4. Inventory explicit targets in `temporal/testing/Cargo.toml` (`fixtures`, `snapshot_ownership`, `boundary`) and realization crate tests; preserve root-level sources and the dedicated boundary filter. Do not assume a stale `realization` target in the testing crate.
-- **Equivalence pin:** a checked package/target/full-name/ignored bijection retains every case and snapshot. Update the already-installed budget entries for changed counts/stages. Flow keeps this task explicitly blocked on the external prerequisite; root verifies fn-246's committed spec closure before releasing it. Source merge alone is insufficient, and Flow does not support cross-spec task dependency edges.
+- **Equivalence pin:** a checked package/target/full-name/ignored bijection retains every case and snapshot. If .12 has installed the budget tables, update their changed count/stage entries at `model/dev/gate/budgets.toml` and `model/umpire/dev/gate/budgets.toml`. Otherwise prepare the exact inventory/count accounting for .12 to consume. This task does not gain a .12 dependency. Flow keeps this task explicitly blocked on the external prerequisite; root verifies fn-246's committed spec closure before releasing it. Source merge alone is insufficient, and Flow does not support cross-spec task dependency edges.
 
 ## Owner validation cadence (2026-10-25)
 
