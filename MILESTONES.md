@@ -4,7 +4,7 @@ The owner's overview of open work, execution order and blockers.
 
 As of 2026-10-30.
 
-Budget/gate work is resumed at the owner's request on 2026-10-30. Continue fn-254.12 from its retained applicability/input-custody checkpoint, including gate-tooling fixes and the remaining budget enforcement work. The other backlog lanes remain paused after eight reviewed, closed and locally integrated milestones. Three source checkpoints remain unmerged: fn-246.10 awaits current Temporal guest acceptance; fn-253.7 awaits source review and guest acceptance; fn-256.2 awaits source review and full Rust R4 evidence. Migration fn-258 remains deferred. The sccache proposal was withdrawn and no longer blocks final validation.
+Budget/gate work is resumed at the owner's request on 2026-10-30. Continue fn-254.12 from its retained applicability/input-custody checkpoint, including gate-tooling fixes and the remaining budget enforcement work. On 2026-10-30 the owner also resumed the three source checkpoints below and asked for the remaining MILESTONES work to be completed. Three source checkpoints remain unmerged: fn-246.10 awaits current Temporal guest acceptance; fn-253.7 awaits source review and guest acceptance; fn-256.2 awaits source review and full Rust R4 evidence. Migration fn-258 remains deferred. The sccache proposal was withdrawn and no longer blocks final validation.
 
 The latest `make model-check` attempt failed on 94 strict-Clippy errors in unchanged xtask gate-budget code. Focused checks pass; a full-gate pass remains open.
 
@@ -272,7 +272,7 @@ lowered from source like `closable`) plus Temporal deadline semantics in `model/
 activity and later workflow, Nexus and timer Models stop hand-writing each countdown. The reviewed
 [activity spike](model/design/deadline-countdowns.md) completes R1: shared bounded types and a README pattern are selected, 21 admission controls are reproducible, and current admission gaps remain explicit. The spike and `umpire-dsl` work (.2–.5) are
 independent of fn-246. Activity edits consume committed fn-246.15/.13 corrections and run serially as .1 → .7 → .9 → .10; .8 validates their final combined result.
-Whether fn-246.13's protocol Model may share the Temporal layer is an open owner question.
+fn-246.13's protocol Model may share the generic `countdown` only, not the Temporal deadline layer (owner, 2026-10-30).
 
 [Spec](.flow/specs/fn-253-reusable-deadline-countdowns-for-models.md).
 
@@ -281,7 +281,7 @@ Whether fn-246.13's protocol Model may share the Temporal layer is an open owner
 | fn-253.7 | ⏸️ deferred | Owner stop: verified source `108152e23c`, proof `c8c2e4b455` on `work/fn2537-countdown-adoption`. Native63/default stack and exact snapshot pins pass; source review and guest acceptance remain. Native68.9s cost needs assessment (R4) |
 | fn-253.8 | ⬜ todo | After .7, .9 and .10: final combined docs, parameter/refinement checks and full gates (R5) |
 | fn-253.9 | ⬜ todo | After .7: assess `maximum_attempts` as a `Finite` wrapper; preserve native forged-value controls and record admission refusal if unsupported (R4) |
-| fn-253.10 | ⬜ todo | After .9 and an owner decision on the fn-237 R3 compatibility control: remove `asynchronous_cancel`, always cooperative; coordinated with fn-237.4's live binding (R6) |
+| fn-253.10 | ⬜ todo | After .9: remove `asynchronous_cancel`, always cooperative; retire the fn-237 R3 compatibility control (owner, 2026-10-30), keeping its evidence as provenance; coordinated with fn-237.4's live binding (R6) |
 
 ### fn-240: Symbolic back end (deferred)
 
