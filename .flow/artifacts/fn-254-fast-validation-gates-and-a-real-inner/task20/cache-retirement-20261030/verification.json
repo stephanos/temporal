@@ -1,0 +1,12 @@
+{
+  "archive_sha256": "69a5380b3d06b921267bbebc429f8fc3455efe8869a313c63c8a9653a80ea00c",
+  "archive_bytes": 708798611,
+  "protected_recovery_archive": "/Users/stephan/Workspace/skunkworks/umpire/.umpire-proof-recovery/fn25420-cache-retirement-20261030/complete-targets-and-proof.tar.gz",
+  "regular_members_verified": 7701,
+  "hardlink_members_resolved_and_verified": 1348,
+  "regular_member_bytes": 2317867423,
+  "all_regular_member_hashes_verified": true,
+  "symlinks_preserved_as_symlinks": true,
+  "external_copy_hash_verified": true,
+  "custody": "Protected recovery outside git, caches, scratch and worktrees. Preserve until root explicitly authorizes retirement."
+}

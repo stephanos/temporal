@@ -1,0 +1,26 @@
+{
+  "owner_request": "Wrap up in-flight tasks and then stop.",
+  "completed_integrated_this_run": [
+    "fn-254.21",
+    "fn-254.20",
+    "fn-253.5",
+    "fn-246.13",
+    "fn-253.6",
+    "fn-246.9",
+    "fn-256.1",
+    "fn-253.1"
+  ],
+  "unfinished_checkpoints": [
+    "fn-246.10",
+    "fn-253.7",
+    "fn-256.2"
+  ],
+  "no_task_completion_claim_for_checkpoints": true,
+  "new_work_admission": "Stopped; resume these checkpoints first.",
+  "full_gates": "Last broadmodel-check failed94unchangedbudgettoolingClippyerrors; finalproofdeferred254.8.",
+  "owner_deferred": [
+    "fn-254.12",
+    "fn-258"
+  ],
+  "technical_blocker": "fn254.19 releasedsccacheRustcrosscheckoutidentity; migrationdestinationSAML/access unresolved."
+}

@@ -1,0 +1,35 @@
+{
+  "lease_references": [],
+  "scan": "All readable /proc cwd, exe, environment and fd links immediately before clean.",
+  "authorized_targets": [
+    "/home/agent/.cache/codex-build/fn25420-mold",
+    "/home/agent/.cache/codex-build/fn25420-standalone/target"
+  ],
+  "closure_authority": "Root confirms task20 closed/integrated at 1b7e420d67 and explicitly releases private caches.",
+  "before_du_bytes": "2022723584\t/home/agent/.cache/codex-build/fn25420-mold\n4866048\t/home/agent/.cache/codex-build/fn25420-standalone/target\n",
+  "before_df": "Filesystem        1B-blocks         Used   Available Use% Mounted on\noverlay        210241560576 166841020416 32646344704  84% /\n",
+  "protected_paths": [
+    "/home/agent/.cache/codex-build/fn24613-proof-20261030",
+    "/home/agent/.cache/codex-build/cargo-target",
+    "/home/agent/.cache/codex-build/tmp"
+  ],
+  "after_target_exists": {
+    "/home/agent/.cache/codex-build/fn25420-mold": false,
+    "/home/agent/.cache/codex-build/fn25420-standalone/target": false
+  },
+  "protected_paths_exist": {
+    "/home/agent/.cache/codex-build/fn24613-proof-20261030": true,
+    "/home/agent/.cache/codex-build/cargo-target": true,
+    "/home/agent/.cache/codex-build/tmp": true
+  },
+  "before_allocated_bytes_selected": 2027589632,
+  "removed_allocated_bytes_selected": 2027589632,
+  "cargo_clean_output": [
+    "Removed 7383 files, 2.1GiB total",
+    "Removed 23 files, 9.0MiB total"
+  ],
+  "after_df": "Filesystem        1B-blocks         Used   Available Use% Mounted on\noverlay        210241560576 165015691264 34471673856  83% /\n",
+  "remaining_guest_cache": false,
+  "proof_archive_exists": true,
+  "in_repo_archive_absent": true
+}

@@ -1,0 +1,8 @@
+{
+  "task": "fn-256.2",
+  "branch": "work/fn2562-scala-cleanup",
+  "commit": "c796de882e",
+  "status": "Source/scopedchecks; source review/fullRustR4gatepending.",
+  "integrated": false,
+  "owner_requested_stop": true
+}
