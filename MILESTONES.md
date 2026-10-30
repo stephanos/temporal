@@ -4,7 +4,7 @@ The owner's overview of open work, execution order and blockers.
 
 As of 2026-10-30.
 
-Execution is paused at the owner's request after eight milestones were reviewed, closed and locally integrated. Remaining in-flight work is committed at safe source checkpoints: fn-246.10 has a SHIP follow-up and awaits current Temporal guest acceptance; fn-253.7 passes default-stack native and focused required checks but awaits source review and guest acceptance; fn-256.2 has tooling-removal evidence but its full Rust gate obligation remains open. Resume these checkpoints before admitting another milestone. Budget admission fn-254.12 and migration fn-258 remain owner-deferred. fn-254.19 remains blocked by released sccache Rust checkout-path identity.
+Execution is paused at the owner's request after eight milestones were reviewed, closed and locally integrated. Running checks and reviews are wrapped up. Three committed source checkpoints remain unmerged: fn-246.10 has a SHIP follow-up and awaits current Temporal guest acceptance; fn-253.7 passes default-stack native and focused required checks but awaits source review and guest acceptance; fn-256.2 has tooling-removal evidence but its full Rust gate obligation remains open. Resume these checkpoints before admitting another milestone. Budget admission fn-254.12 and migration fn-258 remain owner-deferred. fn-254.19 remains blocked by released sccache Rust checkout-path identity.
 
 The latest `make model-check` attempt failed on 94 strict-Clippy errors in unchanged xtask gate-budget code. Focused checks pass; a full-gate pass remains open.
 
