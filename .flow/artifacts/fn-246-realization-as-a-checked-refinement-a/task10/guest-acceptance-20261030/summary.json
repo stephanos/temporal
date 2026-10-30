@@ -1,0 +1,20 @@
+{
+  "task": "fn-246-realization-as-a-checked-refinement-a.10",
+  "date": "2026-10-30",
+  "owner": "Resumed by owner 2026-10-30 after the source follow-up review SHIP on e7d1d21eaf.",
+  "joined_source": "work/fn24610-frontier merged with umpire ad35650234; the merge changed no source outside docs.",
+  "guest": {
+    "path": "model/temporal/hosts/go/umpire_temporal_guest.wasm",
+    "before_sha256": "4df13deb3b312f66874934760012fd4e6698d21148f2f4e07bd086c01c62236d",
+    "after_sha256": "6666f339840d793207908525c53daaf951f3ea468de02d5ae858ae56bcc31b3f",
+    "producer": "make umpire-guest (guest profile, 1m05s)",
+    "freshness": "rebuild reproduced identical bytes; temporal-xtask guest --check passed"
+  },
+  "checks": [
+    {"command": "CGO_ENABLED=0 go test -count=1 -tags test_dep ./... (model/temporal/hosts/go)", "result": "pass", "log": "temporal-host-go.log"},
+    {"command": "make umpire-check-model-slice", "result": "pass, 147.3 s", "log": "slice-summary.log"},
+    {"command": "make umpire-check-model-gaps", "result": "pass, 280.7 s", "log": "gaps-summary.log"},
+    {"command": "cargo test -p umpire-temporal-tests --test fixtures deadline_frontier_mapping", "result": "1 passed", "log": "mapping.log"}
+  ],
+  "open_elsewhere": "Whole R5 TLC/live umbrella remains with fn-246.6; broad gates remain with fn-254.8. Review P3 observations (root-empty Stutter, conservative prefix cut) retained as non-blocking."
+}
