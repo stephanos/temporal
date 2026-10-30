@@ -1,0 +1,31 @@
+   Compiling smallvec v1.16.3
+   Compiling proc-macro-utils v0.10.0
+   Compiling manyhow-macros v0.14.1
+   Compiling manyhow v0.14.1
+   Compiling umpire-dsl-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/author/dsl/macros)
+   Compiling umpire-dsl v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/author/dsl)
+   Compiling umpire-checker v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/backends/native)
+   Compiling umpire-testing v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/dev/testing)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 5.63s
+     Running unittests src/lib.rs (/home/agent/.cache/codex-build/cargo-target/debug/deps/umpire_testing-4e5f742f5e3af6e1)
+
+running 1 test
+test backend::tests::qualified_nominal_debug_matches_rust_without_changing_type_identity ... FAILED
+
+failures:
+
+---- backend::tests::qualified_nominal_debug_matches_rust_without_changing_type_identity stdout ----
+
+thread 'backend::tests::qualified_nominal_debug_matches_rust_without_changing_type_identity' (399592) panicked at dev/testing/src/backend_tests.rs:60:9:
+assertion `left == right` failed
+  left: "left::Budget<3>(3)"
+ right: "Budget(3)"
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    backend::tests::qualified_nominal_debug_matches_rust_without_changing_type_identity
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 12 filtered out; finished in 0.00s
+
+error: test failed, to rerun pass `-p umpire-testing --lib`

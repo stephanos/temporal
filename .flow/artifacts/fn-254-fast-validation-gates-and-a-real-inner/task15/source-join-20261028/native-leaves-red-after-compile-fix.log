@@ -1,0 +1,80 @@
+   Compiling xtask v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/dev/xtask)
+warning: value assigned to `status` is never read
+  --> dev/xtask/src/proto_controls.rs:48:26
+   |
+48 |         let mut status = 0;
+   |                          ^ this value is reassigned later and never used
+...
+86 |             status = self.version_status;
+   |             ---------------------------- `status` is overwritten here before the previous value is read
+   |
+   = note: `#[warn(unused_assignments)]` (part of `#[warn(unused)]`) on by default
+
+warning: missing documentation for a struct field
+  --> dev/xtask/src/proto.rs:24:5
+   |
+24 |     pub destination: PathBuf,
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: requested on the command line with `-W missing-docs`
+
+warning: missing documentation for a struct field
+  --> dev/xtask/src/proto.rs:25:5
+   |
+25 |     pub includes: Vec<PathBuf>,
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: missing documentation for a struct field
+  --> dev/xtask/src/proto.rs:26:5
+   |
+26 |     pub inputs: Vec<PathBuf>,
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: missing documentation for a struct field
+  --> dev/xtask/src/proto.rs:27:5
+   |
+27 |     pub grpc: bool,
+   |     ^^^^^^^^^^^^^^
+
+warning: missing documentation for a struct field
+  --> dev/xtask/src/proto.rs:28:5
+   |
+28 |     pub check_subtree: Option<PathBuf>,
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: missing documentation for a struct field
+  --> dev/xtask/src/proto.rs:29:5
+   |
+29 |     pub plugin_root: PathBuf,
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: `xtask` (lib) generated 7 warnings
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 9.39s
+     Running tests/main.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/target/debug/deps/main-0e3975f007b358e0)
+
+running 4 tests
+test gate_wiring::shipping_mise_graph_really_overlaps_independent_native_leaves ... ok
+test gate_wiring::simultaneous_failed_native_leaves_both_retain_names_receipts_and_status ... ok
+test native_leaves::public_protobuf_controls_reach_the_native_implementation ... FAILED
+test native_leaves::public_timing_front_door_preserves_status_diagnostics_and_cleanup ... xtask: usage: time (gate also accepts --list or --stage NAME)
+FAILED
+
+failures:
+
+---- native_leaves::public_protobuf_controls_reach_the_native_implementation stdout ----
+
+thread 'native_leaves::public_protobuf_controls_reach_the_native_implementation' (4180124) panicked at dev/xtask/tests/native_leaves.rs:14:5:
+Output { status: ExitStatus(unix_wait_status(256)), stdout: "", stderr: "xtask: commands: gate, quick, fmt, update, time, validate, test-run, fetch-tlc, fetch-apalache, guest, guest-freshness, guest-lock, retired-names\n" }
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- native_leaves::public_timing_front_door_preserves_status_diagnostics_and_cleanup stdout ----
+Error: Custom { kind: Other, error: "timing control true: expected exit 0, got exit status: 1" }
+
+
+failures:
+    native_leaves::public_protobuf_controls_reach_the_native_implementation
+    native_leaves::public_timing_front_door_preserves_status_diagnostics_and_cleanup
+
+test result: FAILED. 2 passed; 2 failed; 0 ignored; 0 measured; 47 filtered out; finished in 2.05s
+
+error: test failed, to rerun pass `-p xtask --test main`

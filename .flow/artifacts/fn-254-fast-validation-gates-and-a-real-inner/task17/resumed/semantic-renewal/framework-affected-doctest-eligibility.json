@@ -1,0 +1,18 @@
+[
+  {
+    "package": "umpire-backend-process",
+    "name": "umpire_backend_process",
+    "kind": [
+      "lib"
+    ],
+    "doctest": true
+  },
+  {
+    "package": "xtask",
+    "name": "xtask",
+    "kind": [
+      "lib"
+    ],
+    "doctest": true
+  }
+]

@@ -1,0 +1,22 @@
+[
+  {
+    "command": [
+      "/bin/bash",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/model/scripts/test-model-wiring.sh"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal",
+    "exit_code": 1,
+    "expected": "Nonzero: old Make uses two dispatches; old timer calls cargo test instead of scoped native runner",
+    "log_sha256": "b50b215816cf34a62fae0a0bbc822cde81301685499c75394f342028aa15d875"
+  },
+  {
+    "command": [
+      "/bin/bash",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/model/scripts/test-model-validate.sh"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal",
+    "exit_code": 1,
+    "expected": "Nonzero: old Make uses two dispatches; old timer calls cargo test instead of scoped native runner",
+    "log_sha256": "2a5e9f859e2250039887d01c89cf84c67fb4902df4df1c6fd09ca9cb11c1f0f2"
+  }
+]

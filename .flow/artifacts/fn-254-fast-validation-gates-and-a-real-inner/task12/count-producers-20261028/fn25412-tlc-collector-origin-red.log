@@ -1,0 +1,20 @@
+   Compiling xtask v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/dev/xtask)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 9.99s
+     Running unittests src/lib.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/target/debug/deps/xtask-1d211dd4a177cc0d)
+
+running 1 test
+
+thread 'gate::work_counts::tlc_observations::tests::rejects_other_binary_pass_and_crossed_fixture_parent_family' (185143) panicked at dev/xtask/src/gate/work_counts/tlc_observations.rs:765:9:
+assertion failed: Collector::default().record_pass("other-package::other_binary$runner::batch_tests::batch_protocol_requires_complete_selected_evidence".into(),
+        "a".repeat(64)).is_err()
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+test gate::work_counts::tlc_observations::tests::rejects_other_binary_pass_and_crossed_fixture_parent_family ... FAILED
+
+failures:
+
+failures:
+    gate::work_counts::tlc_observations::tests::rejects_other_binary_pass_and_crossed_fixture_parent_family
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 135 filtered out; finished in 0.01s
+
+error: test failed, to rerun pass `-p xtask --lib`

@@ -1,0 +1,136 @@
+{
+  "schema": "fn25412-budget-attempt-checkpoint-v1",
+  "task": "fn-254-fast-validation-gates-and-a-real-inner.12",
+  "status": "in_progress",
+  "source_commit": "2e6a61fda252fe2fae17a38b81cd965efc770155",
+  "source_files_sha256": {
+    "model/umpire/dev/xtask/src/gate.rs": "df0c753d74d5dfedb1d5ae9b4cece686c5e35133756acd2520837fdfcb6ae4d4",
+    "model/umpire/dev/xtask/src/gate/budgets.rs": "8fd4184814bb2aaab2bdc38a038f462e3b9993c9a2eb2f5287be4bbba84acd83",
+    "model/umpire/dev/xtask/src/gate/budget_coordinator.rs": "3a9a26e9a42138814e8a6e440fe8ea89574c78112edd93a6d6a11a8705bcbaab",
+    "model/umpire/dev/xtask/src/gate/budget_attempts.rs": "54e4e38473d9b82a9a472b9727930212e31616d08027f5e8018b65f669036245",
+    "model/umpire/dev/xtask/src/gate/work_counts.rs": "18c37a410e238de504f62e9d1737362090b034d90060d9995b733a2fcbf18c90",
+    "model/umpire/dev/xtask/src/gate/work_counts/count_evidence.rs": "e5c2d5f4e3aff9466306f0be8653b8d1d760472fc76cd63027be57a0b609a5ce",
+    "model/umpire/dev/xtask/src/gate/work_counts/tlc_observations.rs": "2593e9a9689083ec262b3fef1977f052cfb65e23bdefa430befebd46d2477b10",
+    "model/umpire/dev/xtask/src/gate/scheduler.rs": "e2add332d2fa153f27854b2f83be869819019c471228ee2276247f6811610d06",
+    "model/umpire/dev/xtask/tests/gate_wiring.rs": "6b9003e9bdff2b9d53cb9a1163fd8ec79f3021fe93ca6392f5adaa83651d9613"
+  },
+  "verified": {
+    "native_xtask": {
+      "executed": 227,
+      "passed": 227,
+      "skipped": 0,
+      "exit": 0
+    },
+    "temporal_xtask_all_targets_check": {
+      "exit": 0
+    },
+    "budget_policy_focused": 7,
+    "coordinator_focused": 10,
+    "evidence_focused": 6,
+    "attempt_manifest_focused": 4,
+    "diff_check": 0,
+    "framework_fmt": 0,
+    "temporal_fmt": 0,
+    "flow_validation": "valid with historical unreachable-commit warnings retained"
+  },
+  "repairs": [
+    "Rust tempfile roots now request private0700; production guard unchanged",
+    "selected attempts retain complete fixture provenance while repeated parent tests aggregate across completed producers",
+    "native wiring control verifies new budget manifest directory instead of old layout whitelist",
+    "borrowed serialization fixes pattern-guard compile error"
+  ],
+  "pending": [
+    "compiled coverage authority and completed native dispatch applicability",
+    "exact source/tool/command/tier input custody",
+    "admitted stage and fn255 workload tables",
+    "automatic default/direct/quick budget enforcement",
+    "in-place immediate retry using coordinator; current callback executes only first attempt",
+    "strict lint after policy/coordinator production wiring; current normal library emits45 unused preparation warnings",
+    "final cross-family review and Flow closure",
+    "full final gates and edited-source performance targets remain task8"
+  ],
+  "not_claimed": {
+    "task_closure": true,
+    "budget_admission": true,
+    "performance_target_pass": true,
+    "fresh_full_standalone_proof": true
+  },
+  "proofs": {
+    "fn25412-evidence-green.log.gz": {
+      "sha256": "2d839bfe31e032d1bf632480a6b03c713f3c3fac9185a5b60de976e51fbfd15e",
+      "raw_sha256": "a4622532176fa167c65c482c96b99bc48a6776626bcc544ca9bb4ad103548c2a",
+      "raw_bytes": 7523
+    },
+    "fn25412-budget-policy-green.log.gz": {
+      "sha256": "3b6a0f5c234969a6785bfa9e0afc8400d47e6794df02749c9710127e514811fc",
+      "raw_sha256": "76154d70c60832e5274c3dc3ec9a8decb645bb07aacd17c80dfaa0e514df70b9",
+      "raw_bytes": 1785
+    },
+    "fn25412-coordinator-green.log.gz": {
+      "sha256": "c95a977800c214c444087349ce7c48f0654683606de92862ef55a65545ffc6aa",
+      "raw_sha256": "f9999f82791c932d5f38700859ad7b3de7d386d9e234c177ea7e8292af0d6530",
+      "raw_bytes": 3705
+    },
+    "fn25412-coordinator-green2.log.gz": {
+      "sha256": "dab9fab4504dd01048ee7b66ef2cad8f9ea9f20ff7d1c49c2e239106c6a1fa4c",
+      "raw_sha256": "8c27ae96c4a61fd4c93eb0c4a3378e997b41e98c4fcc8cdf50e6979cc79eb819",
+      "raw_bytes": 1508
+    },
+    "fn25412-attempts-red.log.gz": {
+      "sha256": "53597e972d832dff087154ebfe023cdbe4865cfa0c125ce22d4e9e188fbe1a18",
+      "raw_sha256": "de637c9b978458f5416e25e9039747594fb053cbed8b2e70f92e2fb560c5fd91",
+      "raw_bytes": 1660
+    },
+    "fn25412-attempts-green.log.gz": {
+      "sha256": "21700cf80933e41eb5475e41eca7c334508f6ed08e3a1869b3de6f6d4b4eb93c",
+      "raw_sha256": "5e2dc696f517f52c26658eefc2b62563a6d16acb7dd5e19ed40d054c72e697d1",
+      "raw_bytes": 1733
+    },
+    "fn25412-selected-counts-red.log.gz": {
+      "sha256": "f17482d7077657429c05c0aee54ea26b887acfa363cd37b23a966b007efbf537",
+      "raw_sha256": "b66008969ab2417faa217aae5f0146bc234289cbe40bd7f907008997155f2715",
+      "raw_bytes": 2949
+    },
+    "fn25412-repeat-parent-red.log.gz": {
+      "sha256": "8b2aad5cac09664012b737920aea618db66c7723bf99c7ec81ebaefe3141bbfe",
+      "raw_sha256": "d86dad62437b6db96ae8b3f39db08493b0b2b2e246825619e3d652ebaf48bcea",
+      "raw_bytes": 1775
+    },
+    "fn25412-native-attempt-red.log.gz": {
+      "sha256": "313483526e2aba39659c6a897d8ac0654bf3e7fb3b6b0a67c492bb4d18757b06",
+      "raw_sha256": "19e4246ef840cee3295aa86ed2b472d616a132538a77f70d360a8f30392e85a8",
+      "raw_bytes": 1590
+    },
+    "fn25412-native-attempt-green.log.gz": {
+      "sha256": "da6c55f5ee16159c5dae99661b21793a502b88f2e4a95bed5d6a6c47481d487f",
+      "raw_sha256": "feec7c440126925069167073fc31064d9993036e71b6fa3aad35b14662ce5eec",
+      "raw_bytes": 572
+    },
+    "fn25412-attempts-build.log.gz": {
+      "sha256": "6605bc86b7dd3fb86aed57b85b8440ae29a4a8050bc557c8460bb41fc172b6b2",
+      "raw_sha256": "a1ad2fe6c1cc2a550b1db7219c0494a77e7ea673416c68fb9e6e17e3904eaa63",
+      "raw_bytes": 11618
+    },
+    "fn25412-attempts-native-xtask.log.gz": {
+      "sha256": "4b5a13366bd461f5c4d8072aa8ab213e4abdd1d2fc8f7b9ec9c8816244cf8441",
+      "raw_sha256": "1c6192886ee4f7fff2eac38baaedfffc372cde616ce2bfd2be84699a81214f64",
+      "raw_bytes": 1230
+    },
+    "fn25412-attempts-native-xtask2.log.gz": {
+      "sha256": "f6af1096b84123e97d2fa9d5e4559fb2484e5acb6b436e1009575bb1072a23d1",
+      "raw_sha256": "1697a69be8af1d237449a825e4b9e6a0017d8410b5448ba103d130cd6511c9c8",
+      "raw_bytes": 88063
+    },
+    "fn25412-attempts-native-xtask3.log.gz": {
+      "sha256": "b3679f7342a385cbd9eb48440959ff8a04294ada6c3a9693065e71e8b06b61e2",
+      "raw_sha256": "fb74e0db9f0ddb9d045e00e07220973eeee7318770585c4b4f42860c02a1a617",
+      "raw_bytes": 103669
+    },
+    "fn25412-attempts-temporal-check.log.gz": {
+      "sha256": "0f29ee36098c666446cfaedd1f8c0186a903ab7a552253cb132091104323c043",
+      "raw_sha256": "2bdfa29a1e52c055f1b6acb5db14564563c2f99edb31b0d1467947dff743b82c",
+      "raw_bytes": 12038
+    }
+  },
+  "cleanup": "Three completed policy/coordinator/count helper checkouts and integrated branches removed normally; active build cache and unfinished lanes preserved."
+}

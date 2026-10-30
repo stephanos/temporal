@@ -1,0 +1,18 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-26T03:29:39.147877Z",
+  "depends_on": [
+    "fn-254-fast-validation-gates-and-a-real-inner.5",
+    "fn-254-fast-validation-gates-and-a-real-inner.6",
+    "fn-254-fast-validation-gates-and-a-real-inner.11"
+  ],
+  "id": "fn-254-fast-validation-gates-and-a-real-inner.17",
+  "priority": 0,
+  "spec": "fn-254-fast-validation-gates-and-a-real-inner",
+  "spec_path": ".flow/tasks/fn-254-fast-validation-gates-and-a-real-inner.17.md",
+  "status": "todo",
+  "title": "Maximum-throughput validation: uniform nextest and one bounded stage DAG",
+  "updated_at": "2026-10-27T18:46:15.158548Z"
+}

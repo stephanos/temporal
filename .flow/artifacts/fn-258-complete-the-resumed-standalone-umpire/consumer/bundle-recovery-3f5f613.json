@@ -1,0 +1,26 @@
+{
+  "result": "pass",
+  "candidate": "3f5f613578f2857b738a7792fad08f12b3ea0a41",
+  "tree": "9a3e60fa94e0bd6ead87aeb3278c11883a00c685",
+  "prerequisite": "ac60daaf47d2513b41eeff612f0e2758d33e186d",
+  "candidate_absent_before_bundle_fetch": true,
+  "only_ref_before_bundle": "ac60daaf47d2513b41eeff612f0e2758d33e186d refs/heads/prerequisite",
+  "object_database": "Independent fresh bare repository; actual prerequisite fetch then thin bundle; no alternates/shared object store",
+  "recovered_commits": [
+    "3f5f613578f2857b738a7792fad08f12b3ea0a41",
+    "ec13057227cf2159482a793b227e32653e280057",
+    "3658582dac5b54c1f68c2eb54a312957c97e05b6",
+    "4035bb70fdf4c7ef074a8f05a02b19fb458c0b1d",
+    "7e655da80b3810807cbd02a3ea29c26ceb9804e4"
+  ],
+  "canonical_guest_sha256": "d171b91861dba54e9c73682fb17a5a317180dba4e7c5b6c1b09f46667b337f5d",
+  "canonical_guest_size": 3988382,
+  "fsck_exit": 0,
+  "fsck_output": "",
+  "recovery_repository": "/home/agent/.cache/codex-build/tmp/fn258-consumer-recovery-3f5f613.git",
+  "bundle": "source-preparation-3f5f613.bundle",
+  "bundle_sha256": "8e016b8378a39e366aecc5a118de63bf451a5228d8967fbeb717bb9006979c25",
+  "bundle_bytes": 260447,
+  "log": "bundle-recovery-3f5f613.log",
+  "log_sha256": "4a01061c46f6cf3c51c23ca9795d885e9282e29688586e01e720c6ca91261947"
+}

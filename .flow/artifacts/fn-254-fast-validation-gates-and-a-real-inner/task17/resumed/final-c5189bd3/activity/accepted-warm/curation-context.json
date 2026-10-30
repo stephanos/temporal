@@ -1,0 +1,6 @@
+{
+  "temporarily_parked": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25417-standalone-renewal/final-c5189bd3/curated-held-during-warm-retry",
+  "original": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/task17/resumed/final-c5189bd3",
+  "reason": "Known non-model paths still disable focused fixture filter",
+  "git_status_before_probe": ""
+}

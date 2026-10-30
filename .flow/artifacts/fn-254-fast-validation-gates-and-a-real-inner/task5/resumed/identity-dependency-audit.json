@@ -1,0 +1,1242 @@
+{
+  "created_utc": "2026-10-26T22:59:29.962761+00:00",
+  "scope": "Read-only source/evidence audit; only this audit artifact written. No tests, builds, metadata, Go, Java, protoc or Git/Flow mutations run.",
+  "dependency_inventory": {
+    "baseline": ".flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/task3/revision1/proof/byte-accounting.json",
+    "baseline_sha256": "1c91eccc0d6edb312081d33d28477901ed5079dfebbc6a79529a7510fcfee00d",
+    "original_normalizer": ".flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/task3/proof/account.py",
+    "normalizer_sha256": "4ea48e6cb14d5a691f5bc86ceef5c8ac2e6cf391e4b6efe876c09dc9f6c70795",
+    "normalization": "Set union across model/Cargo.lock and model/umpire/Cargo.lock, retain package source starting registry+, tuple exact(name,version,source,checksum). Sort only for deterministic serialization; duplicate shared registry packages collapse. This is NOT dependency edges, features, path packages or fixture/test counts.",
+    "baseline_count": 119,
+    "current_count": 119,
+    "added": [],
+    "removed": [],
+    "cargo_lock_sha256": {
+      "model/Cargo.lock": "50d2b024555c958b02286fa6ec65976efc9fb9cd69f4d27780e9a01998d5d70f",
+      "model/umpire/Cargo.lock": "bc3962111f4b446d43e01dd5409274ff00219830d02e85ac0ea9a7ec34a27dd5"
+    },
+    "locks_byte_identical_to_baseline": true,
+    "dirty_manifest_or_lock_paths": [],
+    "current_tracked_manifest_sha256": {
+      "model/Cargo.toml": "0ab4762e6f5d045fc9f35405e77359a5670122cff03cdcbc39603dddc57796b1",
+      "model/design/native-symbolic/Cargo.toml": "49c9ca85c1daad50da2b8b0a90731dc376a94706f042521d0c1e25c144bb0e27",
+      "model/dev/xtask/Cargo.toml": "94026c17e38488372cbc548c9d3493a19bba3099019541e2e7222cf04085a1b5",
+      "model/temporal/annotate/syntax/Cargo.toml": "e21bb43d045ec396703f07ba64eb998eb7a2df7cdc889ce0ba520c687863058c",
+      "model/temporal/api/Cargo.toml": "384c9904e9d282004844cb4d0d1058c0b8ee6b38d5a3b00251bb8dfbbc401926",
+      "model/temporal/guest/Cargo.toml": "f29ec2d10f92bfcb291872da4679b9d53eab061e5fad1dd3fc43f3baf22275ac",
+      "model/temporal/realization/Cargo.toml": "fcd46654b259e11b2f932a97c32cb5a3597c482b44e4013551f4a6ceb667797e",
+      "model/temporal/realization/macros/Cargo.toml": "cf27e1ef2847071c288ea8fe081894497cf3cefce6387751e227ce9ddff422d7",
+      "model/temporal/realization/macros/tests/renamed/Cargo.toml": "063e9f0398e4074e5194558bf35144dd165473c1721c548a935ce2556a680682",
+      "model/temporal/testing/Cargo.toml": "19d6a3343c5188e5a0007469b05af25479a96563d8c032df0fbf317ba7aac838",
+      "model/umpire/Cargo.toml": "fc6572bbc9dbea65b83708c025ac99e7ef44dff3b6a04c7ae2728b2b5be18796",
+      "model/umpire/author/dsl/Cargo.toml": "4b634c8a800f712011201fa0a03eba599cd7e1530c132cf2f67c1385e311e914",
+      "model/umpire/author/dsl/macros/Cargo.toml": "93b2506c4003d92cfe805a9dce36eaee635e38f5906f9981c7b798ef1cf9861e",
+      "model/umpire/author/suite/Cargo.toml": "18b02495d2f3a2f308e989fc509c54d652c33252f624302e96ac4e9fe654a275",
+      "model/umpire/author/umpire/Cargo.toml": "33281071205004c650af6c071fda203aaedde0895b20c848d6d10bded4c7ff21",
+      "model/umpire/author/umpire/tests/consumer/Cargo.toml": "bc72428fb5665ce97ca945287aeee0ee8e73f493ab85522ece84eab36648db20",
+      "model/umpire/backends/apalache/Cargo.toml": "3c6316aded5cea4d3281c5f0ffacd7c133bb62ae7df8cc3a6186da54d009a66d",
+      "model/umpire/backends/native/Cargo.toml": "25e18e9a8927d5cb141ba82433ac2fc3c6a2e75c4a46eb0e10e749dfa33dc4b0",
+      "model/umpire/backends/process/Cargo.toml": "e8425bed172e2a6480ed3a610880b4b4b2d01d7a6e190c994f3cc06d488acb89",
+      "model/umpire/backends/tla/Cargo.toml": "9a822db6105e987a7d19be5788c1dee943d14b267307722ec8faf06f868ec969",
+      "model/umpire/backends/tlc/Cargo.toml": "0ad66dfbd084ff3261970a423c036cd867459e4bade4f10217ca6d220fb8097c",
+      "model/umpire/catalog/Cargo.toml": "dbf60601825e10dc22cd29bd4c80003584579d7704ea7af468a67b65030feb5b",
+      "model/umpire/catalog/build/Cargo.toml": "05285e476045470e64b04af6d1f3d61a8c681489e1b0a9936015d65ae71286fa",
+      "model/umpire/catalog/macros/Cargo.toml": "147512c55f673978bc0f50156742c98b5ca4e7197146d5f342732c6b79c7b149",
+      "model/umpire/catalog/syntax/Cargo.toml": "75963d199779794baeff45cbbacb5cf9fb5fff0c5bc7a3071149de10cdc5671c",
+      "model/umpire/dev/fixtures/Cargo.toml": "23a0f41e2f479140c8d40268c5e53c20d7d0b3f058d44a681b6f2dc6b825bb05",
+      "model/umpire/dev/guest-driver/Cargo.toml": "d8239750d54632e59dea00f49e2c583f90ccc352a338548d1a37d597522dac12",
+      "model/umpire/dev/testing/Cargo.toml": "a93c44adf3123cdc77da442cd73377deb014ca5e5a5a04ff30fa9b759596d260",
+      "model/umpire/dev/xtask/Cargo.toml": "2e9933c137e64dc5fcf0025cea36788cd2e018e952afc4a7e7b18f2e1ab648c2",
+      "model/umpire/front/Cargo.toml": "e2382a06db10ba77bf522c18d98a3512f947d90ab814e67b6878c3622bcaf826",
+      "model/umpire/ir/Cargo.toml": "1b42998339d49c358d7384892a5ec5d29e0453fc8a918737efaf2588692ca9ef",
+      "model/umpire/ir/derive/Cargo.toml": "ed2783fa59a0f614648100566c318ad1ee30942ad94bf9f274d14bec3795655f",
+      "model/umpire/protocol/runtime/Cargo.toml": "1f4db3ef6df2e5e409eb63882a935d204e6a5664c918041c590315f434ffdf25",
+      "model/umpire/protocol/runtime/guests/caught-panic/Cargo.toml": "c3d02e6c651d9f433ee64fec711d38dbc4b58ed61a2e9c40e3aa0576c0040f69",
+      "model/umpire/protocol/runtime/guests/control/Cargo.toml": "f6217f7e65cb59259c6da5c1d065bc1f3c98f8e304f425c0cee2d0227d185caf",
+      "model/umpire/protocol/runtime/guests/overflow/Cargo.toml": "dbd5981e13f0b149d453e71ec451423e2c43449bb3c81245dd372330be96ab45",
+      "model/umpire/protocol/runtime/guests/stock/Cargo.toml": "dcac152a01894fcba6e6bd4037a40b233158d528e56238469bd2895f43dfa5de",
+      "model/umpire/reference/kettle/Cargo.toml": "8cd20aceafb50dc2a33ab53f2930121febe3a78d75e56e03d020c038cfea002a",
+      "model/umpire/reference/kettle/guest/Cargo.toml": "25b317954fb93a9a99e5086c102cfe7572cdf04e9d3df0f42645efd8a0a72add"
+    },
+    "normalized_tuples_sha256": "0db09456c53070f33d3f2220f90151573395ddb4b4c349ad564bf607dff7c359",
+    "normalized_tuples": [
+      {
+        "name": "adler2",
+        "version": "2.0.1",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "checksum": "320119579fcad9c21884f5c4861d16174d0e06250625266f50fe6898340abefa"
+      },
+      {
+        "name": "aho-corasick",
+        "version": "1.1.5",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "checksum": "c982642fa9e8606056828ee9a8505737230110bb1099153c79efe865c59d12ba"
+      },
+      {
+        "name": "anyhow",
+        "version": "1.0.104",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "checksum": "330a5ed07fa54e4702c9d6c4174f74427fc0ef6e214bbd677ae50a5099946470"
+      },
+      {
+        "name": "archery",
+        "version": "1.2.3",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "checksum": "33ca55ee147b1926dbea904f50fe4902494e97bc742205abbbf10c709e43815f"
+      },
+      {
+        "name": "autocfg",
+        "version": "1.5.1",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "checksum": "f2032f911046de80f0a198e0901378627c33f59ea0ac00e363d481118bd70a53"
+      },
+      {
+        "name": "bit-set",
+        "version": "0.11.1",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "checksum": "56d87354e4229f54a44f7bf2435906a4656dba36026ab6eaca629a2c436a691c"
+      },
+      {
+        "name": "bit-vec",
+        "version": "0.10.1",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "checksum": "5727b15fa97d4f4fee0a3b7c3d550ed0269f54329207b86388de918604e31269"
+      },
+      {
+        "name": "bitflags",
+        "version": "2.13.2",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "checksum": "3ded4057c258ba199e2d26386d3af3780957ecaee6c4ef4041c6b4b8b97c0b06"
+      },
+      {
+        "name": "block-buffer",
+        "version": "0.12.1",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "checksum": "d2f6c7dbe95a6ed67ad9f18e57daf93a2f034c524b99fd2b76d18fdfeb6660aa"
+      },
+      {
+        "name": "borsh",
+        "version": "1.8.1",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "checksum": "553c5d846a6ba5150c65e3b1b8ec073bcf1abc20f9b7220de384a4443ea4e20a"
+      },
+      {
+        "name": "borsh-derive",
+        "version": "1.8.1",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "checksum": "12cdfe656708a01f89b451a7d36466e6fe6c414de0aa18fc54f864f6f9ca9f56"
+      },
+      {
+        "name": "bytemuck",
+        "version": "1.25.2",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "checksum": "95832e849adfb21180ccb6826a99da14e5d266ae5c2e668e1602cf234f153797"
+      },
+      {
+        "name": "bytes",
+        "version": "1.12.1",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "checksum": "fc652a48c352aef3ea3aed32080501cf3ef6ed5da78602a020c991775b0aff04"
+      },
+      {
+        "name": "cfg-if",
+        "version": "1.0.5",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "checksum": "4e7648175b45a9a48536d676f68d918270699102aa8dab5496df06904c914600"
+      },
+      {
+        "name": "cfg_aliases",
+        "version": "0.2.2",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "checksum": "f079e83a288787bcd14a6aea84cee5c87a67c5a3e660c30f557a3d24761b3527"
+      },
+      {
+        "name": "chacha20",
+        "version": "0.10.2",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "checksum": "65c35e4b699c7e15ccbe7ee35c005e4fc0a278d22238a2857e6ce2dadeda1b06"
+      },
+      {
+        "name": "console",
+        "version": "0.16.6",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "checksum": "e96a4956774c13c126a8b5af4daa79384f4d826534c95a02d76afb39e2ab64e3"
+      },
+      {
+        "name": "const-oid",
+        "version": "0.10.2",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "checksum": "a6ef517f0926dd24a1582492c791b6a4818a4d94e789a334894aa15b0d12f55c"
+      },
+      {
+        "name": "core_detect",
+        "version": "1.0.0",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "checksum": "7f8f80099a98041a3d1622845c271458a2d73e688351bf3cb999266764b81d48"
+      },
+      {
+        "name": "cpufeatures",
+        "version": "0.3.1",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "checksum": "5ca28b0ae3115b884660db4118d803791fd6756b6e88f39c0f3f7859060d7566"
+      },
+      {
+        "name": "crc32fast",
+        "version": "1.5.3",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "checksum": "0ba106e844045ddc02c20768ac4b0b7cb45f2cc2ecbd833ac9f5dacb183c2055"
+      },
+      {
+        "name": "crypto-common",
+        "version": "0.2.2",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "checksum": "ce6e4c961d6cd6c9a86db418387425e8bdeaf05b3c8bc1411e6dca4c252f1453"
+      },
+      {
+        "name": "darling",
+        "version": "0.24.1",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "checksum": "ed17f5901b6630b993ca003def43f2f8ef4014fc13b047b57aad617ff32bc2ec"
+      },
+      {
+        "name": "darling_core",
+        "version": "0.24.1",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "checksum": "6837e2cf7485aaae18f86181d2f0e9a7ed297a025e220aeabf63fdebd3a2ddff"
+      },
+      {
+        "name": "darling_macro",
+        "version": "0.24.1",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "checksum": "2ac7135c3ef02b2f7833bbeb1be5ba7f966dcde8a87c6b87f65a778d71a02785"
+      },
+      {
+        "name": "digest",
+        "version": "0.11.3",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "checksum": "f1dd6dbb5841937940781866fa1281a1ff7bd3bf827091440879f9994983d5c2"
+      },
+      {
+        "name": "either",
+        "version": "1.19.0",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "checksum": "0e9c71c2167ca323c882b99918929403426e2373ea17242ff5653e0d5e1058be"
+      },
+      {
+        "name": "encode_unicode",
+        "version": "1.0.0",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "checksum": "34aa73646ffb006b8f5147f3dc182bd4bcb190227ce861fc4a4844bf8e3cb2c0"
+      },
+      {
+        "name": "equivalent",
+        "version": "1.0.3",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "checksum": "00d174d5400e5e8fd687ad1049e2f578285fa914201b1af7e8b112a4546bd826"
+      },
+      {
+        "name": "errno",
+        "version": "0.3.14",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "checksum": "39cab71617ae0d63f51a36d69f866391735b51691dbda63cf6f96d042b63efeb"
+      },
+      {
+        "name": "fastrand",
+        "version": "2.5.0",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "checksum": "da7c62ceae207dd37ea5b845da6a0696c799f85e97da1ab5b7910be3c1c80223"
+      },
+      {
+        "name": "filetime",
+        "version": "0.2.29",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "checksum": "5c287a33c7f0a620c38e641e7f60827713987b3c0f26e8ddc9462cc69cf75759"
+      },
+      {
+        "name": "fixedbitset",
+        "version": "0.5.7",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "checksum": "1d674e81391d1e1ab681a28d99df07927c6d4aa5b027d7da16ba32d1d21ecd99"
+      },
+      {
+        "name": "flate2",
+        "version": "1.1.10",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "checksum": "6e634e2e0ebac1ee034020da1ca582e17ffe4e0f5e985823721e168928136dcb"
+      },
+      {
+        "name": "fnv",
+        "version": "1.0.7",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "checksum": "3f9eec918d3f24069decb9af1554cad7c880e2da24a9afd88aca000531ab82c1"
+      },
+      {
+        "name": "foldhash",
+        "version": "0.1.5",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "checksum": "d9c4f5dac5e15c24eb999c26181a6ca40b39fe946cbe4c263c7209467bc83af2"
+      },
+      {
+        "name": "getrandom",
+        "version": "0.4.3",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "checksum": "300e883d756b2e4ec94e02791f39b04b522276138852cfc41d9fb7e904106099"
+      },
+      {
+        "name": "glob",
+        "version": "0.3.4",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "checksum": "e4eba85ea1d0a966a983acd07deee566e67395d2d96b6fb39e62b5a833f1eb0b"
+      },
+      {
+        "name": "hashbrown",
+        "version": "0.15.5",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "checksum": "9229cfe53dfd69f0609a49f65461bd93001ea1ef889cd5529dd176593f5338a1"
+      },
+      {
+        "name": "hashbrown",
+        "version": "0.17.1",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "checksum": "ed5909b6e89a2db4456e54cd5f673791d7eca6732202bbf2a9cc504fe2f9b84a"
+      },
+      {
+        "name": "heck",
+        "version": "0.5.0",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "checksum": "2304e00983f87ffb38b55b444b5e3b60a884b5d30c0fca7d82fe33449bbe55ea"
+      },
+      {
+        "name": "hybrid-array",
+        "version": "0.4.15",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "checksum": "27f864f10dfb56725ce5ce5472bc52252c8f93a4ab86327122cebf62c5f59a17"
+      },
+      {
+        "name": "ident_case",
+        "version": "1.0.1",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "checksum": "b9e0384b61958566e926dc50660321d12159025e767c18e043daf26b70104c39"
+      },
+      {
+        "name": "imbl",
+        "version": "7.0.2",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "checksum": "46bad832b9b463ed9398b8506488cc2e3b897a9d44f13af115f382aac71f4fec"
+      },
+      {
+        "name": "imbl-sized-chunks",
+        "version": "0.2.0",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "checksum": "2a0813be332553f857953298749fa19549e8b61b80589757c29b4e2a804fa9c6"
+      },
+      {
+        "name": "indexmap",
+        "version": "2.14.2",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "checksum": "cc4e190f5d26ca7051642629da2c52fc03bde85a03197c99408dcd291734c855"
+      },
+      {
+        "name": "insta",
+        "version": "1.49.0",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "checksum": "b67d3d2e287e4b86c10b3f3b641033d1f89b74bdb39d05f34952e2b9a6fe21cd"
+      },
+      {
+        "name": "itertools",
+        "version": "0.14.0",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "checksum": "2b192c782037fadd9cfa75548310488aabdbf3d2da73885b31bd0abd03351285"
+      },
+      {
+        "name": "itoa",
+        "version": "1.0.18",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "checksum": "8f42a60cbdf9a97f5d2305f08a87dc4e09308d1276d28c869c684d7777685682"
+      },
+      {
+        "name": "libc",
+        "version": "0.2.191",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "checksum": "65cd87c9a6d60536580b316ad985726104730a5151c99845f2490428ef91240a"
+      },
+      {
+        "name": "linux-raw-sys",
+        "version": "0.12.1",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "checksum": "32a66949e030da00e8c7d4434b251670a91556f4144941d37452769c25d58a53"
+      },
+      {
+        "name": "log",
+        "version": "0.4.34",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "checksum": "f9f8bd3e56ce4dfc153cf470fffbfa98c7620958b312ca5c3a4b8d5181fd13c6"
+      },
+      {
+        "name": "manyhow",
+        "version": "0.14.1",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "checksum": "f1704b073316272a6785b70599f91f73b49022c2e290b065591ee6b9109ed8c7"
+      },
+      {
+        "name": "manyhow-macros",
+        "version": "0.14.1",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "checksum": "31601db71f1f5fb6f831a18aa3052d13a62528ee4f2cba7e8c9a5e258d953725"
+      },
+      {
+        "name": "memchr",
+        "version": "2.8.3",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "checksum": "cf8baf1c55e62ffcace7a9f06f4bd9cd3f0c4beb022d3b367256b91b87513d98"
+      },
+      {
+        "name": "miniz_oxide",
+        "version": "0.9.1",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "checksum": "b63fbc4a50860e98e7b2aa7804ded1db5cbc3aff9193adaff57a6931bf7c4b4c"
+      },
+      {
+        "name": "multimap",
+        "version": "0.10.1",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "checksum": "1d87ecb2933e8aeadb3e3a02b828fed80a7528047e68b4f424523a0981a3a084"
+      },
+      {
+        "name": "num-traits",
+        "version": "0.2.19",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "checksum": "071dfc062690e90b734c0b2273ce72ad0ffa95f0c74596bc250dcfd960262841"
+      },
+      {
+        "name": "once_cell",
+        "version": "1.21.4",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "checksum": "9f7c3e4beb33f85d45ae3e3a1792185706c8e16d043238c593331cc7cd313b50"
+      },
+      {
+        "name": "petgraph",
+        "version": "0.8.3",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "checksum": "8701b58ea97060d5e5b155d383a69952a60943f0e6dfe30b04c287beb0b27455"
+      },
+      {
+        "name": "prettyplease",
+        "version": "0.2.37",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "checksum": "479ca8adacdd7ce8f1fb39ce9ecccbfe93a3f1344b3d0d97f20bc0196208f62b"
+      },
+      {
+        "name": "prettyplease",
+        "version": "0.3.0",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "checksum": "2bfe0f4c752e450fc2faf62654f1c134747922825d5b04ca717b8874f41a40c0"
+      },
+      {
+        "name": "proc-macro-crate",
+        "version": "3.5.0",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "checksum": "e67ba7e9b2b56446f1d419b1d807906278ffa1a658a8a5d8a39dcb1f5a78614f"
+      },
+      {
+        "name": "proc-macro-utils",
+        "version": "0.10.0",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "checksum": "eeaf08a13de400bc215877b5bdc088f241b12eb42f0a548d3390dc1c56bb7071"
+      },
+      {
+        "name": "proc-macro2",
+        "version": "1.0.107",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "checksum": "985e7ec9bb745e6ce6535b544d84d6cd6f7ad8bd711c398938ae983b91a766d9"
+      },
+      {
+        "name": "proptest",
+        "version": "1.12.0",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "checksum": "b8530004ccb15eae51c7e40009fbe317f341f804db54dc033eec1c50be28cfa0"
+      },
+      {
+        "name": "prost",
+        "version": "0.14.4",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "checksum": "528ac67416ff8646872a3c02cad9cc4ee5dc9f9540c9b10771855c95cb2e5ae1"
+      },
+      {
+        "name": "prost-build",
+        "version": "0.14.4",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "checksum": "03da047801ff44bb6a4d407d4860c05fd70bb81714e6b2f3812603d5b145b042"
+      },
+      {
+        "name": "prost-derive",
+        "version": "0.14.4",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "checksum": "b570b25f7617e43d59005d0990ccb79e950a423952cea19671b7a876da390adf"
+      },
+      {
+        "name": "prost-types",
+        "version": "0.14.4",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "checksum": "f94967dc7688f3054c7fac87473ffae4cc4c3904800e2d9f5b857246d8963b0a"
+      },
+      {
+        "name": "quick-error",
+        "version": "1.2.3",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "checksum": "a1d01941d82fa2ab50be1e79e6714289dd7cde78eba4c074bc5a4374f650dfe0"
+      },
+      {
+        "name": "quote",
+        "version": "1.0.47",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "checksum": "1fbf4db142a473a8d80c26bbf18454ed458bf8d26c8219c331daecfdbd079001"
+      },
+      {
+        "name": "r-efi",
+        "version": "6.0.0",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "checksum": "f8dcc9c7d52a811697d2151c701e0d08956f92b0e24136cf4cf27b57a6a0d9bf"
+      },
+      {
+        "name": "rand",
+        "version": "0.10.3",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "checksum": "65c9fb96cbc91e3478eaae79a69fcd3f1ae4ad052e471fe6732fff548984b4af"
+      },
+      {
+        "name": "rand_core",
+        "version": "0.10.1",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "checksum": "63b8176103e19a2643978565ca18b50549f6101881c443590420e4dc998a3c69"
+      },
+      {
+        "name": "rand_core",
+        "version": "0.9.5",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "checksum": "76afc826de14238e6e8c374ddcc1fa19e374fd8dd986b0d2af0d02377261d83c"
+      },
+      {
+        "name": "rand_xorshift",
+        "version": "0.5.0",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "checksum": "60aa6af80be32871323012e02e6e65f8a7cc7890931ae421d217ad8fe0df2ccf"
+      },
+      {
+        "name": "rand_xoshiro",
+        "version": "0.7.0",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "checksum": "f703f4665700daf5512dcca5f43afa6af89f09db47fb56be587f80636bda2d41"
+      },
+      {
+        "name": "regex",
+        "version": "1.13.1",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "checksum": "f020237b6c8eed93db2e2cb53c00c60a8e1bc73da7d073199a1180401450218d"
+      },
+      {
+        "name": "regex-automata",
+        "version": "0.4.18",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "checksum": "ad8553b9b26413251cbf30e620595c7a41b3887f03da04579c0e6b0d6a06b4b2"
+      },
+      {
+        "name": "regex-syntax",
+        "version": "0.8.11",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "checksum": "d6f6ff9a378485b298a5286656da665ba74413d36db0979633275d2e708145d4"
+      },
+      {
+        "name": "rustc-hash",
+        "version": "2.1.3",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "checksum": "6b1e7f9a428571be2dc5bc0505c13fb6bf936822b894ec87abf8a08a4e51742d"
+      },
+      {
+        "name": "rustix",
+        "version": "1.1.5",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "checksum": "891efababe418670775f199f0d233d84843c227a0949a883ce15b37c78d6629d"
+      },
+      {
+        "name": "rusty-fork",
+        "version": "0.3.1",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "checksum": "cc6bf79ff24e648f6da1f8d1f011e9cac26491b619e6b9280f2b47f1774e6ee2"
+      },
+      {
+        "name": "safe_arch",
+        "version": "0.7.4",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "checksum": "96b02de82ddbe1b636e6170c21be622223aea188ef2e139be0a5b219ec215323"
+      },
+      {
+        "name": "serde",
+        "version": "1.0.229",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "checksum": "4148590afebada386688f18773da617792bf2ef03ffc1e4cbd2b1d45b023e0ba"
+      },
+      {
+        "name": "serde_core",
+        "version": "1.0.229",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "checksum": "67dca2c9c51e58a4791a4b1ed58308b39c64224d349a935ab5039aa360942a48"
+      },
+      {
+        "name": "serde_derive",
+        "version": "1.0.229",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "checksum": "e7a5d71263a5a7d47b41f6b3f06ba276f10cc18b0931f1799f710578e2309348"
+      },
+      {
+        "name": "serde_json",
+        "version": "1.0.154",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "checksum": "e7e9cc8b1b85264074fbcc02a88680c4096b1e47df8f739dceb03bf482f04bd6"
+      },
+      {
+        "name": "serde_spanned",
+        "version": "1.1.2",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "checksum": "4e7523beb55eece201a2356bee0bbca0d1ab466c14c07703b2e0ee6d42cb0c2c"
+      },
+      {
+        "name": "sha2",
+        "version": "0.11.1",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "checksum": "47d7069beb7d6ac7b9acd1039986e73443f24234f41074da099d6f994ac9ad19"
+      },
+      {
+        "name": "simd-adler32",
+        "version": "0.3.10",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "checksum": "3a219298ac11a56ea9a6d2120044824d6f01aeb034955e7af7bc16858527deea"
+      },
+      {
+        "name": "similar",
+        "version": "2.7.0",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "checksum": "bbbb5d9659141646ae647b42fe094daf6c6192d1620870b449d9557f748b2daa"
+      },
+      {
+        "name": "smallvec",
+        "version": "1.16.3",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "checksum": "5b3dc8af474f516a851ff4bd12db780f948b9250ad37211e4eec0bccea54e01b"
+      },
+      {
+        "name": "syn",
+        "version": "2.0.119",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "checksum": "872831b642d1a07999a962a351ed35b955ea2cfc8f3862091e2a240a84f17297"
+      },
+      {
+        "name": "syn",
+        "version": "3.0.9",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "checksum": "d78c8dee4c7bf0e14673097256fed6142ce9d3b85a408189d07482442145823b"
+      },
+      {
+        "name": "tar",
+        "version": "0.4.46",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "checksum": "3f6221d9a6003c78398e3b239969f352578258df48c8eb051caadae0015bc840"
+      },
+      {
+        "name": "target-tuple",
+        "version": "1.0.2",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "checksum": "876fef147edbcbddc8ac5cbbba92c7b86519e314e86638596c09673b2ed01e7f"
+      },
+      {
+        "name": "tempfile",
+        "version": "3.27.0",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "checksum": "32497e9a4c7b38532efcdebeef879707aa9f794296a4f0244f6f69e9bc8574bd"
+      },
+      {
+        "name": "termcolor",
+        "version": "1.4.1",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "checksum": "06794f8f6c5c898b3275aebefa6b8a1cb24cd2c6c79397ab15774837a0bc5755"
+      },
+      {
+        "name": "thiserror",
+        "version": "2.0.21",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "checksum": "09e52cb86a36cede5cb101bf8908837b3e4c6e5e59fe7fd85c23fb56200d189e"
+      },
+      {
+        "name": "thiserror-impl",
+        "version": "2.0.21",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "checksum": "fe5197923287db20a58125f0bc85c062f7f2c892de97b18c356f9efb14b28524"
+      },
+      {
+        "name": "toml",
+        "version": "1.1.8+spec-1.1.0",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "checksum": "20489e00e4d8741d6be680764cc12e270655e375a20d1011e844a9c3379e678d"
+      },
+      {
+        "name": "toml_datetime",
+        "version": "1.1.2+spec-1.1.0",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "checksum": "2b86d767906c6c42421dcba507eb9d203e779497710a47782a224bb871653053"
+      },
+      {
+        "name": "toml_edit",
+        "version": "0.25.17+spec-1.1.0",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "checksum": "e3641d5bbb5349a79e1020a242d251efbc546ad8048d133958323ce9c40a9c9c"
+      },
+      {
+        "name": "toml_parser",
+        "version": "1.1.5+spec-1.1.0",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "checksum": "baa693a8032d7e1cada7d0041e96126df243179ff061456783ac7f12bda4744c"
+      },
+      {
+        "name": "toml_writer",
+        "version": "1.1.3+spec-1.1.0",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "checksum": "06bdbd8cfc056b8d2e2e85f29b56a3bdbecb527cef81eb39e3e7b98af4652770"
+      },
+      {
+        "name": "trybuild",
+        "version": "1.0.122",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "checksum": "62db9c92d704393fbf2132041720cc80b689f2d3f28521015c2ac866223c11b8"
+      },
+      {
+        "name": "typenum",
+        "version": "1.20.1",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "checksum": "b6f5e870be6c3b371b77fe0ee0bafb859fa4964b4404c27de1d380043c4dda20"
+      },
+      {
+        "name": "unarray",
+        "version": "0.1.4",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "checksum": "eaea85b334db583fe3274d12b4cd1880032beab409c0d774be044d4480ab9a94"
+      },
+      {
+        "name": "unicode-ident",
+        "version": "1.0.27",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "checksum": "a2c754d6c33795a1c324727428e5a7dedb5b06195f9890bdbcba760d3e246563"
+      },
+      {
+        "name": "version_check",
+        "version": "0.9.5",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "checksum": "0b928f33d975fc6ad9f86c8f283853ad26bdd5b10b7f1542aa2fa15e2289105a"
+      },
+      {
+        "name": "wait-timeout",
+        "version": "0.2.1",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "checksum": "09ac3b126d3914f9849036f826e054cbabdc8519970b8998ddaf3b5bd3c65f11"
+      },
+      {
+        "name": "wide",
+        "version": "0.7.33",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "checksum": "0ce5da8ecb62bcd8ec8b7ea19f69a51275e91299be594ea5cc6ef7819e16cd03"
+      },
+      {
+        "name": "winapi-util",
+        "version": "0.1.11",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "checksum": "c2a7b1c03c876122aa43f3020e6c3c3ee5c05081c9a00739faf7503aeba10d22"
+      },
+      {
+        "name": "windows-link",
+        "version": "0.2.1",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "checksum": "f0805222e57f7521d6a62e36fa9163bc891acd422f971defe97d64e70d0a4fe5"
+      },
+      {
+        "name": "windows-sys",
+        "version": "0.61.2",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "checksum": "ae137229bcbd6cdf0f7b80a31df61766145077ddf49416a728b02cb3921ff3fc"
+      },
+      {
+        "name": "winnow",
+        "version": "1.0.4",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "checksum": "23b97319f7b8343df12cc98938e5c3eb436064524c8d2b4e30a1d3a36eecdf81"
+      },
+      {
+        "name": "zmij",
+        "version": "1.0.23",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "checksum": "29666d0abbfad1e3dc4dcf6144730dd3a3ab225bbbdac83319345b1b44ccfc1b"
+      }
+    ],
+    "manifest_lock_no_task5_change": true
+  },
+  "identity_mapping": {
+    "baseline": ".flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/task3/proof/inventory-result.json",
+    "coordinate_fields": [
+      "package",
+      "target_kind",
+      "target",
+      "test",
+      "ignored"
+    ],
+    "framework_fixtures": {
+      "old": 61,
+      "new": 84,
+      "equation": "61 - executing umbrella fixtures + 24 generated fixtures::<folder> =84",
+      "preserved_other": 60,
+      "ignored": [
+        "interpreted::timing"
+      ],
+      "mapping_receipt": ".flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/task5/resumed/fixture-identity-equivalence.json",
+      "mapping_sha256": "21504992d220cf8ef9bae8efe682e2b140bd4a64d63e61d21a86781eb8b3692c",
+      "execution_evidence_separate": ".flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/task5/resumed/framework-fixtures-required-summary.json"
+    },
+    "dsl_macro_fixtures": {
+      "old": 6,
+      "current": 8,
+      "preserved": [
+        "fixtures",
+        "private_state",
+        "refusals",
+        "roots::dependency_roots::tests::resolves_absolute_roots_without_rewriting_qualified_caller_paths",
+        "roots::tests::normalizes_derive_paths_using_dependency_roots",
+        "roots::tests::normalizes_facade_imports_through_groups_without_stripping_other_prefixes"
+      ],
+      "added": [
+        "parser_refusals::parser_refusals_preserve_messages_and_authored_locations",
+        "parser_refusals::diagnostic_capture_keeps_duplicate_messages_at_distinct_locations"
+      ],
+      "parser_rows": 61,
+      "retained_rustc_negative": 18,
+      "positive": 4,
+      "old_ui": 79,
+      "old_ui_equation": "79=61 parser refusal rows+18 rustc negative cases",
+      "parser_names": [
+        "action_domain_conflict",
+        "action_domain_duplicate",
+        "action_domain_variant",
+        "action_domain_without_world",
+        "action_inputs_duplicate",
+        "action_inputs_invalid",
+        "action_inputs_missing",
+        "action_inputs_variant_fault",
+        "action_metadata_duplicate",
+        "action_metadata_namespace",
+        "action_metadata_placement",
+        "finite_shape",
+        "machine_actor_arity",
+        "machine_actor_mismatch",
+        "machine_actor_receiver",
+        "machine_after_inputs",
+        "machine_claim_async",
+        "machine_claim_returns",
+        "machine_duplicate_actor",
+        "machine_duplicate_kind",
+        "machine_effect_arguments",
+        "machine_generic",
+        "machine_handler_async",
+        "machine_handler_returns",
+        "machine_invariant_parameters",
+        "machine_legacy_effects",
+        "machine_legacy_invariants",
+        "machine_legacy_scopes",
+        "machine_legacy_transitions",
+        "machine_marker_trait",
+        "machine_misplaced_effect",
+        "machine_missing_actor",
+        "machine_mutable_helper",
+        "machine_mutable_invariant",
+        "machine_mutable_typed_helper",
+        "machine_nonactor_parameter",
+        "machine_noncontiguous_kind",
+        "machine_out_of_order",
+        "machine_path_builders",
+        "machine_post_async",
+        "machine_post_returns_unit",
+        "machine_progress_chain",
+        "machine_progress_gap",
+        "machine_starts_without_world",
+        "machine_unknown_actor",
+        "machine_unknown_after",
+        "machine_unknown_scope",
+        "machine_within_bare",
+        "non_range_starts",
+        "non_unit_internal",
+        "optional_facts_payload",
+        "variant_internal",
+        "world_duplicate",
+        "world_parameter_duplicate",
+        "world_parameter_mutable",
+        "world_parameter_position",
+        "world_starts_empty_mixed",
+        "world_starts_impl_block",
+        "world_starts_mixed",
+        "world_starts_receiver",
+        "world_starts_twice"
+      ],
+      "retained_rustc_names": [
+        "action_domain_item_type",
+        "action_domain_unbound",
+        "action_domain_world_mismatch",
+        "action_finite_missing",
+        "machine_mutable_aliased_helper",
+        "machine_mutable_const_helper",
+        "machine_mutable_local_helper",
+        "machine_mutable_local_projection",
+        "machine_mutable_nested_helper",
+        "machine_mutable_qualified_helper",
+        "machine_nonexhaustive_actor",
+        "machine_scope_actor",
+        "machine_stay_effect",
+        "machine_stay_helper",
+        "machine_unsafe_allowed",
+        "optional_facts_direct_reject",
+        "stay_outside_machine",
+        "world_starts_return"
+      ],
+      "all_79_input_and_stderr_pairs_byte_identical_to_task3_revision2_source": true,
+      "source_diagnostic_hashes": {
+        "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_unknown_after.rs": "cc973c22dae1a6a8a31bcf13abe08ffae3889ee5347be650586b9ede9d0fc323",
+        "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_unknown_after.stderr": "95af4a7e6f2f9fba72f2964bd647b3816029de415fdbd2b946b0557106526dd4",
+        "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_legacy_effects.rs": "ad7da32d969ad9e329f9498b8a0f503ebcaa62846d96fd5d30b005941473795b",
+        "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_legacy_effects.stderr": "1313573661e00020ded7efcbe8202856707a2defc9545f0888846f7f614d35ff",
+        "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_actor_mismatch.rs": "55d80476b224ced576006a5c94ceb5c9d69841f98f052034628b5191edf6214d",
+        "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_actor_mismatch.stderr": "e867f97725c7affa3cefe2fc2c04445748672a9c56646f1d3ae3463b0afae2c7",
+        "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/action_domain_without_world.rs": "b990251ec1a74d369f62ae711ddafdcabad7e997728ca402aac74d7a32d84391",
+        "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/action_domain_without_world.stderr": "c9a3b780a8ebc1091963c91f761e2ce99facf37b18c89e05e072d9382485a315",
+        "model/umpire/author/dsl/macros/tests/ui/machine_mutable_nested_helper.rs": "2abeee251ebcceb5bc507f393db4d5cf493ac947de360fe9685332007d6df2c9",
+        "model/umpire/author/dsl/macros/tests/ui/machine_mutable_nested_helper.stderr": "b367010b1f4ae1e595848950713dd433a197ac3acd6ce627f3c7ded934c43f6a",
+        "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/action_inputs_invalid.rs": "e9d0ece826c20c965d772355c205dda423c1ddf7d9e81ebbc42faa32fee97a93",
+        "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/action_inputs_invalid.stderr": "19f51ddf4f202550b9bbd931f8284f1fe06c447def1f5ba38d947b12380becc2",
+        "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_legacy_scopes.rs": "c9c4d9ec812ae55f9bbdc2a4a878637dd2ee7c9823df0f98912b11e5e81a5e48",
+        "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_legacy_scopes.stderr": "2f08a67aacc8a371f68da21b4b3f2146ef61c76e2ccd980f1bfa82845667e832",
+        "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_post_async.rs": "3ac221c95a0fb1818d4cb833eaf9f97b8db22aea4a3e4f8f0250c914c90e0317",
+        "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_post_async.stderr": "213882b75ff14df3c15841dfd2cc9a0e99de4f09dff50ab50ec4640e8368dedf",
+        "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_duplicate_kind.rs": "6d73dd5c3ecf2031e4d742fb3d7a3a6f5a2e8d8dd2625f651c6c35123d942239",
+        "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_duplicate_kind.stderr": "e324dbe5a3aab537fcc8ccaf8d4de8948dbdd77977d3f67e5d0e921d2f79aa74",
+        "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_nonactor_parameter.rs": "c759b96fcd018c5a8d6c6e7643481cf5270cbe3440be1c325f10cfb5710d184c",
+        "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_nonactor_parameter.stderr": "004082b7271261d3c07a4b968231b9b04a4d7ed30f944ef71df7b5578375fc11",
+        "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/world_duplicate.rs": "311f3364056443280203432770eb3868f1641ca6ea2b716886e65c531433d748",
+        "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/world_duplicate.stderr": "0bf4a173f3755c92a83b93b09c00dcf8067450ca11eba8e5739a02339fc13471",
+        "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/world_starts_receiver.rs": "121a018aa9b09bdd057b061034a5c063d2e248c7ce46ecf1ca7fde32a9565183",
+        "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/world_starts_receiver.stderr": "dcf32db0e361313d0bbbaf8df3c1915fb180f100f05720b1572722334a839454",
+        "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_claim_async.rs": "d1146c27c3567e5cf3e2988e81b389093ebef4c34066532006854b607ae597ba",
+        "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_claim_async.stderr": "73a0f306ff2db82347f63fe0856b79944e606940cc6bf86bd86bab9e3811b8a4",
+        "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/world_starts_empty_mixed.rs": "116aeb79bdd723031bef2ec921edfabcf403d57c13c2efd969dcea417529532d",
+        "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/world_starts_empty_mixed.stderr": "2cc38d4c3f7d7b3a55ea9350d23ab0a0251d093263de5195b43afbe0b728e302",
+        "model/umpire/author/dsl/macros/tests/ui/action_finite_missing.rs": "cb7cf92b934a059c5bd659167baaa89f45728f44a641d8c1c61d5b37cb8bafcd",
+        "model/umpire/author/dsl/macros/tests/ui/action_finite_missing.stderr": "eb9768f02c7cd55bdb02b4fc3e4efc7beb9c4df3834fec8bcab870180405eb3f",
+        "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/action_metadata_placement.rs": "3e38312d42a7393e976de7642ccd9f7b70d4d2f2aee5509651276be240a40646",
+        "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/action_metadata_placement.stderr": "0f2578c0dc8bbb620ee6e1f1282a103795bbdb1180c42260f65a8e1561823413",
+        "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_missing_actor.rs": "dc3aaa7279744a04468c9bce6c31089a62256a6c03aac94992d12bb77dd026f7",
+        "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_missing_actor.stderr": "8821d1a716c5917aa7d209266971ef8560a8bd33420481a607ee9c7fac0428bd",
+        "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_mutable_helper.rs": "0cbd18aa2366bfbdfa36e243fe22a76e6ea4a19f66bb21a405b1f6aa4ce4900f",
+        "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_mutable_helper.stderr": "68e23ac460d0db25f8fcfd05941cc35394514ebafca513aaffb75ba2b7c555fe",
+        "model/umpire/author/dsl/macros/tests/ui/machine_mutable_aliased_helper.rs": "a23d16c42c99f11cfda6670aa25a1c79e9df6f17edca952a779777cb6317a719",
+        "model/umpire/author/dsl/macros/tests/ui/machine_mutable_aliased_helper.stderr": "8e56d1fa77f6060badb5465757962a481bbff1f0ef8be150e89a2abdd0cac63f",
+        "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/action_inputs_variant_fault.rs": "d9fd94f494d71ea25b0325c026caec25ac5f27993b459ac983614c2cc07e55ea",
+        "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/action_inputs_variant_fault.stderr": "f0ed77a041aaba3366b7a6be93f72b4514075cd1317ed9339121d5e349dbd49e",
+        "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_effect_arguments.rs": "2f373aafff9ce03c7f62c828302e29c31a5599218dfcc53c8697223f1ef95406",
+        "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_effect_arguments.stderr": "ed13e6f2b68ffe2edebe2a650ec7e3bbe98d8477eeb111233eaf117353a207e3",
+        "model/umpire/author/dsl/macros/tests/ui/machine_mutable_qualified_helper.rs": "1adee8319bafe93b0773463a54ab66689b0df1b2768ab396848a78642a0df1e0",
+        "model/umpire/author/dsl/macros/tests/ui/machine_mutable_qualified_helper.stderr": "d5ad0eaf3a7d7e44e433973a405f3b7cac88efcd4bb47ef7f79079af5f269ac2",
+        "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_starts_without_world.rs": "bff659d77c4e5b3a619687087752d4daf04485b06cc1a716144722e459d3cee7",
+        "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_starts_without_world.stderr": "9bdb9887d4008da9df6e62359af3e433d6a87ca00eeb547cdb51992f0806d307",
+        "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_legacy_invariants.rs": "52970ee8117ea90520bf9d1c81976bfbb194769097de26f141228fc78a3dbbdf",
+        "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_legacy_invariants.stderr": "3ce07e217bd0d0aec4f643cc4f3dc6006e8fc3f6f247487bbe7409373d542054",
+        "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_path_builders.rs": "9377e2ec25bc2c495bebeb2d39741c31f1072e51e67732da1e37611cacee8d8c",
+        "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_path_builders.stderr": "bf81ee7d4bbf792267c236dcf22f4bdf22d83be5070f67790e3a4f784824acfd",
+        "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/world_parameter_duplicate.rs": "a0898810c502567f964bc7ee9f31317bd6b32d5ba221e0a2b20fb9c5336d5869",
+        "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/world_parameter_duplicate.stderr": "2a62025347a3a1cd05293cb888a79b04d210a30c8febe87c9775eea1858cb66d",
+        "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_after_inputs.rs": "85c5a0faaf34bd7625dbb55fddcfe02642248d3850da6b7c2ab6de9035a9bad6",
+        "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_after_inputs.stderr": "5fb2ba9fe7ad3c6f57671382d06254f6491f7e854494a88fe4b9b41d231bc9f3",
+        "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/action_inputs_missing.rs": "33d9ad2f5aca14f3ec672059f0213026406bd8247ffe8be2d3de9a7e56113116",
+        "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/action_inputs_missing.stderr": "00cbac3a7bf820577cf145ceec6d7c2d16d3aa421cf83f9195763e9cc8a64308",
+        "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/action_metadata_duplicate.rs": "14977d83fa4b8e60f9c1dcb3ef46093868fdf38c2408937bdcf1dc19cf7fe11c",
+        "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/action_metadata_duplicate.stderr": "5b83c3f7eed7381179776f9dd18e66926d66b582b1dfcb083f40dd0a1e4c5257",
+        "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_noncontiguous_kind.rs": "1869ccc37cef5dcd65501273cfd992a852c21140704802b1e8aefdd9a9ccc415",
+        "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_noncontiguous_kind.stderr": "706a71ac7753c350d1a6740109b725f347494b064ae97749690b06db3fbb125a",
+        "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_legacy_transitions.rs": "6a47c28e7ba17de5bc917b90ac66b0a1db5e2e350447e03efaecceb341df80b9",
+        "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_legacy_transitions.stderr": "c382db497a102c0dcbf9c5bbf037e1075170887dbe9185bd49629b9e496d474d",
+        "model/umpire/author/dsl/macros/tests/ui/machine_stay_helper.rs": "642ca2fa50c2eb793f87013cc00655e586ec2d8b33378eac4c1579bf2960c47c",
+        "model/umpire/author/dsl/macros/tests/ui/machine_stay_helper.stderr": "6772d4350e2858d3a424869b44b24682fbe65e69b4df2c7e1a91551701d764af",
+        "model/umpire/author/dsl/macros/tests/ui/optional_facts_direct_reject.rs": "923a1a9240203ba3044205a2c8c1d130604b1303a6f248aa018d38eb02815739",
+        "model/umpire/author/dsl/macros/tests/ui/optional_facts_direct_reject.stderr": "4d31a2012173a309454540439aaf2fffa371d7dc392a1aa6c03c678048a1b669",
+        "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_unknown_scope.rs": "035d4e5dee61f6153b979c7ffcc3894bd32774bc215e8edee7237237d7c13266",
+        "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_unknown_scope.stderr": "47ab8f15eff81905c2a195b716698d3af184da734e16559ad4b136b4afcdd3b5",
+        "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/world_parameter_position.rs": "ac302513a8b1c1be95e51edd8e11d50fdc4624ffc8116f053ced0c9f6b69791d",
+        "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/world_parameter_position.stderr": "d34ba1e5db9594d57bda19c3d7e5066f3d2b79167281f5676b809231af4860cc",
+        "model/umpire/author/dsl/macros/tests/ui/machine_stay_effect.rs": "cea14d88d1d713f8b459e06a4190c012c243dfe1a4d05de277cd4cd6dc0bd640",
+        "model/umpire/author/dsl/macros/tests/ui/machine_stay_effect.stderr": "34a563352dd85c59f164a5df9d31b02002b420f5c5af09d01004ed6050624728",
+        "model/umpire/author/dsl/macros/tests/ui/stay_outside_machine.rs": "0ede207ed040a0ed587bed47ea61c9d07d6ee9cde1fec63353fded8007f1be30",
+        "model/umpire/author/dsl/macros/tests/ui/stay_outside_machine.stderr": "721e19c8fc2841578fb9c33de33784c1628aa1d3e0bc881f51c1602e80b86910",
+        "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_progress_gap.rs": "b89c8674c255c89fd2c95cfd7e2b924352d9c480aa3b1f437039cf53554262ac",
+        "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_progress_gap.stderr": "58ca3bdbcc566e5eca8ed85e9f5c85da68f788374a87f2ead773091edd124786",
+        "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/world_starts_twice.rs": "e9017bcaf98239c6b5b8cc958b12e822f884bdebe60d9e55bb635f0b52aac370",
+        "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/world_starts_twice.stderr": "97ccce8c908a577be23d3820a234ac570aeb928b949f1c9857772809d9c9df9d",
+        "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/action_metadata_namespace.rs": "353b667224c797773b4bdc62b7f41345dc48f57db60f16c465ca3a8a0a47153b",
+        "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/action_metadata_namespace.stderr": "ec847aa20b9b754e4e811eb58e61b9ed703ec9eff2e1797aabc6aacab52749ae",
+        "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/action_domain_duplicate.rs": "5e8cc5aa7246106ddd206d9d7ef4744cbeb14435e2802e363449ddc084cdc015",
+        "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/action_domain_duplicate.stderr": "0852ab592fcc801e7d236804199d05a342506657118b55e1254567a76003131a",
+        "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_misplaced_effect.rs": "772a2c7f20ce8c87d94ab941c8e3190cc660288035b03c99a553789a03c2a8cf",
+        "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_misplaced_effect.stderr": "ba0871f6aefce7152d20589d7e3fbb563f3a35ffecc7560bb6469abc66ae6231",
+        "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/non_unit_internal.rs": "486cee608de98c359b4644d008909daaba23858bbc37e10031af975815170060",
+        "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/non_unit_internal.stderr": "ac8f21a16c65158888e22f9751bcbd2115dc4f05a2f050d2e6b06385f3a91583",
+        "model/umpire/author/dsl/macros/tests/ui/action_domain_unbound.rs": "ca596c85c592924ad41f4fb20544603559560f8f3995ce2d139d76ce5df048da",
+        "model/umpire/author/dsl/macros/tests/ui/action_domain_unbound.stderr": "58e6723e77258497b8dc34410c4e0a379a5cbfa402c0aeba6d7f68db8527e896",
+        "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/non_range_starts.rs": "ee2e34bfc22f55ef845f4b578cf42d3d88a389d56b7c083c8f84ff72af9909a9",
+        "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/non_range_starts.stderr": "bfe0ef196fd8670a4b0110f427e8d62c51c020ca135c1659a44b5b8057601e30",
+        "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/action_domain_conflict.rs": "bb43bc0ec92b0b04c6c388243a8ad13b441c9038594a05ec4989de3edba4019b",
+        "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/action_domain_conflict.stderr": "d8e4ebdf52ab608091a249d8b1d17666456b983831c7bbd317196128fc9ff0b1",
+        "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_post_returns_unit.rs": "0ae4f143734d0d3188b5d36688b2b76beaa7e251e81baf407b91472bca01fc36",
+        "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_post_returns_unit.stderr": "dc27670f9828f2e7113d74f1dca45694b7e152b8817863a50be2222a07e2251a",
+        "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/variant_internal.rs": "df5a1cec2e7386f1e3e4b7da28d23762fb08ad4eb995d36dd6e881084a1d9510",
+        "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/variant_internal.stderr": "ef106ad4d56bb02839c0bd38641dc256733828aad54ec888ba8acfc136979351",
+        "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_progress_chain.rs": "35ec8e317fe77e92119daccdfacee74748de75769d90fc7e4b9b9b0ff694668e",
+        "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_progress_chain.stderr": "17218bfd160a5be25ff0b878fb48da1344da5afec3092bfffed000572016224f",
+        "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/optional_facts_payload.rs": "24666dd05bebe83e7756f4a456353e073038fbf7eab835051e1ebe36fe88a1a0",
+        "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/optional_facts_payload.stderr": "6fcbb262f6cef87eb94b27329ea2bf59fdda079608fc0aa55d83e48e62cb855f",
+        "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/world_starts_mixed.rs": "1587c53929574531f2adc532540be3830d8ee53ef37b6d728e2598bda38b56de",
+        "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/world_starts_mixed.stderr": "f87300cbc03e149de45f2607ee7c8562341a1cce7f24f1c790349ce9ae23b791",
+        "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_mutable_invariant.rs": "374e1786ed1bf37ae141a2eb4d1d9fc085f54a16402bc37b802f08eadefe0d6d",
+        "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_mutable_invariant.stderr": "7a3aca93b6ed09a89b1ec4bc1dadc1e94fa4b0a6f051fc74a3e54eaf47d764d2",
+        "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_handler_returns.rs": "c33bc1462263adfec8a7c21493916cdec4ed01128da0d756ce4c8cc72c8f2063",
+        "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_handler_returns.stderr": "20eeb3cad2c1da8b63383f5d4cb7e29d37d920e21fdae37428c52b2ff677be3d",
+        "model/umpire/author/dsl/macros/tests/ui/machine_mutable_const_helper.rs": "391a84da8d730e3a7ea2c57d07083b1781fe931942952db7fbcb8dad08aa71b4",
+        "model/umpire/author/dsl/macros/tests/ui/machine_mutable_const_helper.stderr": "fc795ab69d6d516a3ba3f2b5f9cb1b68b0597ea79c4b79c37dd7a17781376a96",
+        "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/action_domain_variant.rs": "28737124853742b5f76e1a6c430ec3a7aac5d616c2b2901f1ec36967fd0e29ec",
+        "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/action_domain_variant.stderr": "06eaed657781a0b09cfcf3d598f0337e9a428b48350eae8a95473b671e70eea7",
+        "model/umpire/author/dsl/macros/tests/ui/world_starts_return.rs": "c555643b8f848c720ec5ecc44398445349859cb594fdf31aa0e5611ac784b270",
+        "model/umpire/author/dsl/macros/tests/ui/world_starts_return.stderr": "7b6b4782a7fdb44bec5373e331878344c50d3ab86c0ca9095cb259d8ae6f0b04",
+        "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_unknown_actor.rs": "b37b3f674f18044c2b519c306fc60da8f8fb682d13af958b31de9261682e548c",
+        "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_unknown_actor.stderr": "eb376d2f1d7d0a6ae7ee8fabcb163813990e85d0c7c037bf3f44f4ea4844a7d3",
+        "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_marker_trait.rs": "5e3411355eaf52fa1fa74dd275b8fce40b7e29c67af6f6de9d33f427ed65a86a",
+        "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_marker_trait.stderr": "5ca1c34821eaa51a30bd0612d32c97030f931ae37d9107b0e6ef7517c532d230",
+        "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_handler_async.rs": "473ac885f5d85d892fbe8461bdb88131374fe848fce1301fe2ae358f7857bdc5",
+        "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_handler_async.stderr": "8621fd90712d52c416de84c8890ac16eee856965a1b3a96d6601c10beb10561f",
+        "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_mutable_typed_helper.rs": "2f16fb94f1bbd984a40e1d9bf9372e45451e03ddd722ca3480de7b18a7e9b771",
+        "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_mutable_typed_helper.stderr": "fe0680c50256281df2cd9cc552099d6d791d1ccb40462fefc0e6b3ed95a30c52",
+        "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_within_bare.rs": "46ee360f226aba680dd75905ceee4974b97736ce48bc68f7e0434a6aa8a11585",
+        "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_within_bare.stderr": "3314818e97f5b42dbc6d7aa065f5fbb076b058b5c538d09b6e96e7808e880fc5",
+        "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_generic.rs": "104b4651498ec1c3838a97774f1cd77d3b8fccbd84b9fdbcab8387881f6102e8",
+        "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_generic.stderr": "26bfae7f934a2fd9b7dfe428a82408be7e220d135db303013ee41a41a877581a",
+        "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_claim_returns.rs": "13f35527e807ae004941716ccb55dd8f2d73324e4258d826f6363a6f87d1bbf9",
+        "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_claim_returns.stderr": "4b33cd72437007cdb1e338080593facf6834721569f7a028b83af08722e7e209",
+        "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_actor_arity.rs": "cfad528aa334dd882fa5192cc790890ff790f43c247bc704664dc2c99e520c96",
+        "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_actor_arity.stderr": "8dca167fee202d6f007708acef3c2bec319391fff14578f695bf6f04f6606723",
+        "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/world_parameter_mutable.rs": "9c3ca7fd8ff6b450ebfe57797f0adfcc8af1a3a226f714973e451bf604ce1a9e",
+        "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/world_parameter_mutable.stderr": "1e0c5dd0ab1fe8b1fe3508f6b47864a219c64957a9376068b36e064bd3802d0a",
+        "model/umpire/author/dsl/macros/tests/ui/machine_scope_actor.rs": "7b89bc7233408d7fad9fe1985c3289cd6c9135a6ab522954d5c852ed836e984a",
+        "model/umpire/author/dsl/macros/tests/ui/machine_scope_actor.stderr": "5beb344fb236438b690431b3b09d440561b8a1e66efd9fadf5ed206128e4e003",
+        "model/umpire/author/dsl/macros/tests/ui/machine_mutable_local_helper.rs": "b5ed4bf61a5679ba8f79993a3bd6b0fdabcb521c335db0e05a808609b6b71a38",
+        "model/umpire/author/dsl/macros/tests/ui/machine_mutable_local_helper.stderr": "85c85575276b7544100741a41dbb0c0cd32b256d792648a4b2394cd93f3b1eeb",
+        "model/umpire/author/dsl/macros/tests/ui/action_domain_world_mismatch.rs": "beaf44a044e12f51324cc0e4f728d542b4c335b8d4e200be29c0da50f52ed1f5",
+        "model/umpire/author/dsl/macros/tests/ui/action_domain_world_mismatch.stderr": "bfa78fea17d55996efb6f8398b066f660703f66e120c591779129cd88e397cd3",
+        "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_invariant_parameters.rs": "05524561beede1c482a2265ad3fdd22afe74f19c4ee2e182586116c1a69d226f",
+        "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_invariant_parameters.stderr": "27ecff2a1be116e6793013964e84a07100c3191e9092e09cf1238158769bacc5",
+        "model/umpire/author/dsl/macros/tests/ui/action_domain_item_type.rs": "1a9f1a23b2d3e5e05cba902df6a759b46dbffee90aac52bf029cd9f5f9183253",
+        "model/umpire/author/dsl/macros/tests/ui/action_domain_item_type.stderr": "c3ce962075b58d1ac54a28f7518a9d9db4721aae8387a6cf3261da3b477ed127",
+        "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_actor_receiver.rs": "c52ac359223acf38dc0c33974a5c6708319b6a1bb743735bfc5360814819624f",
+        "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_actor_receiver.stderr": "4e8713072075baa0b190c5c202f87f579d8b64cdbcabcae4ff41054ba0c3eb1c",
+        "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/action_inputs_duplicate.rs": "fcc8e58b39b5b98f4906a2364d062e69b30d57fb27a6bd12cdbd1477f2ae0590",
+        "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/action_inputs_duplicate.stderr": "c7ab6fb70197157b8c5d1ae1f03c0e28f093707db94499a477eb9d2ae270e6f8",
+        "model/umpire/author/dsl/macros/tests/ui/machine_mutable_local_projection.rs": "31c5634125dee58557e99d54e982420930af979309d3adf3180c712e5e3acc22",
+        "model/umpire/author/dsl/macros/tests/ui/machine_mutable_local_projection.stderr": "d905eb56a806c2f9824d155dd7c81083a132e62372902950b49e6548c20ba0aa",
+        "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_duplicate_actor.rs": "b5c74d66d0c3c59d50f1049033957fc35efebcaaf010846ec0443a11fff6e98a",
+        "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_duplicate_actor.stderr": "7dabbf3a12bc02a297273db97fd46e8865665b9f3cd61577b1e06687e5c7e29f",
+        "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/finite_shape.rs": "3aa5efb093e76b21c3db30c181b1d889f3192446828114d1ae0e1ff9d82f1648",
+        "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/finite_shape.stderr": "4ded6dc65f699bc5b6a231b516ca26f0ea8290ea10d8caf149266ee15874bba5",
+        "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/world_starts_impl_block.rs": "3117c307a0c670fd1a7084590da5ab1caf36706720d9eea4474195272e06607b",
+        "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/world_starts_impl_block.stderr": "bda2cf503deb04e40a1bb48668f30031d71e34bdaa399651f50da50ef4fc4a37",
+        "model/umpire/author/dsl/macros/tests/ui/machine_nonexhaustive_actor.rs": "2914175f00926bb181aa91e89f726d01a8205c8b8c804e09fd136a0a1f1a7af9",
+        "model/umpire/author/dsl/macros/tests/ui/machine_nonexhaustive_actor.stderr": "f2c1efaf803748d35c2d0f320481f26f5057039e111034e56d13c1a16b8c50a2",
+        "model/umpire/author/dsl/macros/tests/ui/machine_unsafe_allowed.rs": "44775c65f3501a4f84fb4583e5d32db3395a1bf8d521463d194c1d9917b56b4d",
+        "model/umpire/author/dsl/macros/tests/ui/machine_unsafe_allowed.stderr": "4360bbb618185a0e5098763ac0f9315e98840785ae2ad001ea6b31bd431af3d2",
+        "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_out_of_order.rs": "730373bde2a3bd01449e9a45bed2801483900dd635f2e8ede4aed5f0012689e7",
+        "model/umpire/author/dsl/macros/tests/parser_refusals/inputs/machine_out_of_order.stderr": "8069238aa6289b96b05a4cf011a121f00d18b17f0e30480df9ed0a664b2a339d"
+      },
+      "execution_evidence": ".flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/task5/resumed/macro-fixtures-summary.json"
+    },
+    "registry": {
+      "old": 5,
+      "current": 6,
+      "preserved": [
+        "evidence_decodes_actual_types_and_preserves_the_complete_checked_prefix",
+        "proposals_worker_rows_and_probe_baselines_use_one_current_typed_filler",
+        "reach::runtime_reach_admits_typed_roots_and_preserves_prefixes_and_refusals",
+        "registry_admission_uses_actual_inventory_descriptor_edges_and_rust_types",
+        "typed_bootstrap_and_read_hooks_keep_correlation_outside_the_action_graph"
+      ],
+      "added": [
+        "registry_admission_accepts_valid_consumers"
+      ],
+      "admission_selected": 2,
+      "negative": 18,
+      "positive": 1,
+      "runtime_identities_separately_required": [
+        "evidence_decodes_actual_types_and_preserves_the_complete_checked_prefix",
+        "proposals_worker_rows_and_probe_baselines_use_one_current_typed_filler",
+        "reach::runtime_reach_admits_typed_roots_and_preserves_prefixes_and_refusals",
+        "typed_bootstrap_and_read_hooks_keep_correlation_outside_the_action_graph"
+      ],
+      "execution_evidence": ".flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/task5/resumed/temporal-macros-registry-summary.json"
+    },
+    "supplemental_admission": {
+      "old": 1,
+      "current": 2,
+      "preserved": [
+        "supplemental_requests_require_expectations_and_reject_retired_helpers"
+      ],
+      "added": [
+        "generated_api_catalog_compiles_and_validates_actual_messages"
+      ],
+      "negative": 1,
+      "positive": 1,
+      "execution_status": "Parent active admission; not independently checked in this audit."
+    },
+    "testing_consumers": {
+      "old": 5,
+      "current": 9,
+      "preserved": [
+        "consumers_select_generic_snapshot_files",
+        "pending_text_snapshots_require_explicit_acceptance",
+        "rejects_orphan_snapshot_artifacts",
+        "runner_child",
+        "skipped_backend_requires_selected_complete_goldens"
+      ],
+      "delta": "Four added selected-fixture registry/ownership/nondeterminism controls",
+      "execution_evidence": ".flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/task5/resumed/parser-fixture-summary.json",
+      "exact_current_names": [
+        "runner_child",
+        "consumers_select_generic_snapshot_files",
+        "pending_text_snapshots_require_explicit_acceptance",
+        "rejects_orphan_snapshot_artifacts",
+        "skipped_backend_requires_selected_complete_goldens",
+        "selected_fixture_renders_twice_without_running_its_siblings",
+        "selection_admits_all_registry_and_snapshot_inputs_before_rendering",
+        "selected_fixture_preserves_dynamic_orphan_and_nondeterminism_refusals",
+        "selected_fixture_admits_skipped_sibling_goldens"
+      ],
+      "exact_added_names": [
+        "selected_fixture_admits_skipped_sibling_goldens",
+        "selected_fixture_preserves_dynamic_orphan_and_nondeterminism_refusals",
+        "selected_fixture_renders_twice_without_running_its_siblings",
+        "selection_admits_all_registry_and_snapshot_inputs_before_rendering"
+      ]
+    },
+    "xtask": {
+      "framework_main_old": 23,
+      "framework_main_current": 31,
+      "delta": "Six standalone controls from later integrated work plus two task5 gate wiring controls; no old identities removed.",
+      "current_main_list": ".flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/task5/resumed/final-xtask-main-list.log",
+      "executed_current_lib": 34,
+      "executed_current_gate_wiring": 13,
+      "executed_current_standalone": 6,
+      "unexecuted_current_main": 12,
+      "unexecuted_scope": "Eight installer and four retired-name cases are unmodified; preservation accounting only, no broad rerun required by current owner cadence.",
+      "temporal_bin_current_executed": 12,
+      "execution_evidence": ".flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/task5/resumed/xtask-focused-summary.json",
+      "exact_preserved_main_names": [
+        "apalache_install::installer::tests::concurrent_installers_publish_once_and_return_same_path",
+        "apalache_install::installer::tests::download_failure_cleans_private_staging_and_never_publishes",
+        "apalache_install::installer::tests::hash_before_parse_and_exact_regular_member_before_publication",
+        "apalache_install::installer::tests::malicious_lock_types_refuse_without_following_or_blocking",
+        "apalache_install::installer::tests::native_curl_contract_and_download_failure_cleanup",
+        "apalache_install::installer::tests::native_dispatch_usage_failure_is_nonzero_and_structured",
+        "apalache_install::installer::tests::partial_wrong_and_nonregular_installations_never_download",
+        "apalache_install::installer::tests::symlinks_in_every_component_including_dangling_are_refused",
+        "gate_wiring::compiled_stage_inventory_matches_preserved_framework_stages",
+        "gate_wiring::convenience_entries_keep_exact_arguments_and_propagate_failed_inner_status",
+        "gate_wiring::every_command_boundary_preserves_failure_status_and_environment_in_both_modes",
+        "gate_wiring::full_dispatch_runs_each_leaf_once_in_order_and_bypasses_cache_from_first_command",
+        "gate_wiring::full_dispatch_stops_at_every_failed_leaf_in_both_modes",
+        "gate_wiring::guest_and_go_stage_target_matrix_preserves_unset_relative_and_absolute_paths",
+        "gate_wiring::required_optional_backend_fetch_failure_is_named_and_prevents_first_stage",
+        "gate_wiring::scanner_stages_reject_real_planted_inputs_and_full_gate_stops_before_later_commands",
+        "gate_wiring::signaled_stage_retains_shell_status_diagnostics_and_stops_dispatch",
+        "gate_wiring::test_runner_route_preserves_one_workspace_call_and_failures_in_both_modes",
+        "gate_wiring::validate_forces_backend_mode_and_time_entries_stop_before_benchmark_after_failed_gate",
+        "retired_names::io_and_missing_grep_errors_fail_closed",
+        "retired_names::malformed_records_fail_closed",
+        "retired_names::posix_ere_recheck_and_grep_failure_propagate",
+        "retired_names::raw_records_exempt_only_author_facade_tokens"
+      ],
+      "exact_added_main_names": [
+        "gate_wiring::required_profile_reaches_gate_update_and_direct_test_children",
+        "gate_wiring::root_required_backend_environment_selects_standalone_on_gate_and_time_routes",
+        "standalone::child_cannot_reenter_copy_stage",
+        "standalone::child_requires_copy_provenance_instead_of_parent_fallback",
+        "standalone::copied_missing_local_configuration_refuses_parent_configuration",
+        "standalone::declared_existing_outside_dependency_fails_containment",
+        "standalone::manifest_root_escape_fails_source_containment",
+        "standalone::policy_planted_identifier_fails_named_scanner"
+      ],
+      "current_main_list_sha256": "62d886312d1f3aff646b2e5e976b5dcb82bb1ccbb6832d1ec135873a03609383"
+    }
+  },
+  "jvm_group_mapping": {
+    "baseline": ".flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/task3/proof/jvm-groups.json",
+    "configs": {
+      "model/umpire/.config/nextest.toml": {
+        "sha256": "d2afb9dce3c7aee1e81ee9da3f11c3e83187709546f396d0eddd28e7c040a36e",
+        "jvm_max_threads": 2,
+        "required_test_threads": 4,
+        "overrides_identical_to_task3_source": true,
+        "overrides": [
+          {
+            "filter": "(package(=umpire-tlc) | package(=umpire-apalache) | package(=umpire-tla)) & binary(=main) | package(=umpire-fixtures) & binary(=fixtures) | package(=umpire-testing) & kind(lib) & test(actual_tlc_fact_traces_replay_exact_vectors)",
+            "test-group": "jvm"
+          }
+        ]
+      },
+      "model/.config/nextest.toml": {
+        "sha256": "be831217aecd45c0a9e093af71b2142870576bd27f1f58e2f2fe5b87fae663c2",
+        "jvm_max_threads": 2,
+        "required_test_threads": 4,
+        "overrides_identical_to_task3_source": true,
+        "overrides": [
+          {
+            "filter": "package(=umpire-temporal-tests) & binary(=fixtures)",
+            "test-group": "jvm"
+          }
+        ]
+      }
+    },
+    "framework_source_derived_members": 218,
+    "framework_equation": "TLA main96 + Apalache main29 + TLC main8 + testing lib1 + fixtures84 =218; baseline195 gains23 from fixture split.",
+    "temporal_source_derived_members": 41,
+    "temporal_equation": "All temporal-tests fixtures identities retained; registry/supplemental compiler tests are outside jvm group.",
+    "backend_main_source_since_task3_revision2": "No source changes under backends/{tlc,tla,apalache}/tests; testing matched library function retained.",
+    "actual_current_full_group_cli_receipt": "Not produced by this read-only audit. Preserve actual nextest list/show-config evidence separately; source-derived counts are not a newly executed CLI proof."
+  },
+  "remaining_execution_after_parent_named_stages": {
+    "registry_runtime_identities": [
+      "evidence_decodes_actual_types_and_preserves_the_complete_checked_prefix",
+      "proposals_worker_rows_and_probe_baselines_use_one_current_typed_filler",
+      "reach::runtime_reach_admits_typed_roots_and_preserves_prefixes_and_refusals",
+      "typed_bootstrap_and_read_hooks_keep_correlation_outside_the_action_graph"
+    ],
+    "supplemental_admission": "Two identities; parent active run may discharge.",
+    "temporal_representative": "Actual Temporal required-backend fixture proof separately required.",
+    "unrelated_main_12": "Preserve names/source evidence; no rerun requested.",
+    "full_gate": "Deferred task8, not demanded here."
+  },
+  "source_sha256": {
+    "model/temporal/realization/tests/registry.rs": "dd1d5c18a574fe84bd4909e733525c04ade004211eede2997f995e01ef8f1c96",
+    "model/temporal/realization/tests/supplemental_admission.rs": "3e147ada8b81261cb58860820b30ba8d175faaea5bec3ef6a9bdbd3e62e22a01",
+    "model/umpire/author/dsl/macros/tests/fixtures.rs": "e2e30bc4361aa7fc45326bedfb2c859f073394c049a383125235e501f79a5556",
+    "model/umpire/author/dsl/macros/tests/parser_refusals/mod.rs": "2b9c5bf37ccfdae7b67a3076727363669e228bd528382da145833c6a40c694dc",
+    "model/umpire/author/dsl/macros/tests/parser_refusals/cases.rs": "955e957ca23d5e1dde934e259b242fcdf910d674a94c4a78da618439adc802ab",
+    "model/umpire/dev/testing/tests/consumers.rs": "a26bd4807f721ead46bf5548513af0f798aba54abd38a57ccfb4ff267fa8580c",
+    "model/umpire/dev/fixtures/build.rs": "98ba963791d256932d32624b0aa7b38497ee55f774b1c1c9e62d9421d54ec76d",
+    "model/umpire/dev/fixtures/fixtures.rs": "aea37b464526d9634866841fa7384661666ba00bfe81949694ec625f6ff7e227"
+  },
+  "coordinator_owns_completion_claims": true
+}

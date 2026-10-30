@@ -23,7 +23,7 @@
   },
   "next_task": 1,
   "plan_review_rounds": 0,
-  "plan_review_status": "ship",
+  "plan_review_status": "stale",
   "plan_reviewed_at": "2026-10-25T15:59:29.669950Z",
   "ready": true,
   "review_attempts": [
@@ -986,5 +986,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-25T20:21:10.136857Z"
+  "updated_at": "2026-10-26T05:37:35.057489Z"
 }

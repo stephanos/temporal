@@ -18,6 +18,9 @@ mod state;
 #[path = "../src/world.rs"]
 mod world;
 
+#[path = "parser_refusals/mod.rs"]
+mod parser_refusals;
+
 include!(concat!(env!("OUT_DIR"), "/fixtures.rs"));
 
 #[test]
@@ -35,7 +38,8 @@ fn fixtures() -> umpire_testing::TestResult {
 
 #[test]
 fn refusals() {
-    trybuild::TestCases::new().compile_fail("tests/ui/*.rs");
+    let tests = trybuild::TestCases::new();
+    tests.compile_fail("tests/ui/*.rs");
 }
 
 #[test]

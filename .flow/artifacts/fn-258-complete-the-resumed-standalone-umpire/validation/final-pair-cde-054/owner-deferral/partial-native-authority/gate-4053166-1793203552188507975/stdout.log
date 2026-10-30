@@ -1,0 +1,130 @@
+[model:retired-names] retired Umpire crate names: clean
+[gate:timing-controls] guest wiring controls: five guests, two native reports, caller paths and child failures passed (fake builders)
+[gate:protobuf-controls] proto-go controls: selectors, pins, freshness, symlinks, failures and cleanup passed
+[gate:capability-controls] capability controls: both core policies reject filesystem, clock and thread APIs/types
+[gate:capability-controls] unsafe controls: safe target roots reject overrides; deny requires a local allowance
+[gate:tests] 
+[gate:tests] running 0 tests
+[gate:tests] 
+[gate:tests] test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+[gate:tests] 
+[gate:tests] 
+[gate:tests] running 0 tests
+[gate:tests] 
+[gate:tests] test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+[gate:tests] 
+[gate:tests] 
+[gate:tests] running 0 tests
+[gate:tests] 
+[gate:tests] test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+[gate:tests] 
+[gate:tests] 
+[gate:tests] running 0 tests
+[gate:tests] 
+[gate:tests] test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+[gate:tests] 
+[gate:tests] 
+[gate:tests] running 1 test
+[gate:tests] .
+[gate:tests] test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+[gate:tests] 
+[gate:tests] 
+[gate:tests] running 1 test
+[gate:tests] .
+[gate:tests] test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+[gate:tests] 
+[gate:tests] all doctests ran in 0.17s; merged doctests compilation took 0.16s
+[gate:tests] 
+[gate:tests] running 0 tests
+[gate:tests] 
+[gate:tests] test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+[gate:tests] 
+[gate:tests] 
+[gate:tests] running 0 tests
+[gate:tests] 
+[gate:tests] test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+[gate:tests] 
+[gate:tests] 
+[gate:tests] running 0 tests
+[gate:tests] 
+[gate:tests] test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+[gate:tests] 
+[gate:tests] 
+[gate:tests] running 0 tests
+[gate:tests] 
+[gate:tests] test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+[gate:tests] 
+[gate:tests] 
+[gate:tests] running 0 tests
+[gate:tests] 
+[gate:tests] test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+[gate:tests] 
+[gate:tests] 
+[gate:tests] running 0 tests
+[gate:tests] 
+[gate:tests] test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+[gate:tests] 
+[gate:tests] 
+[gate:tests] running 0 tests
+[gate:tests] 
+[gate:tests] test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+[gate:tests] 
+[gate:tests] 
+[gate:tests] running 0 tests
+[gate:tests] 
+[gate:tests] test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+[gate:tests] 
+[gate:tests] 
+[gate:tests] running 0 tests
+[gate:tests] 
+[gate:tests] test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+[gate:tests] 
+[gate:tests] 
+[gate:tests] running 0 tests
+[gate:tests] 
+[gate:tests] test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+[gate:tests] 
+[gate:tests] 
+[gate:tests] running 0 tests
+[gate:tests] 
+[gate:tests] test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+[gate:tests] 
+[gate:tests] 
+[gate:tests] running 1 test
+[gate:tests] .
+[gate:tests] test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+[gate:tests] 
+[gate:tests] 
+[gate:tests] running 1 test
+[gate:tests] i
+[gate:tests] test result: ok. 0 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.00s
+[gate:tests] 
+[gate:tests] 
+[gate:tests] running 1 test
+[gate:tests] .
+[gate:tests] test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.05s
+[gate:tests] 
+[gate:tests] all doctests ran in 0.16s; merged doctests compilation took 0.11s
+[gate:tests] 
+[gate:tests] running 0 tests
+[gate:tests] 
+[gate:tests] test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+[gate:tests] 
+[gate:tests] 
+[gate:tests] running 0 tests
+[gate:tests] 
+[gate:tests] test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+[gate:tests] 
+[gate:tests] 
+[gate:tests] running 0 tests
+[gate:tests] 
+[gate:tests] test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+[gate:tests] 
+[gate:tests] 
+[gate:tests] running 0 tests
+[gate:tests] 
+[gate:tests] test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+[gate:tests] 
+[model:temporal-prerequisites] make[1]: Entering directory '/home/agent/.cache/codex-build/tmp/fn258-final-pair-cde-054/temporal'
+[model:temporal-prerequisites] make[1]: Nothing to be done for 'model-prerequisites'.
+[model:temporal-prerequisites] make[1]: Leaving directory '/home/agent/.cache/codex-build/tmp/fn258-final-pair-cde-054/temporal'

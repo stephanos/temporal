@@ -1,0 +1,1378 @@
+   Compiling umpire-guest-driver v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/dev/guest-driver)
+   Compiling xtask v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/dev/xtask)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 6.67s
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.04s
+────────────
+ Nextest run ID c31cc9c2-a31d-46d0-b92a-d7f79162b8a1 with nextest profile: required
+    Starting 158 tests across 3 binaries
+  stdout ───
+
+    running 1 test
+    test build_guests::path_controls::isolated_build_child ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 102 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test build_guests::tests::five_artifacts_then_two_reports_keep_spaces_and_child_status ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 102 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test capability_controls::tests::negative_control_requires_failure_and_every_symbol ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 102 filtered out; finished in 0.00s
+
+  stderr ───
+    apiapi
+
+  stdout ───
+
+    running 1 test
+    test capability_controls::tests::both_policies_six_safe_roots_and_audited_exception ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 102 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test gate::admission::tests::clean_policy_keeps_stripped_flags_out_and_native_policy_keeps_defaults ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 102 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test gate::admission::tests::required_tool_policy_caps_work_and_retains_other_caller_flags ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 102 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test gate::boundary::tests::character_recognition_requires_a_valid_closed_literal ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 102 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test gate::boundary::tests::declared_unused_dependency_escape_is_refused_before_cargo ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 102 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test gate::boundary::tests::external_target_alias_cannot_hide_source_subtree ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 102 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test gate::boundary::tests::character_literals_and_lifetimes_cannot_hide_source_escapes ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 102 filtered out; finished in 0.01s
+
+
+  stdout ───
+
+    running 1 test
+    test gate::boundary::tests::source_escape_is_structural_and_contained_deep_paths_work ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 102 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test gate::boundary::tests::organization_exception_preserves_occurrence_token_boundaries ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 102 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test gate::boundary::tests::target_cannot_hide_sources ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 102 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test gate::scheduler::execution_controls::captured_leaf_preserves_cwd_environment_bytes_and_failed_status ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 102 filtered out; finished in 0.03s
+
+
+  stdout ───
+
+    running 1 test
+    test gate::scheduler::execution_controls::captured_leaf_preserves_signal_status ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 102 filtered out; finished in 0.03s
+
+
+  stdout ───
+
+    running 1 test
+    outputtest gate::scheduler::execution_controls::streamed_channels_are_not_returned_as_captured_output ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 102 filtered out; finished in 0.03s
+
+  stderr ───
+    error
+
+  stdout ───
+
+    running 1 test
+    test gate::scheduler::execution_controls::unconfigured_leaf_uses_the_callers_working_directory ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 102 filtered out; finished in 0.03s
+
+
+  stdout ───
+
+    running 1 test
+    test gate::scheduler::inventory_controls::assumed_env_object_and_incomplete_metadata_are_refused ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 102 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test gate::scheduler::inventory_controls::duplicate_metadata_and_nonliteral_dependency_are_refused ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 102 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test gate::scheduler::inventory_controls::upstream_env_directive_array_preserves_logical_order_and_dependencies ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 102 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test gate::scheduler::receipt_controls::failed_invocation_distinguishes_cancelled_and_not_started_without_accepting_missing_success ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 102 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test gate::scheduler::receipt_controls::scoped_receipts_keep_duplicate_public_names_and_logical_order ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 102 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test gate::standalone::tests::copy_refuses_existing_and_dangling_source_symlinks ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 102 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test gate::standalone::tests::copy_uses_current_bytes_and_excludes_only_generated_roots ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 102 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test gate::standalone::tests::copied_config_trust_is_limited_to_copy_and_owned_scratch ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 102 filtered out; finished in 0.01s
+
+
+  stdout ───
+
+    running 1 test
+    test gate::standalone::tests::isolated_child_policy_control ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 102 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test gate::standalone::tests::report_directory_artifact_hashes_every_generated_file ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 102 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test gate::standalone::tests::isolated_child_uses_the_reported_required_profile_and_thread_cap ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 102 filtered out; finished in 0.04s
+
+
+  stdout ───
+
+    running 1 test
+    test gate::tests::real_stage_child_receives_cache_bypass_and_required_mode ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 102 filtered out; finished in 0.06s
+
+  stderr ───
+    framework stage exit-control failed (exit 37)
+
+  stdout ───
+
+    running 1 test
+    test gate::tests::stage_reaps_background_children_before_returning_the_failed_status ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 102 filtered out; finished in 0.05s
+
+  stderr ───
+    framework stage owned-child failed (exit 37)
+
+  stdout ───
+
+    running 1 test
+    test gate::timing::tests::capture_preserves_status_and_captures_both_failed_streams ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 102 filtered out; finished in 0.03s
+
+  stderr ───
+    outputerror
+
+  stdout ───
+
+    running 1 test
+    test gate::work_counts::tests::child_authority_paths_preserve_tabs_and_non_unicode_bytes ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 102 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test gate::work_counts::tests::child_count_authority_is_embedded_without_inclusive_parent_summing ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 102 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test gate::work_counts::tests::doctest_color_is_normalized_only_for_private_observation ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 102 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test gate::work_counts::tests::doctest_summary_requires_every_actual_count ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 102 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test gate::work_counts::tests::doctests_refuse_missing_duplicate_and_mismatched_summaries ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 102 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test gate::work_counts::tests::duplicate_and_unfinished_test_producers_are_refused ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 102 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test gate::work_counts::tests::inventory_requires_exact_cardinality_and_complete_selection_fields ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 102 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test gate::timing::tests::step_preserves_signal_status ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 102 filtered out; finished in 0.03s
+
+
+  stdout ───
+
+    running 1 test
+    test gate::work_counts::tests::missing_observations_remain_unknown_instead_of_zero ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 102 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test gate::work_counts::tests::observation_child ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 102 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test gate::work_counts::tests::observed_test_commands_and_real_launches_have_separate_counts ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 102 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+
+    running 1 test
+    test gate::work_counts::tests::observation_child ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 102 filtered out; finished in 0.06s
+
+    test gate::work_counts::tests::malformed_counts_keep_the_real_failed_runner_status ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 102 filtered out; finished in 0.07s
+
+
+  stdout ───
+
+    running 1 test
+    test gate::work_counts::tests::partial_unknown_and_overflowed_events_refuse_counts ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 102 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test gate::work_counts::tests::rejected_controller_child ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 102 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test gate::work_counts::tests::selected_tests_are_not_substituted_for_observed_execution ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 102 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test gate::work_counts::tests::stage_collector_uses_the_count_boundary_for_successful_receipts ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 102 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test build_guests::path_controls::guest_and_native_statuses_stop_without_following_children ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 102 filtered out; finished in 0.32s
+
+
+  stdout ───
+
+    running 1 test
+    test gate::work_counts::tests::streaming_child ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 102 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test gate::work_counts::tests::structured_receipts_refuse_missing_partial_and_inconsistent_success_counts ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 102 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+
+    running 1 test
+    test gate::work_counts::tests::observation_child ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 102 filtered out; finished in 0.00s
+
+    test gate::work_counts::tests::successful_test_stage_cannot_omit_its_producer ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 102 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test gate::work_counts::tests::supervisor_fork_and_unconfirmed_completion_do_not_claim_jvm_launches ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 102 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test gate::work_counts::tests::test_carrier_rejection_is_frozen_before_configured_path_can_change ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 102 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    protoc-gen-go-v1.36.6 v1.36.6
+    native protobuf controls passed
+    test proto::controls::tests::native_protobuf_behavior_controls ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 102 filtered out; finished in 0.00s
+
+  stderr ───
+    protobuf output differs: /home/agent/.cache/codex-build/tmp/.tmpv8mElD/hosts/go/gen/stale.go
+    protobuf output differs: /home/agent/.cache/codex-build/tmp/.tmpv8mElD/hosts/go/gen/umpire/generated.go
+    protobuf output differs: /home/agent/.cache/codex-build/tmp/.tmpv8mElD/reference/kettle/gen/stale.go
+    protobuf output differs: /home/agent/.cache/codex-build/tmp/.tmpv8mElD/reference/kettle/gen/umpire/generated.go
+    protobuf output differs: /home/agent/.cache/codex-build/tmp/.tmpv8mElD/consumer/umpire/stale.go
+
+  stdout ───
+
+    running 1 test
+    test quick::tests::deleted_source_ownership_does_not_require_the_file_to_exist ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 102 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test quick::tests::explicit_compiler_only_packages_must_belong_to_an_admitted_workspace ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 102 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test quick::tests::external_build_inputs_and_unknown_sources_remain_conservative ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 102 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test quick::tests::framework_abi_guests_are_explicit_compiler_only_consumers ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 102 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test gate::work_counts::tests::observed_tools_stream_human_channels_while_pending_without_returning_them_twice ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 102 filtered out; finished in 0.14s
+
+
+  stdout ───
+
+    running 1 test
+    test quick::tests::global_and_unmapped_inputs_select_whole_workspace_and_reverse_dependents ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 102 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test quick::tests::global_fallback_compiles_zero_harness_members_and_keeps_their_tests_and_doctests ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 102 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test quick::tests::mapped_external_sources_and_unchanged_invocations_keep_explicit_execution ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 102 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test quick::tests::metadata_named_checkout_ancestors_do_not_hide_external_build_inputs ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 102 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test quick::tests::metadata_preserves_doctests_without_requesting_binary_only_docs ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 102 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test quick::tests::model_edits_ignore_reported_non_model_metadata_and_docs ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 102 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test quick::tests::options_reject_unknown_flags_and_relative_workspaces ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 102 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test quick::tests::package_filters_only_narrow_unchanged_or_exclusively_mapped_feature_edits ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 102 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test quick::tests::quick_leaf_reaps_background_children_and_preserves_failed_status ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 102 filtered out; finished in 0.05s
+
+
+  stdout ───
+
+    running 1 test
+    test quick::tests::renamed_sources_select_both_owners_with_metadata_changes ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 102 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test quick::tests::reverse_dependencies_merge_workspace_specific_ids_by_manifest ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 102 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test quick::tests::shared_feature_inputs_select_every_direct_consumer_and_reverse_guest ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 102 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test quick::tests::shared_kettle_model_seeds_source_consumers_and_reverse_guest ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 102 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test quick::tests::stage_receipt_reports_elapsed_and_spawn_failure_without_success_status ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 102 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test quick::tests::stage_receipt_reports_missing_tool_as_failed_status ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 102 filtered out; finished in 0.03s
+
+  stderr ───
+    cannot execute backend subprocess
+
+  stdout ───
+
+    running 1 test
+    test quick::tests::git_selection_includes_staged_unstaged_untracked_renamed_and_deleted_paths ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 102 filtered out; finished in 0.16s
+
+
+  stdout ───
+
+    running 1 test
+    test quick::tests::workspace_documentation_can_supply_executable_test_inputs ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 102 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test quick::tests::stage_receipts_label_formatting_and_preserve_success_and_failure_statuses ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 102 filtered out; finished in 0.10s
+
+
+  stdout ───
+
+    running 1 test
+    test retired_names::controls::facade_token_exemption_checks_boundaries_and_remaining_matches ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 102 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test retired_names::controls::native_scan_handles_git_binary_missing_and_symlink_policy ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 102 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test retired_names::controls::raw_records_keep_non_utf8_paths_lines_and_numeric_spelling ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 102 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test retired_names::controls::rust_patterns_and_malformed_records_fail_closed ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 102 filtered out; finished in 0.00s
+
+  stderr ───
+    retired-name filtering failed: missing path separator
+    retired-name filtering failed: missing line number separator
+    retired-name filtering failed: invalid grep line number
+    retired-name filtering failed: invalid grep line number
+    retired-name filtering failed: regex parse error:
+        [
+        ^
+    error: unclosed character class
+    retired-name filtering failed: retired-name pattern must be UTF-8
+
+  stdout ───
+
+    running 1 test
+
+    running 1 test
+    test gate::work_counts::tests::observation_child ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 102 filtered out; finished in 0.10s
+
+
+    running 1 test
+    test gate::work_counts::tests::observation_child ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 102 filtered out; finished in 0.10s
+
+
+    running 1 test
+    test gate::work_counts::tests::observation_child ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 102 filtered out; finished in 0.10s
+
+    test gate::work_counts::tests::stage_receipt_combines_nextest_and_doctests_without_cross_scope_or_invocation_counts ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 102 filtered out; finished in 0.30s
+
+
+  stdout ───
+
+    running 1 test
+    test retired_names::controls::writer_failure_returns_error_status ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 102 filtered out; finished in 0.00s
+
+  stderr ───
+    retired-name filtering failed: control
+
+  stdout ───
+
+    running 1 test
+    test test_run::tests::binaries_then_doctests_exactly_once ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 102 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test test_run::tests::binary_failure_stops_before_doctests ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 102 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test test_run::tests::compiler_only_admission_is_explicit_and_keeps_discovered_tests_in_the_batch ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 102 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test test_run::tests::doctest_failure_preserves_status ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 102 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test test_run::tests::exact_predicates_use_nextest_escape_sequences_without_embedded_quotes ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 102 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test test_run::tests::explicit_compiler_only_batches_do_not_claim_zero_test_execution ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 102 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test test_run::tests::filtered_doctests_keep_exact_selection ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 102 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test test_run::tests::inventory_admission_refuses_each_empty_package_and_exact_fixture_selection ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 102 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test test_run::tests::inventory_failure_preserves_status_and_never_executes_the_batch ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 102 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test test_run::tests::missing_runner_fails_without_fallback ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 102 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test test_run::tests::scoped_package_admission_uses_membership_and_actual_doctest_targets ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 102 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test test_run::tests::scoped_runner_child ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 102 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test test_run::tests::required_backend_policy_caps_inherited_threads_and_preserves_skipped_defaults ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 102 filtered out; finished in 0.01s
+
+
+  stdout ───
+
+    running 1 test
+    test test_run::tests::selected_binary_failure_and_doctest_failure_preserve_status ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 102 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test test_run::tests::selected_empty_batch_and_spawn_failure_do_not_fall_back ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 102 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test test_run::tests::selected_packages_share_one_nextest_batch_and_only_eligible_doctests ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 102 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test test_run::tests::workspace_selection_rejects_an_unexpected_zero_test_run ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 102 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test apalache_install::concurrent_failed_provisioning_preserves_partial_data_and_cleans_capture ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 54 filtered out; finished in 0.04s
+
+
+  stdout ───
+
+    running 1 test
+    test apalache_install::dispatch_usage_failure_is_nonzero_and_structured ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 54 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test apalache_install::non_utf8_provider_root_has_a_native_status_one_refusal_before_mise ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 54 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test apalache_install::path_list_provider_root_has_a_native_status_one_refusal_before_mise ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 54 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test apalache_install::provider_uses_explicit_opt_in_and_surfaces_install_failure ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 54 filtered out; finished in 0.07s
+
+
+  stdout ───
+
+    running 1 test
+    test quick::tests::workspace_execution_checks_build_only_consumers_then_batches_tests_and_scoped_docs ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 102 filtered out; finished in 0.43s
+
+  stderr ───
+    quick: stage=compile workspace=/home/agent/.cache/codex-build/tmp/.tmp3LV2MT packages=guest,umpire,umpire-ir-derive command=cd "/home/agent/.cache/codex-build/tmp/.tmp3LV2MT" && CONTROL_COMPILE_EXIT="0" CONTROL_DOC_EXIT="0" CONTROL_LIST_EXIT="0" CONTROL_ROOT="/home/agent/.cache/codex-build/tmp/.tmp3LV2MT" CONTROL_RUN_EXIT="0" "/bin/sh" "/home/agent/.cache/codex-build/tmp/.tmp3LV2MT/cargo.sh" "check" "--locked" "--all-targets" "-p" "guest" "-p" "umpire" "-p" "umpire-ir-derive"
+    quick: stage=compile workspace=/home/agent/.cache/codex-build/tmp/.tmp3LV2MT packages=guest,umpire,umpire-ir-derive elapsed=0.027s exit=0
+    quick: stage=test-inventory workspace=/home/agent/.cache/codex-build/tmp/.tmp3LV2MT packages=api,guest,fixtures,umpire,umpire-ir-derive command=cd "/home/agent/.cache/codex-build/tmp/.tmp3LV2MT" && CONTROL_COMPILE_EXIT="0" CONTROL_DOC_EXIT="0" CONTROL_LIST_EXIT="0" CONTROL_ROOT="/home/agent/.cache/codex-build/tmp/.tmp3LV2MT" CONTROL_RUN_EXIT="0" "/bin/sh" "/home/agent/.cache/codex-build/tmp/.tmp3LV2MT/cargo.sh" "nextest" "list" "--locked" "--message-format" "json" "--run-ignored" "default" "-p" "api" "-p" "guest" "-p" "fixtures" "-p" "umpire" "-p" "umpire-ir-derive" "-E" "(package(=api)) | (package(=guest)) | (package(=fixtures) & kind(test) & binary(=fixtures) & test(=fixtures)) | (package(=umpire)) | (package(=umpire-ir-derive))"
+    quick: stage=test-inventory workspace=/home/agent/.cache/codex-build/tmp/.tmp3LV2MT packages=api,guest,fixtures,umpire,umpire-ir-derive elapsed=0.032s exit=0
+    quick: stage=test workspace=/home/agent/.cache/codex-build/tmp/.tmp3LV2MT packages=api,guest,fixtures,umpire,umpire-ir-derive command=cd "/home/agent/.cache/codex-build/tmp/.tmp3LV2MT" && CONTROL_COMPILE_EXIT="0" CONTROL_DOC_EXIT="0" CONTROL_LIST_EXIT="0" CONTROL_ROOT="/home/agent/.cache/codex-build/tmp/.tmp3LV2MT" CONTROL_RUN_EXIT="0" "/bin/sh" "/home/agent/.cache/codex-build/tmp/.tmp3LV2MT/cargo.sh" "nextest" "run" "--locked" "--fail-fast" "--run-ignored" "default" "--status-level" "slow" "--final-status-level" "slow" "--success-output" "immediate" "--failure-output" "immediate-final" "--no-tests" "fail" "-p" "api" "-p" "guest" "-p" "fixtures" "-p" "umpire" "-p" "umpire-ir-derive" "-E" "(package(=api)) | (package(=guest)) | (package(=fixtures) & kind(test) & binary(=fixtures) & test(=fixtures)) | (package(=umpire)) | (package(=umpire-ir-derive))"
+    quick: stage=test workspace=/home/agent/.cache/codex-build/tmp/.tmp3LV2MT packages=api,guest,fixtures,umpire,umpire-ir-derive elapsed=0.031s exit=0
+    quick: stage=doctest workspace=/home/agent/.cache/codex-build/tmp/.tmp3LV2MT packages=api,guest,fixtures,umpire,umpire-ir-derive command=cd "/home/agent/.cache/codex-build/tmp/.tmp3LV2MT" && CONTROL_COMPILE_EXIT="0" CONTROL_DOC_EXIT="0" CONTROL_LIST_EXIT="0" CONTROL_ROOT="/home/agent/.cache/codex-build/tmp/.tmp3LV2MT" CONTROL_RUN_EXIT="0" "/bin/sh" "/home/agent/.cache/codex-build/tmp/.tmp3LV2MT/cargo.sh" "test" "--doc" "--locked" "-p" "api" "-p" "umpire" "-p" "umpire-ir-derive" "--" "--nocapture"
+    quick: stage=doctest workspace=/home/agent/.cache/codex-build/tmp/.tmp3LV2MT packages=api,guest,fixtures,umpire,umpire-ir-derive elapsed=0.032s exit=0
+    quick: stage=compile workspace=/home/agent/.cache/codex-build/tmp/.tmp3LV2MT packages=guest,umpire,umpire-ir-derive command=cd "/home/agent/.cache/codex-build/tmp/.tmp3LV2MT" && CONTROL_COMPILE_EXIT="13" CONTROL_DOC_EXIT="0" CONTROL_LIST_EXIT="0" CONTROL_ROOT="/home/agent/.cache/codex-build/tmp/.tmp3LV2MT" CONTROL_RUN_EXIT="0" "/bin/sh" "/home/agent/.cache/codex-build/tmp/.tmp3LV2MT/cargo.sh" "check" "--locked" "--all-targets" "-p" "guest" "-p" "umpire" "-p" "umpire-ir-derive"
+    quick: stage=compile workspace=/home/agent/.cache/codex-build/tmp/.tmp3LV2MT packages=guest,umpire,umpire-ir-derive elapsed=0.031s exit=13
+    quick: stage=compile workspace=/home/agent/.cache/codex-build/tmp/.tmp3LV2MT packages=guest,umpire,umpire-ir-derive command=cd "/home/agent/.cache/codex-build/tmp/.tmp3LV2MT" && CONTROL_COMPILE_EXIT="0" CONTROL_DOC_EXIT="0" CONTROL_LIST_EXIT="17" CONTROL_ROOT="/home/agent/.cache/codex-build/tmp/.tmp3LV2MT" CONTROL_RUN_EXIT="0" "/bin/sh" "/home/agent/.cache/codex-build/tmp/.tmp3LV2MT/cargo.sh" "check" "--locked" "--all-targets" "-p" "guest" "-p" "umpire" "-p" "umpire-ir-derive"
+    quick: stage=compile workspace=/home/agent/.cache/codex-build/tmp/.tmp3LV2MT packages=guest,umpire,umpire-ir-derive elapsed=0.032s exit=0
+    quick: stage=test-inventory workspace=/home/agent/.cache/codex-build/tmp/.tmp3LV2MT packages=api,guest,fixtures,umpire,umpire-ir-derive command=cd "/home/agent/.cache/codex-build/tmp/.tmp3LV2MT" && CONTROL_COMPILE_EXIT="0" CONTROL_DOC_EXIT="0" CONTROL_LIST_EXIT="17" CONTROL_ROOT="/home/agent/.cache/codex-build/tmp/.tmp3LV2MT" CONTROL_RUN_EXIT="0" "/bin/sh" "/home/agent/.cache/codex-build/tmp/.tmp3LV2MT/cargo.sh" "nextest" "list" "--locked" "--message-format" "json" "--run-ignored" "default" "-p" "api" "-p" "guest" "-p" "fixtures" "-p" "umpire" "-p" "umpire-ir-derive" "-E" "(package(=api)) | (package(=guest)) | (package(=fixtures) & kind(test) & binary(=fixtures) & test(=fixtures)) | (package(=umpire)) | (package(=umpire-ir-derive))"
+    quick: stage=test-inventory workspace=/home/agent/.cache/codex-build/tmp/.tmp3LV2MT packages=api,guest,fixtures,umpire,umpire-ir-derive elapsed=0.032s exit=17
+    quick: stage=compile workspace=/home/agent/.cache/codex-build/tmp/.tmp3LV2MT packages=guest,umpire,umpire-ir-derive command=cd "/home/agent/.cache/codex-build/tmp/.tmp3LV2MT" && CONTROL_COMPILE_EXIT="0" CONTROL_DOC_EXIT="0" CONTROL_LIST_EXIT="0" CONTROL_ROOT="/home/agent/.cache/codex-build/tmp/.tmp3LV2MT" CONTROL_RUN_EXIT="29" "/bin/sh" "/home/agent/.cache/codex-build/tmp/.tmp3LV2MT/cargo.sh" "check" "--locked" "--all-targets" "-p" "guest" "-p" "umpire" "-p" "umpire-ir-derive"
+    quick: stage=compile workspace=/home/agent/.cache/codex-build/tmp/.tmp3LV2MT packages=guest,umpire,umpire-ir-derive elapsed=0.027s exit=0
+    quick: stage=test-inventory workspace=/home/agent/.cache/codex-build/tmp/.tmp3LV2MT packages=api,guest,fixtures,umpire,umpire-ir-derive command=cd "/home/agent/.cache/codex-build/tmp/.tmp3LV2MT" && CONTROL_COMPILE_EXIT="0" CONTROL_DOC_EXIT="0" CONTROL_LIST_EXIT="0" CONTROL_ROOT="/home/agent/.cache/codex-build/tmp/.tmp3LV2MT" CONTROL_RUN_EXIT="29" "/bin/sh" "/home/agent/.cache/codex-build/tmp/.tmp3LV2MT/cargo.sh" "nextest" "list" "--locked" "--message-format" "json" "--run-ignored" "default" "-p" "api" "-p" "guest" "-p" "fixtures" "-p" "umpire" "-p" "umpire-ir-derive" "-E" "(package(=api)) | (package(=guest)) | (package(=fixtures) & kind(test) & binary(=fixtures) & test(=fixtures)) | (package(=umpire)) | (package(=umpire-ir-derive))"
+    quick: stage=test-inventory workspace=/home/agent/.cache/codex-build/tmp/.tmp3LV2MT packages=api,guest,fixtures,umpire,umpire-ir-derive elapsed=0.031s exit=0
+    quick: stage=test workspace=/home/agent/.cache/codex-build/tmp/.tmp3LV2MT packages=api,guest,fixtures,umpire,umpire-ir-derive command=cd "/home/agent/.cache/codex-build/tmp/.tmp3LV2MT" && CONTROL_COMPILE_EXIT="0" CONTROL_DOC_EXIT="0" CONTROL_LIST_EXIT="0" CONTROL_ROOT="/home/agent/.cache/codex-build/tmp/.tmp3LV2MT" CONTROL_RUN_EXIT="29" "/bin/sh" "/home/agent/.cache/codex-build/tmp/.tmp3LV2MT/cargo.sh" "nextest" "run" "--locked" "--fail-fast" "--run-ignored" "default" "--status-level" "slow" "--final-status-level" "slow" "--success-output" "immediate" "--failure-output" "immediate-final" "--no-tests" "fail" "-p" "api" "-p" "guest" "-p" "fixtures" "-p" "umpire" "-p" "umpire-ir-derive" "-E" "(package(=api)) | (package(=guest)) | (package(=fixtures) & kind(test) & binary(=fixtures) & test(=fixtures)) | (package(=umpire)) | (package(=umpire-ir-derive))"
+    quick: stage=test workspace=/home/agent/.cache/codex-build/tmp/.tmp3LV2MT packages=api,guest,fixtures,umpire,umpire-ir-derive elapsed=0.032s exit=29
+    quick: stage=compile workspace=/home/agent/.cache/codex-build/tmp/.tmp3LV2MT packages=guest,umpire,umpire-ir-derive command=cd "/home/agent/.cache/codex-build/tmp/.tmp3LV2MT" && CONTROL_COMPILE_EXIT="0" CONTROL_DOC_EXIT="37" CONTROL_LIST_EXIT="0" CONTROL_ROOT="/home/agent/.cache/codex-build/tmp/.tmp3LV2MT" CONTROL_RUN_EXIT="0" "/bin/sh" "/home/agent/.cache/codex-build/tmp/.tmp3LV2MT/cargo.sh" "check" "--locked" "--all-targets" "-p" "guest" "-p" "umpire" "-p" "umpire-ir-derive"
+    quick: stage=compile workspace=/home/agent/.cache/codex-build/tmp/.tmp3LV2MT packages=guest,umpire,umpire-ir-derive elapsed=0.031s exit=0
+    quick: stage=test-inventory workspace=/home/agent/.cache/codex-build/tmp/.tmp3LV2MT packages=api,guest,fixtures,umpire,umpire-ir-derive command=cd "/home/agent/.cache/codex-build/tmp/.tmp3LV2MT" && CONTROL_COMPILE_EXIT="0" CONTROL_DOC_EXIT="37" CONTROL_LIST_EXIT="0" CONTROL_ROOT="/home/agent/.cache/codex-build/tmp/.tmp3LV2MT" CONTROL_RUN_EXIT="0" "/bin/sh" "/home/agent/.cache/codex-build/tmp/.tmp3LV2MT/cargo.sh" "nextest" "list" "--locked" "--message-format" "json" "--run-ignored" "default" "-p" "api" "-p" "guest" "-p" "fixtures" "-p" "umpire" "-p" "umpire-ir-derive" "-E" "(package(=api)) | (package(=guest)) | (package(=fixtures) & kind(test) & binary(=fixtures) & test(=fixtures)) | (package(=umpire)) | (package(=umpire-ir-derive))"
+    quick: stage=test-inventory workspace=/home/agent/.cache/codex-build/tmp/.tmp3LV2MT packages=api,guest,fixtures,umpire,umpire-ir-derive elapsed=0.032s exit=0
+    quick: stage=test workspace=/home/agent/.cache/codex-build/tmp/.tmp3LV2MT packages=api,guest,fixtures,umpire,umpire-ir-derive command=cd "/home/agent/.cache/codex-build/tmp/.tmp3LV2MT" && CONTROL_COMPILE_EXIT="0" CONTROL_DOC_EXIT="37" CONTROL_LIST_EXIT="0" CONTROL_ROOT="/home/agent/.cache/codex-build/tmp/.tmp3LV2MT" CONTROL_RUN_EXIT="0" "/bin/sh" "/home/agent/.cache/codex-build/tmp/.tmp3LV2MT/cargo.sh" "nextest" "run" "--locked" "--fail-fast" "--run-ignored" "default" "--status-level" "slow" "--final-status-level" "slow" "--success-output" "immediate" "--failure-output" "immediate-final" "--no-tests" "fail" "-p" "api" "-p" "guest" "-p" "fixtures" "-p" "umpire" "-p" "umpire-ir-derive" "-E" "(package(=api)) | (package(=guest)) | (package(=fixtures) & kind(test) & binary(=fixtures) & test(=fixtures)) | (package(=umpire)) | (package(=umpire-ir-derive))"
+    quick: stage=test workspace=/home/agent/.cache/codex-build/tmp/.tmp3LV2MT packages=api,guest,fixtures,umpire,umpire-ir-derive elapsed=0.033s exit=0
+    quick: stage=doctest workspace=/home/agent/.cache/codex-build/tmp/.tmp3LV2MT packages=api,guest,fixtures,umpire,umpire-ir-derive command=cd "/home/agent/.cache/codex-build/tmp/.tmp3LV2MT" && CONTROL_COMPILE_EXIT="0" CONTROL_DOC_EXIT="37" CONTROL_LIST_EXIT="0" CONTROL_ROOT="/home/agent/.cache/codex-build/tmp/.tmp3LV2MT" CONTROL_RUN_EXIT="0" "/bin/sh" "/home/agent/.cache/codex-build/tmp/.tmp3LV2MT/cargo.sh" "test" "--doc" "--locked" "-p" "api" "-p" "umpire" "-p" "umpire-ir-derive" "--" "--nocapture"
+    quick: stage=doctest workspace=/home/agent/.cache/codex-build/tmp/.tmp3LV2MT packages=api,guest,fixtures,umpire,umpire-ir-derive elapsed=0.027s exit=37
+
+  stdout ───
+
+    running 1 test
+    test gate_graph::graph_keeps_independent_read_only_work_schedulable_together ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 54 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test gate_graph::shared_cargo_targets_and_generated_outputs_have_predecessor_barriers ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 54 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test gate_graph::shipping_graph_has_unique_complete_stage_metadata_and_no_cycle ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 54 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test gate_wiring::actual_mise_failed_leaf_reaps_its_active_sibling_descendant_before_return ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 54 filtered out; finished in 0.25s
+
+
+  stdout ───
+
+    running 1 test
+    test gate_wiring::compiled_stage_inventory_matches_preserved_framework_stages ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 54 filtered out; finished in 0.01s
+
+
+  stdout ───
+
+    running 1 test
+    test controller_counts::copied_controller_keeps_nextest_and_doctest_counts_after_atomic_self_replacement ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 54 filtered out; finished in 0.60s
+
+
+  stdout ───
+
+    running 1 test
+    test gate_wiring::concurrent_duplicate_stage_claim_runs_leaf_exactly_once_and_preserves_receipt ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 54 filtered out; finished in 0.30s
+
+
+  stdout ───
+
+    running 1 test
+    test test_run::tests::scoped_runner_executes_inventory_tests_and_docs_with_the_same_admitted_policy ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 102 filtered out; finished in 1.20s
+
+
+  stdout ───
+
+    running 1 test
+    test gate_wiring::failed_scheduler_is_waited_and_its_owned_descendant_is_terminated_before_return ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 54 filtered out; finished in 0.29s
+
+
+  stdout ───
+
+    running 1 test
+    test build_guests::path_controls::relative_absolute_default_and_symlink_cargo_paths_preserve_seven_children ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 102 filtered out; finished in 2.21s
+
+
+  stdout ───
+
+    running 1 test
+    test gate_wiring::every_command_boundary_preserves_failure_status_and_environment_in_both_modes ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 54 filtered out; finished in 3.28s
+
+
+  stdout ───
+
+    running 1 test
+    test gate_wiring::convenience_entries_keep_exact_arguments_and_propagate_failed_inner_status ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 54 filtered out; finished in 4.00s
+
+
+  stdout ───
+
+    running 1 test
+    test gate_wiring::full_dispatch_runs_each_leaf_once_in_order_and_bypasses_cache_from_first_command ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 54 filtered out; finished in 3.66s
+
+
+  stdout ───
+
+    running 1 test
+    test gate_wiring::independent_native_stages_reach_each_other_while_both_are_active ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 54 filtered out; finished in 0.29s
+
+
+  stdout ───
+
+    running 1 test
+    test gate_wiring::native_guest_driver_bootstrap_failure_stops_before_guest_jobs ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 54 filtered out; finished in 0.18s
+
+
+  stdout ───
+
+    running 1 test
+    test gate_wiring::guest_and_go_stage_target_matrix_preserves_unset_relative_and_absolute_paths ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 54 filtered out; finished in 2.44s
+
+
+  stdout ───
+
+    running 1 test
+    test gate_wiring::native_protobuf_tools_provision_exact_plugins_and_leave_no_owned_install_lock ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 54 filtered out; finished in 0.25s
+
+
+  stdout ───
+
+    running 1 test
+    test gate_wiring::outer_supervision_streams_separate_diagnostics_before_scheduler_completion ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 54 filtered out; finished in 0.09s
+
+
+  stdout ───
+
+    running 1 test
+    test gate_wiring::required_optional_backend_fetch_failure_is_named_and_prevents_first_stage ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 54 filtered out; finished in 0.18s
+
+
+  stdout ───
+
+    running 1 test
+    test gate_wiring::full_gate_publishes_complete_ordered_invocation_local_receipts_on_every_run ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 54 filtered out; finished in 3.62s
+
+
+  stdout ───
+
+    running 1 test
+    test gate_wiring::required_test_stage_selects_bounded_profile_and_empty_selection_status_is_preserved ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 54 filtered out; finished in 0.50s
+
+
+  stdout ───
+
+    running 1 test
+    test gate_wiring::native_guest_stage_stops_at_each_driver_and_report_failure ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 54 filtered out; finished in 2.88s
+
+
+  stdout ───
+
+    running 1 test
+    test gate_wiring::scanner_stages_reject_real_planted_inputs_and_full_gate_stops_before_later_commands ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 54 filtered out; finished in 1.57s
+
+
+  stdout ───
+
+    running 1 test
+    test gate_wiring::scheduled_stage_atomically_commits_success_failure_and_scanner_error_receipts ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 54 filtered out; finished in 0.32s
+
+
+  stdout ───
+
+    running 1 test
+    test gate_wiring::scheduled_stage_requires_invocation_directory_before_starting_leaf ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 54 filtered out; finished in 0.04s
+
+
+  stdout ───
+
+    running 1 test
+    test gate_wiring::required_profile_reaches_gate_update_and_direct_test_children ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 54 filtered out; finished in 3.64s
+
+
+  stdout ───
+
+    running 1 test
+    test gate_wiring::root_required_backend_environment_selects_standalone_on_gate_and_time_routes ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 54 filtered out; finished in 3.66s
+
+
+  stdout ───
+
+    running 1 test
+    test gate_wiring::shipping_mise_graph_really_overlaps_independent_native_leaves ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 54 filtered out; finished in 1.76s
+
+
+  stdout ───
+
+    running 1 test
+    test gate_wiring::simultaneous_failed_native_leaves_both_retain_names_receipts_and_status ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 54 filtered out; finished in 0.24s
+
+
+  stdout ───
+
+    running 1 test
+    test gate_wiring::supervision_ignores_obstructed_legacy_shared_scratch_parent ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 54 filtered out; finished in 0.07s
+
+
+  stdout ───
+
+    running 1 test
+    test gate_wiring::supervision_public_fmt_finishes_while_host_lease_is_held ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 54 filtered out; finished in 0.09s
+
+
+  stdout ───
+
+    running 1 test
+    test gate_wiring::signaled_stage_retains_shell_status_diagnostics_and_stops_dispatch ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 54 filtered out; finished in 1.06s
+
+
+  stdout ───
+
+    running 1 test
+    test gate_wiring::supervision_public_fmt_reaps_background_children_before_returning_failure ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 54 filtered out; finished in 0.05s
+
+
+  stdout ───
+
+    running 1 test
+    test gate_wiring::supervision_scratch_is_private_and_removed_after_success_and_failure ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 54 filtered out; finished in 0.15s
+
+  stderr ───
+    fmt child diagnostic
+    framework stage fmt failed (exit 37)
+
+  stdout ───
+
+    running 1 test
+    test gate_wiring::test_runner_route_preserves_one_workspace_call_and_failures_in_both_modes ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 54 filtered out; finished in 2.35s
+
+
+  stdout ───
+
+    running 1 test
+    test native_leaves::capability_controls_enforce_core_and_unsafe_policies ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 54 filtered out; finished in 0.52s
+
+
+  stdout ───
+
+    running 1 test
+    test native_leaves::public_protobuf_controls_reach_the_native_implementation ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 54 filtered out; finished in 0.03s
+
+
+  stdout ───
+
+    running 1 test
+    test native_leaves::public_timing_front_door_preserves_status_diagnostics_and_cleanup ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 54 filtered out; finished in 0.98s
+
+
+  stdout ───
+
+    running 1 test
+    test retired_names::io_failure_and_absent_grep_are_handled_natively ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 54 filtered out; finished in 0.00s
+
+  stderr ───
+    retired-name filtering failed: control
+
+  stdout ───
+
+    running 1 test
+    test retired_names::malformed_records_fail_closed ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 54 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test retired_names::native_scan_catches_each_planted_retired_name ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 54 filtered out; finished in 0.01s
+
+
+  stdout ───
+
+    running 1 test
+    test retired_names::raw_records_exempt_only_author_facade_tokens ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 54 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test retired_names::rust_regex_character_classes_and_invalid_patterns ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 54 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test standalone::child_cannot_reenter_copy_stage ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 54 filtered out; finished in 0.03s
+
+
+  stdout ───
+
+    running 1 test
+    test standalone::child_requires_copy_provenance_instead_of_parent_fallback ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 54 filtered out; finished in 0.03s
+
+
+  stdout ───
+
+    running 1 test
+    test standalone::copied_missing_local_configuration_refuses_parent_configuration ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 54 filtered out; finished in 0.03s
+
+
+  stdout ───
+
+    running 1 test
+    test standalone::declared_existing_outside_dependency_fails_containment ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 54 filtered out; finished in 0.03s
+
+
+  stdout ───
+
+    running 1 test
+    test standalone::manifest_root_escape_fails_source_containment ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 54 filtered out; finished in 0.03s
+
+
+  stdout ───
+
+    running 1 test
+    test standalone::policy_planted_identifier_fails_named_scanner ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 54 filtered out; finished in 0.03s
+
+
+  stdout ───
+
+    running 1 test
+    test gate_wiring::validate_forces_backend_mode_and_time_entries_stop_before_benchmark_after_failed_gate ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 54 filtered out; finished in 6.23s
+
+
+  stdout ───
+
+    running 1 test
+    test gate_wiring::successful_scheduler_status_cannot_replace_complete_unique_atomic_stage_records ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 54 filtered out; finished in 11.55s
+
+
+        SLOW [> 30.000s] (───────) xtask::main gate_wiring::full_dispatch_stops_at_every_failed_leaf_in_both_modes
+  stdout ───
+
+    running 1 test
+    test gate_wiring::full_dispatch_stops_at_every_failed_leaf_in_both_modes ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 54 filtered out; finished in 35.18s
+
+
+────────────
+     Summary [  37.392s] 158 tests run: 158 passed (1 slow), 0 skipped
+        SLOW [  35.184s] (158/158) xtask::main gate_wiring::full_dispatch_stops_at_every_failed_leaf_in_both_modes
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.04s
+   Doc-tests xtask
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

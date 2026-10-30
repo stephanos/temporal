@@ -1,0 +1,1 @@
+backend modes: UMPIRE_BACKENDS=require UMPIRE_APALACHE=skip

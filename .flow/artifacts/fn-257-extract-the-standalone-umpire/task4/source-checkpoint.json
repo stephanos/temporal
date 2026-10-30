@@ -1,0 +1,22 @@
+{
+  "observed_at": "2026-10-26T17:29:31.526626+00:00",
+  "status": "provisional_source_preparation_only",
+  "branch": "work/fn2574-consumers",
+  "head": "91547f57ec192d576a13056ce570c8bf47e441bf",
+  "standalone_pair": "f7b42ce25558344ea2d38f1e05d002259427a8f6",
+  "recovery_bundle": {
+    "path": "source-preparation.bundle",
+    "sha256": "569501cd2f9c56a88c00ae1577785b93e7daaa3e6b2bed7691ed86045dcc9bb0",
+    "size": 32069,
+    "prerequisite": "63f5c334c0 in retained Temporal repository",
+    "verification": "git bundle verify succeeded against retained Temporal object store"
+  },
+  "generated_outputs": "all three Temporal descriptors regenerated; only probe.pb.go canonical import changed",
+  "remaining": [
+    "formal task4 admission after committed task3/task7 closures",
+    "current-pair Rust/Go/guest/freshness validation when hold ends",
+    "active CI migration after published exact pin and confirmed read identity",
+    "parent local Go workspace setup after consumers integrated into normal sibling layout"
+  ],
+  "review": "Fresh independent same-family source-only review found no supported actionable findings; execution held, not a completion receipt"
+}

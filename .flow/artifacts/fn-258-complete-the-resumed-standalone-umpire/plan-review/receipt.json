@@ -1,0 +1,108 @@
+{
+  "effort": "high",
+  "findings": {
+    "backend": "claude",
+    "baseSha": "ac60daaf47d2513b41eeff612f0e2758d33e186d",
+    "headSha": "05051b84a18f29e8cafbfa6b5ac57981a2aee72f",
+    "items": [
+      {
+        "body": "The task transfers the c88fdc5506\u2192ac60daaf47 delta onto `f7b42ce` but defines no equivalence check against the inventory task 1 froze for exactly this purpose. fn-257.3 produced an adaptation inventory (1178 present / 1124 unchanged / 54 expected adaptations / 0 missing / 384 protected payload-lock-license files unchanged). Task 2's acceptance (\"transferred without losing portability or quick work; focused checks and protobuf freshness pass\") lets an implementer resolve conflicts in the overlap set (`hosts/go/runner/*.go`, `host.go`, `probes.go`, the four core protos, `dev/xtask/src/quick/*`) by hand and declare done. Files deleted between the two revisions and the 10 net-new files have no stated handling. Downstream: a silently wrong standalone tree passes task 4 wherever the gate does not exercise the mis-merged lines, and R3's \"all semantic golden payloads preserved\" is never actually tested at this seam.",
+        "classification": "introduced",
+        "confidence": 75,
+        "firstSeenReceiptId": "review-0c015ee92d895950b6a3175561b782da04d8f063b707e2f83756345f4f325b47",
+        "id": "finding-22c5d4709d62f2ba003f6dc80d211a05",
+        "lastSeenReceiptId": "review-8497abaced79e162ac462f0c4b031bac272db1bc6aefd4790bb7e4cba94b38e0",
+        "ordinal": 1,
+        "rIds": [
+          "R1",
+          "R2",
+          "R3"
+        ],
+        "severity": "P1",
+        "status": "fixed",
+        "suggestion": "Add to task 2 acceptance: regenerate an adaptation inventory against the ac60daaf47 manifest with zero missing, zero unexpected-modified paths outside an enumerated adaptation allowlist (each entry justified as identity rewrite, regenerated descriptor, or quick-selection change), zero protected-file differences, and an explicit list of removed files; generated `.pb.go` is regenerated, never merged.",
+        "title": "The task transfers the c88fdc5506\u2192ac60daaf47 delta onto `f7b42ce` but defines no equivalence check against the inventory task 1 froze for exactly this purpose"
+      },
+      {
+        "body": "R2 requires the extracted checkpoint to match R1's inventory while retaining lineage, authors/dates/messages and an old-to-new commit map. R1 now includes the ac60daaf47 inventory, but no task produces a history-bearing export for it: task 1 only inventories, and task 2 says \"transfer integrated framework delta\" without stating the method. Three readings exist: (a) renewed filter-repo export at ac60daaf47 with f7b42ce's three adaptation commits (`d090323`, `2dcbc92`, `045b988`) rebased on top; (b) per-commit cherry-pick with path rewrite and an extended commit map; (c) one squashed delta commit. (c) is the cheapest and contradicts R2 and the Architecture section's \"keep relevant exported history\". Downstream: the standalone carries a 161-file history gap with no provenance, the committed commit map goes stale, and R6's \"compared or reversed without rewriting history\" guarantee is lost for those commits.",
+        "classification": "introduced",
+        "confidence": 75,
+        "firstSeenReceiptId": "review-0c015ee92d895950b6a3175561b782da04d8f063b707e2f83756345f4f325b47",
+        "id": "finding-627f14fd0bc11d42474dbc263c4d5f68",
+        "lastSeenReceiptId": "review-8497abaced79e162ac462f0c4b031bac272db1bc6aefd4790bb7e4cba94b38e0",
+        "ordinal": 2,
+        "rIds": [
+          "R2",
+          "R6"
+        ],
+        "severity": "P1",
+        "status": "fixed",
+        "suggestion": "State the method in the spec Execution section and task 2. If (a) or (b), add acceptance \"commit map covers every framework-touching commit in c88fdc5506..ac60daaf47\". If the owner accepts a single attributed delta commit, record that as an explicit R2 amendment rather than leaving task 1 claiming R2 for an inventory-only deliverable.",
+        "title": "R2 requires the extracted checkpoint to match R1's inventory while retaining lineage, authors/dates/messages and an old-to-new commit map"
+      },
+      {
+        "body": "The destination is blocked today, and R6 correctly says publication and source removal cannot proceed without access. But the plan never says what state the pair rests in when R5 passes and access is still absent, which is the likely case within the stated window. Task 5 requires \"single source ownership and actual local/CI consumers established\" and then \"resume fn-254 milestone order\". Integrating the R4 consumer rewiring into `umpire` before a fetchable destination breaks Temporal CI (R4 forbids a remote/cache fallback and there is nothing to fetch). Not integrating it and resuming fn-254 edits in `model/umpire` re-diverges the pair and voids the R5 proof under its own rule that proofs from different sources never establish success. That is precisely how fn-257 ended with an unmerged consumer branch and a stale candidate. Downstream: either a red CI on `umpire` or a second round of this same spec.",
+        "classification": "introduced",
+        "confidence": 75,
+        "firstSeenReceiptId": "review-0c015ee92d895950b6a3175561b782da04d8f063b707e2f83756345f4f325b47",
+        "id": "finding-451c9146607e740f69e2563256a1ddfb",
+        "lastSeenReceiptId": "review-8497abaced79e162ac462f0c4b031bac272db1bc6aefd4790bb7e4cba94b38e0",
+        "ordinal": 3,
+        "rIds": [
+          "R4",
+          "R5",
+          "R6"
+        ],
+        "severity": "P1",
+        "status": "fixed",
+        "suggestion": "Add an explicit interim-ownership rule to the spec: in-tree framework stays authoritative until publication; the refreshed standalone and the consumer branch remain unmerged, bundled candidates; define R5 proof expiry as any `model/umpire` change after the proven revision and name the re-freeze procedure (repeat tasks 1\u20132 from the new tip). Reword task 5's first acceptance item so it is satisfiable in the blocked case.",
+        "title": "The destination is blocked today, and R6 correctly says publication and source removal cannot proceed without access"
+      },
+      {
+        "body": "No task carries a `Touches:` line. Tasks 2 and 3 are dep-independent (both depend only on task 1) and the execution window explicitly runs them as parallel lanes. One plausible overlap is unassigned: the Temporal quick caller at `model/dev/xtask/src/quick/mod.rs`, which fn-257.7 edited for the caller-root argument, is reachable from task 2 (\"source quick selection\") and task 3 (\"port consumer\"). The fn-257 tasks each declared Touches; dropping them here silently forces serial dispatch or risks a conflicting parallel edit.",
+        "classification": "introduced",
+        "confidence": 100,
+        "firstSeenReceiptId": "review-0c015ee92d895950b6a3175561b782da04d8f063b707e2f83756345f4f325b47",
+        "id": "finding-4be905fd33a8eb38e8a479496144cc88",
+        "lastSeenReceiptId": "review-8497abaced79e162ac462f0c4b031bac272db1bc6aefd4790bb7e4cba94b38e0",
+        "ordinal": 4,
+        "rIds": [],
+        "severity": "P2",
+        "status": "fixed",
+        "suggestion": "Declare Touches on every task. Task 2: `../umpire/` plus its artifact dir. Task 3: `Makefile, go.mod, go.sum, .github/, model/Cargo.*, model/scripts/, model/dev/xtask/, model/temporal/, model/design/native-symbolic/, tools/umpire/, common/testing/testpilot/, tools/canary/, AGENTS.md, model/README.md` plus its artifact dir. Assign the quick caller to exactly one task.",
+        "title": "No task carries a `Touches:` line"
+      },
+      {
+        "body": "Three items fn-257.4 enumerated for R4 are absent. The retained runnable probe `model/design/native-symbolic` still uses in-tree path dependencies (`Cargo.toml` lines 11\u201314) and is not named. CI consuming the sibling at recorded revisions is only mentioned under task 5 as a docs/CI update, not as consumer wiring. \"Keep xtask normal dependency\" is undefined. The task also does not say which standalone revision it targets while running parallel to task 2 (R4 says finalization consumes R3's actual exported paths; provisional work may start earlier). Downstream: the probe is the one Rust consumer most likely to break at cutover and nothing checks it; CI wiring lands untested.",
+        "classification": "introduced",
+        "confidence": 75,
+        "firstSeenReceiptId": "review-0c015ee92d895950b6a3175561b782da04d8f063b707e2f83756345f4f325b47",
+        "id": "finding-f804b9e5176ddcb490c000cacdf6715c",
+        "lastSeenReceiptId": "review-8497abaced79e162ac462f0c4b031bac272db1bc6aefd4790bb7e4cba94b38e0",
+        "ordinal": 5,
+        "rIds": [
+          "R4"
+        ],
+        "severity": "P2",
+        "status": "fixed",
+        "suggestion": "Name the probe, the CI pair job, and the parent `go.work` verification (`go env GOWORK`, `go list -m -json`) in task 3; state that task 3 targets f7b42ce's interface map and that task 4 re-verifies against task 2's output; spell out the xtask dependency constraint.",
+        "title": "Three items fn-257"
+      }
+    ],
+    "reviewKind": "plan",
+    "round": 2,
+    "schemaVersion": 1,
+    "sourceReceiptId": "review-8497abaced79e162ac462f0c4b031bac272db1bc6aefd4790bb7e4cba94b38e0",
+    "supersedesReceiptId": "review-0c015ee92d895950b6a3175561b782da04d8f063b707e2f83756345f4f325b47"
+  },
+  "id": "fn-258-complete-the-resumed-standalone-umpire",
+  "mode": "claude",
+  "model": "claude-fable-5-1",
+  "review": "All five prior findings are addressed in the on-disk specs. The fix text is in the working tree rather than in the delivered diff, which is consistent with the instruction to re-read from disk.\n\nPrior finding #1: fixed\nPrior finding #2: fixed\nPrior finding #3: fixed\nPrior finding #4: fixed\nPrior finding #5: fixed\n\n**Verification notes**\n\n- #1: Task 2 now requires a per-path adaptation inventory against the ac60 manifest (zero missing, allowlisted differences with named rationale, zero protected payload/snapshot/lock/LICENSE drift, no mode drift), an explicit deletions/additions list, and regenerated descriptors with hand-merging forbidden.\n- #2: The epic's Execution section now mandates a repeated history projection at ac60daaf47 in a disposable clone, an extended old-to-new map through every source commit, and a tree-neutral join into the portable branch, stating that an aggregate patch alone does not satisfy R2. Task 1 owns the projection and independent verification; task 2 owns the join and acceptance that both histories remain reachable from the portable tip with no tree change at the join.\n- #3: The new \"Interim ownership, proof expiry and publication\" section keeps in-tree authoritative, keeps the consumer branch unmerged until a fetchable destination exists, assigns CI activation and cutover to task 5, and defines proof expiry plus the re-freeze procedure. Task 5's acceptance now gates on authorized publication and records access failure as incomplete work.\n- #4: Every task carries a Touches line. The dep-independent pair (tasks 2 and 3) is disjoint: `../umpire/**` plus a standalone artifact dir versus Temporal paths plus a consumer artifact dir. The Temporal quick caller is assigned to task 3 exclusively in both task texts.\n- #5: Task 3 names the native-symbolic probe, the inactive paired-CI wiring, the parent workspace checks, and defines the xtask dependency constraint.\n\n**FYI, not affecting the verdict**\n\n- Task 3 says it will \"finalize and test against task 2's actual exported paths/revision\" but its dependency list still names only task 1. Task 4 re-verifies the exact pair and task 2 preserves f7b42ce's interface, so the downstream risk is caught, but the wording and the dependency graph disagree.\n\n```\nmaintainability:\n  duplication: none identified (the Go identity rewrite is now governed by one per-path adaptation rule recorded in Decision Context)\n  structure: none identified\n```\n\n```json\n{\"classification_counts\":{\"introduced\":0,\"pre_existing\":0},\"unaddressed\":[]}\n```\n\n<verdict>SHIP</verdict>",
+  "review_reservation_id": "11c49deed0444ea6b64366e6a3986f07",
+  "session_id": "54031b1b-04bb-44d1-aba9-df88bb2f4a29",
+  "spec": "claude:claude-fable-5-1:high",
+  "timestamp": "2026-10-28T05:23:49.047409Z",
+  "type": "plan_review",
+  "verdict": "SHIP"
+}

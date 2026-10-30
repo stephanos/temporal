@@ -1,0 +1,62 @@
+[
+  {
+    "original_path": ".flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/task17/resumed/standalone-renewal-dc7feca3/__pycache__/observer.cpython-314.pyc",
+    "retained_path": ".flow/tmp/fn25417-standalone-renewal/raw/standalone-renewal-dc7feca3/__pycache__/observer.cpython-314.pyc",
+    "bytes": 9201,
+    "sha256": "c1c7c95fede21e22aa74e1769aef74fd21a9ccbe5dd5f426a805a44763739f96"
+  },
+  {
+    "original_path": ".flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/task17/resumed/standalone-renewal-dc7feca3/driver.stderr.log",
+    "retained_path": ".flow/tmp/fn25417-standalone-renewal/raw/standalone-renewal-dc7feca3/driver.stderr.log",
+    "bytes": 786,
+    "sha256": "12e854e8067054322c83ade711b04ff018269b9c2ff35e4a856404d017d6bf24"
+  },
+  {
+    "original_path": ".flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/task17/resumed/standalone-renewal-dc7feca3/driver.stdout.log",
+    "retained_path": ".flow/tmp/fn25417-standalone-renewal/raw/standalone-renewal-dc7feca3/driver.stdout.log",
+    "bytes": 110,
+    "sha256": "c6d44f16d1c7e264730cfd2cc5c4ec65ad4ad62b3fd574f280b8170440868664"
+  },
+  {
+    "original_path": ".flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/task17/resumed/standalone-renewal-dc7feca3/native-bootstrap.stderr.log",
+    "retained_path": ".flow/tmp/fn25417-standalone-renewal/raw/standalone-renewal-dc7feca3/native-bootstrap.stderr.log",
+    "bytes": 1715,
+    "sha256": "9d29b470a5ad893cff173a641e84e51e841aa49be325f49722c73b11ca196148"
+  },
+  {
+    "original_path": ".flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/task17/resumed/standalone-renewal-dc7feca3/native-bootstrap.stdout.log",
+    "retained_path": ".flow/tmp/fn25417-standalone-renewal/raw/standalone-renewal-dc7feca3/native-bootstrap.stdout.log",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "original_path": ".flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/task17/resumed/standalone-renewal-dc7feca3/owned-process-samples.jsonl",
+    "retained_path": ".flow/tmp/fn25417-standalone-renewal/raw/standalone-renewal-dc7feca3/owned-process-samples.jsonl",
+    "bytes": 108494,
+    "sha256": "3efca31f6420c94ed9d2ffadabbf205009e246f3f4a1515b88497dbe86d1f4cb"
+  },
+  {
+    "original_path": ".flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/task17/resumed/standalone-renewal-dc7feca3/production-failure-evidence/gate-receipts/stderr.log",
+    "retained_path": ".flow/tmp/fn25417-standalone-renewal/raw/standalone-renewal-dc7feca3/production-failure-evidence/gate-receipts/stderr.log",
+    "bytes": 394,
+    "sha256": "a28a54756ab25ae6a3591575d902084aedde24d1608f38632ef113e409e0d50c"
+  },
+  {
+    "original_path": ".flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/task17/resumed/standalone-renewal-dc7feca3/production-failure-evidence/gate-receipts/stdout.log",
+    "retained_path": ".flow/tmp/fn25417-standalone-renewal/raw/standalone-renewal-dc7feca3/production-failure-evidence/gate-receipts/stdout.log",
+    "bytes": 143,
+    "sha256": "4493c29f94c3041c2d6eb5473192b54ac7288603f15639881623a0be165cc8ce"
+  },
+  {
+    "original_path": ".flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/task17/resumed/standalone-renewal-dc7feca3/production-standalone.stderr.log",
+    "retained_path": ".flow/tmp/fn25417-standalone-renewal/raw/standalone-renewal-dc7feca3/production-standalone.stderr.log",
+    "bytes": 3272,
+    "sha256": "913418d0df63e337f7bfc10d5b6e9a61eebc42e4af4f089092e5ae459a234a75"
+  },
+  {
+    "original_path": ".flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/task17/resumed/standalone-renewal-dc7feca3/production-standalone.stdout.log",
+    "retained_path": ".flow/tmp/fn25417-standalone-renewal/raw/standalone-renewal-dc7feca3/production-standalone.stdout.log",
+    "bytes": 396,
+    "sha256": "ab8d0c20641ff95ed4df86b681aa5b3aa01bc5b0776ce714cd20c99572429c9e"
+  }
+]

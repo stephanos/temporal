@@ -8,11 +8,439 @@
   "default_sync": null,
   "depends_on_epics": [],
   "id": "fn-253-reusable-deadline-countdowns-for-models",
-  "impl_review_rounds": {},
+  "impl_review_rounds": {
+    "fn-253-reusable-deadline-countdowns-for-models.2": 0,
+    "fn-253-reusable-deadline-countdowns-for-models.3": 0,
+    "fn-253-reusable-deadline-countdowns-for-models.4": 0
+  },
   "next_task": 1,
   "plan_review_rounds": 0,
-  "plan_review_status": "unknown",
-  "plan_reviewed_at": null,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-10-26T05:39:40.134268Z",
+  "review_attempts": [
+    {
+      "artifact_sha256": "000fe3a656c3a34d594486c4b3500a5d39afb4efaee0883f60ce128adee101ad",
+      "backend": "claude",
+      "base_sha": "951c5516e9e7b3066e7e069adda9565cfd68844c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "claude",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-5e3550b1010e2f6542512623bb42743b",
+            "classification": "introduced",
+            "findingId": "finding-5e3550b1010e2f6542512623bb42743b",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-f34f5235186c4ef10c8cbc796c7bde17",
+            "classification": "introduced",
+            "findingId": "finding-f34f5235186c4ef10c8cbc796c7bde17",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-435ff143827fd37ff4e27df2659dd973",
+            "classification": "introduced",
+            "findingId": "finding-435ff143827fd37ff4e27df2659dd973",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-1cfba556b609c58c27e9d11b47c3ef4d",
+            "classification": "introduced",
+            "findingId": "finding-1cfba556b609c58c27e9d11b47c3ef4d",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-661c95a565c2c8af5f29c568ea04bdf2",
+            "classification": "introduced",
+            "findingId": "finding-661c95a565c2c8af5f29c568ea04bdf2",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-5b1d1c2ec1d1f06b8565568bf3ecbff9",
+            "classification": "introduced",
+            "findingId": "finding-5b1d1c2ec1d1f06b8565568bf3ecbff9",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-49966b762ec359125dc463fe2c19e2be",
+            "classification": "introduced",
+            "findingId": "finding-49966b762ec359125dc463fe2c19e2be",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-7c44db6cca7dfe1088554c2b5072b945",
+            "classification": "introduced",
+            "findingId": "finding-7c44db6cca7dfe1088554c2b5072b945",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-95d108f1f100233c8d342cc9eceb2c46",
+            "classification": "introduced",
+            "findingId": "finding-95d108f1f100233c8d342cc9eceb2c46",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "eb881b03acf5ba868a1f20c7cdb096c172d69e7d",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "claude-fable-5-1",
+      "outcome": "verdict",
+      "output_bytes": 10450,
+      "output_sha256": "198c7b322700b071e29d269fbc2884a24c061a244f0c00d1b3465f77cceb26e5",
+      "reservation_id": "0a942ad1d51d46cd88cdeb8f534d36e9",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-26T05:36:06.480311Z",
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "fc9d528d05dd729ea0df9d2a60a4ab0f07a37c746f6731b3ecbd7296defbfd8b",
+      "backend": "claude",
+      "base_sha": "951c5516e9e7b3066e7e069adda9565cfd68844c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "claude",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-5e3550b1010e2f6542512623bb42743b",
+            "classification": "introduced",
+            "findingId": "finding-5e3550b1010e2f6542512623bb42743b",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-f34f5235186c4ef10c8cbc796c7bde17",
+            "classification": "introduced",
+            "findingId": "finding-f34f5235186c4ef10c8cbc796c7bde17",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-435ff143827fd37ff4e27df2659dd973",
+            "classification": "introduced",
+            "findingId": "finding-435ff143827fd37ff4e27df2659dd973",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-1cfba556b609c58c27e9d11b47c3ef4d",
+            "classification": "introduced",
+            "findingId": "finding-1cfba556b609c58c27e9d11b47c3ef4d",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-661c95a565c2c8af5f29c568ea04bdf2",
+            "classification": "introduced",
+            "findingId": "finding-661c95a565c2c8af5f29c568ea04bdf2",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-5b1d1c2ec1d1f06b8565568bf3ecbff9",
+            "classification": "introduced",
+            "findingId": "finding-5b1d1c2ec1d1f06b8565568bf3ecbff9",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-49966b762ec359125dc463fe2c19e2be",
+            "classification": "introduced",
+            "findingId": "finding-49966b762ec359125dc463fe2c19e2be",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-7c44db6cca7dfe1088554c2b5072b945",
+            "classification": "introduced",
+            "findingId": "finding-7c44db6cca7dfe1088554c2b5072b945",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-95d108f1f100233c8d342cc9eceb2c46",
+            "classification": "introduced",
+            "findingId": "finding-95d108f1f100233c8d342cc9eceb2c46",
+            "firstSeenThisRound": false,
+            "severity": "P3",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "eb881b03acf5ba868a1f20c7cdb096c172d69e7d",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "claude-fable-5-1",
+      "outcome": "verdict",
+      "output_bytes": 3368,
+      "output_sha256": "f7f24944b50e04bbbdfb1d5048c81aa760c58e7a9494e8c1b08077e1d9239d44",
+      "reservation_id": "26cf79c701c443c989ef40ed1a773a11",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-26T05:39:40.128520Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "22aa6c2f8efe179d40ffd800555020e4b9807e3d3f04afa9f61d6b69d4e5d8d5",
+      "backend": "claude",
+      "base_sha": "02d4f55660e4da54612d703f16bd92170c742539",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "claude",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-3278f495f1ee03d83a5ef811e9fc5657",
+            "classification": "introduced",
+            "findingId": "finding-3278f495f1ee03d83a5ef811e9fc5657",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-1a516c80638d7d2d71df704d018f45ff",
+            "classification": "introduced",
+            "findingId": "finding-1a516c80638d7d2d71df704d018f45ff",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "3eef3b3b75a03c500afa51c5cd65a491a6bcdaa3",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "claude-fable-5-1",
+      "outcome": "verdict",
+      "output_bytes": 1487,
+      "output_sha256": "a24b2b891f9b4bf2b2bf9ad45dc0723041d639733b549f066156ef8c87668dde",
+      "reservation_id": "a5c130ceea2f4e6db5521b79c84f573d",
+      "round_consumed": true,
+      "scope": "impl:fn-253-reusable-deadline-countdowns-for-models.2",
+      "superseded_by": null,
+      "task": "fn-253-reusable-deadline-countdowns-for-models.2",
+      "timestamp": "2026-10-29T00:57:14.332415Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "59e0752661b66ffc495e8548c15251e424b13a9736da09a133cf0c61eeaec085",
+      "backend": "claude",
+      "base_sha": "0c15ca8d57c544193f517264f24f265a8c245901",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "claude",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "e5e5455b937515fdd3cefb66fb35f851a7d46962",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "claude-fable-5-1",
+      "outcome": "verdict",
+      "output_bytes": 158,
+      "output_sha256": "6ff70da3d83706800ca3cabc6ba62603ba0485fcf5259d27f1be54ce68686975",
+      "reservation_id": "f1d16c84d2de4ab88aa16bb3742fe338",
+      "round_consumed": true,
+      "scope": "impl:fn-253-reusable-deadline-countdowns-for-models.3",
+      "superseded_by": null,
+      "task": "fn-253-reusable-deadline-countdowns-for-models.3",
+      "timestamp": "2026-10-29T03:42:45.189011Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "388e8e0be01769178282639330da5210f71aae1dd2470a7e6d3ea1bd217342d2",
+      "backend": "claude",
+      "base_sha": "7d1127088278ba5da15e311c8fb9708c6a89b30b",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "claude",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-6d54f17ae68a17481841264a93d33522",
+            "classification": "introduced",
+            "findingId": "finding-6d54f17ae68a17481841264a93d33522",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-255e7ddcab98a12f1b9f028fe13fe8c9",
+            "classification": "introduced",
+            "findingId": "finding-255e7ddcab98a12f1b9f028fe13fe8c9",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "58bfa28c09d7fb29e6061fd1f2ca2ed4db222ee3",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "claude-fable-5-1",
+      "outcome": "verdict",
+      "output_bytes": 5148,
+      "output_sha256": "707960170198ca498bd440659adb7f2caf94b393a1865011adf3c146bfbb7219",
+      "reservation_id": "84d751166b694b108ac22efc56859989",
+      "round_consumed": true,
+      "scope": "impl:fn-253-reusable-deadline-countdowns-for-models.4",
+      "superseded_by": null,
+      "task": "fn-253-reusable-deadline-countdowns-for-models.4",
+      "timestamp": "2026-10-29T04:43:59.231461Z",
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "4cd1e8b1a11d94b8dd4aaa8ec5411627274566d4cc08fb1c8ac9d4ad8910375a",
+      "backend": "claude",
+      "base_sha": "7d1127088278ba5da15e311c8fb9708c6a89b30b",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "claude",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-6d54f17ae68a17481841264a93d33522",
+            "classification": "introduced",
+            "findingId": "finding-6d54f17ae68a17481841264a93d33522",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-255e7ddcab98a12f1b9f028fe13fe8c9",
+            "classification": "introduced",
+            "findingId": "finding-255e7ddcab98a12f1b9f028fe13fe8c9",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "bc26d214f598a87fd03ceed51943632588288ad5",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "claude-fable-5-1",
+      "outcome": "verdict",
+      "output_bytes": 3091,
+      "output_sha256": "84a506342c3688f4357609657c23296b03964e802735b3bc6b7cbe76536882ac",
+      "reservation_id": "7dee4577293a488baa04f92df0546ac3",
+      "round_consumed": true,
+      "scope": "impl:fn-253-reusable-deadline-countdowns-for-models.4",
+      "superseded_by": null,
+      "task": "fn-253-reusable-deadline-countdowns-for-models.4",
+      "timestamp": "2026-10-29T05:16:24.435831Z",
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "impl:fn-253-reusable-deadline-countdowns-for-models.2": 1,
+    "impl:fn-253-reusable-deadline-countdowns-for-models.3": 1,
+    "impl:fn-253-reusable-deadline-countdowns-for-models.4": 1,
+    "plan": 1,
+    "plan#completion": 0
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "impl:fn-253-reusable-deadline-countdowns-for-models.2": 0,
+    "impl:fn-253-reusable-deadline-countdowns-for-models.3": 0,
+    "impl:fn-253-reusable-deadline-countdowns-for-models.4": 0,
+    "plan": 0
+  },
   "spec_path": ".flow/specs/fn-253-reusable-deadline-countdowns-for-models.md",
   "status": "open",
   "title": "Reusable deadline countdowns for Models",
@@ -27,5 +455,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-25T17:41:32.188183Z"
+  "updated_at": "2026-10-29T05:16:24.471915Z"
 }

@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "spec_id": "fn-258-complete-the-resumed-standalone-umpire",
+  "task_id": "fn-258-complete-the-resumed-standalone-umpire.3",
+  "gates": [
+    {
+      "command": "mise exec -- cargo check --workspace --all-targets --all-features --locked",
+      "mode": "Exactclean3f5/054 pair, existing owned compilation target",
+      "cost": {
+        "kind": "measured",
+        "seconds": 6.758482502991683
+      },
+      "coverage": "All actual current Rust caller targets/features and sibling dependencies",
+      "evidence": [
+        "consumer/current-pair-3f5-054/receipt.json"
+      ]
+    },
+    {
+      "command": "mise exec -- cargo test -p temporal-xtask --bin temporal-xtask --test main --locked",
+      "mode": "Exactclean3f5/054 pair,16unit+7integration controls",
+      "cost": {
+        "kind": "measured",
+        "seconds": 13.750084839004558
+      },
+      "coverage": "Caller context, recipe selection, missing embed and bridge interfaces",
+      "evidence": [
+        "consumer/current-pair-3f5-054/receipt.json"
+      ]
+    },
+    {
+      "command": "flowctl claude impl-review-fanout fn-258-complete-the-resumed-standalone-umpire.3 --draw correctness",
+      "mode": "Fresh followup reviewer after initialthree-lens SHIP; Claude Fable5.1 high",
+      "cost": {
+        "kind": "measured",
+        "seconds": 205.4
+      },
+      "coverage": "Six previous findings, actual source/bundle/workspace/receipt bindings",
+      "evidence": [
+        "consumer/review-final-3f5f613/correctness.json"
+      ]
+    }
+  ],
+  "speedup_decisions": [
+    {
+      "opportunity": "Repeating unchanged host/Go/native-symbolic checks after Make/docs-only fixes",
+      "decision": "Retain earlier pass with exact unchanged blob/input rebinding; rerun actual bridge/workspace/guards at currentpair.",
+      "rationale": "No runtime/manifests/locks/guest bytes changed; currentinput guestfreshness explicitly expired for task4.",
+      "coverage_preserved": "Current23bridge controls, compilation, actualworkspace Dirs and shellguards run; broad final paired/generation/local-edit proof still required."
+    },
+    {
+      "opportunity": "Review repetitions",
+      "decision": "One fresh followup lens after initialthree-axis review.",
+      "rationale": "Fixes scoped to actualsix findings; reviewer verified allsix and returned SHIP.",
+      "coverage_preserved": "Finalsource reviewed independently; nonblocking browser link followup remains task5 finaldocs."
+    }
+  ]
+}

@@ -1,0 +1,6 @@
+command: ["/bin/bash", "/home/agent/.cache/codex-build/tmp/fn258-timing-control-mocks-_1gfbhvo/temporal/model/scripts/tests/guest-roots.sh"]
+BASH_ENV unset; inherited gate env except named fixture overrides
+cache flags: {"UMPIRE_QUICK_CACHE": "0", "UMPIRE_CACHE_DISABLE": "1"}
+guest root controls: five framework packages, outer/custom callers, raw arguments and status passed
+
+exit: 0

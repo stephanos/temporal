@@ -1,0 +1,74 @@
+{
+  "command": [
+    "mise",
+    "exec",
+    "--",
+    "cargo",
+    "test",
+    "--locked",
+    "-j1",
+    "-p",
+    "temporal-xtask",
+    "--bin",
+    "temporal-xtask",
+    "--",
+    "--test-threads=1",
+    "--nocapture"
+  ],
+  "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model",
+  "source_head": "a040731568ed166aaf979420c2edecd45f62a205",
+  "environment": {
+    "CARGO_TARGET_DIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/target",
+    "TMPDIR": "/tmp/umpire-fn25417-graph",
+    "CARGO_BUILD_JOBS": "1",
+    "CARGO_INCREMENTAL": "0",
+    "CARGO_PROFILE_DEV_DEBUG": "0",
+    "CARGO_PROFILE_TEST_DEBUG": "0"
+  },
+  "BASH_ENV": "removed",
+  "phase_baseline": {
+    "target_bytes": 4848566272,
+    "free_bytes": 11790151680,
+    "created_utc": "2026-10-27T00:17:35.812172+00:00"
+  },
+  "phase_budget_bytes": 1610612736,
+  "free_guard_bytes": 8589934592,
+  "exit_code": 0,
+  "guard_breach": null,
+  "seconds": 6.533064086001104,
+  "samples": [
+    {
+      "seconds": 0.04,
+      "target_growth_bytes": 49733632,
+      "free_bytes": 11734679552
+    },
+    {
+      "seconds": 1.182,
+      "target_growth_bytes": 43261952,
+      "free_bytes": 11740909568
+    },
+    {
+      "seconds": 2.381,
+      "target_growth_bytes": 47136768,
+      "free_bytes": 11736883200
+    },
+    {
+      "seconds": 3.464,
+      "target_growth_bytes": 47194112,
+      "free_bytes": 11736780800
+    },
+    {
+      "seconds": 4.502,
+      "target_growth_bytes": 49733632,
+      "free_bytes": 11734941696
+    },
+    {
+      "seconds": 5.527,
+      "target_growth_bytes": 49733632,
+      "free_bytes": 11734245376
+    }
+  ],
+  "final_target_growth_bytes": 49733632,
+  "free_after_bytes": 11733901312,
+  "log_sha256": "cce74669a27bfb33f1b9582c3ba30ab0acad4877ba912bbd88f3dc14ba816c11"
+}

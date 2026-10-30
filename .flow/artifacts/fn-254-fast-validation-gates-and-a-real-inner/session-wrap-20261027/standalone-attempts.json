@@ -1,0 +1,117 @@
+{
+  "attempts": [
+    {
+      "attempt": "standalone-d4a79702",
+      "source_head": "d4a79702ce170f35698fe736fb72792f55c2d3af",
+      "harness": {
+        "command": [
+          "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/standalone-prepared/proof.py",
+          "--source-root",
+          "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25416-provider-adapt",
+          "--expected-head",
+          "d4a79702ce170f35698fe736fb72792f55c2d3af",
+          "--output",
+          "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/standalone-d4a79702",
+          "--execute"
+        ],
+        "driver_sha256": "5242717edb12b7c63e0627ebb133ccda4a82376936276bf8e4974f5d4b639117",
+        "expected_head": "d4a79702ce170f35698fe736fb72792f55c2d3af",
+        "free_before_bytes": 72830443520,
+        "free_guard_bytes": 32212254720,
+        "growth_guard_bytes": 32212254720,
+        "macos": "owner-deferred"
+      },
+      "terminal_exit": 1,
+      "seconds": 0.7963420430023689,
+      "stopped_for_guard": null,
+      "free_after_bytes": 72831385600,
+      "reason": "generic source-boundary token, fixed by3b9f41e8dd",
+      "source_unchanged": true,
+      "owned_cleanup": {
+        "live": {},
+        "all_observed_owned_pids_absent": true
+      },
+      "last_complete_nextest_summaries": [],
+      "accepted": false,
+      "receipt_sha256": "1efd00477b6a9b6a1b6231671fd5bc2359d5b20759ed91756caf688df8c89689"
+    },
+    {
+      "attempt": "standalone-60f1c762",
+      "source_head": "60f1c762a618d32478b58ae4e79c151f4355aeb3",
+      "harness": {
+        "command": [
+          "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/standalone-prepared/proof.py",
+          "--source-root",
+          "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25416-provider-adapt",
+          "--expected-head",
+          "60f1c762a618d32478b58ae4e79c151f4355aeb3",
+          "--output",
+          "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/standalone-60f1c762",
+          "--execute"
+        ],
+        "driver_sha256": "5242717edb12b7c63e0627ebb133ccda4a82376936276bf8e4974f5d4b639117",
+        "expected_head": "60f1c762a618d32478b58ae4e79c151f4355aeb3",
+        "free_before_bytes": 53628440576,
+        "free_guard_bytes": 32212254720,
+        "growth_guard_bytes": 32212254720,
+        "macos": "owner-deferred"
+      },
+      "terminal_exit": -15,
+      "seconds": 882.8946434210011,
+      "stopped_for_guard": null,
+      "free_after_bytes": 41476313088,
+      "reason": "harness du sampler raced with Go temporary-directory cleanup; census repaired",
+      "source_unchanged": true,
+      "owned_cleanup": {
+        "live": {},
+        "all_observed_owned_pids_absent": true
+      },
+      "last_complete_nextest_summaries": [
+        [
+          "338.798s",
+          "907",
+          "907"
+        ]
+      ],
+      "accepted": false,
+      "receipt_sha256": "d59620d4b1361753d0a8b0fb2cd47ae33bb417f3807dfd7564b55449d97a61be"
+    },
+    {
+      "attempt": "standalone-60f1c762-census",
+      "source_head": "60f1c762a618d32478b58ae4e79c151f4355aeb3",
+      "harness": {
+        "command": [
+          "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/standalone-retry-harness/proof.py",
+          "--source-root",
+          "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25416-provider-adapt",
+          "--expected-head",
+          "60f1c762a618d32478b58ae4e79c151f4355aeb3",
+          "--output",
+          "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/standalone-60f1c762-census",
+          "--execute"
+        ],
+        "driver_sha256": "d3d96541a293bf080c71853dcf38a04f24919fe46db98c7bd863c55d31e88df1",
+        "expected_head": "60f1c762a618d32478b58ae4e79c151f4355aeb3",
+        "free_before_bytes": 47158648832,
+        "free_guard_bytes": 32212254720,
+        "growth_guard_bytes": 32212254720,
+        "macos": "owner-deferred"
+      },
+      "terminal_exit": -15,
+      "seconds": 509.3358578269981,
+      "stopped_for_guard": "free-space guard",
+      "free_after_bytes": 31451459584,
+      "reason": "legitimate host free-space guard; no sampler or product-code failure established",
+      "source_unchanged": true,
+      "owned_cleanup": {
+        "live": {},
+        "all_observed_owned_pids_absent": true
+      },
+      "last_complete_nextest_summaries": [],
+      "accepted": false,
+      "receipt_sha256": "6b7185ca421c9a6ad1711465d4107d48e0f01e2b546055b3b71d8c73b0b4fc1c"
+    }
+  ],
+  "no_stitching": "Partial stage/test passes are retained as evidence; they are not combined into an accepted standalone invocation.",
+  "required_remaining": "One fully accepted final-source standalone with all17 child receipts, current inventory/doctest count comparator, unchanged source and owned cleanup."
+}

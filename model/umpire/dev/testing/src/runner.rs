@@ -87,6 +87,21 @@ pub fn run_at_skipping(
     run_at_skipping_with_external(root, fixtures, consumers, skipped, &[])
 }
 
+/// Run one fixture after admitting the complete registry, consumers and existing snapshots.
+///
+/// # Errors
+/// Returns registry or artifact admission failures, an unknown fixture, or a selected producer
+/// or snapshot failure. Unselected producers never execute.
+pub fn run_fixture_at_skipping(
+    root: &Path,
+    fixtures: Vec<crate::Fixture>,
+    consumers: &[Consumer],
+    skipped: &[&str],
+    selected: &str,
+) -> crate::TestResult {
+    run_selected(root, fixtures, consumers, skipped, &[], Some(selected))
+}
+
 /// Preserves externally owned artifacts without claiming their execution or comparison.
 pub fn run_at_skipping_with_external(
     root: &Path,
@@ -94,6 +109,18 @@ pub fn run_at_skipping_with_external(
     consumers: &[Consumer],
     skipped: &[&str],
     external: &[ExternalConsumer],
+) -> crate::TestResult {
+    run_selected(root, fixtures, consumers, skipped, external, None)
+}
+
+#[allow(clippy::too_many_lines, reason = "admit every fixture before any selected producer runs")]
+fn run_selected(
+    root: &Path,
+    fixtures: Vec<crate::Fixture>,
+    consumers: &[Consumer],
+    skipped: &[&str],
+    external: &[ExternalConsumer],
+    selected_fixture: Option<&str>,
 ) -> crate::TestResult {
     check_skipped(consumers, skipped)?;
     let discovered: BTreeSet<_> = crate::discovery::discover(root, crate::discovery::MODEL)?
@@ -105,9 +132,7 @@ pub fn run_at_skipping_with_external(
         return Err("discovered fixtures differ from generated registry; rebuild required".into());
     }
     let external_artifacts = external_artifacts(root, &registered, consumers, external)?;
-    let mut actual = BTreeMap::new();
-    let mut existing = Vec::new();
-    let mut skipped_artifacts = BTreeSet::new();
+    let mut admitted = Vec::new();
     for (name, run) in fixtures {
         let folder = root.join(name);
         let expected = folder.join("expected");
@@ -136,10 +161,42 @@ pub fn run_at_skipping_with_external(
             )
             .into());
         }
+        let mut skipped_artifacts = BTreeSet::new();
         for &index in &selected {
             let consumer = &consumers[index];
             if skipped.contains(&consumer.name) {
                 skipped_artifacts.extend(skipped_files(&files, &expected, consumer)?);
+            }
+        }
+        for path in &files {
+            let repairable = std::env::var("INSTA_UPDATE").as_deref() == Ok("always")
+                && path.extension().is_some_and(|extension| extension == "snap")
+                && !skipped_artifacts.contains(path)
+                && !external_artifacts.contains(path);
+            if !repairable {
+                validate_text_snapshot(path)?;
+            }
+        }
+        admitted.push((name, run, files, selected, skipped_artifacts));
+    }
+    if let Some(name) = selected_fixture
+        && !registered.contains(name)
+    {
+        return Err(format!("unknown selected fixture: {name}").into());
+    }
+    let mut actual = BTreeMap::new();
+    let mut existing = Vec::new();
+    let mut skipped_artifacts = BTreeSet::new();
+    for (name, run, files, selected, skipped_files) in admitted {
+        if selected_fixture.is_some_and(|selected| selected != name) {
+            continue;
+        }
+        let folder = root.join(name);
+        let expected = folder.join("expected");
+        skipped_artifacts.extend(skipped_files);
+        for &index in &selected {
+            let consumer = &consumers[index];
+            if skipped.contains(&consumer.name) {
                 continue;
             }
             let output = (consumer.render)(run, &folder)?;

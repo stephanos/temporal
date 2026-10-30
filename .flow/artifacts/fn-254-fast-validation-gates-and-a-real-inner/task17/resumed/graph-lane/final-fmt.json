@@ -1,0 +1,40 @@
+[
+  {
+    "command": [
+      "mise",
+      "exec",
+      "--",
+      "cargo",
+      "fmt",
+      "--manifest-path",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire/Cargo.toml",
+      "-p",
+      "xtask",
+      "--",
+      "--check"
+    ],
+    "exit": 0,
+    "seconds": 0.08640933300011966,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "mise",
+      "exec",
+      "--",
+      "cargo",
+      "fmt",
+      "--manifest-path",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/Cargo.toml",
+      "-p",
+      "temporal-xtask",
+      "--",
+      "--check"
+    ],
+    "exit": 0,
+    "seconds": 0.04219054199893435,
+    "stdout": "",
+    "stderr": ""
+  }
+]

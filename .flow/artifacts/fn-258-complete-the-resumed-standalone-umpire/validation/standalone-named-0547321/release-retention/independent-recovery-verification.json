@@ -1,0 +1,11 @@
+{
+  "objects": 8,
+  "unique_objects": 8,
+  "archive_members": 69,
+  "result": "pass",
+  "original_cache_or_source_reads": false,
+  "controls": {
+    "corrupt_object_digest_refused": true,
+    "missing_archive_member_refused": true
+  }
+}

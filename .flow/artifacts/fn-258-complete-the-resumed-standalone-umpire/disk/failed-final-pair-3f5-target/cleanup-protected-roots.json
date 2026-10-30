@@ -1,0 +1,37 @@
+[
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/umpire",
+    "inode": 466983967,
+    "device": 58,
+    "uid": 1000,
+    "mode": "0o755"
+  },
+  {
+    "path": "/home/agent/.cache/codex-build/fn258-standalone-0547321",
+    "inode": 9316949,
+    "device": 29,
+    "uid": 1000,
+    "mode": "0o755"
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects",
+    "inode": 470815952,
+    "device": 58,
+    "uid": 1000,
+    "mode": "0o755"
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-guest-proof/objects",
+    "inode": 470501049,
+    "device": 58,
+    "uid": 1000,
+    "mode": "0o755"
+  },
+  {
+    "path": "/home/agent/.cache/codex-build/tmp/fn258-final-pair-cde-054",
+    "inode": 7090215,
+    "device": 29,
+    "uid": 1000,
+    "mode": "0o755"
+  }
+]

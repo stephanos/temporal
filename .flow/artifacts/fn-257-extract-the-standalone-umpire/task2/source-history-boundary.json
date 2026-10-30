@@ -1,0 +1,23 @@
+{
+  "observed_at": "2026-10-26T15:47:01.732781+00:00",
+  "source": "c88fdc550694020eb1c6a2e09577813d906c9ffe",
+  "original_shallow_line_count": 1,
+  "clone_shallow_line_count": 213,
+  "unique_boundary_sets_equal": true,
+  "cutoff_checks": [
+    {
+      "cutoff": "6e176bde5fc2d14241a863bb286a0d74aeafb6d9",
+      "metadata": "2026-02-05T09:34:58-08:00 Fix nil map panic when setting Nexus request headers (#9213)",
+      "selected_rust_prefixes_present": false,
+      "strict_ancestor_of_all_recorded_boundaries": true
+    }
+  ],
+  "available_source_history_count": 7149,
+  "limitation": "The supplied source is shallow before 2026-02-05. Pre-cutoff ancestry, including earlier license history, is unavailable and is not claimed as recovered. Recorded October Rust/framework/host/tool paths and their available ancestry remain covered by the fixed source inventory/map.",
+  "first_run": {
+    "command": "export-history.py with original and fresh fixed-source clone",
+    "exit": 1,
+    "diagnostic": "Shallow clone refused",
+    "mutation": "none; clone HEAD remains fixed source and its working tree is clean"
+  }
+}

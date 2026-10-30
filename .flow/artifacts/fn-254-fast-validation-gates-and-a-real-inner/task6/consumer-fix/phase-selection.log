@@ -1,0 +1,85 @@
+   Compiling proc-macro2 v1.0.107
+   Compiling unicode-ident v1.0.27
+   Compiling quote v1.0.47
+   Compiling serde_core v1.0.229
+   Compiling libc v0.2.191
+   Compiling typenum v1.20.1
+   Compiling hybrid-array v0.4.15
+   Compiling syn v3.0.9
+   Compiling cfg-if v1.0.5
+   Compiling rustix v1.1.5
+   Compiling getrandom v0.4.3
+   Compiling zmij v1.0.23
+   Compiling crypto-common v0.2.2
+   Compiling block-buffer v0.12.1
+   Compiling const-oid v0.10.2
+   Compiling thiserror v2.0.21
+   Compiling linux-raw-sys v0.12.1
+   Compiling winnow v1.0.4
+   Compiling serde_json v1.0.154
+   Compiling serde v1.0.229
+   Compiling bitflags v2.13.2
+   Compiling toml_parser v1.1.5+spec-1.1.0
+   Compiling digest v0.11.3
+   Compiling thiserror-impl v2.0.21
+   Compiling serde_derive v1.0.229
+   Compiling cpufeatures v0.3.1
+   Compiling toml_datetime v1.1.2+spec-1.1.0
+   Compiling serde_spanned v1.1.2
+   Compiling fastrand v2.5.0
+   Compiling memchr v2.8.3
+   Compiling once_cell v1.21.4
+   Compiling itoa v1.0.18
+   Compiling tempfile v3.27.0
+   Compiling toml v1.1.8+spec-1.1.0
+   Compiling sha2 v0.11.1
+   Compiling umpire-guest-driver v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/consumer-negative/model/umpire/dev/guest-driver)
+   Compiling temporal-xtask v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/consumer-negative/model/dev/xtask)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 6.88s
+     Running `/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2546-quick/consumer-negative/debug/temporal-xtask quick --select-only`
+   Compiling libc v0.2.191
+   Compiling proc-macro2 v1.0.107
+   Compiling serde_core v1.0.229
+   Compiling cfg-if v1.0.5
+   Compiling quote v1.0.47
+   Compiling unicode-ident v1.0.27
+   Compiling typenum v1.20.1
+   Compiling hybrid-array v0.4.15
+   Compiling syn v3.0.9
+   Compiling zmij v1.0.23
+   Compiling getrandom v0.4.3
+   Compiling rustix v1.1.5
+   Compiling crypto-common v0.2.2
+   Compiling block-buffer v0.12.1
+   Compiling serde_json v1.0.154
+   Compiling thiserror v2.0.21
+   Compiling const-oid v0.10.2
+   Compiling serde v1.0.229
+   Compiling winnow v1.0.4
+   Compiling linux-raw-sys v0.12.1
+   Compiling bitflags v2.13.2
+   Compiling toml_parser v1.1.5+spec-1.1.0
+   Compiling digest v0.11.3
+   Compiling serde_derive v1.0.229
+   Compiling thiserror-impl v2.0.21
+   Compiling serde_spanned v1.1.2
+   Compiling toml_datetime v1.1.2+spec-1.1.0
+   Compiling cpufeatures v0.3.1
+   Compiling once_cell v1.21.4
+   Compiling fastrand v2.5.0
+   Compiling memchr v2.8.3
+   Compiling itoa v1.0.18
+   Compiling crc32fast v1.5.3
+   Compiling tempfile v3.27.0
+   Compiling toml v1.1.8+spec-1.1.0
+   Compiling sha2 v0.11.1
+   Compiling adler2 v2.0.1
+   Compiling simd-adler32 v0.3.10
+   Compiling umpire-guest-driver v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/consumer-negative/model/umpire/dev/guest-driver)
+   Compiling miniz_oxide v0.9.1
+   Compiling filetime v0.2.29
+   Compiling tar v0.4.46
+   Compiling flate2 v1.1.10
+   Compiling xtask v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/consumer-negative/model/umpire/dev/xtask)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 8.03s
+{"base":"HEAD","changed":["/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/consumer-negative/model/temporal/feature/activity/phase.rs"],"reasons":["always: umpire-temporal-tests (native/interpreter/backend fixture execution)","mapped source: /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/consumer-negative/model/temporal/feature/activity/phase.rs"],"workspaces":[{"workspace":"/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/consumer-negative/model","packages":["umpire-temporal","umpire-temporal-api","umpire-temporal-guest","umpire-temporal-realization-macros","umpire-temporal-tests"]},{"workspace":"/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task6/consumer-negative/model/umpire","packages":[]}]}

@@ -13,7 +13,7 @@ Implement R5's generic Refinement fixture consumer and connect the activity decl
 
 ## Approach
 
-Consume task .15's committed, independently proved corrected timeout-retry baseline. This task introduces no further Model-policy changes and preserves the original independent lifecycle checkpoint outside the approved retry cell.
+Consume the committed, independently proved baseline incorporating task .15's approved timeout-retry correction and task .13's approved pending-cancellation worker-failure/local-timeout Failed/TimedOut correction. This task introduces no further Model-policy changes and preserves the original independent lifecycle checkpoint and every unrelated Model policy. Scheduled cancellation and explicit worker acknowledgement remain Canceled.
 
 All source coordinates are provisional planning anchors. Reanchor final fn-237.3 fields, emitted graph, accessors and fn-247 xtask/build owners after their committed closures before implementation. The current fn-237.3 source checkpoint and fn-247 plan do not satisfy those gates.
 
@@ -35,7 +35,7 @@ All source coordinates are provisional planning anchors. Reanchor final fn-237.3
 
 ## Verification
 
-From model/: `mise exec -- cargo test -p umpire-testing -p umpire-fixtures -p umpire-temporal-annotate-syntax -p umpire-temporal-tests`; run required protocol TLC own-invariant fixtures separately to avoid claiming TLC refinement. Scoped fmt/strict clippy, exact original checkpoint and shared-projection controls are required.
+From model/: run framework controls with `mise exec -- cargo test --manifest-path umpire/Cargo.toml -p umpire-testing -p umpire-fixtures`, then system controls with `mise exec -- cargo test -p umpire-temporal-annotate-syntax -p umpire-temporal-tests`; run required protocol TLC own-invariant fixtures separately to avoid claiming TLC refinement. Scoped fmt/strict clippy, exact original checkpoint and shared-projection controls are required.
 
 ## Acceptance
 

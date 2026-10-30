@@ -1,0 +1,9 @@
+---
+source: dev/testing/src/runner.rs
+---
+SPECIFICATION Spec
+CONSTANT __umpire_world_first = 4
+CONSTANT __umpire_world_second = 4
+INVARIANT Invariant_within
+INVARIANT Invariant_priority
+PROPERTY Post_descends

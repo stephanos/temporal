@@ -1,0 +1,39 @@
+{
+  "type": "impl_review_fanout",
+  "focus": "Review fn-254.15 from admitted task base a82eb651cf4422a47df2917f6d4e2bd412ce2593. The current native source candidate is 9babff6c815beb7cff92d7001f647ddca19663bf. Preserve task17 single scheduler, inherited leases, supervised cleanup, count/inventory authority and task16 explicit mise provider. Check the complete27-removed/two-retained script mapping and behavioral controls; new commands and Make callers must reach actual native code. Rust regex replaces the former external grep contract by owner approval. Inspect actual Temporal protobuf composition and guest path/status controls, successful/failed timing output custody, symlink freshness refusal, source-only standalone gate independence and removal of its redundant bootstrap. No Model semantics or Go behavior changes are authorized by this task. Migration remains owner-deferred. Focused runtime and source mapping evidence is versioned in task15/native-port-20261028; task acceptance there is deliberately false pending new full proof and formal review. Read the subsequently curated full proof/count/test-identity receipts when available; historical .16 passes cannot substitute for the new source. Review concrete regressions in this change; distinguish preexisting issues, optional hardening and future .12/.8 work.\n The accepted proof and independent checks are now committed in .flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/task15/standalone-9babff6c/summary.json and its validation/count/test-identity receipts. All17stages pass,938discovered/935executed/3ignored including4passed+1ignoreddoctests; exact909baseline identities retained through4declaredrenames;101mapped controls compiled. Reviewed HEAD c178882dd0 contains only evidence/MILESTONES additions after the proven source9bab; git diff for model/Makefile/mise/task15MD is empty. The raw archive retains originalbytes. Access the committed artifacts in your checkout rather than requiring temporary runtime paths.",
+  "claim_token": null,
+  "id": "fn-254-fast-validation-gates-and-a-real-inner.15",
+  "standalone": false,
+  "base_branch": "a82eb651cf4422a47df2917f6d4e2bd412ce2593",
+  "reviewed_base_sha": "a82eb651cf4422a47df2917f6d4e2bd412ce2593",
+  "reviewed_head_sha": "c178882dd0a492f61d0c1c7c1a873d803c6b85cd",
+  "artifact_sha256": "36f20c0b01eb41e35c7fc6db3e1a115eddbd149412a0813074a8221a6c7b3f5d",
+  "reservation_id": "27c73e11a2c64e60a76d79de9c85cb7f",
+  "rid": "27c73e11a2c64e60a76d79de9c85cb7f",
+  "primary_axis": "correctness",
+  "draws": [
+    {
+      "axis": "correctness",
+      "backend": "claude",
+      "verdict": null,
+      "failed": true,
+      "failure_class": "dispatch_interrupted"
+    },
+    {
+      "axis": "contracts",
+      "backend": "claude",
+      "verdict": null,
+      "failed": true,
+      "failure_class": "dispatch_interrupted"
+    },
+    {
+      "axis": "integration",
+      "backend": "claude",
+      "verdict": null,
+      "failed": true,
+      "failure_class": "dispatch_interrupted"
+    }
+  ],
+  "receipt_path": "/tmp/impl-review-receipt-8f37faba39e2-fn-254-fast-validation-gates-and-a-real-inner.15.json",
+  "created_at": "2026-10-28T19:07:33.489337Z"
+}

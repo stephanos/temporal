@@ -1,0 +1,16 @@
+{"base":"HEAD","changed":["/Users/stephan/Workspace/skunkworks/umpire/temporal/model/temporal/feature/activity/model.rs"],"reasons":["always: umpire-temporal-tests (native/interpreter/backend fixture execution)","mapped source: /Users/stephan/Workspace/skunkworks/umpire/temporal/model/temporal/feature/activity/model.rs"],"workspaces":[{"workspace":"/Users/stephan/Workspace/skunkworks/umpire/temporal/model","packages":["umpire-temporal","umpire-temporal-api","umpire-temporal-guest","umpire-temporal-realization-macros","umpire-temporal-tests"]},{"workspace":"/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire","packages":[]}]}
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

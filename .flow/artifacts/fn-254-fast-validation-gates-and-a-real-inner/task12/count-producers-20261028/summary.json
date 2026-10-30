@@ -1,0 +1,160 @@
+{
+  "task": "fn-254-fast-validation-gates-and-a-real-inner.12",
+  "checkpoint": "count producers; task remains in_progress",
+  "observed_utc": "2026-10-28 21:54:18 UTC",
+  "source_base": "d2c0ee93b8",
+  "source_parent": "990aa82b624232d0ce55730456a8b638f42b1aef",
+  "source_patch_sha256": "cd7160eee5563301d70616d03022ae125272234a4100f54fadf6dfb32f19ec9c",
+  "source_files_sha256": {
+    ".plans/UMPIRE_MODULES.md": "d5cc2bf0bf11488714e2d0daf7ff0ac939655ad2df4eb321d9c7331c437c231f",
+    "model/dev/xtask/src/gate.rs": "7e1fe8a93d0bc34c64b5eb79e68655f1fb9917b2ab0c633e0e7bd64e8f646fcf",
+    "model/umpire/backends/process/src/support.rs": "33b097d373f665d00fdff626fe8845693f1d98e0522481087b76dca6d68ad01c",
+    "model/umpire/backends/process/src/work.rs": "95026b7a3d5947d054462bc97fee463bb31b271d62e7d203d3d43dec60f154f3",
+    "model/umpire/backends/tlc/src/runner.rs": "4508c55c465eb91c851fc3b2b01e8d914f960aeb74f3af93818348ba2fd99fdb",
+    "model/umpire/backends/tlc/src/runner/batch_tests.rs": "833e7337d604bd288211d7ca308b8b38995163631e8840ba753396622a356f9d",
+    "model/umpire/backends/tlc/src/runner/cache_tests.rs": "1da1f4287a509c1eb449748e77d529bada75951bf4ecf2b555132181744ee205",
+    "model/umpire/backends/tlc/src/runner/fixture.rs": "b4e7aafcb5cf3bec50701c32aa4117045bd6e275823ccb508ba62604c9ad0d69",
+    "model/umpire/dev/xtask/src/gate.rs": "9e728d9f13916e60d059118f8d282f7f996a060c9cb9cf6432a8275deca3324b",
+    "model/umpire/dev/xtask/src/gate/go_command.rs": "44e5f04aa72e575c3adfb54c35f286d1d478d4eb54e99d8b81a3d4edafd7e998",
+    "model/umpire/dev/xtask/src/gate/go_counts.rs": "3c32a7fe784b50494e9079912748fa899d3f4b447c288bd510de4794e1c904bd",
+    "model/umpire/dev/xtask/src/gate/scheduler.rs": "c6d0251bed1eb2fffc6310f7eb122914dc668f57cefe71e3d054896916497b00",
+    "model/umpire/dev/xtask/src/gate/work_counts.rs": "17450f1c2e3cde6f0b362f922c1975189b6a574a321e8597428b3bf3ea88ba48",
+    "model/umpire/dev/xtask/src/gate/work_counts/go_tests.rs": "c739077e37139a7c4623a84e499b8d70f53361550131316408619c1aee39e1c0",
+    "model/umpire/dev/xtask/src/gate/work_counts/tlc_observations.rs": "899b79c938776d3b9f45f4d47731b6ab21b0e6aced625f9e997da113f30dd52b",
+    "model/umpire/dev/xtask/tests/gate_wiring.rs": "cb9b8d6ebf102ef64a59605c4f02551e10df0b082bb3b6b3299c3cbd40e1eb2e"
+  },
+  "public_native_go_stages": {
+    "framework/go-host": {
+      "counts": {
+        "discovered": 66,
+        "executed": 66,
+        "ignored": 0,
+        "skipped": 0,
+        "tlc_configurations": null,
+        "tlc_launches": null
+      },
+      "seconds": 5.579687627,
+      "original_receipt": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25412-count-producer-proof/go-receipts/framework/go-host.json",
+      "sha256": "becc6e36d9e6f948b52b78b0372d6a54c932151a500607cc7583974f5e635a11"
+    },
+    "framework/kettle-go-host": {
+      "counts": {
+        "discovered": 12,
+        "executed": 12,
+        "ignored": 0,
+        "skipped": 0,
+        "tlc_configurations": null,
+        "tlc_launches": null
+      },
+      "seconds": 38.616889727,
+      "original_receipt": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25412-count-producer-proof/go-receipts/framework/kettle-go-host.json",
+      "sha256": "77b8fbc8dcb82539b317452490f8e1dd09ee886bafbbbed336f2b32bc3f8214a"
+    },
+    "temporal/temporal-go-host": {
+      "counts": {
+        "discovered": 92,
+        "executed": 92,
+        "ignored": 0,
+        "skipped": 0,
+        "tlc_configurations": null,
+        "tlc_launches": null
+      },
+      "seconds": 87.659881792,
+      "original_receipt": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25412-count-producer-proof/go-receipts/temporal/temporal-go-host.json",
+      "sha256": "55a012ca43e061abf290ab4d0b4f2967f343201622651e2d4cef70a398303aac"
+    }
+  },
+  "mixed_tlc_count_proof": {
+    "counts": {
+      "discovered": 36,
+      "executed": 18,
+      "ignored": 0,
+      "skipped": 18,
+      "tlc_configurations": 3,
+      "tlc_launches": 6
+    },
+    "seconds": 44.451961604,
+    "original_receipt": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25412-count-producer-proof/run3/receipts/framework/tests.json",
+    "sha256": "db643b6ec022d8044a4f7ef97b1fe7c174c73e17c423ce06d002cf5bf9d17d0f"
+  },
+  "mixed_events": {
+    "2:tlc-finish": 91,
+    "1:tests-pass": 17,
+    "2:tlc-attempt": 91,
+    "2:tlc-fixture-complete": 11,
+    "1:tests-finish": 1,
+    "1:tests-begin": 1
+  },
+  "mixed_attempt_origins": {
+    "fixture": 85,
+    "admitted": 6
+  },
+  "mixed_terminal_outcomes": {
+    "fixture": 85,
+    "started": 6
+  },
+  "fixture_families": {
+    "tlc-cache-v1": 54,
+    "tlc-batch-v1": 31
+  },
+  "fixture_parent_tests": [
+    "runner::batch_tests::batch_protocol_requires_complete_selected_evidence",
+    "runner::batch_tests::batch_resource_refusal_does_not_launch_singleton_recovery",
+    "runner::batch_tests::singleton_evaluation_stops_recovery_after_current_wave",
+    "runner::batch_tests::singleton_output_budget_precedes_later_evaluation_and_stops_new_waves",
+    "runner::batch_tests::singleton_recovery_measures_worker_peak_and_owns_each_scratch",
+    "runner::cache_tests::cache_root_refusal_reports_its_cause_without_following_symlinks",
+    "runner::cache_tests::failures_refutations_and_incomplete_modules_never_publish",
+    "runner::cache_tests::identity_refreshes_between_module_calls_and_is_shared_between_configurations",
+    "runner::cache_tests::populated_cache_hits_and_authoritative_disable_runs_fresh",
+    "runner::cache_tests::verified_configuration_publishes_despite_refuted_sibling",
+    "runner::fixture::closed_protocol_treats_case_as_data_and_clears_shell_startup_environment"
+  ],
+  "native_packages": {
+    "xtask": {
+      "executed": 194,
+      "seconds": 42.288,
+      "raw_log": "fn25412-count-native-package-final.log",
+      "exit": 0,
+      "scope": "focused native package; not a full gate"
+    },
+    "temporal-xtask": {
+      "executed": 39,
+      "seconds": 17.223,
+      "raw_log": "fn25412-count-system-package-final.log",
+      "exit": 0,
+      "scope": "focused native package; not a full gate"
+    },
+    "umpire-backend-process": {
+      "executed": 66,
+      "seconds": 2.219,
+      "raw_log": "fn25412-count-process-package-final.log",
+      "exit": 0,
+      "scope": "focused native package; not a full gate"
+    },
+    "umpire-tlc": {
+      "executed": 36,
+      "seconds": 55.705,
+      "raw_log": "fn25412-tlc-native-package-2.log",
+      "exit": 0,
+      "scope": "focused native package; not a full gate"
+    }
+  },
+  "focused_collector_tests": 38,
+  "lint": "framework xtask/process/TLC all targets/features and system xtask all targets/features pass -D warnings",
+  "format": "both workspaces pass cargo fmt --all -- --check",
+  "counts_wire": "six numeric/null WorkCounts fields preserved; no missing observation promoted to zero or inapplicable",
+  "preparation_failures": "attempt0 missing precreated harness receipt directory; attempt1 harness supplied nextest run-only test-threads to list. Both failed before tests and are retained, not timing retries. run2 narrow proof passed; run3 covers every private fixture parent plus actual TLC.",
+  "remaining": [
+    "Producer-backed applicability evidence and explicit zero scopes",
+    "Admitted stage tables and fn255 task workload profiles",
+    "Default/direct/quick route enforcement and exact source/tool/budget/tier context",
+    "One immediate drained timing retry within the existing DAG and supervisor",
+    "Budget/retry controls, README policy, cross-family review and committed Flow closure"
+  ],
+  "full_validation": "Final broad gates, realistic edited Model timings and speed-target proof remain fn254.8; no new full gate pass claimed",
+  "review": "task12 implementation review pending complete budget feature",
+  "source_patch": "source.patch.gz",
+  "source_patch_encoding": "gzip; source_patch_sha256 is of uncompressed exact diff",
+  "design_precedence": "budget-execution-design is the current recommendation; its actual standalone Java-version source finding supersedes the earlier own-TLC-probe inference."
+}

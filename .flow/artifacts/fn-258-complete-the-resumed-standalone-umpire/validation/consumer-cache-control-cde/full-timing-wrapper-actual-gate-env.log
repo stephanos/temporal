@@ -1,0 +1,7 @@
+command: ["/bin/bash", "/home/agent/.cache/codex-build/tmp/fn258-timing-control-mocks-_1gfbhvo/temporal/model/scripts/test-time-gate.sh"]
+BASH_ENV unset; inherited gate env except named fixture overrides
+cache flags: {"UMPIRE_QUICK_CACHE": "0", "UMPIRE_CACHE_DISABLE": "1"}
+Model orchestration controls passed (fake children; no execution evidence).
+Model recipe wiring controls passed (fake children; no execution evidence).
+
+exit: 0

@@ -1,0 +1,30 @@
+{
+  "command": [
+    "mise",
+    "exec",
+    "--",
+    "cargo",
+    "test",
+    "--locked",
+    "-p",
+    "umpire-tlc",
+    "--lib",
+    "cache",
+    "--",
+    "--nocapture"
+  ],
+  "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire",
+  "head": "21a6294ba07e0235c2774179321cd40fda986603",
+  "started_utc": "2026-10-26T20:49:43.842330+00:00",
+  "environment_overrides": {
+    "CARGO_TARGET_DIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/target",
+    "TMPDIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/tmp",
+    "CARGO_INCREMENTAL": "0",
+    "CARGO_BUILD_JOBS": "2",
+    "RUST_TEST_THREADS": "2",
+    "MISE_TRUSTED_CONFIG_PATHS": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate:/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/target"
+  },
+  "exit_code": 0,
+  "elapsed_seconds": 0.6122420420000481,
+  "log_sha256": "63fd655e8e5c15adcea2837e9dfffa33c3bb1ea61aa9176475732d05213be33a"
+}

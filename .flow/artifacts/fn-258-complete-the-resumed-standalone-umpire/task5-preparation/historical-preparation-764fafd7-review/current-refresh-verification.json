@@ -1,0 +1,35 @@
+{
+  "result": "pass",
+  "historical_files_exact": 8,
+  "overlay_controls": 15,
+  "snapshot_controls": 16,
+  "prepared_targets": 48,
+  "unchanged_new_custody_commit_tree_pairs": 50,
+  "real_receiving_refs": 0,
+  "R6_complete": false,
+  "task4": "in_progress; broad proof not claimed",
+  "current_pair": {
+    "temporal": "3f5f613578f2857b738a7792fad08f12b3ea0a41",
+    "umpire": "05473210b48c3db862f22051eb7154ce98258f98"
+  },
+  "frozen_input_locators_and_hashes_verified": true,
+  "old_prepared_manifest_reconstructed_exactly": true,
+  "current_definition_status_differences": 22,
+  "current_tracker_observations": 60,
+  "dated_supersession": {
+    "previous_observed_utc": "2026-10-28T07:29:33.648163+00:00",
+    "historical_readiness": "historical-preparation-3658582/receiving-readiness.json",
+    "historical_sha256": "4580ea3992694df3ee572093c7dcb63c72820baa6480fdf2323edbed80ad0170",
+    "previous_statement": "consumer365 worktree had7 pending tracked missing-sibling/docs/wiring edits",
+    "current_observation": "superseded by committed3f5f613 and current clean worktree; historical bytes retained exactly, not relabeled"
+  },
+  "script_sha256": "d84773abed2edb6bff15a115ceb131e28a7b0f45681c395d900c76ef36c98def",
+  "bindings": {
+    "disposition-overlay.json": "702d81065018a85de0956d3989cb7393244c3dc41c19074b99ba6f81def2a85b",
+    "disposition-overlay-verification.json": "e5e1d8e8ad7ca8cf6f0cfc3d0c04666205dd7fda5b557cd631bcc495805d5d98",
+    "receiving-readiness.json": "8d8905f21ae99b002ad64dd29287d73645e9ba406f7583b3d7d75e908b91a91f",
+    "receiving-snapshots/prepared-targets.json": "a39de496637de89cb759a2c2d527605eec61a8ac402186ee44f8b649319884ef",
+    "receiving-snapshots/verification.json": "b49dc520875a0ec4443b71d24912e504a74fea7bc56ce90e63b19140744dd335",
+    "receiving-snapshots/proposed-create-only-transaction.txt": "e1eca8201f668b52e10c863dfed14e6b12c12de75e112b1d60c76b7facafb488"
+  }
+}

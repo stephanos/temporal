@@ -1,0 +1,21 @@
+   Compiling xtask v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire/dev/xtask)
+    Finished `test` profile [unoptimized] target(s) in 1.05s
+     Running unittests src/lib.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/target/debug/deps/xtask-331939d17f13ae8d)
+
+running 1 test
+
+thread 'quick::tests::shared_kettle_model_seeds_source_consumers_and_reverse_guest' (87416) panicked at dev/xtask/src/quick/tests.rs:328:5:
+assertion `left == right` failed
+  left: {"umpire-fixtures"}
+ right: {"umpire-apalache", "umpire-fixtures", "umpire-kettle-guest", "umpire-reference-kettle", "umpire-suite", "umpire-tla"}
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+test quick::tests::shared_kettle_model_seeds_source_consumers_and_reverse_guest ... FAILED
+
+failures:
+
+failures:
+    quick::tests::shared_kettle_model_seeds_source_consumers_and_reverse_guest
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 26 filtered out; finished in 0.00s
+
+error: test failed, to rerun pass `-p xtask --lib`

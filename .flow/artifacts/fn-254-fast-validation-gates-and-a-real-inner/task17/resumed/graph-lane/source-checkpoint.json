@@ -1,0 +1,120 @@
+{
+  "task": "fn-254-fast-validation-gates-and-a-real-inner.17",
+  "lane": "graph-resumed",
+  "base": "c958d34af0",
+  "created_utc": "2026-10-27T00:14:32.866365+00:00",
+  "source_checkpoint_only": true,
+  "scope": "Shared mise task DAG, framework/Temporal adapters and CLI, supervised outer invocation custody/handoff, scoped deterministic receipts, existing graph/wiring controls and essential docs. No Make/time wrapper/Flow/MILESTONES/provider/port/budget source changes.",
+  "source_sha256": {
+    "mise.toml": "25f0bf78c59a1b894def70c1b1c3ed4d0d11b24f9cb82eca4e742c930c2d8962",
+    "model/README.md": "21c35d19180e7348f6f8a34d38172e22475c70dde9787fd5b0a16b7e68a2f911",
+    "model/dev/xtask/src/gate.rs": "716d2a3e1b11ad9cb9eb92c022f422e6cf4b83580dd60d6db736124ca3341878",
+    "model/dev/xtask/src/main.rs": "95e2f191820f9adc36aebf222655b469d73a07d1a4dafdbf92eff5b86f578e5b",
+    "model/umpire/dev/xtask/README.md": "727a64d4149868baa4b1bb910cfb31917b0eafa06bb5f2ec425450a71d274aac",
+    "model/umpire/dev/xtask/src/gate.rs": "e17b42283f81b26470af40818dfdf7b96456caeb8212adae232b0bb3e5c813c5",
+    "model/umpire/dev/xtask/src/gate/scheduler.rs": "66e9ece55ae5a81b7086f413a1619a1a24d34a36c51123a79b084837f8bbb71e",
+    "model/umpire/dev/xtask/src/gate/standalone.rs": "a4d60ee5e1d91b9432a7b648807e80438568918eca22fc136e933a22bd086092",
+    "model/umpire/dev/xtask/src/gate/tasks.toml": "348ddfdd3d7384476f85acbcd72dc32ce875f70e3066f65d2bd751b815d9a5b8",
+    "model/umpire/dev/xtask/src/main.rs": "6abca35428733a04b0afb3b3a0bfeedee583df9db6c0d7abeba5b61b33072444",
+    "model/umpire/dev/xtask/tests/gate_graph.rs": "27669cd28213ccf124e033ec845827c52c6fa24e8119bd9f2b488de25a32b495",
+    "model/umpire/dev/xtask/tests/gate_wiring.rs": "18ef253ca6730828479ba839e96308e2a98d53d4a9b72d8b1f52b85d9604054e",
+    "model/umpire/dev/xtask/tests/main.rs": "3390e225d8e0d5779e62e4a7c2ed60c7950b2ec603d3ef0e2a6aa40360c8a136",
+    "model/umpire/mise.toml": "17e680c4d4ce2aa8c2a01c006ea58c4b07405f7e18bdbebfe43dd72eba7b0ec0"
+  },
+  "source_test_names_preserved": {
+    "model/dev/xtask/src/gate.rs": {
+      "old_names": [
+        "actual_temporal_gate_wiring_and_named_failures",
+        "full_gate_overrides_cache_and_preserves_failure",
+        "run_control_child",
+        "spawn_failure_names_the_stage",
+        "test_policy_control_child",
+        "test_stage_propagates_required_policy_and_preserves_skipped_defaults"
+      ],
+      "current_names": [
+        "actual_temporal_gate_wiring_and_named_failures",
+        "full_gate_overrides_cache_and_preserves_failure",
+        "run_control_child",
+        "spawn_failure_names_the_stage",
+        "test_policy_control_child",
+        "test_stage_propagates_required_policy_and_preserves_skipped_defaults"
+      ],
+      "removed": [],
+      "added": []
+    },
+    "model/umpire/dev/xtask/tests/gate_wiring.rs": {
+      "old_names": [
+        "compiled_stage_inventory_matches_preserved_framework_stages",
+        "convenience_entries_keep_exact_arguments_and_propagate_failed_inner_status",
+        "every_command_boundary_preserves_failure_status_and_environment_in_both_modes",
+        "full_dispatch_runs_each_leaf_once_in_order_and_bypasses_cache_from_first_command",
+        "full_dispatch_stops_at_every_failed_leaf_in_both_modes",
+        "guest_and_go_stage_target_matrix_preserves_unset_relative_and_absolute_paths",
+        "required_optional_backend_fetch_failure_is_named_and_prevents_first_stage",
+        "required_profile_reaches_gate_update_and_direct_test_children",
+        "root_required_backend_environment_selects_standalone_on_gate_and_time_routes",
+        "scanner_stages_reject_real_planted_inputs_and_full_gate_stops_before_later_commands",
+        "signaled_stage_retains_shell_status_diagnostics_and_stops_dispatch",
+        "test_runner_route_preserves_one_workspace_call_and_failures_in_both_modes",
+        "validate_forces_backend_mode_and_time_entries_stop_before_benchmark_after_failed_gate"
+      ],
+      "current_names": [
+        "compiled_stage_inventory_matches_preserved_framework_stages",
+        "concurrent_duplicate_stage_claim_runs_leaf_exactly_once_and_preserves_receipt",
+        "convenience_entries_keep_exact_arguments_and_propagate_failed_inner_status",
+        "every_command_boundary_preserves_failure_status_and_environment_in_both_modes",
+        "failed_scheduler_is_waited_and_its_owned_descendant_is_terminated_before_return",
+        "full_dispatch_runs_each_leaf_once_in_order_and_bypasses_cache_from_first_command",
+        "full_dispatch_stops_at_every_failed_leaf_in_both_modes",
+        "full_gate_publishes_complete_ordered_invocation_local_receipts_on_every_run",
+        "guest_and_go_stage_target_matrix_preserves_unset_relative_and_absolute_paths",
+        "independent_native_stages_reach_each_other_while_both_are_active",
+        "required_optional_backend_fetch_failure_is_named_and_prevents_first_stage",
+        "required_profile_reaches_gate_update_and_direct_test_children",
+        "required_test_stage_selects_bounded_profile_and_empty_selection_status_is_preserved",
+        "root_required_backend_environment_selects_standalone_on_gate_and_time_routes",
+        "scanner_stages_reject_real_planted_inputs_and_full_gate_stops_before_later_commands",
+        "scheduled_stage_atomically_commits_success_failure_and_scanner_error_receipts",
+        "scheduled_stage_requires_invocation_directory_before_starting_leaf",
+        "shipping_mise_graph_really_overlaps_independent_native_leaves",
+        "signaled_stage_retains_shell_status_diagnostics_and_stops_dispatch",
+        "simultaneous_failed_native_leaves_both_retain_names_receipts_and_status",
+        "successful_scheduler_status_cannot_replace_complete_unique_atomic_stage_records",
+        "test_runner_route_preserves_one_workspace_call_and_failures_in_both_modes",
+        "validate_forces_backend_mode_and_time_entries_stop_before_benchmark_after_failed_gate"
+      ],
+      "removed": [],
+      "added": [
+        "concurrent_duplicate_stage_claim_runs_leaf_exactly_once_and_preserves_receipt",
+        "failed_scheduler_is_waited_and_its_owned_descendant_is_terminated_before_return",
+        "full_gate_publishes_complete_ordered_invocation_local_receipts_on_every_run",
+        "independent_native_stages_reach_each_other_while_both_are_active",
+        "required_test_stage_selects_bounded_profile_and_empty_selection_status_is_preserved",
+        "scheduled_stage_atomically_commits_success_failure_and_scanner_error_receipts",
+        "scheduled_stage_requires_invocation_directory_before_starting_leaf",
+        "shipping_mise_graph_really_overlaps_independent_native_leaves",
+        "simultaneous_failed_native_leaves_both_retain_names_receipts_and_status",
+        "successful_scheduler_status_cannot_replace_complete_unique_atomic_stage_records"
+      ]
+    }
+  },
+  "validation": {
+    "rustfmt": "Explicit owned Rust files formatted/parsed with mise exec -- rustfmt --edition2024 --config skip_children=true; success. No Cargo compilation.",
+    "diff_check": "git diff --check passes.",
+    "actual_mise_tool_graph": "mise-shared-graph-tool.json: installed2026.10.11 imports single framework TASK file; metadata-only conditional wait_for edge;30combined stages and18framework-only inventory (17nonrecursivechildleaf executions). Tool-only stand-in leaves execute with correctscope/cwd/frameworktoolroot and actual overlap. No model/gate/Rust test pass claimed.",
+    "rust_tests": "Not compiled or executed: source-only admission. Integrate exact supervision4cd69f9530 and runner2dfa48e2f270 before typecheck."
+  },
+  "graph_resource_order": "Rootimportsframeworkleaves directly. FrameworkRust/generatedproducers\u2192TemporalRust/generatedproducers\u2192frameworkGo+isolatedchild\u2192TemporalGo. Conditional rootwait_for constrains already scheduled modelwasmguest without selectingTemporal work in ordinaryframeworkgate. Read-only checks overlap. Coarse outer supervisor-heldhostlease survives descendantcleanup; clean standalone child receives validatedFD9. No extra scheduler or admitted heavy overlap claimed.",
+  "receipt_contract": "stage publicname plus scope; qualified recordkeys framework/stage and temporal/stage. Every expectedstage records completed success/failed/skipped, cancelled/not-started onfailure, explicitpartial/error evidence if invalid. Unexpected/duplicate/missing successful records refuse. Pollcompletedfailedleaf receipts to cancel mise stuck on descendant pipes and retain realstageexit.",
+  "dependencies": {
+    "supervision": "4cd69f9530; rootintegrated5246f7a1c8",
+    "selected_runner": "2dfa48e2f270; rootintegrated356a12469f"
+  },
+  "pending": [
+    "Join dependentAPI sources and compile/typecheck; fresh strictlint may require ordinary source adjustments.",
+    "Run changed native library/gate/wiring/Temporal controls with bounded admitted buildtarget. Existingcontrolnames preserved; changed controlsemantics are sourcepreparation until executed.",
+    "Frozenjoint real publicgate/quick identities/resources and real source-only standalone/handoff proof remain coordinatoradmission.",
+    "Cross-platform Darwin escaped/adopted descendant cleanup is not proved by Linuxcontrols; no universalclaim.",
+    "No throughput improvement or fulltaskcompletion claim."
+  ]
+}

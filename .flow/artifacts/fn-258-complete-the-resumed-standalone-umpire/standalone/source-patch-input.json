@@ -1,0 +1,7 @@
+{
+  "base": "a92db0610f13c9f623b526f2aa721abda69aa84d",
+  "head": "05473210b48c3db862f22051eb7154ce98258f98",
+  "patch_sha256": "67616286be08c73dbe26f9168c4acf2c317a3b8f15c2a517bdabb634710af2aa",
+  "context_lines": 0,
+  "reason": "Exact code-view diff without syntactic blank context lines that appear as whitespace in the enclosing tracker Git diff. Git blobs/equivalence manifests and bundles remain the source identity authority."
+}

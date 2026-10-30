@@ -261,7 +261,16 @@ fn decode(ty: &Type, value: &TokenStream) -> TokenStream {
             })
         }
         Type::Bounded(bounded) => {
-            let name = ident(&bounded.name);
+            let mut name = syn::parse_str::<syn::Path>(&bounded.name)
+                .unwrap_or_else(|error| panic!("invalid admitted bounded type: {error}"));
+            if name.segments.len() > 1 {
+                name.leading_colon = Some(syn::token::PathSep::default());
+            }
+            for segment in &mut name.segments {
+                if let syn::PathArguments::AngleBracketed(arguments) = &mut segment.arguments {
+                    arguments.colon2_token = Some(syn::token::PathSep::default());
+                }
+            }
             let backing = ident(&bounded.backing);
             let raw = quote!(<::core::primitive::#backing as ::core::convert::TryFrom<::core::primitive::i128>>::try_from(*raw).unwrap_or_else(|_| #mismatch));
             let construct = bounded.field.as_ref().map_or_else(

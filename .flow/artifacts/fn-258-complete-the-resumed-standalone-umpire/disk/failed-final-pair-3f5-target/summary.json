@@ -1,0 +1,91 @@
+{
+  "observed_utc": "2026-10-28T15:49:31.288280+00:00",
+  "target": "/home/agent/.cache/codex-build/fn258-final-pair-3f5-054",
+  "identity": {
+    "resolved": "/home/agent/.cache/codex-build/fn258-final-pair-3f5-054",
+    "device": 29,
+    "inode": 10101644,
+    "uid": 1000
+  },
+  "allocated_bytes": 7233290240,
+  "logical_regular_bytes": 7170533503,
+  "inventory_records": 21418,
+  "uids": [
+    1000
+  ],
+  "df_target": "Filesystem        1B-blocks         Used   Available Use% Mounted on\noverlay        210241560576 151322857472 48164507648  76% /\n",
+  "df_host": "Filesystem        1B-blocks         Used   Available Use% Mounted on\nhost           994662584320 927699226624 66963357696  94% /Users/stephan/Workspace/skunkworks\n",
+  "source_identity": {
+    "temporal": {
+      "head": "3f5f613578f2857b738a7792fad08f12b3ea0a41",
+      "status": ""
+    },
+    "umpire": {
+      "head": "05473210b48c3db862f22051eb7154ce98258f98",
+      "status": ""
+    }
+  },
+  "guest_sha256": "d171b91861dba54e9c73682fb17a5a317180dba4e7c5b6c1b09f46667b337f5d",
+  "raw_guest_cas_preexisted": true,
+  "guest_commands_all5_exit0": true,
+  "preserved_archive_members": 1931,
+  "archive_compressed_bytes": 386661685,
+  "target_metadata_unchanged_during_retention": true,
+  "live_target_references": [],
+  "unreadable_system_pid_fields": [
+    {
+      "pid": 10,
+      "role": "cwd"
+    },
+    {
+      "pid": 10,
+      "role": "environ"
+    },
+    {
+      "pid": 10,
+      "role": "fd"
+    },
+    {
+      "pid": 10,
+      "role": "maps"
+    },
+    {
+      "pid": 542,
+      "role": "cwd"
+    },
+    {
+      "pid": 542,
+      "role": "environ"
+    },
+    {
+      "pid": 542,
+      "role": "fd"
+    },
+    {
+      "pid": 542,
+      "role": "maps"
+    },
+    {
+      "pid": 557,
+      "role": "cwd"
+    },
+    {
+      "pid": 557,
+      "role": "environ"
+    },
+    {
+      "pid": 557,
+      "role": "fd"
+    },
+    {
+      "pid": 557,
+      "role": "maps"
+    }
+  ],
+  "held_target_locks": [],
+  "unknown_special_or_mount_entries": [],
+  "eligibility": "Conditional future exact-target cleanup only after independent recovery verification and root admission; no cleanup authorization exercised here. Preserve source clones, launchers, artifact evidence and every shared/other cache. Recheck process/lease state and metadata immediately beforehand. Unreadable systemPID fields remain explicit uncertainty.",
+  "eligible_on_observed_readable_processes": true,
+  "coverage_limit": "Broaddefault failed at Temporal timing-controls; completed framework tests915/912/3 and wasm build are partial proof. Go-host/Kettle-host and laterTemporal tests/guest/host stages not-started, not acceptance.",
+  "no_cleanup_build_source_ref_flow_or_shared_cache_mutation": true
+}

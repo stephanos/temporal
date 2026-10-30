@@ -1,0 +1,77 @@
+   Compiling proc-macro2 v1.0.107
+   Compiling quote v1.0.47
+   Compiling unicode-ident v1.0.27
+   Compiling serde_core v1.0.229
+   Compiling libc v0.2.191
+   Compiling typenum v1.20.1
+   Compiling zmij v1.0.23
+   Compiling getrandom v0.4.3
+   Compiling cfg-if v1.0.5
+   Compiling rustix v1.1.5
+   Compiling serde_json v1.0.154
+   Compiling thiserror v2.0.21
+   Compiling winnow v1.0.4
+   Compiling linux-raw-sys v0.12.1
+   Compiling bitflags v2.13.2
+   Compiling serde v1.0.229
+   Compiling const-oid v0.10.2
+   Compiling toml_parser v1.1.5+spec-1.1.0
+   Compiling itoa v1.0.18
+   Compiling once_cell v1.21.4
+   Compiling memchr v2.8.3
+   Compiling fastrand v2.5.0
+   Compiling hybrid-array v0.4.15
+   Compiling syn v3.0.9
+   Compiling block-buffer v0.12.1
+   Compiling crypto-common v0.2.2
+   Compiling cpufeatures v0.3.1
+   Compiling digest v0.11.3
+   Compiling sha2 v0.11.1
+   Compiling tempfile v3.27.0
+   Compiling toml_datetime v1.1.2+spec-1.1.0
+   Compiling serde_spanned v1.1.2
+   Compiling toml v1.1.8+spec-1.1.0
+   Compiling thiserror-impl v2.0.21
+   Compiling serde_derive v1.0.229
+   Compiling umpire-guest-driver v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/dev/guest-driver)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 2.47s
+     Running tests/main.rs (/home/agent/.cache/codex-build/fn25420-mold/debug/deps/main-f2fa5674b583bda5)
+
+running 34 tests
+test guest_identity::compiler::missing_required_inputs_and_option_values_refuse ... ok
+test guest_identity::compiler::probes_pass_through_without_guest_environment ... ok
+test guest_identity::compiler::native_macro_identity_ignores_host_configuration_but_retains_argv_and_collisions ... ok
+test guest_identity::compiler::build_std_requires_wasm_marker_and_trusted_source_or_rust_src_coordinate ... ok
+test guest_identity::compiler::portable_identity_replaces_guest_metadata_and_remaps_generated_paths ... ok
+test guest_identity::compiler::dependency_identity_and_transitive_variants_propagate ... ok
+test guest_identity::compiler::package_features_profile_compiler_and_closure_remain_distinct ... ok
+test guest_identity::compiler::os_bytes_and_lexical_root_boundaries_are_preserved ... ok
+test guest_identity::compiler::invalid_or_missing_dependency_sidecars_and_macro_collisions_refuse ... ok
+test guest_identity::compiler::missing_ambiguous_and_malformed_lock_maps_refuse ... ok
+test guest_identity::compiler::inherited_jobserver_descriptor_reaches_direct_compiler_child ... ok
+test guest_identity::support::canonical_hash_uses_sorted_json_and_known_sha256 ... ok
+test guest_identity::lock::sourced_entries_are_required_but_git_checksums_are_optional ... ok
+test guest_identity::compiler::previous_wrapper_and_loader_environment_keep_raw_os_bytes ... ok
+test guest_identity::lock::malformed_native_documents_and_graphs_are_rejected ... ok
+test guest_identity::lock::ambiguous_name_version_coordinates_are_marked_unavailable ... ok
+test guest_identity::support::sidecar_lease_serializes_failure_cleanup_and_refuses_symlink ... ok
+test guest_identity::lock::unrelated_and_dev_only_dependencies_do_not_change_guest_closures ... ok
+test guest_identity::lock::checksum_changes_propagate_through_normal_and_all_platform_build_edges ... ok
+test guest_identity::lock::content_addressed_publication_is_repeatable_and_portable ... ok
+test guest_identity::current_inputs::native_toml_accepts_current_documents_and_rejects_malformed_input ... ok
+test guest_identity::lock::unified_edges_and_edge_topology_change_ancestor_identity ... ok
+test guest_pipeline::cold_bootstrap_failure_never_builds_or_publishes ... ok
+test guest_identity::compiler::sidecar_precedes_child_and_cleanup_preserves_exit_launch_and_signal_outcomes ... ok
+test guest_pipeline::missing_mise_refuses_bootstrap_without_fallback_cargo ... ok
+test linker::linux_linker_is_scoped_and_requires_the_pinned_tool ... ok
+test guest_identity::support::publication_is_complete_under_concurrent_writers_and_cleans_rename_failure ... ok
+test guest_pipeline::loader_inheritance_survives_orchestration_environment_purge ... ok
+test guest_pipeline::retained_bootstrap_stdout_selects_executable_and_native_route_creates_output ... ok
+test guest_pipeline::native_caller_relative_paths_and_changed_inputs_select_new_cache ... ok
+test guest_identity::compiler::actual_rustc_compiles_portable_native_macro_sidecars ... ok
+test guest_pipeline::relative_cargo_home_stays_with_distinct_caller_for_probes_metadata_and_build ... ok
+test guest_pipeline::cold_retained_bootstrap_and_cached_native_validation ... ok
+test guest_pipeline::guest_build_check_and_artifact_refusals ... ok
+
+test result: ok. 34 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.00s
+

@@ -1,0 +1,23 @@
+[
+  {
+    "path": "/home/agent/.cargo/bin/cargo",
+    "realpath": "/home/agent/.cargo/bin/rustup",
+    "exists": true,
+    "is_symlink": true,
+    "writable_access": true
+  },
+  {
+    "path": "/home/agent/.cache/codex-build/umpire-milestones-20261024",
+    "realpath": "/home/agent/.cache/codex-build/umpire-milestones-20261024",
+    "exists": true,
+    "is_symlink": false,
+    "writable_access": true
+  },
+  {
+    "path": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2577-quick",
+    "realpath": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2577-quick",
+    "exists": false,
+    "is_symlink": false,
+    "writable_access": false
+  }
+]

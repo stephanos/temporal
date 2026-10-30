@@ -1,0 +1,46 @@
+{
+  "result": "pass",
+  "errors": [],
+  "live_ref_or_task_drift": [],
+  "verified_entry_count": 88,
+  "r6_complete": false,
+  "qualification": "Frozen observations can drift while verified recovery remains reachable. No transfer/backup/activation/completion claim.",
+  "overlay_sha256": "31a4879da6f5c1a138a7dd6040f8ef0546a11c28587d9651e62f34e695be72c8",
+  "script_sha256": "543d39382add17367536e22ec015cb0903a96761070ad5e5191f7d0d95d66788",
+  "input_bindings": {
+    "r1_ledger": {
+      "path": ".flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/source/candidate-ledger.json",
+      "sha256": "b1fc7a843b092d1920d4dbf6387f6d6795d212ecfef381e8b7d96c62b3386851"
+    },
+    "owner_research": {
+      "path": ".flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/task5-preparation/r6-preparation-research.json",
+      "sha256": "e3cf46da98af099fbabd4ed0e8018b041e39a2e91371e8c38bd365b0ababe70b"
+    },
+    "fn257_task6_plan": {
+      "path": ".flow/artifacts/fn-257-extract-the-standalone-umpire/task6/provisional-transfer-plan.json",
+      "sha256": "7ac9edf526afefaa98557e6c4a7181e1609a08fbcd15738a1bc51fa0ddcb4746"
+    },
+    "current_trackers": {
+      "path": ".flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/task5-preparation/current-tracker-observations.json",
+      "sha256": "9f2bb610b5c9db7ae70da99ad96519256af15a40fb9ca40ef65733c9513eaea8"
+    },
+    "source_readiness_closures": {
+      "path": ".flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/task5-preparation/source-readiness-closures.json",
+      "sha256": "99330c52a93b64db01a18acc3899fea0ffdd2bef243e09b3a458aa406cf0e4d6"
+    },
+    "historical_focused_pair": {
+      "path": ".flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/consumer/current-pair-3f5-054/receipt.json",
+      "sha256": "1cc2b927dbc188775f7cf59ff264ce706bbe30a4175bdb8e0b082312c50e940d"
+    }
+  },
+  "negative_controls_result": "pass",
+  "derived_receiving_work_verified": true,
+  "derived_markdown_verified": true,
+  "verified_original_candidate_count": 81,
+  "verified_source_recovery_entries": 88,
+  "original_candidate_transfers": 0,
+  "r6_completed_dispositions": 0,
+  "fully_preserved_candidates": 0,
+  "planned_receiving_refs": 48,
+  "source_only_freezes": 6
+}

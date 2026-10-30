@@ -1,0 +1,6 @@
+{
+  "source": "model/umpire/dev/xtask/src/test_run.rs",
+  "sha256_restored": "093857b18d0529400d1c2bf54ffd2e35004014c4676105e00a430aa3ec577290",
+  "mutated_old_predicate_and_unconditional_test_batch": true,
+  "test_exit": 101
+}

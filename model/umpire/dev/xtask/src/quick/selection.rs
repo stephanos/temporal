@@ -18,6 +18,13 @@ struct Package {
     name: String,
     manifest_path: PathBuf,
     source: Option<String>,
+    #[serde(default)]
+    targets: Vec<Target>,
+}
+#[derive(Deserialize)]
+struct Target {
+    kind: Vec<String>,
+    doctest: bool,
 }
 #[derive(Deserialize)]
 struct Resolve {
@@ -34,6 +41,7 @@ pub(super) struct Graph {
     packages: BTreeMap<PathBuf, String>,
     members: BTreeMap<PathBuf, BTreeSet<PathBuf>>,
     reverse: BTreeMap<PathBuf, BTreeSet<PathBuf>>,
+    doctests: BTreeSet<PathBuf>,
 }
 
 impl Graph {
@@ -59,6 +67,12 @@ impl Graph {
         self.members.insert(root.to_owned(), members);
         for package in packages.values() {
             self.packages.insert(package.manifest_path.clone(), package.name.clone());
+            if package.targets.iter().any(|target| {
+                target.doctest
+                    && target.kind.iter().any(|kind| kind == "lib" || kind == "proc-macro")
+            }) {
+                self.doctests.insert(package.manifest_path.clone());
+            }
         }
         let resolve = metadata
             .resolve
@@ -75,6 +89,24 @@ impl Graph {
             }
         }
         Ok(())
+    }
+
+    pub(super) fn compiler_only(&self, root: &Path, package: &str) -> bool {
+        [
+            "author/umpire",
+            "ir/derive",
+            "reference/kettle/guest",
+            "protocol/runtime/guests/stock",
+            "protocol/runtime/guests/control",
+            "protocol/runtime/guests/caught-panic",
+            "protocol/runtime/guests/overflow",
+        ]
+        .iter()
+        .any(|directory| {
+            let manifest = root.join(directory).join("Cargo.toml");
+            self.members.get(root).is_some_and(|members| members.contains(&manifest))
+                && self.packages.get(&manifest).is_some_and(|name| name == package)
+        })
     }
 
     fn members_named(&self, name: &str) -> BTreeSet<PathBuf> {
@@ -99,14 +131,37 @@ impl Graph {
         }
     }
 
+    fn known_non_model_input(&self, path: &Path) -> bool {
+        let Some(root) = self
+            .members
+            .keys()
+            .flat_map(|workspace| workspace.ancestors())
+            .filter(|ancestor| path.starts_with(ancestor))
+            .max_by_key(|ancestor| ancestor.components().count())
+        else {
+            return false;
+        };
+        let Ok(relative) = path.strip_prefix(root) else { return false };
+        relative.components().next().is_some_and(|part| {
+            [".flow", ".plans", ".turbo"].iter().any(|name| part.as_os_str() == *name)
+                || (!self.members.keys().any(|workspace| path.starts_with(workspace))
+                    && path.extension().is_some_and(|extension| extension == "md")
+                    && (part.as_os_str() == "docs" || relative.components().count() == 1))
+        })
+    }
+
     fn seed(
         &self,
         options: &Options,
         selected: &mut BTreeSet<PathBuf>,
         reasons: &mut BTreeSet<String>,
     ) -> Result<()> {
-        for name in
-            options.always.iter().chain(options.targets.keys()).chain(options.filters.keys())
+        for name in options
+            .always
+            .iter()
+            .chain(options.targets.keys())
+            .chain(options.filters.keys())
+            .chain(options.compiler_only.iter())
         {
             let packages = self.members_named(name);
             if packages.is_empty() {
@@ -131,11 +186,49 @@ impl Graph {
         Ok(())
     }
 
+    fn workspace_selection(&self, selected: &BTreeSet<PathBuf>) -> Vec<WorkspaceSelection> {
+        self.members
+            .iter()
+            .map(|(workspace, members)| WorkspaceSelection {
+                workspace: workspace.clone(),
+                doctests: members
+                    .intersection(selected)
+                    .filter(|manifest| self.doctests.contains(*manifest))
+                    .map(|manifest| self.packages[manifest].clone())
+                    .collect(),
+                packages: members
+                    .intersection(selected)
+                    .map(|manifest| self.packages[manifest].clone())
+                    .collect::<BTreeSet<_>>()
+                    .into_iter()
+                    .collect(),
+            })
+            .collect()
+    }
+
     pub(super) fn select(&self, options: &Options, changed: Vec<PathBuf>) -> Result<Selection> {
         let mut selected = BTreeSet::new();
+        let mut test_consumers = BTreeSet::new();
         let mut reasons = BTreeSet::new();
         self.seed(options, &mut selected, &mut reasons)?;
         for path in &changed {
+            for root in self.members.keys() {
+                if path == &root.join("dev/fixtures/fixtures/sample_kettle/model.rs") {
+                    for directory in
+                        ["reference/kettle", "author/suite", "backends/tla", "backends/apalache"]
+                    {
+                        let consumer = root.join(directory).join("Cargo.toml");
+                        if self.members[root].contains(&consumer) {
+                            if directory == "reference/kettle" {
+                                selected.insert(consumer);
+                            } else {
+                                test_consumers.insert(consumer);
+                            }
+                            reasons.insert(format!("shared Kettle source: {}", path.display()));
+                        }
+                    }
+                }
+            }
             let workspace = self
                 .members
                 .keys()
@@ -168,7 +261,9 @@ impl Graph {
                     continue;
                 }
             }
-            if let Some(root) = workspace {
+            if !global && self.known_non_model_input(path) {
+                reasons.insert(format!("ignored known non-model input: {}", path.display()));
+            } else if let Some(root) = workspace {
                 selected.extend(self.members[root].iter().cloned());
                 reasons.insert(format!(
                     "whole workspace {}: {} input {}",
@@ -186,22 +281,11 @@ impl Graph {
             }
         }
         self.expand(&mut selected);
+        selected.extend(test_consumers);
         if changed.is_empty() {
             reasons.insert("unchanged invocation: explicit always packages still execute".into());
         }
-        let workspaces = self
-            .members
-            .iter()
-            .map(|(workspace, members)| WorkspaceSelection {
-                workspace: workspace.clone(),
-                packages: members
-                    .intersection(&selected)
-                    .map(|manifest| self.packages[manifest].clone())
-                    .collect::<BTreeSet<_>>()
-                    .into_iter()
-                    .collect(),
-            })
-            .collect();
+        let workspaces = self.workspace_selection(&selected);
         Ok(Selection {
             base: options
                 .base
@@ -217,12 +301,14 @@ impl Graph {
 pub(super) fn global_input(path: &Path, workspace: Option<&PathBuf>) -> bool {
     path.file_name().is_some_and(|name| {
         [
+            "Makefile",
             "Cargo.toml",
             "Cargo.lock",
             "build.rs",
             "rust-toolchain",
             "rust-toolchain.toml",
             "mise.toml",
+            "mise.lock",
             ".mise.toml",
             "rustfmt.toml",
             ".rustfmt.toml",

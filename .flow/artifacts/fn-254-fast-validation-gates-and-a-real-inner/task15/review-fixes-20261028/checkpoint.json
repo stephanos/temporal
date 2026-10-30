@@ -1,0 +1,72 @@
+{
+  "recorded_utc": "2026-10-28T19:44:26.707232+00:00",
+  "base_before_fixes": "e0a29b99da3127f5973cd7af5d23744428e7ee33",
+  "source_before_checkpoint": "903cda34c6270da6339183ecaee748c4fe58e6c8",
+  "source_sha256": {
+    "model/umpire/dev/xtask/src/build_guests.rs": "80a3031a3f304ebee4d8ce07086fa82c8fe50f78394ab8e9481c111756ed5a03",
+    "model/umpire/dev/xtask/src/build_guest_path_controls.rs": "2ac37d263c18e4f9599e8ca99b2b39260bc816cf7e9a6085d138b69b8b0edb31",
+    "model/umpire/dev/xtask/src/proto.rs": "24625adf89c05193ee31043f649424c29d86aac63bd5ead402a341ebd6ecedc7",
+    "model/dev/xtask/src/gate.rs": "0b2213a97203d47953c9a32aca229a3fd5958e35db6c669c80d409cc350fb597",
+    "model/dev/xtask/src/gate/timing.rs": "c4c9b3c1e970c57cdfb6e5835fa8fcfcb6f3ba973b7425737cf03c7ab16adbfe",
+    "model/dev/xtask/src/gate/timing_interrupt_controls.rs": "ebb14b4df9b1cf8f5164169af366926c9560b7fde416f48b75f3557b6f68f834",
+    "model/README.md": "b962ad41bf24ce66979a0157f36f4cace85b1f4c51a63673bd50fd61b52c835b"
+  },
+  "fixed_findings": [
+    {
+      "id": 1,
+      "change": "Return to timestamp-only source invalidation, matching the deleted shell; SIGKILL leaves arbitrary source bytes unchanged.",
+      "red": "review-timing-interruption-behavior-red.log",
+      "green": "review-timing-interruption-green.log"
+    },
+    {
+      "id": 2,
+      "change": "Empty framework target uses root/target before running all seven children.",
+      "red": "review-framework-empty-target-red.log",
+      "green": "review-framework-empty-target-green.log"
+    },
+    {
+      "id": 3,
+      "change": "Missing-generator error identifies the actual plugin root without prescribing another workspace provisioning command.",
+      "red": "review-plugin-hint-red.log",
+      "green": "review-plugin-hint-green.log"
+    }
+  ],
+  "deferred_finding": {
+    "id": 4,
+    "reason": "Measure repeated native-control cost in task8; preserve every maintained test and current inventory now."
+  },
+  "latest_package_runs": {
+    "xtask": 159,
+    "umpire-guest-driver": 38,
+    "temporal-xtask": 39,
+    "temporal_ignored_helpers": 4
+  },
+  "strict_clippy": "Both affected workspace package selections/all targets/all features -D warnings pass",
+  "formatting": "Both Cargo workspaces fmt --all -- --check pass",
+  "full_gate_evidence": {
+    "source": "9babff6c815beb7cff92d7001f647ddca19663bf",
+    "stages": 17,
+    "discovered": 938,
+    "executed": 935,
+    "ignored": 3,
+    "path": "task15/standalone-9babff6c/summary.json",
+    "applicability": "Exact pre-review source only. Later review fixes have current focused regression/package/lint evidence; no new full-gate run or new full counts are claimed.",
+    "cadence": "Per working-rules Tests, full suite ran once at the end of initial implementation; later fixes receive focused checks. Final unrelated combined gates/measurements remain task8."
+  },
+  "task_complete": false,
+  "integration_review_pending": true,
+  "logs": {
+    "review-framework-empty-target-red.log": "71d6e167efed00f9bdbd9c8b22858da9475821b2d369fc7ba1dae5797e280682",
+    "review-framework-empty-target-green.log": "4782c22d6fbb994bdfcdd9b09fc3c39c269f1597a90f76803563adf6f55e7fa9",
+    "review-timing-interruption-behavior-red.log": "2ed10ec857dfa7f2cc82684d2950c946c997280f39e3ffc8844e9b5f34f405f8",
+    "review-timing-interruption-green.log": "73e92b61e79973b9042ca4a1a5d4e3904c8aa7fce8cf31f36a90b6e0b2f51a1c",
+    "review-plugin-hint-red.log": "4296c5c000bdc9cf41629a24410c02ec26a2a806bcf68e1f753b08efbcb885a2",
+    "review-plugin-hint-green.log": "18b806c75a0d742b996e9d356a443567b9badd24ecbf472a0796c7fc2878f639",
+    "review-fixes-framework-clippy.log": "a060a283a79074ee519f00c54571c48041592430c47bb0a0d8dcf72cfc0658d2",
+    "review-fixes-temporal-clippy.log": "2c74ef75094adf23c738303d1018c3727cdeaca995a5b00ffdd3b38062462f25",
+    "review-fixes-native-build.log": "0cb45e5e8244a0ca562304b94edcdc29ffc6b1e59bccc4f7f8ad9e0877253cc5",
+    "review-fixes-framework-package.log": "2aa72de0c621ae54ec54c17b8e83f894ff1a05c4da7b31489be56e827350acb6",
+    "review-fixes-driver-package.log": "da95789da700b63d4147523b7051a17ce1fab2f3c689affa414faf529be5307a",
+    "review-fixes-temporal-package.log": "831e677e6171da53cc6983dc91bd18d5e65fe2fa9a769e5446f0c27c78a42e65"
+  }
+}

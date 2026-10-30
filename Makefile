@@ -464,7 +464,7 @@ umpire:
 
 .PHONY: umpire-guest umpire-check-model-slice umpire-check-model-gaps
 umpire-guest: $(API_BINPB)
-	@/bin/bash "$(CURDIR)/model/scripts/guest.sh" umpire-temporal-guest "$(CURDIR)/model/temporal/hosts/go/umpire_temporal_guest.wasm"
+	@$(RUST_MODEL_CARGO) run --manifest-path "$(CURDIR)/model/Cargo.toml" --package temporal-xtask --bin temporal-xtask --profile dev -- guest umpire-temporal-guest "$(CURDIR)/model/temporal/hosts/go/umpire_temporal_guest.wasm"
 
 umpire-check-model-slice:
 	@set -eu; \
@@ -691,17 +691,6 @@ model: $(MODEL_PROTO_JARS)
 
 model-mini:
 	@$(MAKE) --no-print-directory model FEATURES=activity_mini
-
-# The default check of a change (model/framework/check/ChangeCheck.scala): what changed since BASE
-# (default: the last commit, plus the working tree) selects, by model/temporal/check/Coverage.scala,
-# the current features
-# to lint, compile, lift and compare with their baselines and the suites to run; it writes
-# .flow/tmp/checks/<time>/record.md. The full gates stay the batch-end and sweep tier.
-.PHONY: model-compiler-inputs model-check-changed
-model-compiler-inputs: $(MODEL_PROTO_JARS) $(MODEL_REIFY_PLUGIN)
-
-model-check-changed:
-	@$(MODEL_CLI) run --server=false --suppress-outdated-dependency-warning $(MODEL_CHECK) -M temporal.check.changed -- $(if $(BASE),--base $(call model_quote,$(BASE)))
 
 fmt-model:
 	@printf $(COLOR) "Formatting model files..."
@@ -1268,18 +1257,23 @@ ensure-no-changes:
 endif
 
 ##### model: Umpire in Rust (fn-210) #####
-RUST_MODEL_CARGO := MISE_AUTO_INSTALL=false MISE_EXEC_AUTO_INSTALL=false mise exec -- cargo
-RUST_MODEL_FRAMEWORK = helper=$$(/bin/bash "$(CURDIR)/model/umpire/scripts/xtask.sh") && "$$helper"
+RUST_MODEL_COMPILER_ENV = $(if $(filter require,$(UMPIRE_BACKENDS) $(UMPIRE_APALACHE)),CARGO_BUILD_JOBS=1)
+RUST_MODEL_CARGO = MISE_AUTO_INSTALL=false MISE_EXEC_AUTO_INSTALL=false $(RUST_MODEL_COMPILER_ENV) mise exec -- cargo
+RUST_MODEL_FRAMEWORK = helper=$$($(RUST_MODEL_COMPILER_ENV) /bin/bash "$(CURDIR)/model/umpire/scripts/xtask.sh") && "$$helper"
 
-.PHONY: model-check model-quick model-fmt model-update model-time model-validate
+.PHONY: model-check model-prerequisites model-quick model-fmt model-update model-time model-validate
+model-quick: RUST_MODEL_COMPILER_ENV = CARGO_BUILD_JOBS=1
 model-quick:
 	@$(RUST_MODEL_CARGO) run --manifest-path "$(CURDIR)/model/Cargo.toml" --package temporal-xtask --bin temporal-xtask --profile dev -- quick
 
 model-check: override export UMPIRE_QUICK_CACHE = 0
 model-check: override export UMPIRE_CACHE_DISABLE = 1
-model-check: $(PROTOC_GEN_GO) $(PROTOC_GEN_GO_GRPC) $(API_BINPB)
-	@$(RUST_MODEL_FRAMEWORK) gate
+model-check:
 	@$(RUST_MODEL_CARGO) run --manifest-path "$(CURDIR)/model/Cargo.toml" --package temporal-xtask --bin temporal-xtask --profile dev -- gate
+
+model-prerequisites: override export UMPIRE_QUICK_CACHE = 0
+model-prerequisites: override export UMPIRE_CACHE_DISABLE = 1
+model-prerequisites: $(PROTOC_GEN_GO) $(PROTOC_GEN_GO_GRPC) $(API_BINPB)
 
 model-fmt:
 	@$(RUST_MODEL_FRAMEWORK) fmt
@@ -1287,11 +1281,11 @@ model-fmt:
 
 model-update:
 	@$(RUST_MODEL_FRAMEWORK) update
-	@INSTA_UPDATE=always TRYBUILD=overwrite $(RUST_MODEL_CARGO) test --manifest-path "$(CURDIR)/model/Cargo.toml" --workspace --quiet
+	@INSTA_UPDATE=always TRYBUILD=overwrite $(RUST_MODEL_CARGO) run --manifest-path "$(CURDIR)/model/Cargo.toml" --package temporal-xtask --bin temporal-xtask --profile dev -- test-run
 
 model-time:
 	@printf $(COLOR) "Time the model feedback loop (fn-210 R30)..."
-	@$(CURDIR)/model/scripts/time-gate.sh
+	@$(RUST_MODEL_CARGO) run --manifest-path "$(CURDIR)/model/Cargo.toml" --package temporal-xtask --bin temporal-xtask --profile dev -- time
 
 model-validate:
 	@$(MAKE) UMPIRE_BACKENDS=require model-time

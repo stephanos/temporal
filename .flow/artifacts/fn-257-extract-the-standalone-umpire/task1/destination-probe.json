@@ -1,0 +1,9 @@
+{
+  "observed_at": "2026-10-26T15:25:12.019702+00:00",
+  "command": "gh repo view temporalio/umpire --json nameWithOwner,isEmpty,defaultBranchRef,url,viewerPermission",
+  "exit_code": 1,
+  "output_file": "destination-probe.log",
+  "destination_contents": "unknown",
+  "permission": "unknown",
+  "remote_mutations": false
+}

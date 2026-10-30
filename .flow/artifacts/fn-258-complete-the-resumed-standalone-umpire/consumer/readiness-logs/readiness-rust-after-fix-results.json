@@ -1,0 +1,54 @@
+[
+  {
+    "name": "bridge-controls-after-fix",
+    "cwd": "/home/agent/.cache/codex-build/tmp/fn258-pair/temporal/model",
+    "argv": [
+      "mise",
+      "exec",
+      "--",
+      "cargo",
+      "test",
+      "-p",
+      "temporal-xtask",
+      "--bin",
+      "temporal-xtask",
+      "--test",
+      "main",
+      "--locked"
+    ],
+    "exit": 0,
+    "seconds": 13.955343715002527,
+    "log": "/home/agent/.cache/codex-build/fn258-consumer/readiness-bridge-controls-after-fix.log"
+  },
+  {
+    "name": "workspace-formatting",
+    "cwd": "/home/agent/.cache/codex-build/tmp/fn258-pair/temporal/model",
+    "argv": [
+      "mise",
+      "exec",
+      "--",
+      "cargo",
+      "fmt",
+      "--all",
+      "--check"
+    ],
+    "exit": 0,
+    "seconds": 0.834927375006373,
+    "log": "/home/agent/.cache/codex-build/fn258-consumer/readiness-workspace-formatting.log"
+  },
+  {
+    "name": "native-symbolic-compilation-after-fix",
+    "cwd": "/home/agent/.cache/codex-build/tmp/fn258-pair/temporal/model/design/native-symbolic",
+    "argv": [
+      "mise",
+      "exec",
+      "--",
+      "cargo",
+      "check",
+      "--locked"
+    ],
+    "exit": 0,
+    "seconds": 0.03638245799811557,
+    "log": "/home/agent/.cache/codex-build/fn258-consumer/readiness-native-symbolic-compilation-after-fix.log"
+  }
+]

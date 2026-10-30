@@ -1,0 +1,181 @@
+{
+  "root_head": "22f2c6664284512f65b6a1ad13e988e69fe16161",
+  "scope": "One authorized warm current-candidate Activity follow-up; same HEAD/source/command/environment; no old baseline campaign",
+  "quick_exit": 0,
+  "quick_wall_seconds": 321.29908240299847,
+  "stages": [
+    [
+      "fmt",
+      "0.153",
+      "0"
+    ],
+    [
+      "clippy",
+      "14.155",
+      "0"
+    ],
+    [
+      "compile",
+      "5.921",
+      "0"
+    ],
+    [
+      "test-inventory",
+      "46.375",
+      "0"
+    ],
+    [
+      "test",
+      "235.340",
+      "0"
+    ],
+    [
+      "doctest",
+      "18.804",
+      "0"
+    ]
+  ],
+  "selection_packages": [
+    "umpire-temporal",
+    "umpire-temporal-api",
+    "umpire-temporal-guest",
+    "umpire-temporal-realization-macros",
+    "umpire-temporal-tests"
+  ],
+  "nextest": {
+    "passed": 148,
+    "selected_ignored": 0,
+    "filtered_out_tests": 40,
+    "filtered_out_binaries": 2,
+    "actual_nextest_test_seconds": 190.648,
+    "identity_receipt": "test-statuses.json",
+    "nested_ui_negative_cases": 23,
+    "nested_ui_positive_cases": 2
+  },
+  "doctests": {
+    "packages": [
+      "umpire-temporal",
+      "umpire-temporal-api",
+      "umpire-temporal-realization-macros"
+    ],
+    "targets": 3,
+    "passed": 0,
+    "ignored": 0,
+    "failed": 0,
+    "meaning": "All three Cargo doc targets executed successfully with zero doctest bodies"
+  },
+  "cache": {
+    "mode": "Existing retained cache; no clears, renames or repeated baseline campaign",
+    "files_before": 354,
+    "files_after": 354,
+    "prior_files_unchanged": true,
+    "new_files": 0,
+    "miss_labels": [],
+    "hit_labels": [
+      "TLC cache hit Activity configuration 0 55f9a082cc4e356adacf9dd97f817bbcdf3525ca0e87d40927ea1a6f11b11be3",
+      "TLC cache hit Activity configuration 1 88bd1843f8901e60c74cd87214013bacc7d45aa57df97dc159d140773375ce0f",
+      "TLC cache hit Activity configuration 2 463c3452d6c3a9d3489eeb4a0d1182ddee4efed6b600dff365bf355a018f1106",
+      "TLC cache hit Activity configuration 3 ed7acc7da356eae736b7b1210a638fbe851f1f11487cd4651ed1bddf7ec4e896",
+      "TLC cache hit Activity configuration 4 aaa790b9ecf7f61db08acea1af0af542d67c078cc2aaa62f49e4520c4fb9b3c7",
+      "TLC cache hit Activity configuration 5 ffc250ab555d037cacbea47c591abd314327fb9510f71555268ebf58e1010570",
+      "TLC cache hit Activity configuration 6 144e0878667964ab693bdbd9c7940bd1e3b27359120fbe8921344cd234b96f54",
+      "TLC cache hit Activity configuration 0 55f9a082cc4e356adacf9dd97f817bbcdf3525ca0e87d40927ea1a6f11b11be3",
+      "TLC cache hit Activity configuration 1 88bd1843f8901e60c74cd87214013bacc7d45aa57df97dc159d140773375ce0f",
+      "TLC cache hit Activity configuration 2 463c3452d6c3a9d3489eeb4a0d1182ddee4efed6b600dff365bf355a018f1106",
+      "TLC cache hit Activity configuration 3 ed7acc7da356eae736b7b1210a638fbe851f1f11487cd4651ed1bddf7ec4e896",
+      "TLC cache hit Activity configuration 4 aaa790b9ecf7f61db08acea1af0af542d67c078cc2aaa62f49e4520c4fb9b3c7",
+      "TLC cache hit Activity configuration 5 ffc250ab555d037cacbea47c591abd314327fb9510f71555268ebf58e1010570",
+      "TLC cache hit Activity configuration 6 144e0878667964ab693bdbd9c7940bd1e3b27359120fbe8921344cd234b96f54"
+    ],
+    "execution_labels": [],
+    "meaning": "Fourteen verified hits across seven already-populated configurations; zero model-execution labels in this warm follow-up"
+  },
+  "native_interpreter_activity": [
+    "quick native/interpreter agreement fixtures::activity::activity::World: 18 states, 63 edges",
+    "quick native/interpreter agreement fixtures::activity::activity::World: 18 states, 63 edges",
+    "quick native/interpreter agreement fixtures::activity::activity::World: 18 states, 63 edges",
+    "quick native/interpreter agreement fixtures::activity::activity::World: 18 states, 63 edges"
+  ],
+  "jvm_observations": {
+    "sample_period_seconds": 1.0,
+    "sampled_jvm_processes": 1,
+    "sampled_concurrent_jvms": 1,
+    "sampled_concurrent_framework_owners": 1,
+    "overlap_receipt": [
+      {
+        "at": 1793075060.7695765,
+        "owners": [
+          {
+            "pid": 756860,
+            "start_time": "2807545",
+            "case": "fixtures",
+            "argv0": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/target/debug/deps/fixtures-198ccb187adf2b77",
+            "fd9": {
+              "device": 29,
+              "inode": 10669829,
+              "target": "/tmp/umpire-validation-1000/jvm.lock"
+            },
+            "meaning": "direct child of actual nextest run controller; case supplied by same ancestry"
+          }
+        ]
+      }
+    ],
+    "sampled_max_individual_jvm_rss_kib": 39168,
+    "sampled_max_summed_jvm_rss_kib": 39168,
+    "meaning": "RSS is sampled observation, not a hard peak or total-memory limit",
+    "discovery_unique": 0,
+    "discovery_heap_cap_observed": null,
+    "model_and_discovery_heap_cap_observed": null,
+    "java_host_lease_capability_and_scope_locators_absent_in_all_samples": true,
+    "java_fd9_reuse_note": "Some JVMs reopen numeric slot9 for sockets; no sampled slot9 matches the host lease dev/inode",
+    "owned_fd9_device_inode": [
+      [
+        29,
+        10669829
+      ]
+    ],
+    "theoretical_policy": "required global4 / JVM group2 / per-check recovery2;4heap-capped checker JVMs",
+    "cleanup": {
+      "live": {},
+      "all_observed_owned_pids_absent": true
+    },
+    "model_heap_cap_observed": null,
+    "discovery_observation_note": "No discovery JVM caught by1s sampler in this run; prior first-use and Kettle observations remain separate. No additional Java probe ran.",
+    "sampled_model_jvm_processes": 0,
+    "sampled_version_probe_processes": 1
+  },
+  "model_restoration": {
+    "path": "model/temporal/feature/activity/model.rs",
+    "original_sha256": "6a05d02cbbda317d5e3f5806cd1012ea0475142cb6233d1e185325f37b988767",
+    "edited_sha256": "ee3f55d51c39770bd7207782490280526b0070155ac1e3bbbab1c59c59e3c4d8",
+    "restored_sha256": "6a05d02cbbda317d5e3f5806cd1012ea0475142cb6233d1e185325f37b988767",
+    "restored": true,
+    "command_exit": 0
+  },
+  "source_binaries_locks_snapshots_unchanged": true,
+  "root_clean": true,
+  "registry_tuples_count": 119,
+  "historical_protected_snapshots": 202,
+  "all_current_tracked_model_snapshots": 372,
+  "combined_target_go_tmp_growth_bytes": -45773002,
+  "private_tmp_final_bytes": 0,
+  "free_bytes": 10558205952,
+  "not_run": [
+    "Production standalone",
+    "Other full model gates",
+    "A new old baseline or repeat cold/warm campaign",
+    "Darwin portable cleanup completion"
+  ],
+  "comparison_first_run": {
+    "root_head": "22f2c6664284512f65b6a1ad13e988e69fe16161",
+    "quick_wall_seconds": 354.6452883359998,
+    "receipt": "../activity-semantic-renewal/summary.json",
+    "meaning": "Same current candidate; both Rust/compiler and TLC cache state warmed. No isolated causal speedup attribution."
+  },
+  "model_java_launches_from_engine_labels": 0,
+  "macos_validation": {
+    "status": "Deferred by owner instruction relayed by root: skip osx validation for nw",
+    "acceptance_claim": false,
+    "implementation_changed": false
+  }
+}

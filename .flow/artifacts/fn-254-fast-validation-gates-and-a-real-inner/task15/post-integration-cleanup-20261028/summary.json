@@ -1,0 +1,99 @@
+{
+  "kind": "verified-private-cache-cleanup",
+  "task": "fn-254-fast-validation-gates-and-a-real-inner.15",
+  "closed_task_source": "9babff6c815beb7cff92d7001f647ddca19663bf",
+  "target": "/tmp/umpire-fn25415-final-9babff6c815b-47070/proof-bKkF3n/target",
+  "private_target_absent": true,
+  "allocated_bytes_removed": 6608592896,
+  "gigabytes_removed": 6.608592896,
+  "gibibytes_removed": 6.154731750488281,
+  "four_official_cargo_cleans": [
+    {
+      "command": [
+        "/home/agent/.rustup/toolchains/1.99.1-aarch64-unknown-linux-gnu/bin/cargo",
+        "clean",
+        "--target-dir",
+        "/tmp/umpire-fn25415-final-9babff6c815b-47070/proof-bKkF3n/target/guest-cache/1d27b310f3351f024f36b327f8b0df4eef5c2099d9783729fe4dfaf0e87bf048/wasm32-wasip1"
+      ],
+      "exit": 0,
+      "terminal": true
+    },
+    {
+      "command": [
+        "/home/agent/.rustup/toolchains/1.99.1-aarch64-unknown-linux-gnu/bin/cargo",
+        "clean",
+        "--target-dir",
+        "/tmp/umpire-fn25415-final-9babff6c815b-47070/proof-bKkF3n/target/tests/runtime-capability-controls/target"
+      ],
+      "exit": 0,
+      "terminal": true
+    },
+    {
+      "command": [
+        "/home/agent/.rustup/toolchains/1.99.1-aarch64-unknown-linux-gnu/bin/cargo",
+        "clean",
+        "--target-dir",
+        "/tmp/umpire-fn25415-final-9babff6c815b-47070/proof-bKkF3n/target/tests/trybuild/aarch64-unknown-linux-gnu"
+      ],
+      "exit": 0,
+      "terminal": true
+    },
+    {
+      "command": [
+        "/home/agent/.rustup/toolchains/1.99.1-aarch64-unknown-linux-gnu/bin/cargo",
+        "clean",
+        "--target-dir",
+        "/tmp/umpire-fn25415-final-9babff6c815b-47070/proof-bKkF3n/target/wasm32-wasip1"
+      ],
+      "exit": 0,
+      "terminal": true
+    }
+  ],
+  "partial_refusal": {
+    "type": "AssertionError",
+    "message": "unrecognized unreadable process",
+    "at": "2026-10-28T20:44:33.091091+00:00"
+  },
+  "resumed_by": "finish.py",
+  "custody_primary_sha256": "68208a5aa0e5df79783d97b740a07da3f0808dce4935aa076450630a5183b610",
+  "custody_supplemental_sha256": "e22efa29f106d7a2f8bf96374b080ee8d5c67b73b1dc4adc864daf7b9554a06a",
+  "primary_members": 4801,
+  "supplemental_members": 10708,
+  "original_files_classified": 20183,
+  "proven_disposable_compiler_artifacts": 2026,
+  "custody_verified_before_after": true,
+  "protected_source_and_recovery_unchanged": true,
+  "active_parent_preserved": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/target",
+  "source_and_tmp_distinct_devices": true,
+  "free_before": [
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal",
+      "realpath": "/Users/stephan/Workspace/skunkworks/umpire/temporal",
+      "device": 58,
+      "free_bytes": 42372091904
+    },
+    {
+      "path": "/tmp",
+      "realpath": "/tmp",
+      "device": 29,
+      "free_bytes": 50505895936
+    }
+  ],
+  "free_after": [
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal",
+      "realpath": "/Users/stephan/Workspace/skunkworks/umpire/temporal",
+      "device": 58,
+      "free_bytes": 40855646208
+    },
+    {
+      "path": "/tmp",
+      "realpath": "/tmp",
+      "device": 29,
+      "free_bytes": 57108705280
+    }
+  ],
+  "ownership_limit": "Only the original three acknowledged foreign daemon limitations are permitted. Unknown unreadable processes or readable private handles always refuse.",
+  "original_partial_receipt_unchanged": true,
+  "recovery": "CAS manifests/objects under temporal/.recovery/fn25415-native-proof; versioned primary+supplemental manifests and verification recipes retained; all unknown/source/data members retained, compiler outputs reproducible from their admitted producer metadata."
+}

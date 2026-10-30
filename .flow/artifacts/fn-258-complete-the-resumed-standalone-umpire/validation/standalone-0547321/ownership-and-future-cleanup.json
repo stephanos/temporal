@@ -1,0 +1,28 @@
+{
+  "observed_at": "2026-10-28T07:27:00.439048+00:00",
+  "protected_roots": [
+    "/home/agent/.cache/codex-build/fn258-standalone-0547321",
+    "/home/agent/.cache/codex-build/tmp/umpire-standalone-Bnt8GY"
+  ],
+  "matching_processes": [],
+  "unreadable_system_pids": [
+    10,
+    542,
+    557
+  ],
+  "targets": [
+    {
+      "path": "/home/agent/.cache/codex-build/fn258-standalone-0547321",
+      "allocated_bytes": 6426419200,
+      "cargo_cachedir_tag_present": false
+    },
+    {
+      "path": "/home/agent/.cache/codex-build/tmp/umpire-standalone-Bnt8GY/target",
+      "allocated_bytes": 6662246400,
+      "cargo_cachedir_tag_present": false
+    }
+  ],
+  "recovery_manifest": ".flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/validation/standalone-0547321/recovery-manifest.json",
+  "recovery_manifest_sha256": "087a3c83396a43dc5a21e9880192ac94561ce90745bf38bb71b8a735c21144a5",
+  "cleanup_status": "NOT RELEASED: preserve both roots until conductor review/closure; repeat process/lease checks immediately before any later cleanup. Source/input/receipts/binaries are retained outside targets. No global/shared toolchain, other session or source cleanup authorized."
+}

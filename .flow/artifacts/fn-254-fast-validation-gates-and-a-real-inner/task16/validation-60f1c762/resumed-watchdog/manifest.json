@@ -1,0 +1,57 @@
+[
+  {
+    "path": "admission.json",
+    "bytes": 4350,
+    "sha256": "3be02e491a224522ed67b39925917dfe9451b373209d503d39a22b1843a17d32"
+  },
+  {
+    "path": "controls.json",
+    "bytes": 72,
+    "sha256": "713ca48d038d2be43e677d785d774a5779d979699deb352f5dc004d42fe8d470"
+  },
+  {
+    "path": "controls.log",
+    "bytes": 378,
+    "sha256": "d72003e85988854d0dc0edf9fe6595880d5b42533743474e019288158d262a97"
+  },
+  {
+    "path": "curate_guarded.py",
+    "bytes": 3277,
+    "sha256": "8d6c1b05c663097ba07b50a5ebd874334ee61d3cfd704ee4a5982b3691eefd3d"
+  },
+  {
+    "path": "live-handle.json",
+    "bytes": 590,
+    "sha256": "439de8cb0095b0620ddaabb59f84def18067dee44d3361ff24b21a56327dd7ce"
+  },
+  {
+    "path": "proof.stderr.log",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "proof.stdout.log",
+    "bytes": 82,
+    "sha256": "bd465699f947fcbcad4003b92eaaece571ef747e1d4fc666652f0a5e76070b90"
+  },
+  {
+    "path": "space-samples.jsonl",
+    "bytes": 341871,
+    "sha256": "1c9dda4da49f2584d1cf14d5bd9d4542375ee8bb1bab404202d4d0ae15a5831c"
+  },
+  {
+    "path": "test_watchdog.py",
+    "bytes": 2322,
+    "sha256": "4d2fe5183aa7dc306a985a319a2eab4ca272384995e38413dec9d0beae112c15"
+  },
+  {
+    "path": "watchdog-result.json",
+    "bytes": 7074,
+    "sha256": "e08715dccf7520061e8b1f4af2bb5e9c057dd1fc40630d2c3b76d3dcb64fcf8c"
+  },
+  {
+    "path": "watchdog.py",
+    "bytes": 4834,
+    "sha256": "f853c35df5bb4e27acddcb96d0a93e10f82f814af5f778cc12e96bb1146a00b1"
+  }
+]

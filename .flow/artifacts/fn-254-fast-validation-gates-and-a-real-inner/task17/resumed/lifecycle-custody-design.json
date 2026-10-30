@@ -1,0 +1,30 @@
+{
+  "scope": "Design decision; not implementation or platform acceptance evidence",
+  "date_utc": "2026-10-27",
+  "task": "fn-254.17",
+  "fault_model": [
+    "abrupt outer-owner death",
+    "ordinary fail-fast and sibling cancellation",
+    "user signals",
+    "paused adopted Checker guardian that later resumes"
+  ],
+  "mechanism": {
+    "scheduler": "Mise remains the sole DAG scheduler.",
+    "cancellation": "Only the root native guardian retains the broadcast writer. All participating guardians observe EOF independently. Nested normal completion does not cancel the invocation.",
+    "completion": "Each native guardian retains its parent completion writer until its direct child is reaped and its local cohort drains. EOF alone means descriptor closure, not universal reaping.",
+    "lease": "The same FD9 open-file description remains held throughout cleanup. Java receives neither lease nor lifecycle descriptors or locators.",
+    "controllers": "Substantive leaf controllers use native ownership. Clean standalone commands explicitly propagate verified context. Darwin nextest must survive to signal and reap its separate test/setup groups.",
+    "linux": "Retain the stronger existing subreaper cleanup, including escaped descendants carrying lifecycle descriptors. Kill/reap owned descendants before waiting on a barrier they could otherwise retain indefinitely.",
+    "darwin": "Cooperative cancellation and hierarchical acknowledgements require actual non-root Darwin verification. Direct mise exit and elapsed grace cannot certify completion."
+  },
+  "boundaries": [
+    "Existing Checker Darwin descendant prevention remains intact.",
+    "Arbitrary guardian SIGKILL is outside this decision\u2019s ordinary fault model.",
+    "A controller crashing before forwarding to separate groups remains an explicitly uncovered fault unless additional custody is implemented."
+  ],
+  "evidence_sources": [
+    "Read-only lifecycle_barrier_design scout reports in this session.",
+    "Existing process-supervision-design.json and retained pinned mise/nextest primary-source references."
+  ],
+  "acceptance": "Open. Linux evidence alone cannot establish Darwin cleanup."
+}

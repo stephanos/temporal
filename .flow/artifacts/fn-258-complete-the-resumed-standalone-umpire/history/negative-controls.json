@@ -1,0 +1,72 @@
+{
+  "controls": [
+    {
+      "control": "file-negative",
+      "exit": 1,
+      "stdout": "{\"status\": \"fail\", \"failure_count\": 1, \"output\": \"/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/history/file-negative.json\"}\n",
+      "stderr": "",
+      "failures": {
+        "count": 1,
+        "samples": [
+          {
+            "category": "export-worktree-bytes-modes-symlinks",
+            "detail": "working files differ from the mapped checkpoint"
+          }
+        ]
+      }
+    },
+    {
+      "control": "map-negative",
+      "exit": 1,
+      "stdout": "{\"status\": \"fail\", \"failure_count\": 2, \"output\": \"/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/history/map-negative.json\"}\n",
+      "stderr": "",
+      "failures": {
+        "count": 2,
+        "samples": [
+          {
+            "category": "commit-map-coverage",
+            "detail": {
+              "missing": [
+                "ac60daaf47d2513b41eeff612f0e2758d33e186d"
+              ],
+              "unexpected": []
+            }
+          },
+          {
+            "category": "verification-error",
+            "detail": "commit map does not cover exactly fixed-source ancestry"
+          }
+        ]
+      }
+    },
+    {
+      "control": "parent-negative",
+      "exit": 1,
+      "stdout": "{\"status\": \"fail\", \"failure_count\": 1, \"output\": \"/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/history/parent-negative.json\"}\n",
+      "stderr": "",
+      "failures": {
+        "count": 1,
+        "samples": [
+          {
+            "category": "rewritten-parent-order",
+            "detail": {
+              "old": "6264f117607d756d41a97342273ebff189ef77f1",
+              "new": "eb0c99f838854e3485db4051f426732427d28f51",
+              "original_parent_frontier": [
+                "17ce0903cc367ec5fac4c682741422882e3a7787"
+              ],
+              "actual_parents": [
+                "17ce0903cc367ec5fac4c682741422882e3a7787",
+                "bcf984bee2ad5363a4dbc73f2eb4c3334a791a80"
+              ]
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "readme_restored_exactly": true,
+  "original_commit_map_unchanged": true,
+  "parent_control_active_tree_unchanged": true,
+  "parent_control_checkpoint": "e613e957b1323d540941d285382deba97ca88f14"
+}

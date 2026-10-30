@@ -1,0 +1,245 @@
+{
+  "task": "fn-254-fast-validation-gates-and-a-real-inner.17",
+  "lane": "quick/runner",
+  "source_base": "c958d34af0c1f00479ddabf6b207aa2949200201",
+  "worktree": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-quick-resumed",
+  "branch": "work/fn25417-quick-resumed",
+  "scope": "Scoped source checkpoint only; graph/supervisor/real Model workload obligations remain with conductor.",
+  "selective_ports": [
+    "80c7128fa8 quick batching and doctest target metadata only",
+    "836242a09a per-package inventories and explicit compiler-only admission; omit stale Kettle seeds"
+  ],
+  "preserved": [
+    "six Kettle consumers and test-only reverse-edge behavior",
+    "Temporal four direct feature readers plus reverse guest",
+    "metadata ancestor/source-doc safety and explicit root globals",
+    "current required lower-positive-thread min policy; optional Apalache1; native defaults",
+    "full gate cache bypass and quick cache enablement",
+    "caller/workspace/target/feature/filter/ignored/fail-fast/status/timing semantics"
+  ],
+  "new_api": {
+    "xtask::test_run::run_package": "Locked exact workspace member, typed target/doctest admission, checked nextest inventory, batch tests, eligible Cargo doctests; all actual mise commands disable auto-install."
+  },
+  "compiler_only": "Exact five framework ABI guest manifest paths and explicit Temporal guest bridge flag. Cargo check --all-targets must pass first; discovered tests remain included. An explicitly build-only zero-test batch claims no test execution.",
+  "candidate_fix": {
+    "problem": "Quoted exact matcher values in retained candidate did not match real package names; pinned nextest list exited94.",
+    "resolution": "Unquoted equality matcher with documented escaping of backslash, closing parenthesis, comma and whitespace.",
+    "primary_reference": "https://nexte.st/docs/filtersets/reference/"
+  },
+  "validation": {
+    "framework_lib": {
+      "exit": 0,
+      "passed": 52,
+      "log": "green-final.log.gz"
+    },
+    "framework_clippy_lib_and_tests": {
+      "exit": 0,
+      "log": "clippy-final.log.gz"
+    },
+    "pinned_nextest_real_lib_inventory": {
+      "exit": 0,
+      "listed": 52,
+      "log": "nextest-list-final.log.gz"
+    },
+    "pinned_nextest_real_lib_run": {
+      "exit": 0,
+      "passed": 52,
+      "skipped": 0,
+      "log": "nextest-run-final.log.gz"
+    },
+    "temporal_owned_runner": {
+      "exit": 0,
+      "passed": 6,
+      "log": "green-temporal-runner.log.gz"
+    },
+    "temporal_owned_bridge": {
+      "exit": 0,
+      "passed": 1,
+      "log": "green-temporal-bridge.log.gz"
+    },
+    "temporal_clippy_bin": {
+      "exit": 0,
+      "log": "clippy-temporal.log.gz"
+    },
+    "rustfmt_changed_files_and_git_diff_check": {
+      "exit": 0
+    },
+    "red_old_workspace_zero_test_policy": {
+      "exit": 101,
+      "log": "red.log.gz"
+    },
+    "red_retained_predicate_and_unconditional_zero_test_batch": {
+      "exit": 101,
+      "failed": 3,
+      "log": "red-retained-predicate.log.gz",
+      "restored_exactly": true
+    },
+    "old_temporal_gate_wiring": {
+      "exit": 101,
+      "passed": 12,
+      "failed": 1,
+      "log": "green-temporal.log.gz",
+      "reason": "Graph-owned gate.rs exact expected nextest argv omits new --no-tests fail; graph lane notified and owns correction; not edited here."
+    }
+  },
+  "resource": {
+    "target": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-selection-review/target",
+    "initial_bytes": 424296448,
+    "final_bytes": 451678208,
+    "total_growth_bytes": 27381760,
+    "maximum_growth_bytes": 805306368,
+    "free_guard_bytes": 8589934592,
+    "compile_jobs": 1,
+    "debug": 0,
+    "incremental": 0,
+    "private_tmpdirs": [
+      "/tmp/fn25417quick-ncevwtrt",
+      "/tmp/fn25417quick-os6cq3dg",
+      "/tmp/fn25417quick-m6qyevgo",
+      "/tmp/fn25417quick-d7hr_lxx",
+      "/tmp/fn25417quick-84984yae",
+      "/tmp/fn25417quick-2bc03h_w",
+      "/tmp/fn25417quick-h_11v5yx",
+      "/tmp/fn25417quick-td4q58u7",
+      "/tmp/fn25417quick-u_ukdtrw",
+      "/tmp/fn25417quick-4iompypz",
+      "/tmp/fn25417quick-1_ar22ye",
+      "/tmp/fn25417quick-b891wx3c",
+      "/tmp/fn25417quick-nq50xwn1",
+      "/tmp/fn25417quick-8q7vlhvn",
+      "/tmp/fn25417quick-bnvvxjd_",
+      "/tmp/fn25417quick-ua8fnfal",
+      "/tmp/fn25417quick-pb7kzdqt"
+    ],
+    "guard_stop": "green1: terminated only owned process group before compilation when external free space dropped below8GiB; later phases resumed after recovery."
+  },
+  "deferred": [
+    "correctly scoped real Temporal five-package and Kettle six-package quick workloads",
+    "current-candidate Model/TLC/Go timing and resource proofs",
+    "supervisor/lease and graph/public entry integration",
+    "integrated gate/standalone complete inventories and final task closure"
+  ],
+  "source_sha256": {
+    "model/dev/xtask/src/quick/mod.rs": "6535d2eeb49fa52c9fb291f36f71a68441e6cfefbffe708ea58d0f9a8b924ffd",
+    "model/dev/xtask/src/test_run.rs": "204a40f595c138408fbfce6040a79606e94f38ea77cc63a2784e84aba33ea353",
+    "model/umpire/dev/xtask/src/quick/mod.rs": "c04a0c8384114e730a5a14c9f99979dd09a2a86a083cc9097e20272bced74270",
+    "model/umpire/dev/xtask/src/quick/selection.rs": "7b45f3b6b5e18d594d89ae0d4b64fa878059864a17d622759c28cd395c5ae4eb",
+    "model/umpire/dev/xtask/src/quick/tests.rs": "ad237decf4206955772c34224c49fbb9be593841e43c85bcff3b1679912c7193",
+    "model/umpire/dev/xtask/src/test_run.rs": "093857b18d0529400d1c2bf54ffd2e35004014c4676105e00a430aa3ec577290"
+  },
+  "evidence_sha256": {
+    "clippy-final.json": "32626c43d7488cdd7d028062aaba45c8ad107387bb3d09bca85ab3b2f621a53e",
+    "clippy-final.log.gz": "ab204608852f35185ec64c02690d5b0341b6305771a213e788e7f609b0559f46",
+    "clippy-framework.json": "587fc091a5eac30af08036462d96febe4e3468b7a591c5eb1bf70b8350abe20d",
+    "clippy-framework.log.gz": "ea7f6ccea57b193643b284588ef0be60ae6ea62664db525f0a5cf9079c4ae26c",
+    "clippy-framework2.json": "68b2f5065169e2aea48ae57ecd783f3710712a4751cda9d17f64d2fb1ecb8beb",
+    "clippy-framework2.log.gz": "07c339c5bc2dec8af2cdb4a64661caef4562d3208f651f1b98e1d4983f551842",
+    "clippy-framework3.json": "19da19c22b624cb3721f2e3e4e6e064e0948184386fbd98e69cb1fa16751d0f1",
+    "clippy-framework3.log.gz": "e6046fe6a8844b28749dcc91b308bac8c251358673b45affe37ee15dcf4bb53a",
+    "clippy-temporal.json": "e7d2e84f68c447a396276cbec16e082764d2f13f9981fe4ce6a8c95c83236c75",
+    "clippy-temporal.log.gz": "1b9ab36bedcb763b7fd5b6c42603545cb96bd0ce433806e28954ec67fc72cdd4",
+    "green-final.json": "946a176a6f76126fdc5498fb77262a2131212d26b4278ebcfacbea10ce537d91",
+    "green-final.log.gz": "ac497b99626c8f0989780cd9871e85ceb681d76fa47423719eaa251bed1149f7",
+    "green-framework.json": "01df90659e4f23da004b1e6dd44b2e8bf4347c588e4917a3ea2d9e78e3a853ee",
+    "green-framework.log.gz": "5684661b0e3aa7c0e265b706f9ff018dd4955b8ad9519395cb57ddd8300ec45a",
+    "green-temporal-bridge.json": "febb68264f86bdf6dce3f30258b07a3c9a4373a0634f486e8c3c83039ed5f840",
+    "green-temporal-bridge.log.gz": "5bb7f83cb5d31e3ca0b92128a7824bb2ce495211bde9a1b7ee2aca7295da935c",
+    "green-temporal-runner.json": "478bb190a96be9b7a27f7e768a9326d60fa72031c85b7990873e218dc3c33799",
+    "green-temporal-runner.log.gz": "96d9e52f09ec83dc79a326695dff053a4944dc72321fe0638beb650f8e0f5a31",
+    "green-temporal.json": "595d0f720c7e4d6b5337f6a8d79f8250348a88dfd57750528c47d4c64cb5809b",
+    "green-temporal.log.gz": "95193c9e9d7802d5c2bfd35ce5682794cdb53f330b672ff2226f76759073bf98",
+    "green1.json": "314b52baaeeefa6d2838b3e6e40743334304aa37469757d485b35a200796c633",
+    "green1.log.gz": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64",
+    "green2.json": "31b7b09e386f59d4ec5223f8b48e4d7fd96c2f87a048c3fd8ccd54d52f61d478",
+    "green2.log.gz": "30671c632bda399a6a422ad65612390bc111ae2926d299e6634c1f04cb704534",
+    "mutation-restoration.json": "c5c3d67370ac54d6db6f4f49a0f983378bd6d0b6605c4daa87eb027ca30ce49a",
+    "nextest-inventory.json": "12a36f819ea146d6b31a41403b7a273f49f4d3d18149e89cede52944a300669e",
+    "nextest-list-final.json": "9a1377579cc9a17260e5dca2e65ea24e6495a820e00aa9a8aec0713e5c74a8dd",
+    "nextest-list-final.log.gz": "fa0cf6c83e1f0f150e4169c85b753465e5521d6005e11306de3ad0856fe759b0",
+    "nextest-list-help.log.gz": "161137e48cbc248887781b3d1b470b1ef1669affcdd37027322232d44875f8a9",
+    "nextest-list.json": "89290fb66a62578e8685321b77c2f6f096fac4b15ebafb645b1e2c3271a1513c",
+    "nextest-list.log.gz": "ad2c13951b7374f67f48662777772b67036517a66e28a546ea57c3d7174b758c",
+    "nextest-run-final.json": "70d01f4e8fd49c2b6f257b5fddd799cf5f4d1ca73f6406a74297282d649c3fa9",
+    "nextest-run-final.log.gz": "01cb13899f12cdd55857a6af8adbaac170ef525015d037c5a0ec5dbe7c06aac2",
+    "red-retained-predicate.json": "d32a102bc8a7f073d9b79900f67ddc29d431a90cc5d938e7d7a9788076fc208f",
+    "red-retained-predicate.log.gz": "7e31b6f0e715a55ebb51df2e9c22313fe061e8c24765a09ad11575da38d2b523",
+    "red.json": "a819a446457e781c4c68bc2575203c1f94907c2b8f6aff1bf663816fa165db78",
+    "red.log.gz": "7922be3667cfd1db5c488fb1a7f95121a9d4fa5ead89fbfc999f973028a19559",
+    "resource-guard.py": "ca931077da6278561384fa7ef67c8a39d9eec68427c69c6c97903735c18732c1"
+  },
+  "raw_log_sha256": {
+    "clippy-final.log": {
+      "sha256": "5cc7e1e98c654f5a7f977031b5dca975892e05eeb8a52ed1f6497a151b7c689d",
+      "compressed_path": "clippy-final.log.gz"
+    },
+    "clippy-framework.log": {
+      "sha256": "67bd21b81a6327b2b2b81b50aae9c45dd5b0d38911b53d6aac9eebc856bc9f35",
+      "compressed_path": "clippy-framework.log.gz"
+    },
+    "clippy-framework2.log": {
+      "sha256": "30e12977a63c137f94f7343ac8593bd3d75d956af198789d5a936a9f017c3d8c",
+      "compressed_path": "clippy-framework2.log.gz"
+    },
+    "clippy-framework3.log": {
+      "sha256": "d68e71e43b8f9c00fa2bee1b825fd9016033c52c8fa069ef29fca63bbd8a2431",
+      "compressed_path": "clippy-framework3.log.gz"
+    },
+    "clippy-temporal.log": {
+      "sha256": "b13ce1c9e7974cedc96d0f2f8b74c2625f43288479370301f07b986a40616a81",
+      "compressed_path": "clippy-temporal.log.gz"
+    },
+    "green-final.log": {
+      "sha256": "889422f533de6378dd71ecf07812d62a9cbd739f758f99c6ebf7aed36ed659e1",
+      "compressed_path": "green-final.log.gz"
+    },
+    "green-framework.log": {
+      "sha256": "696102e01c732a5fdd941ff044f25de4b4b47ec936c71f5facf93a8e50b319aa",
+      "compressed_path": "green-framework.log.gz"
+    },
+    "green-temporal-bridge.log": {
+      "sha256": "c10bbbcc0cdcb4d916178d7bafb24bf29c1d3f3c435e9cfd35306607ea91cc2c",
+      "compressed_path": "green-temporal-bridge.log.gz"
+    },
+    "green-temporal-runner.log": {
+      "sha256": "bd21b9da574b1f79ae148876cbbf7044a554933954f020996250f47670661145",
+      "compressed_path": "green-temporal-runner.log.gz"
+    },
+    "green-temporal.log": {
+      "sha256": "b9c6cffbbc11690092f1583908a1c312e0ad68be244fab23c9a43943eecf95fa",
+      "compressed_path": "green-temporal.log.gz"
+    },
+    "green1.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "compressed_path": "green1.log.gz"
+    },
+    "green2.log": {
+      "sha256": "691ff6c6e6f9b2da4e2618a556128da818fefecb799d2ab418c8eca3ec0af63f",
+      "compressed_path": "green2.log.gz"
+    },
+    "nextest-list-final.log": {
+      "sha256": "4846f035e89d20dbb83539f253c6d36c5b0bc625b01ee6b2d626c365565f4512",
+      "compressed_path": "nextest-list-final.log.gz"
+    },
+    "nextest-list-help.log": {
+      "sha256": "08972310204cfad0c7a614c6f0bf5c6fbe4886fa832bdc75a223a8d93d47d830",
+      "compressed_path": "nextest-list-help.log.gz"
+    },
+    "nextest-list.log": {
+      "sha256": "6bf01da80513117df67037377ef23a11329e05f70a0cda00c544771748423ee6",
+      "compressed_path": "nextest-list.log.gz"
+    },
+    "nextest-run-final.log": {
+      "sha256": "57c7bc316d7b40c851958c097dda4c96cfb29838432d009e7c2673824845d08a",
+      "compressed_path": "nextest-run-final.log.gz"
+    },
+    "red-retained-predicate.log": {
+      "sha256": "288f6bbb3ff8c374a19d4ee59d0f3855d87bd638687a7394ab2d4d1e95375b8e",
+      "compressed_path": "red-retained-predicate.log.gz"
+    },
+    "red.log": {
+      "sha256": "3177fd6e4010a68c84768a5b888126c282ffa016e9f58bc219473b036669369e",
+      "compressed_path": "red.log.gz"
+    }
+  },
+  "log_encoding": "Gzip retains exact raw output bytes; decompress *.log.gz to recover original logs."
+}

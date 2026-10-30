@@ -1,0 +1,9 @@
+{
+  "scope": "proof seal assumption; not Cargo/nextest failure",
+  "initial_assumption": "No old test identities removed in any affected package",
+  "observed": "Temporal xtask removed gate::tests::spawn_failure_names_the_stage and added three explicitly named missing-tool/invalid-cwd controls, including its child helper.",
+  "resolution": "Retain exact +3/-1 identity delta; require exact removed old identity for Temporal xtask. Framework and activity still require zero removed identities.",
+  "source_edits": false,
+  "test_bodies_executed": false,
+  "all_build_and_list_commands_exit_zero": true
+}

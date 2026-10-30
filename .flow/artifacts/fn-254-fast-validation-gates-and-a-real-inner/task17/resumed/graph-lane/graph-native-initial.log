@@ -1,0 +1,184 @@
+   Compiling xtask v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire/dev/xtask)
+warning: unnecessary qualification
+   --> dev/xtask/tests/gate_wiring.rs:835:6
+    |
+835 | ) -> std::process::Output {
+    |      ^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: requested on the command line with `-W unused-qualifications`
+help: remove the unnecessary path segments
+    |
+835 - ) -> std::process::Output {
+835 + ) -> Output {
+    |
+
+warning: unnecessary qualification
+   --> dev/xtask/tests/gate_wiring.rs:843:5
+    |
+843 |     std::process::Output {
+    |     ^^^^^^^^^^^^^^^^^^^^
+    |
+help: remove the unnecessary path segments
+    |
+843 -     std::process::Output {
+843 +     Output {
+    |
+
+warning: `xtask` (test "main") generated 2 warnings (run `cargo fix --test "main" -p xtask` to apply 2 suggestions)
+    Finished `test` profile [unoptimized] target(s) in 1.84s
+     Running tests/main.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/target/debug/deps/main-399733285a0719a5)
+
+running 26 tests
+test gate_graph::graph_keeps_independent_read_only_work_schedulable_together ... ok
+test gate_graph::shared_cargo_targets_and_generated_outputs_have_predecessor_barriers ... ok
+test gate_graph::shipping_graph_has_unique_complete_stage_metadata_and_no_cycle ... ok
+test gate_wiring::compiled_stage_inventory_matches_preserved_framework_stages ... ok
+test gate_wiring::concurrent_duplicate_stage_claim_runs_leaf_exactly_once_and_preserves_receipt ... 
+thread 'gate_wiring::concurrent_duplicate_stage_claim_runs_leaf_exactly_once_and_preserves_receipt' (626509) panicked at dev/xtask/tests/gate_wiring.rs:866:9:
+[1, 1]
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+FAILED
+test gate_wiring::convenience_entries_keep_exact_arguments_and_propagate_failed_inner_status ... 
+thread 'gate_wiring::convenience_entries_keep_exact_arguments_and_propagate_failed_inner_status' (626519) panicked at dev/xtask/tests/gate_wiring.rs:307:5:
+assertion `left == right` failed: Output { status: ExitStatus(unix_wait_status(256)), stdout: "", stderr: "framework stage fmt failed (exit 1)\n" }
+  left: Some(1)
+ right: Some(0)
+FAILED
+test gate_wiring::every_command_boundary_preserves_failure_status_and_environment_in_both_modes ... 
+thread 'gate_wiring::every_command_boundary_preserves_failure_status_and_environment_in_both_modes' (626524) panicked at dev/xtask/tests/gate_wiring.rs:307:5:
+assertion `left == right` failed: Output { status: ExitStatus(unix_wait_status(256)), stdout: "", stderr: "framework stage proto-tools failed (exit 1)\n" }
+  left: Some(1)
+ right: Some(37)
+FAILED
+test gate_wiring::failed_scheduler_is_waited_and_its_owned_descendant_is_terminated_before_return ... 
+thread 'gate_wiring::failed_scheduler_is_waited_and_its_owned_descendant_is_terminated_before_return' (626529) panicked at dev/xtask/tests/gate_wiring.rs:307:5:
+assertion `left == right` failed: Output { status: ExitStatus(unix_wait_status(256)), stdout: "backend modes: UMPIRE_BACKENDS=skip (default) UMPIRE_APALACHE=skip (default)\n", stderr: "xtask: mise stage inventory failed\n" }
+  left: Some(1)
+ right: Some(37)
+FAILED
+test gate_wiring::full_dispatch_runs_each_leaf_once_in_order_and_bypasses_cache_from_first_command ... 
+thread 'gate_wiring::full_dispatch_runs_each_leaf_once_in_order_and_bypasses_cache_from_first_command' (626534) panicked at dev/xtask/tests/gate_wiring.rs:307:5:
+assertion `left == right` failed: Output { status: ExitStatus(unix_wait_status(256)), stdout: "backend modes: UMPIRE_BACKENDS=skip (default) UMPIRE_APALACHE=skip (default)\n", stderr: "xtask: mise stage inventory failed\n" }
+  left: Some(1)
+ right: Some(0)
+FAILED
+test gate_wiring::full_dispatch_stops_at_every_failed_leaf_in_both_modes ... 
+thread 'gate_wiring::full_dispatch_stops_at_every_failed_leaf_in_both_modes' (626539) panicked at dev/xtask/tests/gate_wiring.rs:307:5:
+assertion `left == right` failed: Output { status: ExitStatus(unix_wait_status(256)), stdout: "backend modes: UMPIRE_BACKENDS=skip (default) UMPIRE_APALACHE=skip (default)\n", stderr: "xtask: mise stage inventory failed\n" }
+  left: Some(1)
+ right: Some(37)
+FAILED
+test gate_wiring::full_gate_publishes_complete_ordered_invocation_local_receipts_on_every_run ... 
+thread 'gate_wiring::full_gate_publishes_complete_ordered_invocation_local_receipts_on_every_run' (626544) panicked at dev/xtask/tests/gate_wiring.rs:307:5:
+assertion `left == right` failed: Output { status: ExitStatus(unix_wait_status(256)), stdout: "backend modes: UMPIRE_BACKENDS=skip (default) UMPIRE_APALACHE=skip (default)\n", stderr: "xtask: mise stage inventory failed\n" }
+  left: Some(1)
+ right: Some(0)
+FAILED
+test gate_wiring::guest_and_go_stage_target_matrix_preserves_unset_relative_and_absolute_paths ... 
+thread 'gate_wiring::guest_and_go_stage_target_matrix_preserves_unset_relative_and_absolute_paths' (626549) panicked at dev/xtask/tests/gate_wiring.rs:307:5:
+assertion `left == right` failed: Output { status: ExitStatus(unix_wait_status(256)), stdout: "", stderr: "framework stage wasm-guest failed (exit 1)\n" }
+  left: Some(1)
+ right: Some(0)
+FAILED
+test gate_wiring::independent_native_stages_reach_each_other_while_both_are_active ... 
+thread 'gate_wiring::independent_native_stages_reach_each_other_while_both_are_active' (626554) panicked at dev/xtask/tests/gate_wiring.rs:307:5:
+assertion `left == right` failed: Output { status: ExitStatus(unix_wait_status(256)), stdout: "", stderr: "framework stage proto-tools failed (exit 1)\n" }
+  left: Some(1)
+ right: Some(0)
+FAILED
+test gate_wiring::required_optional_backend_fetch_failure_is_named_and_prevents_first_stage ... 
+thread 'gate_wiring::required_optional_backend_fetch_failure_is_named_and_prevents_first_stage' (626565) panicked at dev/xtask/tests/gate_wiring.rs:454:9:
+Output { status: ExitStatus(unix_wait_status(256)), stdout: "backend modes: UMPIRE_BACKENDS=skip (default) UMPIRE_APALACHE=require\n", stderr: "xtask: Apalache download failed: exit status: 1\nframework stage apalache failed (exit 1)\n" }
+FAILED
+test gate_wiring::required_profile_reaches_gate_update_and_direct_test_children ... 
+thread 'gate_wiring::required_profile_reaches_gate_update_and_direct_test_children' (626571) panicked at dev/xtask/tests/gate_wiring.rs:743:13:
+assertion `left == right` failed: entry=["gate", "--stage", "tests"], backend=skip, apalache=skip: Output { status: ExitStatus(unix_wait_status(256)), stdout: "", stderr: "framework stage tests failed (exit 1)\n" }
+  left: Some(1)
+ right: Some(0)
+FAILED
+test gate_wiring::required_test_stage_selects_bounded_profile_and_empty_selection_status_is_preserved ... 
+thread 'gate_wiring::required_test_stage_selects_bounded_profile_and_empty_selection_status_is_preserved' (626579) panicked at dev/xtask/tests/gate_wiring.rs:307:5:
+assertion `left == right` failed: Output { status: ExitStatus(unix_wait_status(256)), stdout: "", stderr: "framework stage tests failed (exit 1)\n" }
+  left: Some(1)
+ right: Some(0)
+FAILED
+test gate_wiring::root_required_backend_environment_selects_standalone_on_gate_and_time_routes ... 
+thread 'gate_wiring::root_required_backend_environment_selects_standalone_on_gate_and_time_routes' (626587) panicked at dev/xtask/tests/gate_wiring.rs:694:9:
+Output { status: ExitStatus(unix_wait_status(256)), stdout: "backend modes: UMPIRE_BACKENDS=require UMPIRE_APALACHE=skip (default)\n", stderr: "xtask: mise stage inventory failed\n" }
+FAILED
+test gate_wiring::scanner_stages_reject_real_planted_inputs_and_full_gate_stops_before_later_commands ... 
+thread 'gate_wiring::scanner_stages_reject_real_planted_inputs_and_full_gate_stops_before_later_commands' (626592) panicked at dev/xtask/tests/gate_wiring.rs:423:13:
+Output { status: ExitStatus(unix_wait_status(256)), stdout: "backend modes: UMPIRE_BACKENDS=skip (default) UMPIRE_APALACHE=skip (default)\n", stderr: "xtask: mise stage inventory failed\n" }
+FAILED
+test gate_wiring::scheduled_stage_atomically_commits_success_failure_and_scanner_error_receipts ... 
+thread 'gate_wiring::scheduled_stage_atomically_commits_success_failure_and_scanner_error_receipts' (626602) panicked at dev/xtask/tests/gate_wiring.rs:307:5:
+assertion `left == right` failed: Output { status: ExitStatus(unix_wait_status(256)), stdout: "", stderr: "framework stage fmt failed (exit 1)\n" }
+  left: Some(1)
+ right: Some(0)
+FAILED
+test gate_wiring::scheduled_stage_requires_invocation_directory_before_starting_leaf ... ok
+test gate_wiring::shipping_mise_graph_really_overlaps_independent_native_leaves ... 
+thread 'gate_wiring::shipping_mise_graph_really_overlaps_independent_native_leaves' (626611) panicked at dev/xtask/tests/gate_wiring.rs:307:5:
+assertion `left == right` failed: Output { status: ExitStatus(unix_wait_status(256)), stdout: "backend modes: UMPIRE_BACKENDS=skip (default) UMPIRE_APALACHE=skip (default)\n", stderr: "xtask: mise stage inventory failed\n" }
+  left: Some(1)
+ right: Some(0)
+FAILED
+test gate_wiring::signaled_stage_retains_shell_status_diagnostics_and_stops_dispatch ... 
+thread 'gate_wiring::signaled_stage_retains_shell_status_diagnostics_and_stops_dispatch' (626616) panicked at dev/xtask/tests/gate_wiring.rs:307:5:
+assertion `left == right` failed: Output { status: ExitStatus(unix_wait_status(256)), stdout: "", stderr: "framework stage capability-controls failed (exit 1)\n" }
+  left: Some(1)
+ right: Some(143)
+FAILED
+test gate_wiring::simultaneous_failed_native_leaves_both_retain_names_receipts_and_status ... 
+thread 'gate_wiring::simultaneous_failed_native_leaves_both_retain_names_receipts_and_status' (626621) panicked at dev/xtask/tests/gate_wiring.rs:307:5:
+assertion `left == right` failed: Output { status: ExitStatus(unix_wait_status(256)), stdout: "backend modes: UMPIRE_BACKENDS=skip (default) UMPIRE_APALACHE=skip (default)\n", stderr: "xtask: mise stage inventory failed\n" }
+  left: Some(1)
+ right: Some(37)
+FAILED
+test gate_wiring::successful_scheduler_status_cannot_replace_complete_unique_atomic_stage_records ... 
+thread 'gate_wiring::successful_scheduler_status_cannot_replace_complete_unique_atomic_stage_records' (626626) panicked at dev/xtask/tests/gate_wiring.rs:896:17:
+assertion `left == right` failed
+  left: []
+ right: ["proto-tools"]
+FAILED
+test gate_wiring::test_runner_route_preserves_one_workspace_call_and_failures_in_both_modes ... 
+thread 'gate_wiring::test_runner_route_preserves_one_workspace_call_and_failures_in_both_modes' (626635) panicked at dev/xtask/tests/gate_wiring.rs:307:5:
+assertion `left == right` failed: Output { status: ExitStatus(unix_wait_status(256)), stdout: "", stderr: "framework stage tests failed (exit 1)\n" }
+  left: Some(1)
+ right: Some(0)
+FAILED
+test gate_wiring::validate_forces_backend_mode_and_time_entries_stop_before_benchmark_after_failed_gate ... 
+thread 'gate_wiring::validate_forces_backend_mode_and_time_entries_stop_before_benchmark_after_failed_gate' (626643) panicked at dev/xtask/tests/gate_wiring.rs:307:5:
+assertion `left == right` failed: Output { status: ExitStatus(unix_wait_status(256)), stdout: "backend modes: UMPIRE_BACKENDS=skip UMPIRE_APALACHE=skip (default)\n", stderr: "xtask: mise stage inventory failed\n" }
+  left: Some(1)
+ right: Some(37)
+FAILED
+
+failures:
+
+failures:
+    gate_wiring::concurrent_duplicate_stage_claim_runs_leaf_exactly_once_and_preserves_receipt
+    gate_wiring::convenience_entries_keep_exact_arguments_and_propagate_failed_inner_status
+    gate_wiring::every_command_boundary_preserves_failure_status_and_environment_in_both_modes
+    gate_wiring::failed_scheduler_is_waited_and_its_owned_descendant_is_terminated_before_return
+    gate_wiring::full_dispatch_runs_each_leaf_once_in_order_and_bypasses_cache_from_first_command
+    gate_wiring::full_dispatch_stops_at_every_failed_leaf_in_both_modes
+    gate_wiring::full_gate_publishes_complete_ordered_invocation_local_receipts_on_every_run
+    gate_wiring::guest_and_go_stage_target_matrix_preserves_unset_relative_and_absolute_paths
+    gate_wiring::independent_native_stages_reach_each_other_while_both_are_active
+    gate_wiring::required_optional_backend_fetch_failure_is_named_and_prevents_first_stage
+    gate_wiring::required_profile_reaches_gate_update_and_direct_test_children
+    gate_wiring::required_test_stage_selects_bounded_profile_and_empty_selection_status_is_preserved
+    gate_wiring::root_required_backend_environment_selects_standalone_on_gate_and_time_routes
+    gate_wiring::scanner_stages_reject_real_planted_inputs_and_full_gate_stops_before_later_commands
+    gate_wiring::scheduled_stage_atomically_commits_success_failure_and_scanner_error_receipts
+    gate_wiring::shipping_mise_graph_really_overlaps_independent_native_leaves
+    gate_wiring::signaled_stage_retains_shell_status_diagnostics_and_stops_dispatch
+    gate_wiring::simultaneous_failed_native_leaves_both_retain_names_receipts_and_status
+    gate_wiring::successful_scheduler_status_cannot_replace_complete_unique_atomic_stage_records
+    gate_wiring::test_runner_route_preserves_one_workspace_call_and_failures_in_both_modes
+    gate_wiring::validate_forces_backend_mode_and_time_entries_stop_before_benchmark_after_failed_gate
+
+test result: FAILED. 5 passed; 21 failed; 0 ignored; 0 measured; 18 filtered out; finished in 0.36s
+
+error: test failed, to rerun pass `-p xtask --test main`

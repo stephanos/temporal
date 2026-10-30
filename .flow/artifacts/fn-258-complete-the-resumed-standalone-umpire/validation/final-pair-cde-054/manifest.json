@@ -1,0 +1,29 @@
+{
+  "preparation_only": true,
+  "pair": {
+    "temporal": "cde1ee67efd266a058193694c2ddb287598b9ea5",
+    "umpire": "05473210b48c3db862f22051eb7154ce98258f98"
+  },
+  "files": [
+    {
+      "file": "launch-plan.json",
+      "size": 18031,
+      "sha256": "7e63b87b0de9903aa4139a097f4c07d5415d3b7c8316f2ed61d8acb08485b115"
+    },
+    {
+      "file": "launch.py",
+      "size": 9171,
+      "sha256": "a752a4964303c547d720c9d15843c51e439d4df4641ec438696d3ef159547c49"
+    },
+    {
+      "file": "preparation.json",
+      "size": 15136,
+      "sha256": "eec9c133cdbaebde91b2d213de05a6880a5942a35ba39c2f5600442df1276640"
+    },
+    {
+      "file": "preparation.log",
+      "size": 10720,
+      "sha256": "d74633f3cc887194388ed17937a3c979e329b6b7204ca2b417cbf58b8d1b1685"
+    }
+  ]
+}

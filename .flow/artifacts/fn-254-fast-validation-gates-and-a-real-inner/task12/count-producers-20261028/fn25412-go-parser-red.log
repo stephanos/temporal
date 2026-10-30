@@ -1,0 +1,19 @@
+   Compiling xtask v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/dev/xtask)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 9.71s
+     Running unittests src/lib.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/target/debug/deps/xtask-1d211dd4a177cc0d)
+
+running 1 test
+test gate::go_counts::tests::top_level_units_match_packages_and_ignore_nested_seed_work ... FAILED
+
+failures:
+
+---- gate::go_counts::tests::top_level_units_match_packages_and_ignore_nested_seed_work stdout ----
+Error: Custom { kind: Other, error: "Go inventory parser not implemented" }
+
+
+failures:
+    gate::go_counts::tests::top_level_units_match_packages_and_ignore_nested_seed_work
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 112 filtered out; finished in 0.00s
+
+error: test failed, to rerun pass `-p xtask --lib`

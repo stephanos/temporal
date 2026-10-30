@@ -1,0 +1,33 @@
+{
+  "result": "pass",
+  "owner": "Task4 source correction only; task3 historical source3f5 remains closed/readiness-reviewed",
+  "candidate": "cde1ee67efd266a058193694c2ddb287598b9ea5",
+  "tree": "937680c4cc87d81ce4da6b0868863ea1a5fb9fd3",
+  "prerequisite": "ac60daaf47d2513b41eeff612f0e2758d33e186d",
+  "candidate_absent_before_bundle_fetch": true,
+  "only_ref_before_bundle": "ac60daaf47d2513b41eeff612f0e2758d33e186d refs/heads/prerequisite",
+  "independence": "Fresh bare object database; prerequisite-only actual fetch then thin bundle; no alternates/shared source objects. Only private recovery refs created; source refs untouched.",
+  "recovered_commits": [
+    "cde1ee67efd266a058193694c2ddb287598b9ea5",
+    "3f5f613578f2857b738a7792fad08f12b3ea0a41",
+    "ec13057227cf2159482a793b227e32653e280057",
+    "3658582dac5b54c1f68c2eb54a312957c97e05b6",
+    "4035bb70fdf4c7ef074a8f05a02b19fb458c0b1d",
+    "7e655da80b3810807cbd02a3ea29c26ceb9804e4"
+  ],
+  "canonical_guest_sha256": "d171b91861dba54e9c73682fb17a5a317180dba4e7c5b6c1b09f46667b337f5d",
+  "canonical_guest_size": 3988382,
+  "fsck_exit": 0,
+  "fsck_output": "",
+  "recovery_repository": "/home/agent/.cache/codex-build/tmp/fn258-consumer-recovery-cde1ee6.git",
+  "bundle": "source-preparation-cde1ee6.bundle",
+  "bundle_sha256": "393cbf07c93779a5da2b594da1b36c8eb9d5efd6ca4f565d54d75db9e91774df",
+  "bundle_bytes": 260850,
+  "log": "bundle-recovery-cde1ee6.log",
+  "log_sha256": "70ed52acb7dd0d6047b128b1521448cd36d208e5a83ca1b80b5b83b8f8fec72c",
+  "only_delta_from_task3": [
+    "model/scripts/test-model-wiring.sh"
+  ],
+  "delta_numstat": "1 insertion,1 deletion",
+  "focused_correction_patch": "diff --git a/model/scripts/test-model-wiring.sh b/model/scripts/test-model-wiring.sh\nindex f8b8818f74..8853cc431b 100644\n--- a/model/scripts/test-model-wiring.sh\n+++ b/model/scripts/test-model-wiring.sh\n@@ -112 +112 @@ for action in fmt update; do\n-    expected=$(printf 'temporal|%s|exec -- cargo run --manifest-path %s/model/Cargo.toml --package temporal-xtask --bin temporal-xtask --profile dev -- test-run|unset|unset' \"$control\" \"$control\")\n+    expected=$(printf 'temporal|%s|exec -- cargo run --manifest-path %s/model/Cargo.toml --package temporal-xtask --bin temporal-xtask --profile dev -- test-run|%s|%s' \"$control\" \"$control\" \"${UMPIRE_QUICK_CACHE-unset}\" \"${UMPIRE_CACHE_DISABLE-unset}\")\n"
+}

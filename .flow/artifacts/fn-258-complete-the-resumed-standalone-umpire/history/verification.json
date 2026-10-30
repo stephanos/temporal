@@ -1,0 +1,545 @@
+{
+  "schema": 1,
+  "source_commit": "ac60daaf47d2513b41eeff612f0e2758d33e186d",
+  "started_at": "2026-10-28T05:41:31.504708+00:00",
+  "completed_checks": [
+    "all mapped historical snapshots, retained metadata, rewritten parent frontiers/order and zero-pruned projection neutrality",
+    "1189-file final object and active path inventory; checked-out files when present",
+    "before/after original source preservation observation"
+  ],
+  "limitations": [
+    "This verifies extraction objects/history and source preservation during this invocation, not standalone builds, generated freshness or paired consumer behavior.",
+    "An optional root HEAD baseline detects HEAD movement since that checkpoint; pre-invocation index/worktree preservation needs a separately captured byte/mode baseline.",
+    "Source preservation includes tracked and nonignored untracked root worktree files, refs, index entries and worktree registry; ignored bytes and other worktrees' content are not inventoried.",
+    "Only the exact .history-support/ namespace is excluded from the final active manifest; all of its historical/current projected tree entries are nevertheless compared.",
+    "A bare export has no checkout to inspect; its complete committed active tree is still verified. Historical blob identities/modes are compared in every projected snapshot; current selected blob payloads are rehashed.",
+    "Source history is shallow. Verification covers exactly the available fixed-source ancestry; unavailable pre-cutoff history, including earlier LICENSE history, is not established."
+  ],
+  "source_state_before": {
+    "head": "ba8ede3a6a078d3ede43245a7764c081a5daa1d6",
+    "head_tree": "d46f20952f89a7d8cc2970b7595dafa6877b3d74",
+    "refs_sha256": "04fd7adc5845ac5a05e5f239313bc3f29dda24fbf03ae5bd59278edd19e430ee",
+    "worktree_registry_sha256": "e3e48b8e7d6cc8a6a94a991a909bedc6044942139d9c1cdc105dba2742cf937a",
+    "index_sha256": "bb31addeead7ecebd0b870f4726746dfc215055dd45a2d4d91ad4f8f26d4c848",
+    "tracked_and_nonignored_untracked_paths": 19208,
+    "worktree_bytes_modes_symlinks_sha256": "eb9c4f13047c0af6b2326305d1dbd7c55559bf01a529289ef308f5b9cb16befe"
+  },
+  "source_history_boundary": {
+    "is_shallow": true,
+    "shallow_file_rows": 1,
+    "unique_source_cutoffs": [
+      "6e176bde5fc2d14241a863bb286a0d74aeafb6d9"
+    ],
+    "cutoffs_in_fixed_ancestry": [
+      "6e176bde5fc2d14241a863bb286a0d74aeafb6d9"
+    ],
+    "accepted_parent_truncations": [
+      {
+        "commit": "6e176bde5fc2d14241a863bb286a0d74aeafb6d9",
+        "unavailable_raw_parents": [
+          "7097f923bc5d6a8941c74c0a62e8a947156941aa"
+        ],
+        "available_graph_parents": []
+      }
+    ]
+  },
+  "checkpoint_binding": {
+    "export_graph_equals_nonzero_mapped_values": true,
+    "ordered_source_retained_frontier": [
+      "a92db0610f13c9f623b526f2aa721abda69aa84d"
+    ],
+    "checkpoint": "a92db0610f13c9f623b526f2aa721abda69aa84d"
+  },
+  "history": {
+    "original_commits": 7261,
+    "retained_metadata_and_snapshot_comparisons": 627,
+    "retained_parent_frontier_comparisons": 627,
+    "zero_pruned_projection_comparisons": 6634,
+    "required_boundaries_and_representatives": [
+      {
+        "original": "038ac1c6ce271ec704a625f8644bba957c4e6790",
+        "mapped": "79e735fbf147d7ac7626e86e4e55562a5a8ad8c3",
+        "disposition": "retained-and-compared",
+        "projected_files": 25,
+        "projection_sha256": "87379118bd681e822247e7158aefcff15d1111f37437f2c7f9feca3f509f800b"
+      },
+      {
+        "original": "a351c56426ce6dca843219d46b1e1f0d0e3ceb88",
+        "mapped": "a4bb871f1444af3e4ec56eed056ae3e7a1af817a",
+        "disposition": "retained-and-compared",
+        "projected_files": 35,
+        "projection_sha256": "b713a02e8ce9a161ac890475872995570568cd3ad11defdb2ecfec7e1f2f753a"
+      },
+      {
+        "original": "05787789742ee7872c43d464360c54de72578d06",
+        "mapped": "a9fa2b62291b38c258fca5a373d36bb89f3cf833",
+        "disposition": "retained-and-compared",
+        "projected_files": 35,
+        "projection_sha256": "48233d4690a9b0a1d8df11ea04bdb8f8497ad9cd50fa2fee2ec774c47c727269"
+      },
+      {
+        "original": "8beb1725abd8225abaa5c0efcb6c5e1e4dd84cf5",
+        "mapped": "4af99853f826ba39fcbed51260d99e817efe781c",
+        "disposition": "retained-and-compared",
+        "projected_files": 95,
+        "projection_sha256": "20ea084ca9b73402835eed37feb3e97011f3f68edf9b320b4cb3c5167ef4261c"
+      },
+      {
+        "original": "a5040fa23b30e8f3464e13e60e2dcad64c3cf663",
+        "mapped": "83ee46309342856a6f8fdfe450fa126c5b981fca",
+        "disposition": "retained-and-compared",
+        "projected_files": 213,
+        "projection_sha256": "79c193288ea2a56fdf48276a566c1be4cd7780a54042641b9a01b8160eda2f28"
+      },
+      {
+        "original": "8ed47c0c22d8ebedb9f43c1f51429b9e53fced1c",
+        "mapped": "d54c085bacaa3bbd08852c2adba576f76d672d0b",
+        "disposition": "retained-and-compared",
+        "projected_files": 238,
+        "projection_sha256": "e67d66bebbdd6e7c4e551df7fc0c07760c8d8406ec57936f31682d90b47546e8"
+      },
+      {
+        "original": "669765227666d16956e559f1f5205a0a5930f56e",
+        "mapped": "8d2de1b08f472817d661d32ac00cdb583ea028b1",
+        "disposition": "retained-and-compared",
+        "projected_files": 268,
+        "projection_sha256": "6d75585cbe27803d0efc669d3fc28235bf855a187ed9d94f843ba048802d1644"
+      },
+      {
+        "original": "18977ed1a8b8ac9da51ccaee0081a6c73b9737bb",
+        "mapped": "3a7cfb9224442624e162e02c5e9b928a53bf1484",
+        "disposition": "retained-and-compared",
+        "projected_files": 270,
+        "projection_sha256": "db69fd45bb54a357045f5d80308e58bba3287b81fcde8076e9360153e6506165"
+      },
+      {
+        "original": "ce6390f2b357601094aca9efdffcee6e4a94a291",
+        "mapped": "8a71b20e44fb0a2385c2718aff0986890a922270",
+        "disposition": "retained-and-compared",
+        "projected_files": 273,
+        "projection_sha256": "3770f787376c7088a871654cdd326ae8eca692a8e5f281420b480f89d3db769c"
+      },
+      {
+        "original": "31f8ee3baa622dd3af16f46b658f7310ce64e721",
+        "mapped": "aa984205646a30d44e4f2d1630ac8d29587dde19",
+        "disposition": "retained-and-compared",
+        "projected_files": 282,
+        "projection_sha256": "13367f27da4304873bbca1166e9f7b8ac53970d264d06ce96b72d609e0242260"
+      },
+      {
+        "original": "d6f8e4593e7155edf871490b3b2d0eaa67fd2a13",
+        "mapped": "085677f162dc51c69a83048541cb7fc62514cdcd",
+        "disposition": "retained-and-compared",
+        "projected_files": 282,
+        "projection_sha256": "512fdfca4a6fc4a1f74983871ef985958a6bf50d88f85463b68e245279f5c80a"
+      },
+      {
+        "original": "211c75ee262733e6d0f15ae028b285eeccbc8306",
+        "mapped": "3620db4303bc2587571ed9da2f949cc59b7ddeab",
+        "disposition": "retained-and-compared",
+        "projected_files": 279,
+        "projection_sha256": "c134e329a6a8d1cb6f8bdbf6e160a6a7ab9ac7db39638b4f4a84e1c894c0964e"
+      },
+      {
+        "original": "b112dd27b60d07eb5414e079fcca26e394ad9013",
+        "mapped": "0f0b2445784fe98f85128398c17814292685ff3a",
+        "disposition": "retained-and-compared",
+        "projected_files": 279,
+        "projection_sha256": "c75b362aa640e2aaad04ad6a22ba21761cad28aab919fc8e8bb731dc13bc5ce2"
+      },
+      {
+        "original": "e472b47ae0b696aeb8239888aa7a64a91fe1980d",
+        "mapped": "38f1cab232e1740da43bf2f47e148bd3254a1c71",
+        "disposition": "retained-and-compared",
+        "projected_files": 291,
+        "projection_sha256": "c9cb76c49a4fbaf2891d10ec814d3b88ef0708df110af30a13855213eac4664a"
+      },
+      {
+        "original": "59c789c3cea42e5e76f38a2e89c3c4b75d4fe9fb",
+        "mapped": "e5f47dd5cd7a5c505401f44780d095450919be8a",
+        "disposition": "retained-and-compared",
+        "projected_files": 577,
+        "projection_sha256": "ac249f238ce362b12d0cf64f004b14e5766571cc48b3e0c9e275e32847aa50a1"
+      },
+      {
+        "original": "1d05204219cac5420008f18b1791fd64b2ae44f1",
+        "mapped": "576cd388257016f4a8b2445b44b84709ab064496",
+        "disposition": "retained-and-compared",
+        "projected_files": 311,
+        "projection_sha256": "325ead82b3869584cea21d65588adcd86e16208cc0e6d0c2bafeea9afbda319a"
+      },
+      {
+        "original": "0c4a27e470941df4d98367f96795114779e2d434",
+        "mapped": "be8cc8b1a11b0beb52a3c987b6fbc3bee3c52d07",
+        "disposition": "retained-and-compared",
+        "projected_files": 618,
+        "projection_sha256": "f90a3d8b58f517dde9c45a7cf08b8288413904d34882b16b38af14eb8a21ae59"
+      },
+      {
+        "original": "19bf7b6d4a0a21cf88131f6d5c10604f28f9051d",
+        "mapped": "17ce0903cc367ec5fac4c682741422882e3a7787",
+        "disposition": "retained-and-compared",
+        "projected_files": 615,
+        "projection_sha256": "5a2e15655503ba5e4696da3fdd0ad40e8a54cc299f4f67643ebd94cb09092701"
+      },
+      {
+        "original": "6264f117607d756d41a97342273ebff189ef77f1",
+        "mapped": "25e1bf956d726321743397e083e83688ac8dac58",
+        "disposition": "retained-and-compared",
+        "projected_files": 615,
+        "projection_sha256": "5acece460c82dceaa5b4a5abbf0e98d90a733c98b8ccaa949edfb9c667543b12"
+      },
+      {
+        "original": "0fc76f7805f1ef68f828b03ed78d7f86fcb03cfc",
+        "mapped": "bcf984bee2ad5363a4dbc73f2eb4c3334a791a80",
+        "disposition": "retained-and-compared",
+        "projected_files": 615,
+        "projection_sha256": "5acece460c82dceaa5b4a5abbf0e98d90a733c98b8ccaa949edfb9c667543b12"
+      },
+      {
+        "original": "e87ee28f2dbb0bf640b61cee81bb86c9a6b9cf03",
+        "mapped": "f948d4dbed96d263b66a232c86ea8c4ae9d4d356",
+        "disposition": "retained-and-compared",
+        "projected_files": 615,
+        "projection_sha256": "5acece460c82dceaa5b4a5abbf0e98d90a733c98b8ccaa949edfb9c667543b12"
+      },
+      {
+        "original": "d905b5b906c4df73aa5927a8fbbd47f8f3ce1d9f",
+        "mapped": "975923ac64ba09031d037a8b5c4fa7d1bba5b835",
+        "disposition": "retained-and-compared",
+        "projected_files": 615,
+        "projection_sha256": "4315361ec8a780344348c70992d92a65ffb37cd937dd803f53d835a0f31a071a"
+      },
+      {
+        "original": "f42ad5da3c87ad99c911e06445ea0284ea30e149",
+        "mapped": "79d217a7fdec5057069f677afaee741152142acb",
+        "disposition": "retained-and-compared",
+        "projected_files": 646,
+        "projection_sha256": "ec540bd31057b7c844079813b0ce55c3329c47536e1246f38920eda46c8efb37"
+      },
+      {
+        "original": "1fc903d6eea7927212ec9e3250d48f496744bb0b",
+        "mapped": "e2c5df062b6c072f5ee119b9de2eba05dca142cc",
+        "disposition": "retained-and-compared",
+        "projected_files": 678,
+        "projection_sha256": "e5385c2049bff9e5224c00f5febda93586c97208574a2e6d554cc43bd11b2d6d"
+      },
+      {
+        "original": "79b05c248963a85e098483d9ff20141b5e35994f",
+        "mapped": "4a2eedac48e54fcb768502c64f0e684c56e73617",
+        "disposition": "retained-and-compared",
+        "projected_files": 564,
+        "projection_sha256": "6332c3bbfaa41f007f846894ae9b1e235575da9673ee83423d94ff3491b5088c"
+      },
+      {
+        "original": "ad9aec6ffc23dbc02c343a46f3f98f8b6507132e",
+        "mapped": "0af0ade920a852af10fa8fa5912dcac3e0ff087a",
+        "disposition": "retained-and-compared",
+        "projected_files": 567,
+        "projection_sha256": "b5ae5293baf398851fd28e5dda41325c988dd8383494da88d0e2ae6e3bb15a32"
+      },
+      {
+        "original": "9b21613488d76d5fb9ae3a8105a0b57d8b100355",
+        "mapped": "cccd90e51aee9cc813440ee2d04d12d45d5c5ae2",
+        "disposition": "retained-and-compared",
+        "projected_files": 585,
+        "projection_sha256": "2609495e0618e4eacb7eef1cc97d7bac64e70d58111fc0db0ddbea64c3e666ed"
+      },
+      {
+        "original": "9f36f5ad5f5d921c927101407b453ece4dedf315",
+        "mapped": "2181f9250163a343352bec0e6687b78822090017",
+        "disposition": "retained-and-compared",
+        "projected_files": 597,
+        "projection_sha256": "7d0353853ca8c5bd400b3de87921b4353111c54bbb6a555330fab96d203adc82"
+      },
+      {
+        "original": "e2dedde3a838ee873492b6e3fc2eb50a11b0f62f",
+        "mapped": "26930a7658d0137fe57a0038d5abbd70909b25b9",
+        "disposition": "retained-and-compared",
+        "projected_files": 597,
+        "projection_sha256": "68ffd468f867ada667ccc0e6491a54c0d11a167e8c1906d6a1beb752dc102ecf"
+      },
+      {
+        "original": "d368e1ce6a9248fa4745e19a5ba268d35a3185bc",
+        "mapped": "809c31e353f88d57d6c4cc8c272c8d7c14162e06",
+        "disposition": "retained-and-compared",
+        "projected_files": 616,
+        "projection_sha256": "6f27fa6ab48080ae21a3648a7995f37d44dbaf9babb9a18a90de1a0ce58810e3"
+      },
+      {
+        "original": "bdaab35025b7bef6c95fd22ad4c15e20996bb385",
+        "mapped": "ca5cc1277788acafafbead0ba7d5039995417943",
+        "disposition": "retained-and-compared",
+        "projected_files": 619,
+        "projection_sha256": "be125c1802011cb6067b1232946950298a277f7d5b6df6431bab5efa6b0c4ee0"
+      },
+      {
+        "original": "ce4fda1129325a2de37a14ca692b977650474402",
+        "mapped": "a3e451f4be2e0b74e83cbb1baf96d65b97f72441",
+        "disposition": "retained-and-compared",
+        "projected_files": 619,
+        "projection_sha256": "8de2889a3974e47b97a2bce43cc95184a085dab5df3c7d3d9324638fee7471ee"
+      },
+      {
+        "original": "ee3c5ee85a898e0b9925620ef8015edb88589ecc",
+        "mapped": "f681c271159d3d00c190ddb94426bf179763693b",
+        "disposition": "retained-and-compared",
+        "projected_files": 855,
+        "projection_sha256": "3408451810874db045f66c49f8e79ab7a9fae355e950f742d80c417e2aa5aa66"
+      },
+      {
+        "original": "4c18870070f1448f03a11ce56122d5f95210403f",
+        "mapped": "008ad4ecbf4b73685dcb83772c1fb71781fca5cb",
+        "disposition": "retained-and-compared",
+        "projected_files": 867,
+        "projection_sha256": "7e054b697242f1077fc36a5327af6a31ebfea612059fe33b7a5f9a6f456fe7b6"
+      },
+      {
+        "original": "3c2fd273ce5978a921b74eef4b0f2941793804cb",
+        "mapped": "bf064060508de3987c18607d659d19209ce944d3",
+        "disposition": "retained-and-compared",
+        "projected_files": 763,
+        "projection_sha256": "05d74b456f764849636b4172078e9a8717ef6e07491714e5ab5e879dabd7fc5c"
+      },
+      {
+        "original": "f943c47cd6c5b48ed54946b730c2a8ce70c27232",
+        "mapped": "1cbc9fe51150ec764ff5f4e7ae77bf219ef6c5e7",
+        "disposition": "retained-and-compared",
+        "projected_files": 779,
+        "projection_sha256": "6b9cc042666f42135ba8e9bb63b8020411057ced1b2af237b210ae6d768db1bd"
+      },
+      {
+        "original": "e5d3268650f589d5fe70354ff6635c103eac0187",
+        "mapped": "83c0b16b5fbb2872d471b7abc627265541f4da45",
+        "disposition": "retained-and-compared",
+        "projected_files": 886,
+        "projection_sha256": "b538edc124fd97e3c51aab14b201241ed1895c4441bdebefe973f903307ae4f1"
+      },
+      {
+        "original": "7e5eb61c036f8299a1c7b4d16424a7f054104ddd",
+        "mapped": "e130a9555e8652b6b25248334b2b907af8ffe1a1",
+        "disposition": "retained-and-compared",
+        "projected_files": 935,
+        "projection_sha256": "24732866b1a7708ab356fc9e9b6aef377c06b3b22ce95976e561f61ff0405ac5"
+      },
+      {
+        "original": "44c419f10988116059c886994f792f74100fd3b1",
+        "mapped": "d67fba528a04c31029d7e99869528689a46406ea",
+        "disposition": "retained-and-compared",
+        "projected_files": 954,
+        "projection_sha256": "6091d993856d0a513faf3d2cad8d22123e9a2240c85025cd87a4cb0519436e9b"
+      },
+      {
+        "original": "c3d85d9cf9387b3aaa7fdf44b5c399c91d4c6530",
+        "mapped": "d36e20971ae300cd7b85c041e47fb945dd0f942e",
+        "disposition": "retained-and-compared",
+        "projected_files": 986,
+        "projection_sha256": "dc135b0f3d2c2bc5d9d9128285e5d565eb7881cfd855fd85e7adbe6fedd93ffd"
+      },
+      {
+        "original": "cabe589636d797fac1430212bec7a935c896a66d",
+        "mapped": "c6b4214a9c553aaa34d531b131eef27e86571d95",
+        "disposition": "retained-and-compared",
+        "projected_files": 1043,
+        "projection_sha256": "92410ccf88b880ca331b714e4c0488a9af6c9a1bb0c9dde4a4ac1adcec839aa9"
+      },
+      {
+        "original": "137d0ed0572b5cd61f509b5e9f1526780d4cfe1b",
+        "mapped": "20f36d6a2e8c735f476b54b9755a4b604956df12",
+        "disposition": "retained-and-compared",
+        "projected_files": 1076,
+        "projection_sha256": "d4c33215a554283a8724e0f06b46358d3f77f9bd0d781962fba6fd44bb276d43"
+      },
+      {
+        "original": "df29486f10748be2701b5f873fa0dfc198687c4b",
+        "mapped": "90a47a2ec519c8d4b7b3ff4b486e7726e2bf3248",
+        "disposition": "retained-and-compared",
+        "projected_files": 1094,
+        "projection_sha256": "fc52043f4c9ae5bc7595245d099b57c7b2fcd4c802a2c5555d8248f68869fef1"
+      },
+      {
+        "original": "0bbeb1ff351e7679710de036e13d9a5181de9f3c",
+        "mapped": "29dac8c9d392bad05e38c3a007c719185e6a78e9",
+        "disposition": "retained-and-compared",
+        "projected_files": 1096,
+        "projection_sha256": "ad33e26981d919fadfc1af543444278bf60fd5972f11e2c71efffb3e6fae3d3e"
+      },
+      {
+        "original": "8f1b4e7201b6c840d8062063634275d94c9aa359",
+        "mapped": "8e277931ea4afc2e08dacc519cec121d047fe0ea",
+        "disposition": "retained-and-compared",
+        "projected_files": 1263,
+        "projection_sha256": "01225cfc88ce1d8d1d486280504ce43f03267472e0413d0515ad0eff14195419"
+      },
+      {
+        "original": "0a91a7b99df2e43a73eb79209a67208bc12539bb",
+        "mapped": "2e0f483cd908d7ff7d5d1f7cd41248eec9334aa7",
+        "disposition": "retained-and-compared",
+        "projected_files": 1271,
+        "projection_sha256": "8fc351447baa6dcec8c37c7750b1ab34706cd213ea82d736b814dcd1a10d72ce"
+      },
+      {
+        "original": "4820633b9baf7a455d5e3bff3ebc3ed057bc443d",
+        "mapped": "008e3dcb3e5b5d40e65a468807b61f20257fb74e",
+        "disposition": "retained-and-compared",
+        "projected_files": 1292,
+        "projection_sha256": "e09c312ce632154cdd119a4478b5fa66f6c27c0a8bacf5ead4a3110f3c2fa4dd"
+      },
+      {
+        "original": "8d6c013f47e9b2fc9238337b31320792eea1b059",
+        "mapped": "aa25b7656fde27ffee89c8a07a4be8ec25cccb7f",
+        "disposition": "retained-and-compared",
+        "projected_files": 1293,
+        "projection_sha256": "4459365907e623c23e420550c6a30e21a0449d96601e788d43301841bc7b1c22"
+      },
+      {
+        "original": "db9df02bb08c796586bc6abdd5a3be0d680e717f",
+        "mapped": "12e769e22211abcc7f777984a2794abb9156b82f",
+        "disposition": "retained-and-compared",
+        "projected_files": 1294,
+        "projection_sha256": "6f3f6b6b22c7e47fcb1a2baafc231ebf6fdb57be964fee32453036378bc93d5a"
+      },
+      {
+        "original": "e104d5b199e9673cd5faee5319591e3b39645731",
+        "mapped": "eae7a673257e747399cd23e4a2baa3e48d7e3906",
+        "disposition": "retained-and-compared",
+        "projected_files": 1297,
+        "projection_sha256": "839d6a47810cf661e5abb0bca0f1cdc5823182b239b46671e6fd56f9e6d8bb85"
+      },
+      {
+        "original": "e13ed2374bc7634c1e1731f9de6ecb4132c7df7b",
+        "mapped": "78bcb5c3cb862211f6c7df4ed6541cce7eb40024",
+        "disposition": "retained-and-compared",
+        "projected_files": 1304,
+        "projection_sha256": "4f9350a3aa076350f47ecdb47e737c902ba900e9c9c9bfb23a23b4d811315e0f"
+      },
+      {
+        "original": "97893090b8926190c24f737ce028836e019ce61c",
+        "mapped": "5f4b4a3be73963ec41accc74a13b42ec0295b4ad",
+        "disposition": "retained-and-compared",
+        "projected_files": 1307,
+        "projection_sha256": "8a169e0712f0ac74f935c71a497ff211519aa45545b5694f8d4b3f4434aeaada"
+      },
+      {
+        "original": "a7e9bfcad8ba399d1a24e5b1f4e9c8aeb78e4de8",
+        "mapped": "6eb93454312defe89949ea79ca48d8a8e9682af0",
+        "disposition": "retained-and-compared",
+        "projected_files": 1310,
+        "projection_sha256": "a4188019cc3367605453622c45ca36d6a9d46181ff3c82ac0b3e62b66fc674ab"
+      },
+      {
+        "original": "4b7e225cb0d1d419e5ccfe737fc252c1eba4fa53",
+        "mapped": "d170c8a1affc1f0e505c0d14dd87c7ad32cce653",
+        "disposition": "retained-and-compared",
+        "projected_files": 1409,
+        "projection_sha256": "fc4b2f2f19e6b5b1f8345be1cf2de76388a6bf9793e7050e02842b116e899602"
+      },
+      {
+        "original": "418d6bd06e18aba85e2d2455946f24f385df3fe8",
+        "mapped": "dc4b73a0cddb4780317198c7344bd09e83c9300a",
+        "disposition": "retained-and-compared",
+        "projected_files": 1419,
+        "projection_sha256": "13afb76251b46565e7b3d52d7bac5547aea4a4530bcabd47ad656092b63c8e65"
+      },
+      {
+        "original": "fe1fe5384df454402cdb55ab7aadfc60083cffaa",
+        "mapped": "415941abff333042f74129bc0f5fe16c0434ecb2",
+        "disposition": "retained-and-compared",
+        "projected_files": 1419,
+        "projection_sha256": "790ea28da89234814aa90e5ff95e3256713658614a4e503914459aaaa88a7e62"
+      },
+      {
+        "original": "4a06b7871dec8dc0c3b90aa579f8c41409bede6c",
+        "mapped": "01159aa2adcabe348a008c0818e5839b99c01aa6",
+        "disposition": "retained-and-compared",
+        "projected_files": 1094,
+        "projection_sha256": "64d7fe2e19f1768cc4ec25394589ed278a5cd238538db8805384ade31aa3d878"
+      },
+      {
+        "original": "50e1f5c939889166aaf16cc668d007718b0685e7",
+        "mapped": "dc101cf4b142fef1536d99d9c0e33f7417bebbb5",
+        "disposition": "retained-and-compared",
+        "projected_files": 1092,
+        "projection_sha256": "4ebbfaba445a3bf792e622500fa60d4dd2ed413a8b92554bb1ce0f9aa930fd2d"
+      },
+      {
+        "original": "eb29ee852da54c3347192628a0921d9464b403c6",
+        "mapped": "c60b2f27442c7febe816eac05bccfa83c566b54b",
+        "disposition": "retained-and-compared",
+        "projected_files": 1119,
+        "projection_sha256": "5c863ce1445502eaf5d2a662ae83fb5addd2535c895ca3ac5b7ef9d15f6a0635"
+      },
+      {
+        "original": "00964fe9e40f97936cfed5a13faa032ba55c8c78",
+        "mapped": "9b2a047714bb29c4717da69271a672151ee64b28",
+        "disposition": "retained-and-compared",
+        "projected_files": 1126,
+        "projection_sha256": "38406355db277cc8ec716ede42a58e09ca77b42462ceb69195097cd72d1f9d07"
+      },
+      {
+        "original": "a65f4ba7a3bfe6633ab74b6ba78c8ca07a8f81c4",
+        "mapped": "7e60e89ca7540cefb3c93d40de3fcb7dd2c13122",
+        "disposition": "retained-and-compared",
+        "projected_files": 1142,
+        "projection_sha256": "ed53fbb8a2b19a8247e2c05e8dd8304e7afc9bc9abf1ca25f69aebd2224bf5fa"
+      },
+      {
+        "original": "0fa9a9ab24225d40f1de29319b9051369b1f0a3d",
+        "mapped": "893bddd0c688053a16084a0e2d2d6a4a856c0d9e",
+        "disposition": "retained-and-compared",
+        "projected_files": 1145,
+        "projection_sha256": "1dd20709c5c40e96cf177ade668171ff82da60e226db4091966e4509618ccf1b"
+      },
+      {
+        "original": "a020561cbbcc9fe102a44e3678438a1a1432890e",
+        "mapped": "bc8d4acb189b850b7f97eb7843d5ef0ee0359337",
+        "disposition": "retained-and-compared",
+        "projected_files": 1169,
+        "projection_sha256": "53c8086df1aff6af7a96100a4441497da6333eb908205ea7626ef1b03ecafe6c"
+      },
+      {
+        "original": "26fbd97163d800b62e05f4791048ce2a387d25d6",
+        "mapped": "5307e1d33fc403caadd41140de32eb51dd766d72",
+        "disposition": "retained-and-compared",
+        "projected_files": 1183,
+        "projection_sha256": "13580b84311dd94ccd8d024f669eb119186e9d602c097fb6590a69b5fd59b3a4"
+      },
+      {
+        "original": "8983c3d9d180cc65ba9b6d9503f251ff153942fd",
+        "mapped": "ce95d5c3c3556297a9cbed2e15c6675b2eb626b0",
+        "disposition": "retained-and-compared",
+        "projected_files": 1191,
+        "projection_sha256": "05e5cd88c2a74f8e4bd313d35873c33d512db0f8e96258736de212d0642038e5"
+      }
+    ],
+    "qualification": "Recomputed graph ancestry; every original snapshot independently projected, including pre-R exclusions and host/native-tool cutoffs. Retained parents follow original frontier order; omitted parents must remain ancestors of retained parents."
+  },
+  "checkpoint": "a92db0610f13c9f623b526f2aa721abda69aa84d",
+  "active_projection": {
+    "expected_files": 1189,
+    "actual_files": 1189,
+    "symlinks": 0,
+    "excluded_exact_namespace_files": 30,
+    "checked_out_worktree": true
+  },
+  "input_hashes": {
+    "manifest_sha256": "a29ea7017bf9138701d1580e1a466071a1c151b849526a55648484b27175a2c3",
+    "history_map_sha256": "3499c1cc7e0c26f87dbb148cf6f0f830360811f4260b64e4a8c195e657860ffa",
+    "commit_map_sha256": "ee6a8e0de6d53124599f66f3daf57e8accc4b4bca327ac49b9a4a36e8c108502"
+  },
+  "source_state_after": {
+    "head": "ba8ede3a6a078d3ede43245a7764c081a5daa1d6",
+    "head_tree": "d46f20952f89a7d8cc2970b7595dafa6877b3d74",
+    "refs_sha256": "04fd7adc5845ac5a05e5f239313bc3f29dda24fbf03ae5bd59278edd19e430ee",
+    "worktree_registry_sha256": "e3e48b8e7d6cc8a6a94a991a909bedc6044942139d9c1cdc105dba2742cf937a",
+    "index_sha256": "bb31addeead7ecebd0b870f4726746dfc215055dd45a2d4d91ad4f8f26d4c848",
+    "tracked_and_nonignored_untracked_paths": 19208,
+    "worktree_bytes_modes_symlinks_sha256": "eb9c4f13047c0af6b2326305d1dbd7c55559bf01a529289ef308f5b9cb16befe"
+  },
+  "failures": {
+    "count": 0,
+    "samples": []
+  },
+  "status": "pass",
+  "finished_at": "2026-10-28T05:41:43.793039+00:00"
+}

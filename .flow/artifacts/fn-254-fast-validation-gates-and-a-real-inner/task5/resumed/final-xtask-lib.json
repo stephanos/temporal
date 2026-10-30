@@ -1,0 +1,32 @@
+{
+  "command": [
+    "mise",
+    "exec",
+    "--",
+    "cargo",
+    "test",
+    "--locked",
+    "-p",
+    "xtask",
+    "--lib",
+    "--",
+    "--nocapture"
+  ],
+  "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire",
+  "environment": {
+    "CARGO_TARGET_DIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-selection-review/target",
+    "TMPDIR": "/tmp/umpire-fn2545-xtask-controls",
+    "CARGO_BUILD_JOBS": "2",
+    "CARGO_INCREMENTAL": "0",
+    "CARGO_PROFILE_DEV_DEBUG": "0",
+    "CARGO_PROFILE_TEST_DEBUG": "0",
+    "RUST_TEST_THREADS": "2"
+  },
+  "BASH_ENV": "removed",
+  "started_utc": "2026-10-26T21:44:40.616347+00:00",
+  "exit_code": 0,
+  "elapsed_seconds": 0.2187597080001069,
+  "cache_bytes": 406370019,
+  "free_bytes": 33872728064,
+  "log_sha256": "2c0d70c8716e86518ff221a0452f761ef0dda933113937bd771d4624b503668c"
+}

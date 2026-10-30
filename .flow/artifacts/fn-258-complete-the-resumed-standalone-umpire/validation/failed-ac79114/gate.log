@@ -1,0 +1,275 @@
+   Compiling libc v0.2.191
+   Compiling proc-macro2 v1.0.107
+   Compiling unicode-ident v1.0.27
+   Compiling cfg-if v1.0.5
+   Compiling quote v1.0.47
+   Compiling serde_core v1.0.229
+   Compiling typenum v1.20.1
+   Compiling hybrid-array v0.4.15
+   Compiling syn v3.0.9
+   Compiling getrandom v0.4.3
+   Compiling rustix v1.1.5
+   Compiling crypto-common v0.2.2
+   Compiling block-buffer v0.12.1
+   Compiling bitflags v2.13.2
+   Compiling zmij v1.0.23
+   Compiling const-oid v0.10.2
+   Compiling thiserror v2.0.21
+   Compiling linux-raw-sys v0.12.1
+   Compiling digest v0.11.3
+   Compiling cpufeatures v0.3.1
+   Compiling fastrand v2.5.0
+   Compiling once_cell v1.21.4
+   Compiling thiserror-impl v2.0.21
+   Compiling serde_json v1.0.154
+   Compiling serde v1.0.229
+   Compiling winnow v1.0.4
+   Compiling serde_derive v1.0.229
+   Compiling toml_parser v1.1.5+spec-1.1.0
+   Compiling tempfile v3.27.0
+   Compiling sha2 v0.11.1
+   Compiling toml_datetime v1.1.2+spec-1.1.0
+   Compiling serde_spanned v1.1.2
+   Compiling itoa v1.0.18
+   Compiling memchr v2.8.3
+   Compiling crc32fast v1.5.3
+   Compiling toml v1.1.8+spec-1.1.0
+   Compiling simd-adler32 v0.3.10
+   Compiling adler2 v2.0.1
+   Compiling miniz_oxide v0.9.1
+   Compiling umpire-guest-driver v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-ac79114/checkout/dev/guest-driver)
+   Compiling filetime v0.2.29
+   Compiling tar v0.4.46
+   Compiling flate2 v1.1.10
+   Compiling umpire-backend-process v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-ac79114/checkout/backends/process)
+   Compiling xtask v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-ac79114/checkout/dev/xtask)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 12.20s
+backend modes: UMPIRE_BACKENDS=require UMPIRE_APALACHE=skip (default)
+[gate:retired-names] $ exec "$UMPIRE_GATE_EXECUTABLE" gate --scheduled-stage retired-names
+[gate:fmt] $ exec "$UMPIRE_GATE_EXECUTABLE" gate --scheduled-stage fmt
+[gate:proto-tools] $ exec "$UMPIRE_GATE_EXECUTABLE" gate --scheduled-stage proto-tools
+[gate:fmt] fmt                               1.229s
+[gate:fmt] Finished in 1.30s
+[gate:retired-names] Finished in 1.51s
+[gate:proto-tools] proto-tools                       1.893s
+[gate:proto-tools] Finished in 1.95s
+[gate:timing-controls] $ exec "$UMPIRE_GATE_EXECUTABLE" gate --scheduled-stage timing-controls
+[gate:timing-controls] timing-controls                   0.064s
+[gate:timing-controls] timing-controls                   0.063s
+[gate:timing-controls] Finished in 160.0ms
+[gate:protobuf-controls] $ exec "$UMPIRE_GATE_EXECUTABLE" gate --scheduled-stage protobuf-controls
+[gate:protobuf-controls] protobuf-controls                 0.167s
+[gate:protobuf-controls] Finished in 206.8ms
+[gate:protobuf-freshness] $ exec "$UMPIRE_GATE_EXECUTABLE" gate --scheduled-stage protobuf-freshness
+[gate:protobuf-freshness] protobuf-freshness                0.055s
+[gate:protobuf-freshness] Finished in 78.2ms
+[gate:kettle-protobuf-freshness] $ exec "$UMPIRE_GATE_EXECUTABLE" gate --scheduled-stage kettle-protobuf-freshness
+[gate:kettle-protobuf-freshness] kettle-protobuf-freshness         0.052s
+[gate:kettle-protobuf-freshness] Finished in 88.0ms
+[gate:capability-controls] $ exec "$UMPIRE_GATE_EXECUTABLE" gate --scheduled-stage capability-controls
+[gate:capability-controls] capability-controls               0.194s
+[gate:capability-controls] Finished in 222.2ms
+[gate:source-boundary] $ exec "$UMPIRE_GATE_EXECUTABLE" gate --scheduled-stage source-boundary
+[gate:source-boundary] Finished in 881.1ms
+[gate:clippy] $ exec "$UMPIRE_GATE_EXECUTABLE" gate --scheduled-stage clippy
+[gate:clippy] clippy                           59.211s
+[gate:clippy] Finished in 59.25s
+[gate:docs] $ exec "$UMPIRE_GATE_EXECUTABLE" gate --scheduled-stage docs
+[gate:docs] docs                             19.989s
+[gate:docs] Finished in 20.05s
+[gate:tests] $ exec "$UMPIRE_GATE_EXECUTABLE" gate --scheduled-stage tests
+[gate:tests]    Compiling proc-macro2 v1.0.107
+[gate:tests]    Compiling unicode-ident v1.0.27
+[gate:tests]    Compiling quote v1.0.47
+[gate:tests]    Compiling syn v3.0.9
+[gate:tests]    Compiling libc v0.2.191
+[gate:tests]    Compiling cfg-if v1.0.5
+[gate:tests]    Compiling rand_core v0.10.1
+[gate:tests]    Compiling getrandom v0.4.3
+[gate:tests]    Compiling rustix v1.1.5
+[gate:tests]    Compiling bitflags v2.13.2
+[gate:tests]    Compiling linux-raw-sys v0.12.1
+[gate:tests]    Compiling serde_core v1.0.229
+[gate:tests]    Compiling fastrand v2.5.0
+[gate:tests]    Compiling once_cell v1.21.4
+[gate:tests]    Compiling tempfile v3.27.0
+[gate:tests]    Compiling thiserror v2.0.21
+[gate:tests]    Compiling thiserror-impl v2.0.21
+[gate:tests]    Compiling winnow v1.0.4
+[gate:tests]    Compiling toml_parser v1.1.5+spec-1.1.0
+[gate:tests]    Compiling toml_datetime v1.1.2+spec-1.1.0
+[gate:tests]    Compiling umpire-ir-derive v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-ac79114/checkout/ir/derive)
+[gate:tests]    Compiling heck v0.5.0
+[gate:tests]    Compiling equivalent v1.0.3
+[gate:tests]    Compiling hashbrown v0.17.1
+[gate:tests]    Compiling indexmap v2.14.2
+[gate:tests]    Compiling prettyplease v0.3.0
+[gate:tests]    Compiling umpire-ir v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-ac79114/checkout/ir)
+[gate:tests]    Compiling umpire-front v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-ac79114/checkout/front)
+[gate:tests]    Compiling foldhash v0.1.5
+[gate:tests]    Compiling hashbrown v0.15.5
+[gate:tests]    Compiling fixedbitset v0.5.7
+[gate:tests]    Compiling smallvec v1.16.3
+[gate:tests]    Compiling proc-macro-utils v0.10.0
+[gate:tests]    Compiling petgraph v0.8.3
+[gate:tests]    Compiling bytemuck v1.25.2
+[gate:tests]    Compiling safe_arch v0.7.4
+[gate:tests]    Compiling manyhow-macros v0.14.1
+[gate:tests]    Compiling toml_edit v0.25.17+spec-1.1.0
+[gate:tests]    Compiling rand_core v0.9.5
+[gate:tests]    Compiling umpire-dsl-macros v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-ac79114/checkout/author/dsl/macros)
+[gate:tests]    Compiling rand_xoshiro v0.7.0
+[gate:tests]    Compiling proc-macro-crate v3.5.0
+[gate:tests]    Compiling manyhow v0.14.1
+[gate:tests]    Compiling wide v0.7.33
+[gate:tests]    Compiling archery v1.2.3
+[gate:tests]    Compiling imbl-sized-chunks v0.2.0
+[gate:tests]    Compiling imbl v7.0.2
+[gate:tests]    Compiling umpire-dsl v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-ac79114/checkout/author/dsl)
+[gate:tests]    Compiling umpire-checker v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-ac79114/checkout/backends/native)
+[gate:tests]    Compiling rustc-hash v2.1.3
+[gate:tests]    Compiling regex-syntax v0.8.11
+[gate:tests]    Compiling syn v2.0.119
+[gate:tests]    Compiling typenum v1.20.1
+[gate:tests]    Compiling prettyplease v0.2.37
+[gate:tests]    Compiling hybrid-array v0.4.15
+[gate:tests]    Compiling prost-derive v0.14.4
+[gate:tests]    Compiling bytes v1.12.1
+[gate:tests]    Compiling prost v0.14.4
+[gate:tests]    Compiling regex-automata v0.4.18
+[gate:tests]    Compiling regex v1.13.1
+[gate:tests]    Compiling prost-types v0.14.4
+[gate:tests]    Compiling crypto-common v0.2.2
+[gate:tests]    Compiling block-buffer v0.12.1
+[gate:tests]    Compiling log v0.4.34
+[gate:tests]    Compiling multimap v0.10.1
+[gate:tests]    Compiling const-oid v0.10.2
+[gate:tests]    Compiling digest v0.11.3
+[gate:tests]    Compiling cpufeatures v0.3.1
+[gate:tests]    Compiling sha2 v0.11.1
+[gate:tests]    Compiling prost-build v0.14.4
+[gate:tests]    Compiling umpire-runtime v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-ac79114/checkout/protocol/runtime)
+[gate:tests]    Compiling umpire-backend-process v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-ac79114/checkout/backends/process)
+[gate:tests]    Compiling zmij v1.0.23
+[gate:tests]    Compiling serde_json v1.0.154
+[gate:tests]    Compiling serde_derive v1.0.229
+[gate:tests]    Compiling memchr v2.8.3
+[gate:tests]    Compiling itoa v1.0.18
+[gate:tests]    Compiling ident_case v1.0.1
+[gate:tests]    Compiling darling_core v0.24.1
+[gate:tests]    Compiling darling_macro v0.24.1
+[gate:tests]    Compiling console v0.16.6
+[gate:tests]    Compiling similar v2.7.0
+[gate:tests]    Compiling serde v1.0.229
+[gate:tests]    Compiling insta v1.49.0
+[gate:tests]    Compiling darling v0.24.1
+[gate:tests]    Compiling serde_spanned v1.1.2
+[gate:tests]    Compiling toml_writer v1.1.3+spec-1.1.0
+[gate:tests]    Compiling toml v1.1.8+spec-1.1.0
+[gate:tests]    Compiling umpire-catalog-syntax v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-ac79114/checkout/catalog/syntax)
+[gate:tests]    Compiling umpire-tla v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-ac79114/checkout/backends/tla)
+[gate:tests]    Compiling umpire-tlc v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-ac79114/checkout/backends/tlc)
+[gate:tests]    Compiling umpire-catalog-macros v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-ac79114/checkout/catalog/macros)
+[gate:tests]    Compiling target-tuple v1.0.2
+[gate:tests]    Compiling termcolor v1.4.1
+[gate:tests]    Compiling glob v0.3.4
+[gate:tests]    Compiling umpire-catalog v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-ac79114/checkout/catalog)
+[gate:tests]    Compiling umpire-testing v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-ac79114/checkout/dev/testing)
+[gate:tests]    Compiling trybuild v1.0.122
+[gate:tests]    Compiling umpire-suite v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-ac79114/checkout/author/suite)
+[gate:tests]    Compiling umpire v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-ac79114/checkout/author/umpire)
+[gate:tests]    Compiling umpire-guest-driver v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-ac79114/checkout/dev/guest-driver)
+[gate:tests]    Compiling umpire-catalog-build v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-ac79114/checkout/catalog/build)
+[gate:tests]    Compiling crc32fast v1.5.3
+[gate:tests]    Compiling umpire-reference-kettle v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-ac79114/checkout/reference/kettle)
+[gate:tests]    Compiling adler2 v2.0.1
+[gate:tests]    Compiling simd-adler32 v0.3.10
+[gate:tests]    Compiling miniz_oxide v0.9.1
+[gate:tests]    Compiling num-traits v0.2.19
+[gate:tests]    Compiling filetime v0.2.29
+[gate:tests]    Compiling wait-timeout v0.2.1
+[gate:tests]    Compiling bit-vec v0.10.1
+[gate:tests]    Compiling fnv v1.0.7
+[gate:tests]    Compiling quick-error v1.2.3
+[gate:tests]    Compiling rusty-fork v0.3.1
+[gate:tests]    Compiling bit-set v0.11.1
+[gate:tests]    Compiling tar v0.4.46
+[gate:tests]    Compiling flate2 v1.1.10
+[gate:tests]    Compiling rand v0.10.3
+[gate:tests]    Compiling rand_xorshift v0.5.0
+[gate:tests]    Compiling chacha20 v0.10.2
+[gate:tests]    Compiling unarray v0.1.4
+[gate:tests]    Compiling either v1.19.0
+[gate:tests]    Compiling core_detect v1.0.0
+[gate:tests]    Compiling proptest v1.12.0
+[gate:tests]    Compiling itertools v0.14.0
+[gate:tests]    Compiling xtask v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-ac79114/checkout/dev/xtask)
+[gate:tests]    Compiling umpire-apalache v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-ac79114/checkout/backends/apalache)
+[gate:tests]    Compiling umpire-fixtures v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-ac79114/checkout/dev/fixtures)
+[gate:tests]    Compiling umpire-author-consumer v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-ac79114/checkout/author/umpire/tests/consumer)
+[gate:tests]    Compiling umpire-kettle-guest v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-ac79114/checkout/reference/kettle/guest)
+[gate:tests]    Compiling umpire-caught-panic-guest v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-ac79114/checkout/protocol/runtime/guests/caught-panic)
+[gate:tests]    Compiling umpire-overflow-guest v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-ac79114/checkout/protocol/runtime/guests/overflow)
+[gate:tests]    Compiling umpire-stock-guest v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-ac79114/checkout/protocol/runtime/guests/stock)
+[gate:tests]    Compiling umpire-control-guest v0.0.1 (/home/agent/.cache/codex-build/tmp/fn258-standalone-ac79114/checkout/protocol/runtime/guests/control)
+[gate:tests]     Finished `test` profile [unoptimized + debuginfo] target(s) in 2m 03s
+[gate:tests]     Finished `test` profile [unoptimized + debuginfo] target(s) in 0.05s
+[gate:tests] ────────────
+[gate:tests]  Nextest run ID 1faa1126-1e61-4458-ae84-b8af0387c8c1 with nextest profile: required
+[gate:tests]     Starting 907 tests across 69 binaries (2 tests skipped)
+[gate:tests]         SLOW [> 30.000s] (───────) umpire-catalog::admission declarations_reject_unclassified_or_incompatible_shapes
+[gate:tests]         SLOW [> 30.000s] (───────) umpire-catalog::ui catalog_requires_every_field_and_enum_variant
+[gate:tests]         SLOW [> 30.000s] (───────) umpire-dsl::ui malformed_paths
+[gate:tests]         SLOW [> 30.000s] (───────) umpire-dsl::ui missing_display
+[gate:tests]         SLOW [> 60.000s] (───────) umpire-catalog::ui catalog_requires_every_field_and_enum_variant
+[gate:tests]         SLOW [> 60.000s] (───────) umpire-dsl::ui missing_display
+[gate:tests]         SLOW [> 30.000s] (───────) umpire-dsl-macros::fixtures private_state
+[gate:tests]         SLOW [> 30.000s] (───────) umpire-dsl-macros::fixtures refusals
+[gate:tests]         SLOW [> 90.000s] (───────) umpire-catalog::ui catalog_requires_every_field_and_enum_variant
+[gate:tests]         SLOW [> 90.000s] (───────) umpire-dsl::ui missing_display
+[gate:tests]         FAIL [   0.036s] (326/907) umpire-fixtures::fixtures action_inputs_tests::actual_tlc_agrees_and_replays_in_both_selected_worlds
+[gate:tests]   output ───
+[gate:tests] 
+[gate:tests]     running 1 test
+[gate:tests]     Error: Refusal("missing pinned jar /home/agent/.cache/codex-build/tmp/fn258-standalone-ac79114/checkout/build/tlc/tla2tools-1.7.4.jar; run bash scripts/fetch-tlc.sh")
+[gate:tests]     test action_inputs_tests::actual_tlc_agrees_and_replays_in_both_selected_worlds ... FAILED
+[gate:tests] 
+[gate:tests]     failures:
+[gate:tests] 
+[gate:tests]     failures:
+[gate:tests]         action_inputs_tests::actual_tlc_agrees_and_replays_in_both_selected_worlds
+[gate:tests] 
+[gate:tests]     test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 83 filtered out; finished in 0.02s
+[gate:tests] 
+[gate:tests] 
+[gate:tests]   Cancelling due to test failure: 3 tests still running
+[gate:tests]         SLOW [> 60.000s] (───────) umpire-dsl-macros::fixtures refusals
+[gate:tests] ────────────
+[gate:tests]      Summary [ 110.142s] 329/907 tests run: 328 passed (6 slow), 1 failed, 2 skipped
+[gate:tests]         SLOW [  43.004s] (312/907) umpire-catalog::admission declarations_reject_unclassified_or_incompatible_shapes
+[gate:tests]         SLOW [  45.525s] (319/907) umpire-dsl::ui malformed_paths
+[gate:tests]         SLOW [  96.269s] (320/907) umpire-dsl::ui missing_display
+[gate:tests]         SLOW [ 102.171s] (327/907) umpire-catalog::ui catalog_requires_every_field_and_enum_variant
+[gate:tests]         SLOW [  59.962s] (328/907) umpire-dsl-macros::fixtures private_state
+[gate:tests]         SLOW [  62.610s] (329/907) umpire-dsl-macros::fixtures refusals
+[gate:tests]         FAIL [   0.036s] (326/907) umpire-fixtures::fixtures action_inputs_tests::actual_tlc_agrees_and_replays_in_both_selected_worlds
+[gate:tests]   output ───
+[gate:tests] 
+[gate:tests]     running 1 test
+[gate:tests]     Error: Refusal("missing pinned jar /home/agent/.cache/codex-build/tmp/fn258-standalone-ac79114/checkout/build/tlc/tla2tools-1.7.4.jar; run bash scripts/fetch-tlc.sh")
+[gate:tests]     test action_inputs_tests::actual_tlc_agrees_and_replays_in_both_selected_worlds ... FAILED
+[gate:tests] 
+[gate:tests]     failures:
+[gate:tests] 
+[gate:tests]     failures:
+[gate:tests]         action_inputs_tests::actual_tlc_agrees_and_replays_in_both_selected_worlds
+[gate:tests] 
+[gate:tests]     test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 83 filtered out; finished in 0.02s
+[gate:tests] 
+[gate:tests] 
+[gate:tests] warning: 578/907 tests were not run due to test failure (run with --no-fail-fast to run all tests, or run with --max-fail)
+[gate:tests] error: test run failed
+[gate:tests] framework stage tests failed (exit 100)
+Finished in 317.46s
+[gate:tests] ERROR task failed
+make: *** [Makefile:18: validate] Error 100

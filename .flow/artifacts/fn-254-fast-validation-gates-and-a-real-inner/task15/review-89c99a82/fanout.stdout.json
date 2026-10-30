@@ -1,0 +1,31 @@
+{
+  "success": true,
+  "type": "impl_review_fanout",
+  "phase": "dispatch",
+  "id": "fn-254-fast-validation-gates-and-a-real-inner.15",
+  "rid": "47a954e6a0144ff8975c3f0dbe2b9155",
+  "reservation_id": "47a954e6a0144ff8975c3f0dbe2b9155",
+  "standalone": false,
+  "dir": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/review-fanout/47a954e6a0144ff8975c3f0dbe2b9155",
+  "draws": [
+    {
+      "axis": "integration",
+      "parse_status": {
+        "status": "unparsed",
+        "reason": "invalid-compact-finding",
+        "block": 2
+      },
+      "verdict": "SHIP",
+      "failed": false,
+      "failure_class": null,
+      "failure_message": null,
+      "session_id": "10797867-0c53-4b4a-8ce3-3270f41de3fa",
+      "model": "claude-fable-5-1",
+      "review_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/review-fanout/47a954e6a0144ff8975c3f0dbe2b9155/integration.review.md",
+      "output_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/review-fanout/47a954e6a0144ff8975c3f0dbe2b9155/integration.out.txt"
+    }
+  ],
+  "failed_draws": 0,
+  "merged": false,
+  "next": "merge the surviving draws' findings, then run: flowctl claude impl-review-fanout-finalize --rid 47a954e6a0144ff8975c3f0dbe2b9155 --merge-plan <merge-plan.json>"
+}

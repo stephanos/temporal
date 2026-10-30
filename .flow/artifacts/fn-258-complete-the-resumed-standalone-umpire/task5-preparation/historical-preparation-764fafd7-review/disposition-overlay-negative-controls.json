@@ -1,0 +1,127 @@
+{
+  "result": "pass",
+  "controls": [
+    {
+      "name": "missing-original-entry",
+      "expected_refusal": "candidate-coverage",
+      "passed": true,
+      "failure_kinds": [
+        "candidate-coverage"
+      ]
+    },
+    {
+      "name": "duplicate-entry",
+      "expected_refusal": "candidate-coverage",
+      "passed": true,
+      "failure_kinds": [
+        "candidate-coverage"
+      ]
+    },
+    {
+      "name": "changed-input-hash",
+      "expected_refusal": "changed-input-binding",
+      "passed": true,
+      "failure_kinds": [
+        "changed-input-binding"
+      ]
+    },
+    {
+      "name": "unsupported-source-owner",
+      "expected_refusal": "unsupported-owner-or-identity",
+      "passed": true,
+      "failure_kinds": [
+        "unsupported-owner-or-identity"
+      ]
+    },
+    {
+      "name": "invented-existing-task-link",
+      "expected_refusal": "invented-or-omitted-task-link",
+      "passed": true,
+      "failure_kinds": [
+        "invented-or-omitted-task-link"
+      ]
+    },
+    {
+      "name": "false-original-transfer",
+      "expected_refusal": "false-transfer-or-completion-claim",
+      "passed": true,
+      "failure_kinds": [
+        "false-transfer-or-completion-claim"
+      ]
+    },
+    {
+      "name": "false-dirty-backup",
+      "expected_refusal": "false-dirty-recovery-claim",
+      "passed": true,
+      "failure_kinds": [
+        "false-dirty-recovery-claim"
+      ]
+    },
+    {
+      "name": "missing-original-ref-without-recovery",
+      "expected_refusal": "missing-original-ref-or-recovery",
+      "passed": true,
+      "failure_kinds": [
+        "missing-original-ref-or-recovery"
+      ]
+    },
+    {
+      "name": "missing-original-object",
+      "expected_refusal": "missing-original-recovery-object",
+      "passed": true,
+      "failure_kinds": [
+        "missing-original-recovery-object",
+        "missing-original-ref-or-recovery"
+      ]
+    },
+    {
+      "name": "planned-ref-claimed-verified",
+      "expected_refusal": "false-receiving-ref-claim",
+      "passed": true,
+      "failure_kinds": [
+        "false-receiving-ref-claim"
+      ]
+    },
+    {
+      "name": "unsupported-path-owner",
+      "expected_refusal": "unsupported-path-mapping",
+      "passed": true,
+      "failure_kinds": [
+        "unsupported-path-mapping"
+      ]
+    },
+    {
+      "name": "unknown-owner-freeze-cleared",
+      "expected_refusal": "unsupported-owner-freeze",
+      "passed": true,
+      "failure_kinds": [
+        "unsupported-owner-freeze"
+      ]
+    },
+    {
+      "name": "omitted-cross-repository-prerequisite",
+      "expected_refusal": "prerequisite-omitted",
+      "passed": true,
+      "failure_kinds": [
+        "prerequisite-omitted"
+      ]
+    },
+    {
+      "name": "false-current-pair-proof",
+      "expected_refusal": "unsupported-current-proof-claim",
+      "passed": true,
+      "failure_kinds": [
+        "unsupported-current-proof-claim"
+      ]
+    },
+    {
+      "name": "false-overall-R6-completion",
+      "expected_refusal": "false-overall-R6-completion",
+      "passed": true,
+      "failure_kinds": [
+        "false-overall-R6-completion"
+      ]
+    }
+  ],
+  "scope": "In-memory overlay and Git-observation mutations only; no Git writes, source mutation or transfers."
+}

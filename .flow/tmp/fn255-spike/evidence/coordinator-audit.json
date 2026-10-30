@@ -1,0 +1,14 @@
+{
+  "at": "2026-10-26T22:04:10.023169+00:00",
+  "reviewed_source": "dddeead063",
+  "archive_sha256": "058adfacc2f44bf0f77d44e8c5d9db5bc8d0c34879fe860c55daf6c80ba12a3d",
+  "verified_archive_members": 141,
+  "verified_equal_graph_pairs": 6,
+  "full_framework_projection_deltas": 4,
+  "fresh_control_commands": [
+    "isolated-copy python3 check-runner.py (nonzero, timeout, missing-jar preflight and source-only preparation)"
+  ],
+  "historical_evidence_unchanged": true,
+  "runtime_reuse": "Rust adapters unchanged from exact-byte checked-batch; prior paired/shrink probe delta is the retained equivalent if-let-chain change, explicitly documented. Python change is preflight only.",
+  "review": "Three-lens SHIP, all six follow-ups addressed, fresh scoped SHIP. Optional warm-word suggestion is already scoped by warm measurement/dependency preconditions; no cold timing claim."
+}

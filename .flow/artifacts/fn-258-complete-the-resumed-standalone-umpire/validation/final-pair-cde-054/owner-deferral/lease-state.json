@@ -1,0 +1,13 @@
+{
+  "observed_lock_files": [
+    {
+      "path": "/home/agent/.cache/codex-build/tmp/fn258-final-pair-cde-054/execution.lock",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "device": 29,
+      "inode": 7091531
+    }
+  ],
+  "held_kernel_locks": [],
+  "interpretation": "No readable process owns cwd/env/fd/maps under pair/target; no kernel execution-lock owner. Root systemPID unreadability is preserved in ownership.json."
+}

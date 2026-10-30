@@ -1,0 +1,328 @@
+   Compiling unicode-ident v1.0.27
+   Compiling proc-macro2 v1.0.107
+   Compiling quote v1.0.47
+   Compiling syn v3.0.9
+   Compiling umpire-ir-derive v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/ir/derive)
+   Compiling equivalent v1.0.3
+   Compiling umpire-ir v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/ir)
+   Compiling hashbrown v0.17.1
+   Compiling heck v0.5.0
+   Compiling indexmap v2.14.2
+   Compiling thiserror-impl v2.0.21
+   Compiling smallvec v1.16.3
+   Compiling winnow v1.0.4
+   Compiling toml_parser v1.1.5+spec-1.1.0
+   Compiling proc-macro-utils v0.10.0
+   Compiling thiserror v2.0.21
+   Compiling bytemuck v1.25.2
+   Compiling toml_datetime v1.1.2+spec-1.1.0
+   Compiling toml_edit v0.25.17+spec-1.1.0
+   Compiling safe_arch v0.7.4
+   Compiling manyhow-macros v0.14.1
+   Compiling prettyplease v0.3.0
+   Compiling umpire-dsl-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/author/dsl/macros)
+   Compiling rand_core v0.9.5
+   Compiling rand_xoshiro v0.7.0
+   Compiling umpire-front v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/front)
+   Compiling manyhow v0.14.1
+   Compiling wide v0.7.33
+   Compiling proc-macro-crate v3.5.0
+   Compiling imbl-sized-chunks v0.2.0
+   Compiling foldhash v0.1.5
+   Compiling umpire-dsl v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/author/dsl)
+   Compiling archery v1.2.3
+   Compiling imbl v7.0.2
+   Compiling hashbrown v0.15.5
+   Compiling umpire-backend-process v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/backends/process)
+   Compiling fixedbitset v0.5.7
+   Compiling umpire-checker v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/backends/native)
+   Compiling petgraph v0.8.3
+   Compiling umpire-tla v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/backends/tla)
+   Compiling rustc-hash v2.1.3
+   Compiling umpire-tlc v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/backends/tlc)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 17.60s
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.04s
+────────────
+ Nextest run ID 089ec040-101a-4b8a-93ff-6a6a4f253f44 with nextest profile: required
+    Starting 34 tests across 2 binaries
+  stdout ───
+
+    running 1 test
+    test decode::tests::observer_only_safety_assignment_keeps_empty_state_refusal ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 25 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test decode::tests::string_and_collection_values_preserve_authored_contents ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 25 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test decode::tests::typed_dump_rejects_missing_extra_wrong_type_and_truncation ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 25 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test cache::tests::root_admission_rejects_symlinks_and_relative_paths ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 25 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test runner::batch_tests::batch_resource_refusal_does_not_launch_singleton_recovery ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 25 filtered out; finished in 0.05s
+
+
+  stdout ───
+
+    running 1 test
+    test runner::batch_tests::singleton_evaluation_stops_recovery_after_current_wave ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 25 filtered out; finished in 0.11s
+
+
+  stdout ───
+
+    running 1 test
+    test runner::cache_tests::cache_child ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 25 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test runner::batch_tests::singleton_recovery_measures_worker_peak_and_owns_each_scratch ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 25 filtered out; finished in 0.09s
+
+
+  stdout ───
+
+    running 1 test
+    test runner::cache_tests::concurrent_writers_and_readers_see_only_complete_bundles ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 25 filtered out; finished in 0.03s
+
+
+  stdout ───
+
+    running 1 test
+    test runner::cache_tests::every_effective_identity_input_invalidates ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 25 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test runner::batch_tests::singleton_output_budget_precedes_later_evaluation_and_stops_new_waves ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 25 filtered out; finished in 0.19s
+
+
+  stdout ───
+
+    running 1 test
+    test runner::cache_tests::cache_root_refusal_reports_its_cause_without_following_symlinks ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 25 filtered out; finished in 0.08s
+
+
+  stdout ───
+
+    running 1 test
+    test runner::cache_tests::invalid_cached_batch_refuses_before_any_singleton_recovery ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 25 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test runner::cache_tests::manifest_integrity_limits_and_interrupted_publication ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 25 filtered out; finished in 0.02s
+
+
+  stdout ───
+
+    running 1 test
+    test runner::batch_tests::batch_protocol_requires_complete_selected_evidence ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 25 filtered out; finished in 0.52s
+
+
+  stdout ───
+
+    running 1 test
+    test runner::cache_tests::populated_cache_hits_and_authoritative_disable_runs_fresh ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 25 filtered out; finished in 0.52s
+
+
+  stdout ───
+
+    running 1 test
+    test runner::tests::counterexample_requires_consecutive_states_and_a_valid_lasso ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 25 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test runner::tests::escaping_cache_symlinks_are_refused_before_creating_files ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 25 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test runner::tests::evaluation_errors_name_the_property_and_state ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 25 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test runner::tests::incomplete_messages_and_exploration_are_refused ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 25 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test runner::tests::located_property_invariants_name_only_the_selected_operator ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 25 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test runner::cache_tests::identity_refreshes_between_module_calls_and_is_shared_between_configurations ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 25 filtered out; finished in 0.59s
+
+
+  stdout ───
+
+    running 1 test
+    test runner::tests::typed_module_refuses_inconsistent_declarations_before_spawning ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 25 filtered out; finished in 0.00s
+
+
+  stdout ───
+
+    running 1 test
+    test runner::tests::process_limits_kill_and_reap_and_jar_admission_fails_closed ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 25 filtered out; finished in 0.05s
+
+
+  stdout ───
+
+    running 1 test
+    test runner::cache_tests::verified_configuration_publishes_despite_refuted_sibling ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 25 filtered out; finished in 0.29s
+
+
+  stdout ───
+
+    running 1 test
+    test runner::cache_tests::failures_refutations_and_incomplete_modules_never_publish ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 25 filtered out; finished in 1.25s
+
+
+  stdout ───
+
+    running 1 test
+    test controls::real_tlc_evaluation_errors_are_typed_and_located ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 7 filtered out; finished in 2.84s
+
+
+  stdout ───
+
+    running 1 test
+    test controls::real_tlc_batch_evaluation_recovers_original_property_order ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 7 filtered out; finished in 6.67s
+
+
+  stdout ───
+
+    running 1 test
+    test controls::real_tlc_healthy_batches_use_at_most_two_model_launches ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 7 filtered out; finished in 3.20s
+
+
+  stdout ───
+
+    running 1 test
+    test controls::real_tlc_initial_invariant_has_a_typed_counterexample ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 7 filtered out; finished in 1.35s
+
+
+  stdout ───
+
+    running 1 test
+    test controls::real_tlc_keeps_deadlock_checks_and_refuses_tool_errors ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 7 filtered out; finished in 0.93s
+
+
+  stdout ───
+
+    running 1 test
+    test controls::real_tlc_maximality_fairness_bounds_and_action_properties ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 7 filtered out; finished in 17.72s
+
+
+  stdout ───
+
+    running 1 test
+    test controls::real_tlc_failed_batches_preserve_independent_traces ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 7 filtered out; finished in 29.48s
+
+
+  stdout ───
+
+    running 1 test
+    test scaling::typed_module_completes_independently_of_a_cut_native_reference ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 7 filtered out; finished in 2.66s
+
+
+────────────
+     Summary [  33.335s] 34 tests run: 34 passed, 0 skipped
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.05s
+   Doc-tests umpire_tlc
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

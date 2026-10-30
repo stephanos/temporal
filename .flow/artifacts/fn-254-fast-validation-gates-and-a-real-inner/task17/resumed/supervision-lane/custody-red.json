@@ -1,0 +1,41 @@
+{
+  "command": [
+    "mise",
+    "exec",
+    "--",
+    "cargo",
+    "test",
+    "--locked",
+    "-j1",
+    "-p",
+    "umpire-backend-process",
+    "--lib",
+    "support::lease_tests::leased_owner_death_excludes_contender_until_escaped_child_is_reaped",
+    "--",
+    "--exact",
+    "--nocapture",
+    "--test-threads=1"
+  ],
+  "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-supervision-resumed/model/umpire",
+  "started_utc": "2026-10-27T00:08:10.411814+00:00",
+  "phase_baseline": {
+    "target_bytes": 4813326643,
+    "free_bytes": 9635713024
+  },
+  "budget_bytes": 805306368,
+  "free_guard_bytes": 8589934592,
+  "environment": {
+    "CARGO_TARGET_DIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/target",
+    "TMPDIR": "/tmp/umpire-fn25417-supervision",
+    "CARGO_BUILD_JOBS": "1",
+    "CARGO_INCREMENTAL": "0",
+    "CARGO_PROFILE_DEV_DEBUG": "0",
+    "CARGO_PROFILE_TEST_DEBUG": "0"
+  },
+  "BASH_ENV": "removed",
+  "exit_code": 101,
+  "elapsed_seconds": 0.5236031670010561,
+  "target_growth_bytes": 7709731,
+  "free_after_bytes": 10725974016,
+  "log_sha256": "63dd7a5022ed5301cd30fd52f371a51a4071cb8a011ab79ac80e38a96695eb7e"
+}

@@ -1,0 +1,427 @@
+{
+  "object": {
+    "source": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/tmpbd9_5zju.tar.gz",
+    "destination": "release-proof-binaries.tar.gz",
+    "role": "all69 actual Cargo release producer binaries plus target-local dynamic dependencies",
+    "sha256": "3eb249eac436b8f2904682e19843f871bdd1a115cecd379e59bbef626f515dbc",
+    "size": 261689246,
+    "mode": "0o600",
+    "recovery_object": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn258-standalone-proof/objects/3eb249eac436b8f2904682e19843f871bdd1a115cecd379e59bbef626f515dbc"
+  },
+  "members": [
+    {
+      "path": "release/deps/umpire-5715fdd004f2539c",
+      "sha256": "e3b075640ae3bb81a726dfd9b7fb19eb6b0e3404b5aed91477425a3a2c2501d4",
+      "size": 5758752,
+      "mode": "0o755"
+    },
+    {
+      "path": "release/deps/umpire_apalache-45788d1a25ab5417",
+      "sha256": "2b1f0d9506a6cfea542382b61df9b5170fe96c70755a85e149ccd5974a4aa17e",
+      "size": 26015200,
+      "mode": "0o755"
+    },
+    {
+      "path": "release/deps/main-87e26ebc031203f2",
+      "sha256": "f54b2976b66a38a141ae8ac6df6b9d99e673ded1128158f88b10d69d719e4c8b",
+      "size": 42793920,
+      "mode": "0o755"
+    },
+    {
+      "path": "release/deps/umpire_author_consumer-02eba2d08670513c",
+      "sha256": "8932bb68766618a2fd22bf2d4ddc5fc9109d92195cc064a2547fb92794a81149",
+      "size": 9078336,
+      "mode": "0o755"
+    },
+    {
+      "path": "release/deps/umpire_backend_process-080282e03171adb1",
+      "sha256": "295460e20f5cbab439e48c8ddf602da62ea00513dc7d6e21ada7152e6bc016ff",
+      "size": 7394296,
+      "mode": "0o755"
+    },
+    {
+      "path": "release/deps/process-a0640ac622267c63",
+      "sha256": "869cae077cec3403948c65eb4c99093b39da0fc8bb464087a92dd45cdd9d8694",
+      "size": 8156088,
+      "mode": "0o755"
+    },
+    {
+      "path": "release/deps/umpire_catalog-cd8766f6fc201fc2",
+      "sha256": "fa433a647913f1dd1685ecc9edad0f66ebee60e39c8346e330cbc5d680f6d622",
+      "size": 5787656,
+      "mode": "0o755"
+    },
+    {
+      "path": "release/deps/admission-6a3684a50c6207f0",
+      "sha256": "9c9c511065f5d7a0012584fb9798c7b7cde0a128c1bd8bc0659a6f084f386970",
+      "size": 11525744,
+      "mode": "0o755"
+    },
+    {
+      "path": "release/deps/derive_catalog-77ce0adb93926bb2",
+      "sha256": "1bad3b2f2ede562396ffdb4ad11a64d67a6fc05a8ba8b7ba0499734d513dd028",
+      "size": 10028000,
+      "mode": "0o755"
+    },
+    {
+      "path": "release/deps/main-cf7d9f7d30299e67",
+      "sha256": "535dd56444108b6b7a35a43547ce5431e03181b0d5fd1f2c63cf684282f47125",
+      "size": 31348904,
+      "mode": "0o755"
+    },
+    {
+      "path": "release/deps/message_map-647d1d9079a957ce",
+      "sha256": "e0397b2a968b8ae7b8facc978cb1e830e0ec32a6df02a412621c21863433fdd9",
+      "size": 7927600,
+      "mode": "0o755"
+    },
+    {
+      "path": "release/deps/response_checks-392ffd6da82290e1",
+      "sha256": "02ae6026b97c734fc794a2735052779f31e8f58c456c0c142ef44041d82108c0",
+      "size": 6810928,
+      "mode": "0o755"
+    },
+    {
+      "path": "release/deps/ui-a190e3ac099e3d63",
+      "sha256": "4fdcb414c26fd1d509e0b76ae1a76d1365b4cef9bff4c88a303ee6225362e648",
+      "size": 11526904,
+      "mode": "0o755"
+    },
+    {
+      "path": "release/deps/umpire_catalog_build-b36bb8c7b781c353",
+      "sha256": "807ed0ff0d8dfcf92713faa3988332fdf8b7af6d735b1d242f934c8653189aea",
+      "size": 5758936,
+      "mode": "0o755"
+    },
+    {
+      "path": "release/deps/main-0815afda85cb7a2a",
+      "sha256": "f5f063d0684acc632c6328bad7f6dd5d9cea93a885fff0370a91b3c70ddf71a8",
+      "size": 35587424,
+      "mode": "0o755"
+    },
+    {
+      "path": "release/deps/umpire_catalog_macros-2bd0f85ffde39091",
+      "sha256": "52820f792d1b5d52c41c654d64529734a979c156efaa59915ff2f1d3ddc9f107",
+      "size": 5828784,
+      "mode": "0o755"
+    },
+    {
+      "path": "release/deps/umpire_catalog_syntax-cad0f3b3c3317000",
+      "sha256": "2426f61f40d158f0803a41d9c30bdb29357b0db9593d389782a5e4d61c82e8b1",
+      "size": 17936792,
+      "mode": "0o755"
+    },
+    {
+      "path": "release/deps/main-7d55a07ddacd21d5",
+      "sha256": "bf0a5f21f4a8770ccf4465c339e745f4a3860882e62c9f50f234f288e81a4a9d",
+      "size": 24165728,
+      "mode": "0o755"
+    },
+    {
+      "path": "release/deps/caught_panic_control-57656fbe1de8807a",
+      "sha256": "cc0c87f879341f0061d3c28f8ddfaa0ca0e33745fae37b56b2d5588ab390071b",
+      "size": 5758992,
+      "mode": "0o755"
+    },
+    {
+      "path": "release/deps/panic_control_reports-34f7f8539e4d9b10",
+      "sha256": "bf854da61234dc1cccb77b3d08edb17d1e88eb1fe53ca3357f00accecb26ad8b",
+      "size": 5784952,
+      "mode": "0o755"
+    },
+    {
+      "path": "release/deps/umpire_checker-9e13771fa86efc8d",
+      "sha256": "d1f3025e774d5d1b7ec33be78f23d71ad3d4ee01b38a4c1156091d3de8e2a8c4",
+      "size": 6762328,
+      "mode": "0o755"
+    },
+    {
+      "path": "release/deps/catalog_admission-2f4da8dd2e43ea1e",
+      "sha256": "a2630fb861529fb8cba262faffa5de1d6a2c2f450d28a786e62bdc9630d99b11",
+      "size": 8248384,
+      "mode": "0o755"
+    },
+    {
+      "path": "release/deps/fixtures-709286d11df0cd2f",
+      "sha256": "90d7acf6e35ed3ae16b86e8a40235c06de5bffaff418f1adce0e8e2803b8d67d",
+      "size": 24151184,
+      "mode": "0o755"
+    },
+    {
+      "path": "release/deps/main-21b4fcc9fca87eea",
+      "sha256": "b4146e451f09cb1652e7fb656bef83a225f2169a68c350f6d89f535f2a105209",
+      "size": 9225472,
+      "mode": "0o755"
+    },
+    {
+      "path": "release/deps/stateful_control-7edbcc5b709214ba",
+      "sha256": "b5fd611aad28c7fff3c60fe29ff4731b9bc728ba05327faf9d44ad18035416ea",
+      "size": 5758936,
+      "mode": "0o755"
+    },
+    {
+      "path": "release/deps/current_contract_reports-14ac8dec8f7cbeda",
+      "sha256": "44574b2a498c8b1abc606c0222123340d8984b6ae3eedff7997d4159dcc729a6",
+      "size": 6850416,
+      "mode": "0o755"
+    },
+    {
+      "path": "release/deps/umpire_dsl-238518f3caad5260",
+      "sha256": "7458db6b584bed99bc6f99a19a80f1035d205c52337487f1b4f6dee3c74fffda",
+      "size": 5838504,
+      "mode": "0o755"
+    },
+    {
+      "path": "release/deps/fixtures-510ad7eeefdcbff3",
+      "sha256": "2ef8b7e0425b09dd5260893688838b2d54bb6bf5445ef3a6ee56b74120387b16",
+      "size": 12264064,
+      "mode": "0o755"
+    },
+    {
+      "path": "release/deps/main-3a42935bb56cfa23",
+      "sha256": "688210df25f4decf7b0aa218892d1c4287b3e5a0b4f6c0c0745185cae391f41a",
+      "size": 12865240,
+      "mode": "0o755"
+    },
+    {
+      "path": "release/deps/ui-1b62e0f714642edd",
+      "sha256": "cfadbf8d6d5d3a6e8a4331e98b19d41b1d5ac6e7dc7f82d58e1035a65b3b3ecd",
+      "size": 11528024,
+      "mode": "0o755"
+    },
+    {
+      "path": "release/deps/umpire_dsl_macros-0297ca116f04ac10",
+      "sha256": "50a3121b645cc1b3804f52ea1a5c33663c4061c33d3f440e4176177a6d6e2a06",
+      "size": 8626904,
+      "mode": "0o755"
+    },
+    {
+      "path": "release/deps/fixtures-f3ce281cb6e7e23f",
+      "sha256": "4f4d5bcc5d4546352580bb20312f4725ce296a78c438e49d27709f099e42614a",
+      "size": 34260168,
+      "mode": "0o755"
+    },
+    {
+      "path": "release/deps/main-829f6194137730a2",
+      "sha256": "db341b3a916704059fd3e382960b68afdbd2a05f9dd74808ed1cca4017bb7986",
+      "size": 19720688,
+      "mode": "0o755"
+    },
+    {
+      "path": "release/deps/fixtures-63e82cd6925f89f7",
+      "sha256": "2ff2408d812c8af0ad0a6045d0871d04b94effcdd56765bfcc3343d47accbe21",
+      "size": 129087128,
+      "mode": "0o755"
+    },
+    {
+      "path": "release/deps/umpire_front-2fcd8737e607ce59",
+      "sha256": "57a58c0cf0bcbf033b7b9dce3f8719deda091d4761d3517fc5304446f1a7c2e2",
+      "size": 20753016,
+      "mode": "0o755"
+    },
+    {
+      "path": "release/deps/world_fairness-4e7bec87cb7a2f3a",
+      "sha256": "4332e48674b4e69cb0fd7f79a6188f560f5007dd253b2863e3186cb93f1da1b9",
+      "size": 21712704,
+      "mode": "0o755"
+    },
+    {
+      "path": "release/deps/umpire_guest_driver-34056505bdf03254",
+      "sha256": "99c4e173a341104256afc78946ca1553765156283694b4cfc86bc38509620830",
+      "size": 6711384,
+      "mode": "0o755"
+    },
+    {
+      "path": "release/deps/umpire_guest_driver-3448beb5a45242aa",
+      "sha256": "8f23c7fad2a0757f5f64beddd7ae838ef878d03e1b48e2d09e920c66866f5412",
+      "size": 5758944,
+      "mode": "0o755"
+    },
+    {
+      "path": "release/deps/main-e6260761972d67c0",
+      "sha256": "d141ce2df07b4fe895d62616a622dbad8916b15c188895b338d9cd2f353c323b",
+      "size": 12405768,
+      "mode": "0o755"
+    },
+    {
+      "path": "release/deps/umpire_ir-d3440bcd44a86c8d",
+      "sha256": "f6a67d7236e1f6cd03478bc6420af71b8e273a4ead10b3bc1492253a6f9749ba",
+      "size": 7266344,
+      "mode": "0o755"
+    },
+    {
+      "path": "release/deps/umpire_ir_derive-a58bbf1a261b842d",
+      "sha256": "32652e54dce162c43723a313596d0fc84749bd57e7d654a0fc6ff463174032c3",
+      "size": 2684024,
+      "mode": "0o755"
+    },
+    {
+      "path": "release/deps/umpire_kettle_guest-60cd3a5808518a38",
+      "sha256": "43109eb16736f04cd6f878d00fc3305c2819e25ee4e49d2f3fdfdb9c2f1994ff",
+      "size": 5758952,
+      "mode": "0o755"
+    },
+    {
+      "path": "release/deps/overflow_control-4758f37fabad436c",
+      "sha256": "a22e222f4fce92bf3fcadd0f1d169c6d362924fd8b06071e611b8f705162bd91",
+      "size": 5758936,
+      "mode": "0o755"
+    },
+    {
+      "path": "release/deps/umpire_reference_kettle-cfac31c5060a2258",
+      "sha256": "bf27ff11200dfd7dc16abfcd924bcdea73ffa179a879c7d4dee73f2ea3dc24e6",
+      "size": 5758984,
+      "mode": "0o755"
+    },
+    {
+      "path": "release/deps/exhaustiveness-6f498d42568a1987",
+      "sha256": "c6605cd8e0382f2b850f7b75c9c7711b5366461e540efb63b3e4b67395f9d8ae",
+      "size": 11526160,
+      "mode": "0o755"
+    },
+    {
+      "path": "release/deps/live_snapshots-2a55f37c1bb7bbe3",
+      "sha256": "cc89d931cd63c1f360e4a8409dc8d9643e98c96f396142fc9c420f7aa8afb723",
+      "size": 9878624,
+      "mode": "0o755"
+    },
+    {
+      "path": "release/deps/main-e42dc141dfd47875",
+      "sha256": "afeff497e3b0f28f199d77678b4d18e6c360ca6509deac9bc16d3b8b509fee01",
+      "size": 34581048,
+      "mode": "0o755"
+    },
+    {
+      "path": "release/deps/umpire_runtime-df799720eedcb524",
+      "sha256": "21e4c6ce1a726bb2909778ac8069e277ac2c8b7ade1b18625ea0b4634905afd0",
+      "size": 5758880,
+      "mode": "0o755"
+    },
+    {
+      "path": "release/deps/capabilities-43683602aed5f492",
+      "sha256": "9fc55879d0337485de06278a4a9a79145233ec93382d2e83b08a6ef79c6b4ceb",
+      "size": 6209496,
+      "mode": "0o755"
+    },
+    {
+      "path": "release/deps/main-587681c93eee0517",
+      "sha256": "511ca46b75e7329771ce92b232436399870f1ffc154d1d89a9cc49b1059ed8e8",
+      "size": 11254568,
+      "mode": "0o755"
+    },
+    {
+      "path": "release/deps/reach-a244e00cf62034c2",
+      "sha256": "8897575de3d8ec451ad36a395ad05bcb380b77d5921ebc5a8437794be42a8970",
+      "size": 7273896,
+      "mode": "0o755"
+    },
+    {
+      "path": "release/deps/umpire_stock_guest-e04b96744c2dd20e",
+      "sha256": "8ce0ddb3b85c547c57a99f62241c4aad0b9a96e9bbb2196ee6b4aef2c0ffe52b",
+      "size": 5758952,
+      "mode": "0o755"
+    },
+    {
+      "path": "release/deps/umpire_suite-6bcdfc8f8f800e42",
+      "sha256": "b521751ec17e186c61763debe938e1ee380e4351c0209f4ce74e22f29cf7ff2a",
+      "size": 7263064,
+      "mode": "0o755"
+    },
+    {
+      "path": "release/deps/main-452b6173121b1805",
+      "sha256": "d58b60be89c9c6a0ea94d4b384ee2fc54f36cd815640a34c97737df8692a2851",
+      "size": 22957120,
+      "mode": "0o755"
+    },
+    {
+      "path": "release/deps/retained-67a56a71345197e8",
+      "sha256": "b66c495d25352a26e090e5c20a0b191f3fd910d088854319002e25a65e8ad608",
+      "size": 7395912,
+      "mode": "0o755"
+    },
+    {
+      "path": "release/deps/umpire_testing-ec6429914cbf758d",
+      "sha256": "e72d8b15e19107156c71b2b3e5597ef574d07db960a521987695ea6247425afb",
+      "size": 31557760,
+      "mode": "0o755"
+    },
+    {
+      "path": "release/deps/consumers-b73f74ed09e3efc5",
+      "sha256": "3ce19cf087169ca9c3c77a3390ec21608e4efdc90a2cda213c83228aa93484de",
+      "size": 11481664,
+      "mode": "0o755"
+    },
+    {
+      "path": "release/deps/external_consumers-9781c18b7a9cd675",
+      "sha256": "d4be0e678c4799b921efb09c99326d54fd03cdcabc172e3057fa418d6f4f1953",
+      "size": 10981472,
+      "mode": "0o755"
+    },
+    {
+      "path": "release/deps/fixture_composition-5c738fb7f819d02e",
+      "sha256": "5a62cb63d1e96b7f1f7996d70450c0c744454cc57148ee9f95c7bc7cfd5e78b1",
+      "size": 6354920,
+      "mode": "0o755"
+    },
+    {
+      "path": "release/deps/main-bedace5a8d4e385c",
+      "sha256": "7002aee0576e037d35aa1643fcf7dcd292e4e9de995d903ba08fe33cd0e14ed5",
+      "size": 11536776,
+      "mode": "0o755"
+    },
+    {
+      "path": "release/deps/native_backend-24b62e4af06927c3",
+      "sha256": "023270ec0791f032faccc16d7477551641712c2ea8315f815fa60092a0e2e10c",
+      "size": 19473664,
+      "mode": "0o755"
+    },
+    {
+      "path": "release/deps/suite_consumers-cec625728a58b22d",
+      "sha256": "b8c616762145f6260866468f96213bda8456efdffb7cf7a9791642cd60621df4",
+      "size": 11151296,
+      "mode": "0o755"
+    },
+    {
+      "path": "release/deps/umpire_tla-85fd968187a42551",
+      "sha256": "5b22f9f1755e05904c36b2c83104802f27538fa0ff252855667e1ae74c87aa18",
+      "size": 6900760,
+      "mode": "0o755"
+    },
+    {
+      "path": "release/deps/main-a3d778aef64545f0",
+      "sha256": "2d5356c032e45c477ceaca743766497075ea5fcd9e90f8fbf4460416cbc68fc8",
+      "size": 41652896,
+      "mode": "0o755"
+    },
+    {
+      "path": "release/deps/umpire_tlc-2c2375dd219d0cbd",
+      "sha256": "0b65d0f8d586e9eb422aa0c075cf79bd67328c612ac5b8e41958c7b639729516",
+      "size": 28684456,
+      "mode": "0o755"
+    },
+    {
+      "path": "release/deps/main-615d5c88882ae234",
+      "sha256": "4660010b6f08f65de3916f9eb5f59104528d7f68d31ed05e39956d8d0bd16ea5",
+      "size": 28810888,
+      "mode": "0o755"
+    },
+    {
+      "path": "release/deps/xtask-00fe51f09ffc641d",
+      "sha256": "8c2f4485d4011f50f341c2747050648974335d3afada003d82ad5b23793e2b0a",
+      "size": 17231216,
+      "mode": "0o755"
+    },
+    {
+      "path": "release/deps/xtask-fa5210ad20f7aeaa",
+      "sha256": "8476ff4c102a8f6cd686b6fa6c0e3c4c9a57a52f67c5ccea2968a6c7b92488e5",
+      "size": 5758744,
+      "mode": "0o755"
+    },
+    {
+      "path": "release/deps/main-445be5b0c040204c",
+      "sha256": "0b8d73206de95cfe0fd4dfec8b502c85e4d3d5ac494418bfc332e05015986891",
+      "size": 13364552,
+      "mode": "0o755"
+    }
+  ]
+}

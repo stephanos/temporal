@@ -1,0 +1,8 @@
+[
+  "forbidden-name",
+  "existing-outside-dependency",
+  "root-escape-dependency",
+  "manifest-root-source-escape",
+  "resolved-outside-dependency",
+  "missing-local-configuration"
+]

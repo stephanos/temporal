@@ -1,0 +1,2 @@
+argv: ["/bin/bash", "/home/agent/.cache/codex-build/tmp/fn258-final-pair-cde-054/umpire/scripts/proto-go.sh", "kettle", "--check"]
+cwd: /home/agent/.cache/codex-build/tmp/fn258-final-pair-cde-054/umpire

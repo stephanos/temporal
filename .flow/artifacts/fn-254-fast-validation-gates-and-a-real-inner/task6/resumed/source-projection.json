@@ -1,0 +1,115 @@
+{
+  "candidate_commit": "fa1ccb8af1f16a472518f1734c0aa455831e4f92",
+  "tools": {
+    "rustc --version": "rustc 1.99.1 (58cf8f9c3 2026-10-13)",
+    "cargo --version": "cargo 1.99.1 (5f94df478 2026-08-27)",
+    "java -version": "Picked up JAVA_TOOL_OPTIONS: -Dhttp.proxyHost=gateway.docker.internal -Dhttp.proxyPort=3128 -Dhttps.proxyHost=gateway.docker.internal -Dhttps.proxyPort=3128 -Dhttp.nonProxyHosts=localhost|127.*|[::1]|gateway.docker.internal\nopenjdk version \"27\" 2026-09-15\nOpenJDK Runtime Environment Temurin-27+35 (build 27+35)\nOpenJDK 64-Bit Server VM Temurin-27+35 (build 27+35, mixed mode, sharing)"
+  },
+  "original_proof_projection": {
+    "Makefile": {
+      "current_sha256": "417c6a7b831502fd31556392dc4b3eab74a636b7f01f22bbd49fb7878fa75741",
+      "historical_sha256": "109121c7f49cd5713c11c94226d79b6040de300d5391779ac43d25b7f217ad16",
+      "unchanged": false
+    },
+    "model/dev/xtask/src/main.rs": {
+      "current_sha256": "6dbd6a6fcfbe4f1af99023f6b392d03312b73c8fec78d0dd2e663b029fd4c119",
+      "historical_sha256": "6dbd6a6fcfbe4f1af99023f6b392d03312b73c8fec78d0dd2e663b029fd4c119",
+      "unchanged": true
+    },
+    "model/dev/xtask/src/quick/mod.rs": {
+      "current_sha256": "83e76a8f0fda96f4df2fa0e8ba274a679592dfc5fc454f6c78df23d844cdb157",
+      "historical_sha256": "71953e4e4707b4efe01986d2fb3afd549a35c0ffb0b335a076d867ac023c3199",
+      "unchanged": false
+    },
+    "model/umpire/backends/process/src/fingerprint.rs": {
+      "current_sha256": "73c7665b00f560b7e866faaa72484e325e5f1fcfb691351ccd879a1ad555df7a",
+      "historical_sha256": "73c7665b00f560b7e866faaa72484e325e5f1fcfb691351ccd879a1ad555df7a",
+      "unchanged": true
+    },
+    "model/umpire/backends/process/src/lib.rs": {
+      "current_sha256": "39878aead4ac08c9fe2f311553d724b1c288f0f8b3ac230c60671257933f9fab",
+      "historical_sha256": "39878aead4ac08c9fe2f311553d724b1c288f0f8b3ac230c60671257933f9fab",
+      "unchanged": true
+    },
+    "model/umpire/backends/tlc/src/cache.rs": {
+      "current_sha256": "92e6d317e959f445b15a52b17d95d1c1db65a245eeeb69a2e15d7eff8cca15e8",
+      "historical_sha256": "92e6d317e959f445b15a52b17d95d1c1db65a245eeeb69a2e15d7eff8cca15e8",
+      "unchanged": true
+    },
+    "model/umpire/backends/tlc/src/lib.rs": {
+      "current_sha256": "a2dc35281a9fa0f2e1446ba541e97ad95341dfbde3d648e97ada687d14ffb731",
+      "historical_sha256": "a2dc35281a9fa0f2e1446ba541e97ad95341dfbde3d648e97ada687d14ffb731",
+      "unchanged": true
+    },
+    "model/umpire/backends/tlc/src/runner.rs": {
+      "current_sha256": "01c407daf4584da51dfa97b8d441a3f0fcd0047fd348ae18818d56bb6fa718cc",
+      "historical_sha256": "01c407daf4584da51dfa97b8d441a3f0fcd0047fd348ae18818d56bb6fa718cc",
+      "unchanged": true
+    },
+    "model/umpire/backends/tlc/src/runner/batch_tests.rs": {
+      "current_sha256": "d41e06e09bbea453b987f721d95b53ed332fc120a7037f69ca4997da2596483e",
+      "historical_sha256": "d41e06e09bbea453b987f721d95b53ed332fc120a7037f69ca4997da2596483e",
+      "unchanged": true
+    },
+    "model/umpire/backends/tlc/src/runner/cache_tests.rs": {
+      "current_sha256": "eefc26621943591c4cfbb3e26d497f0e65ef8b5d86f19f7c5c793f15ee2ac43b",
+      "historical_sha256": "eefc26621943591c4cfbb3e26d497f0e65ef8b5d86f19f7c5c793f15ee2ac43b",
+      "unchanged": true
+    },
+    "model/umpire/dev/testing/src/interpreted.rs": {
+      "current_sha256": "30a29b75ffed2984af28badb239a5207c757810f91008a579e36b41de764f08b",
+      "historical_sha256": "30a29b75ffed2984af28badb239a5207c757810f91008a579e36b41de764f08b",
+      "unchanged": true
+    },
+    "model/umpire/dev/xtask/src/lib.rs": {
+      "current_sha256": "e9de36caefe2fcd486cea91008d2804f52c2b8121554271bd8befc9ac88ef7af",
+      "historical_sha256": "e9de36caefe2fcd486cea91008d2804f52c2b8121554271bd8befc9ac88ef7af",
+      "unchanged": true
+    },
+    "model/umpire/dev/xtask/src/main.rs": {
+      "current_sha256": "8c77f9783b1aa768ee85b14f84c0a7a63130de236503983e2b449f6fcd176b38",
+      "historical_sha256": "8c77f9783b1aa768ee85b14f84c0a7a63130de236503983e2b449f6fcd176b38",
+      "unchanged": true
+    },
+    "model/umpire/dev/xtask/src/quick/mod.rs": {
+      "current_sha256": "a22c2ca1b6d48caaac8bb8e17f84728769b4478038c2f795712857de8e2ca185",
+      "historical_sha256": "568cdb22adeb8fe2943a90ede775d0e3fef11fd48034768c53363ac2e66b7372",
+      "unchanged": false
+    },
+    "model/umpire/dev/xtask/src/quick/selection.rs": {
+      "current_sha256": "dca50daf8312d191dd55579e6e2c78ae8b259ac02f2f524659de82bd27c9fc34",
+      "historical_sha256": "3ae16abbc25b15a06161e516a6dd94afcbbc5309b888ea8733dfba2afe5090be",
+      "unchanged": false
+    },
+    "model/umpire/dev/xtask/src/quick/tests.rs": {
+      "current_sha256": "6a50094ca49212d70df79bbf09b41b3ea2ec3f11f360eb585ab1c229e777ce95",
+      "historical_sha256": "e2c32cbd5196004b2186f7ba802649a799585dc051f0c6985b3f2e59626df061",
+      "unchanged": false
+    }
+  },
+  "lockfiles": {
+    "model/Cargo.lock": {
+      "current_sha256": "50d2b024555c958b02286fa6ec65976efc9fb9cd69f4d27780e9a01998d5d70f",
+      "historical_sha256": "50d2b024555c958b02286fa6ec65976efc9fb9cd69f4d27780e9a01998d5d70f",
+      "unchanged": true
+    },
+    "model/umpire/Cargo.lock": {
+      "current_sha256": "bc3962111f4b446d43e01dd5409274ff00219830d02e85ac0ea9a7ec34a27dd5",
+      "historical_sha256": "bc3962111f4b446d43e01dd5409274ff00219830d02e85ac0ea9a7ec34a27dd5",
+      "unchanged": true
+    }
+  },
+  "five_consumer_proof_projection": {
+    "model/dev/xtask/src/quick/mod.rs": {
+      "current_sha256": "83e76a8f0fda96f4df2fa0e8ba274a679592dfc5fc454f6c78df23d844cdb157",
+      "historical_sha256": "83e76a8f0fda96f4df2fa0e8ba274a679592dfc5fc454f6c78df23d844cdb157",
+      "unchanged": true
+    },
+    "model/umpire/dev/xtask/src/quick/tests.rs": {
+      "current_sha256": "6a50094ca49212d70df79bbf09b41b3ea2ec3f11f360eb585ab1c229e777ce95",
+      "historical_sha256": "85775babd09bc3b62618e961a89d8b735184f24ec9b6ab439b79ec33430720a3",
+      "unchanged": false
+    }
+  },
+  "reuse_scope": "Original cache/process/interpreted sources unchanged, so retain complete real cache/TLC invalidation and inherited full-gate bypass proof. Temporal bridge source hash matches five-consumer proof; retain complete 444.027s run and budget miss. Current framework quick selection source changed and receives fresh controls and real Kettle execution. No unrelated broad gate claimed."
+}

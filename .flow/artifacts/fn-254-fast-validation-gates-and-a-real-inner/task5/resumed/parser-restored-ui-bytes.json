@@ -1,0 +1,12 @@
+{
+  "restored_pairs_equal_to_HEAD": {
+    "model/umpire/author/dsl/macros/tests/ui/machine_stay_effect.rs": "cea14d88d1d713f8b459e06a4190c012c243dfe1a4d05de277cd4cd6dc0bd640",
+    "model/umpire/author/dsl/macros/tests/ui/machine_stay_effect.stderr": "34a563352dd85c59f164a5df9d31b02002b420f5c5af09d01004ed6050624728",
+    "model/umpire/author/dsl/macros/tests/ui/machine_stay_helper.rs": "642ca2fa50c2eb793f87013cc00655e586ec2d8b33378eac4c1579bf2960c47c",
+    "model/umpire/author/dsl/macros/tests/ui/machine_stay_helper.stderr": "6772d4350e2858d3a424869b44b24682fbe65e69b4df2c7e1a91551701d764af"
+  },
+  "parser_rows": 61,
+  "retained_trybuild_cases": 18,
+  "total_old_cases": 79,
+  "expected_vectors_relaxed": false
+}

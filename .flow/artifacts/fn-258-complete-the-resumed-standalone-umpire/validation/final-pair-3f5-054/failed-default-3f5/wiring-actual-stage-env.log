@@ -1,0 +1,130 @@
+command: ["/bin/bash", "-x", "model/scripts/test-model-wiring.sh"]
+Cache override: {"UMPIRE_QUICK_CACHE": "0", "UMPIRE_CACHE_DISABLE": "1"}
++ set -euo pipefail
+++ dirname model/scripts/test-model-wiring.sh
++ cd model/scripts/../..
++ repository=/home/agent/.cache/codex-build/tmp/fn258-final-pair-3f5-054/temporal
+++ /bin/bash model/scripts/framework-root.sh
++ framework=/home/agent/.cache/codex-build/tmp/fn258-final-pair-3f5-054/umpire
++ for config in mise.toml "$framework/mise.toml"
+++ sed -n 's/^min_version = "\([^"]*\)"/\1/p' mise.toml
++ minimum=2026.10.11
++ '[' -n 2026.10.11 ']'
++ awk -v minimum=2026.10.11 $'\n    function older(value, floor, current, required, i) {\n      split(value, current, /[.]/); split(floor, required, /[.]/)\n      for (i = 1; i <= 3; i++) {\n        if (current[i] + 0 != required[i] + 0) return current[i] + 0 < required[i] + 0\n      }\n      return 0\n    }\n    /uses: jdx\\/mise-action@/ { mise = 1; next }\n    mise && /^[[:space:]]*version:/ {\n      version = $0; gsub(/[[:space:]"]/, "", version); sub(/^version:/, "", version)\n      seen++; mise = 0\n      if (older(version, minimum)) {\n        printf "CI mise %s is below required %s\\n", version, minimum > "/dev/stderr"\n        exit 1\n      }\n    }\n    END { if (!seen) exit 1 }\n  ' .github/workflows/umpire.yml
++ for config in mise.toml "$framework/mise.toml"
+++ sed -n 's/^min_version = "\([^"]*\)"/\1/p' /home/agent/.cache/codex-build/tmp/fn258-final-pair-3f5-054/umpire/mise.toml
++ minimum=2026.10.11
++ '[' -n 2026.10.11 ']'
++ awk -v minimum=2026.10.11 $'\n    function older(value, floor, current, required, i) {\n      split(value, current, /[.]/); split(floor, required, /[.]/)\n      for (i = 1; i <= 3; i++) {\n        if (current[i] + 0 != required[i] + 0) return current[i] + 0 < required[i] + 0\n      }\n      return 0\n    }\n    /uses: jdx\\/mise-action@/ { mise = 1; next }\n    mise && /^[[:space:]]*version:/ {\n      version = $0; gsub(/[[:space:]"]/, "", version); sub(/^version:/, "", version)\n      seen++; mise = 0\n      if (older(version, minimum)) {\n        printf "CI mise %s is below required %s\\n", version, minimum > "/dev/stderr"\n        exit 1\n      }\n    }\n    END { if (!seen) exit 1 }\n  ' .github/workflows/umpire.yml
+++ mktemp -d
++ control=/home/agent/.cache/codex-build/tmp/tmp.4b64l2qsVY
++ trap 'rm -rf "${control:?}"' EXIT
++ mkdir -p /home/agent/.cache/codex-build/tmp/tmp.4b64l2qsVY/model/scripts /home/agent/.cache/codex-build/tmp/tmp.4b64l2qsVY/model/dev/xtask/src /home/agent/.cache/codex-build/tmp/tmp.4b64l2qsVY/bin
++ printf 'API_BINPB = control-api\nPROTOC_GEN_GO = control-go\nPROTOC_GEN_GO_GRPC = control-grpc\n'
++ awk '/^##### model: Umpire in Rust/ { copy=1 } copy { print }' Makefile
++ cat
++ printf '#!/bin/bash\nexit 0\n'
++ cat
++ cat
++ cat
++ chmod +x /home/agent/.cache/codex-build/tmp/tmp.4b64l2qsVY/bin/mise /home/agent/.cache/codex-build/tmp/tmp.4b64l2qsVY/bin/framework
++ export PATH=/home/agent/.cache/codex-build/tmp/tmp.4b64l2qsVY/bin:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.codex/tmp/arg0-linux/codex-arg0K7EPuG:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.cargo/bin:/home/agent/.local/bin:/usr/local/share/npm-global/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin CONTROL_LOG=/home/agent/.cache/codex-build/tmp/tmp.4b64l2qsVY/calls CONTROL_FRAMEWORK=/home/agent/.cache/codex-build/tmp/tmp.4b64l2qsVY/bin/framework CONTROL_ROOT=/home/agent/.cache/codex-build/tmp/tmp.4b64l2qsVY
++ PATH=/home/agent/.cache/codex-build/tmp/tmp.4b64l2qsVY/bin:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.codex/tmp/arg0-linux/codex-arg0K7EPuG:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.cargo/bin:/home/agent/.local/bin:/usr/local/share/npm-global/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
++ CONTROL_LOG=/home/agent/.cache/codex-build/tmp/tmp.4b64l2qsVY/calls
++ CONTROL_FRAMEWORK=/home/agent/.cache/codex-build/tmp/tmp.4b64l2qsVY/bin/framework
++ CONTROL_ROOT=/home/agent/.cache/codex-build/tmp/tmp.4b64l2qsVY
++ export CARGO_HOME=relative-home CARGO_TARGET_DIR=relative-target
++ CARGO_HOME=relative-home
++ CARGO_TARGET_DIR=relative-target
++ export CARGO_BUILD_JOBS=99
++ CARGO_BUILD_JOBS=99
++ unset MAKEFLAGS MFLAGS MAKEOVERRIDES UMPIRE_BACKENDS UMPIRE_APALACHE
++ cd /home/agent/.cache/codex-build/tmp/tmp.4b64l2qsVY
+++ pwd -P
++ control=/home/agent/.cache/codex-build/tmp/tmp.4b64l2qsVY
++ for timed in 0 1
++ :
++ UMPIRE_QUICK_CACHE=1
++ UMPIRE_CACHE_DISABLE=0
++ make UMPIRE_TIME_STEPS=0 UMPIRE_QUICK_CACHE=1 UMPIRE_CACHE_DISABLE=0 model-check
+++ printf 'temporal|%s|exec -- cargo run --manifest-path %s/model/Cargo.toml --package temporal-xtask --bin temporal-xtask --profile dev -- gate|0|1' /home/agent/.cache/codex-build/tmp/tmp.4b64l2qsVY /home/agent/.cache/codex-build/tmp/tmp.4b64l2qsVY
++ expected='temporal|/home/agent/.cache/codex-build/tmp/tmp.4b64l2qsVY|exec -- cargo run --manifest-path /home/agent/.cache/codex-build/tmp/tmp.4b64l2qsVY/model/Cargo.toml --package temporal-xtask --bin temporal-xtask --profile dev -- gate|0|1'
+++ cat /home/agent/.cache/codex-build/tmp/tmp.4b64l2qsVY/calls
++ actual='temporal|/home/agent/.cache/codex-build/tmp/tmp.4b64l2qsVY|exec -- cargo run --manifest-path /home/agent/.cache/codex-build/tmp/tmp.4b64l2qsVY/model/Cargo.toml --package temporal-xtask --bin temporal-xtask --profile dev -- gate|0|1'
++ '[' 'temporal|/home/agent/.cache/codex-build/tmp/tmp.4b64l2qsVY|exec -- cargo run --manifest-path /home/agent/.cache/codex-build/tmp/tmp.4b64l2qsVY/model/Cargo.toml --package temporal-xtask --bin temporal-xtask --profile dev -- gate|0|1' '!=' 'temporal|/home/agent/.cache/codex-build/tmp/tmp.4b64l2qsVY|exec -- cargo run --manifest-path /home/agent/.cache/codex-build/tmp/tmp.4b64l2qsVY/model/Cargo.toml --package temporal-xtask --bin temporal-xtask --profile dev -- gate|0|1' ']'
++ for timed in 0 1
++ :
++ UMPIRE_QUICK_CACHE=1
++ UMPIRE_CACHE_DISABLE=0
++ make UMPIRE_TIME_STEPS=1 UMPIRE_QUICK_CACHE=1 UMPIRE_CACHE_DISABLE=0 model-check
+++ printf 'temporal|%s|exec -- cargo run --manifest-path %s/model/Cargo.toml --package temporal-xtask --bin temporal-xtask --profile dev -- gate|0|1' /home/agent/.cache/codex-build/tmp/tmp.4b64l2qsVY /home/agent/.cache/codex-build/tmp/tmp.4b64l2qsVY
++ expected='temporal|/home/agent/.cache/codex-build/tmp/tmp.4b64l2qsVY|exec -- cargo run --manifest-path /home/agent/.cache/codex-build/tmp/tmp.4b64l2qsVY/model/Cargo.toml --package temporal-xtask --bin temporal-xtask --profile dev -- gate|0|1'
+++ cat /home/agent/.cache/codex-build/tmp/tmp.4b64l2qsVY/calls
++ actual='temporal|/home/agent/.cache/codex-build/tmp/tmp.4b64l2qsVY|exec -- cargo run --manifest-path /home/agent/.cache/codex-build/tmp/tmp.4b64l2qsVY/model/Cargo.toml --package temporal-xtask --bin temporal-xtask --profile dev -- gate|0|1'
++ '[' 'temporal|/home/agent/.cache/codex-build/tmp/tmp.4b64l2qsVY|exec -- cargo run --manifest-path /home/agent/.cache/codex-build/tmp/tmp.4b64l2qsVY/model/Cargo.toml --package temporal-xtask --bin temporal-xtask --profile dev -- gate|0|1' '!=' 'temporal|/home/agent/.cache/codex-build/tmp/tmp.4b64l2qsVY|exec -- cargo run --manifest-path /home/agent/.cache/codex-build/tmp/tmp.4b64l2qsVY/model/Cargo.toml --package temporal-xtask --bin temporal-xtask --profile dev -- gate|0|1' ']'
++ for mode in required optional
++ :
++ '[' required = required ']'
++ make UMPIRE_BACKENDS=require model-check
+++ wc -l
+++ tr -d ' '
++ '[' 1 -eq 1 ']'
++ for mode in required optional
++ :
++ '[' optional = required ']'
++ make UMPIRE_APALACHE=require model-check
+++ wc -l
+++ tr -d ' '
++ '[' 1 -eq 1 ']'
++ :
++ make model-quick
+++ wc -l
+++ tr -d ' '
++ '[' 1 -eq 1 ']'
++ :
++ make -j1 UMPIRE_QUICK_CACHE=1 UMPIRE_CACHE_DISABLE=0 model-prerequisites
+++ cat /home/agent/.cache/codex-build/tmp/tmp.4b64l2qsVY/calls
++ '[' $'producer|control-go\nproducer|control-grpc\nproducer|control-api' = $'producer|control-go\nproducer|control-grpc\nproducer|control-api' ']'
++ :
++ status=0
++ CONTROL_TEMPORAL_STATUS=37
++ make model-check
++ status=2
++ '[' 2 -eq 2 ']'
+++ wc -l
+++ tr -d ' '
++ '[' 1 -eq 1 ']'
++ for action in fmt update
++ :
++ make model-fmt
+++ wc -l
+++ tr -d ' '
++ '[' 2 -eq 2 ']'
++ head -1 /home/agent/.cache/codex-build/tmp/tmp.4b64l2qsVY/calls
++ rg -q 'framework\|.*\|fmt\|'
++ '[' fmt = update ']'
++ :
++ status=0
++ CONTROL_FRAMEWORK_STATUS=37
++ make model-fmt
++ status=2
++ '[' 2 -eq 2 ']'
+++ tr -d ' '
+++ wc -l
++ '[' 1 -eq 1 ']'
++ for action in fmt update
++ :
++ make model-update
+++ wc -l
+++ tr -d ' '
++ '[' 2 -eq 2 ']'
++ head -1 /home/agent/.cache/codex-build/tmp/tmp.4b64l2qsVY/calls
++ rg -q 'framework\|.*\|update\|'
++ '[' update = update ']'
+++ printf 'temporal|%s|exec -- cargo run --manifest-path %s/model/Cargo.toml --package temporal-xtask --bin temporal-xtask --profile dev -- test-run|unset|unset' /home/agent/.cache/codex-build/tmp/tmp.4b64l2qsVY /home/agent/.cache/codex-build/tmp/tmp.4b64l2qsVY
++ expected='temporal|/home/agent/.cache/codex-build/tmp/tmp.4b64l2qsVY|exec -- cargo run --manifest-path /home/agent/.cache/codex-build/tmp/tmp.4b64l2qsVY/model/Cargo.toml --package temporal-xtask --bin temporal-xtask --profile dev -- test-run|unset|unset'
+++ tail -1 /home/agent/.cache/codex-build/tmp/tmp.4b64l2qsVY/calls
++ '[' 'temporal|/home/agent/.cache/codex-build/tmp/tmp.4b64l2qsVY|exec -- cargo run --manifest-path /home/agent/.cache/codex-build/tmp/tmp.4b64l2qsVY/model/Cargo.toml --package temporal-xtask --bin temporal-xtask --profile dev -- test-run|0|1' = 'temporal|/home/agent/.cache/codex-build/tmp/tmp.4b64l2qsVY|exec -- cargo run --manifest-path /home/agent/.cache/codex-build/tmp/tmp.4b64l2qsVY/model/Cargo.toml --package temporal-xtask --bin temporal-xtask --profile dev -- test-run|unset|unset' ']'
++ rm -rf /home/agent/.cache/codex-build/tmp/tmp.4b64l2qsVY
+
+exit: 1

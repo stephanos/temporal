@@ -263,3 +263,58 @@ fn forwards_opaque_metadata_through_renamed_facade() {
     assert_eq!(DECLARED_ACTORS, ("$", "$", 1));
     assert_eq!(DECLARED_VARIANTS, ("$", "$", 1));
 }
+
+#[author_kit::machine]
+mod countdown_clock {
+    use author_kit::dsl::countdown::{Remaining, Ticks};
+    use author_kit::dsl::{Action, State, World, check, countdown};
+
+    #[derive(World)]
+    pub(crate) struct World {
+        enabled: bool,
+    }
+    #[derive(State)]
+    pub(crate) struct Model {
+        pub(crate) configured: Option<Ticks<3>>,
+        pub(crate) remaining: Option<Remaining<3>>,
+    }
+    #[derive(Action, Copy)]
+    pub(crate) enum User {
+        Tick,
+    }
+    impl Model {
+        #[starts]
+        fn starts(_: &World) -> impl IntoIterator<Item = Self> {
+            [Self { configured: Some(Ticks(3)), remaining: Some(Remaining { ticks: 2 }) }]
+        }
+        #[on(User)]
+        fn user(&mut self, action: User) {
+            match action {
+                User::Tick => self.remaining = countdown::tick(self.remaining),
+            }
+        }
+        #[invariant]
+        fn present(&self) {
+            check!(countdown::armed(self.remaining));
+        }
+    }
+}
+
+#[test]
+fn renamed_facade_decodes_imported_const_generic_countdowns() {
+    use author_kit::dsl::__lifted::{Interprets, Lifts, value::Value};
+    use author_kit::dsl::{
+        Machine,
+        countdown::{Remaining, Ticks},
+    };
+    let world = countdown_clock::World::new(true);
+    let embedded = countdown_clock::World::__umpire_lifted();
+    assert!(embedded.model.is_ok(), "{:?}", embedded.model);
+    let mut state = countdown_clock::World::__umpire_state(&[Value::Int(2), Value::Int(1)]);
+    assert_eq!(state.configured, Some(Ticks::<3>(1)));
+    assert_eq!(state.remaining, Some(Remaining::<3> { ticks: 0 }));
+    countdown_clock::World::__umpire_set(&mut state, 1, &Value::Int(3));
+    assert_eq!(countdown_clock::World::__umpire_get(&state, 1), Value::Int(3));
+    let next = world.step(&state, world.actions().remove(0)).remove(0).2;
+    assert_eq!(next.remaining, Some(Remaining { ticks: 1 }));
+}

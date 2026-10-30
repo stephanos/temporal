@@ -1,0 +1,282 @@
+{
+  "observed_at": "2026-10-28T05:12:14.016696+00:00",
+  "source_commit": "ac60daaf47d2513b41eeff612f0e2758d33e186d",
+  "current_head": "ac60daaf47d2513b41eeff612f0e2758d33e186d",
+  "worktrees": [
+    {
+      "worktree": "/Users/stephan/Workspace/skunkworks/umpire/temporal",
+      "HEAD": "ac60daaf47d2513b41eeff612f0e2758d33e186d",
+      "branch": "refs/heads/umpire",
+      "status_porcelain_v1_z_hex": "3f3f202e666c6f772f73706563732f666e2d3235382d636f6d706c6574652d7468652d726573756d65642d7374616e64616c6f6e652d756d706972652e6a736f6e003f3f202e666c6f772f73706563732f666e2d3235382d636f6d706c6574652d7468652d726573756d65642d7374616e64616c6f6e652d756d706972652e6d64003f3f202e666c6f772f7461736b732f666e2d3235382d636f6d706c6574652d7468652d726573756d65642d7374616e64616c6f6e652d756d706972652e312e6a736f6e003f3f202e666c6f772f7461736b732f666e2d3235382d636f6d706c6574652d7468652d726573756d65642d7374616e64616c6f6e652d756d706972652e312e6d64003f3f202e666c6f772f7461736b732f666e2d3235382d636f6d706c6574652d7468652d726573756d65642d7374616e64616c6f6e652d756d706972652e322e6a736f6e003f3f202e666c6f772f7461736b732f666e2d3235382d636f6d706c6574652d7468652d726573756d65642d7374616e64616c6f6e652d756d706972652e322e6d64003f3f202e666c6f772f7461736b732f666e2d3235382d636f6d706c6574652d7468652d726573756d65642d7374616e64616c6f6e652d756d706972652e332e6a736f6e003f3f202e666c6f772f7461736b732f666e2d3235382d636f6d706c6574652d7468652d726573756d65642d7374616e64616c6f6e652d756d706972652e332e6d64003f3f202e666c6f772f7461736b732f666e2d3235382d636f6d706c6574652d7468652d726573756d65642d7374616e64616c6f6e652d756d706972652e342e6a736f6e003f3f202e666c6f772f7461736b732f666e2d3235382d636f6d706c6574652d7468652d726573756d65642d7374616e64616c6f6e652d756d706972652e342e6d64003f3f202e666c6f772f7461736b732f666e2d3235382d636f6d706c6574652d7468652d726573756d65642d7374616e64616c6f6e652d756d706972652e352e6a736f6e003f3f202e666c6f772f7461736b732f666e2d3235382d636f6d706c6574652d7468652d726573756d65642d7374616e64616c6f6e652d756d706972652e352e6d6400",
+      "head_is_source_ancestor": true
+    },
+    {
+      "worktree": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24613-protocol",
+      "HEAD": "5d8c856521106c31534e2d7fbbc3599c58bb82ca",
+      "branch": "refs/heads/work/fn24613-protocol",
+      "status_porcelain_v1_z_hex": "",
+      "head_is_source_ancestor": false
+    },
+    {
+      "worktree": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2462-once-entity-lens",
+      "HEAD": "7de877e5de1c5fdde24c835fddcd3f4ae226f4cd",
+      "branch": "refs/heads/work/fn2462-once-entity-lens",
+      "status_porcelain_v1_z_hex": "",
+      "head_is_source_ancestor": false
+    },
+    {
+      "worktree": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2469-baseline",
+      "HEAD": "d0469357c11d885ee1f050446e244ab4538f3a0e",
+      "branch": "refs/heads/work/fn2469-baseline",
+      "status_porcelain_v1_z_hex": "204d2074657374732f7465737470696c6f745f6d6f64656c5f736c6963655f756d706972655f746573742e676f00",
+      "head_is_source_ancestor": true
+    },
+    {
+      "worktree": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2469-prefix",
+      "HEAD": "eac683e6033c5861910fc0f0ed61f41b5e02946f",
+      "branch": "refs/heads/work/fn2469-prefix",
+      "status_porcelain_v1_z_hex": "",
+      "head_is_source_ancestor": false
+    },
+    {
+      "worktree": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2533-once-countdown-library",
+      "HEAD": "fa1feeaff76f214f6fc0a600b68e4137e3af2b83",
+      "branch": "refs/heads/work/fn2533-once-countdown-library",
+      "status_porcelain_v1_z_hex": "",
+      "head_is_source_ancestor": false
+    },
+    {
+      "worktree": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn254-source-assembly",
+      "HEAD": "7cf05d1c5336b89c17c4fb13f6fced57db1ced14",
+      "branch": "refs/heads/work/fn254-source-assembly",
+      "status_porcelain_v1_z_hex": "4d20206d6f64656c2f6465762f787461736b2f7372632f676174652e7273004d20206d6f64656c2f756d706972652f6261636b656e64732f70726f636573732f7372632f6c69622e7273005555206d6f64656c2f756d706972652f6261636b656e64732f70726f636573732f7372632f737570706f72742e7273004120206d6f64656c2f756d706972652f6261636b656e64732f70726f636573732f7372632f776f726b2e7273004d20206d6f64656c2f756d706972652f6261636b656e64732f746c632f7372632f72756e6e65722e7273004d20206d6f64656c2f756d706972652f6465762f787461736b2f7372632f676174652e7273004d20206d6f64656c2f756d706972652f6465762f787461736b2f7372632f676174652f7363686564756c65722e7273004d20206d6f64656c2f756d706972652f6465762f787461736b2f7372632f676174652f74696d696e672e7273004120206d6f64656c2f756d706972652f6465762f787461736b2f7372632f676174652f776f726b5f636f756e74732e7273004d20206d6f64656c2f756d706972652f6465762f787461736b2f7372632f746573745f72756e2e727300",
+      "head_is_source_ancestor": false
+    },
+    {
+      "worktree": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25411-standalone",
+      "HEAD": "6660073f4200beb5f0020d5db50e99cdab872e04",
+      "branch": "refs/heads/work/fn25411-standalone",
+      "status_porcelain_v1_z_hex": "",
+      "head_is_source_ancestor": false
+    },
+    {
+      "worktree": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25412-budget-wiring",
+      "HEAD": "f7ad9c4e58725590d313a4e8b5c1a36847dd02c4",
+      "branch": "refs/heads/work/fn25412-budget-wiring",
+      "status_porcelain_v1_z_hex": "",
+      "head_is_source_ancestor": false
+    },
+    {
+      "worktree": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25414-probes",
+      "HEAD": "5ba482b5b73ca4d85ab758568d9a25ec4c4126b4",
+      "branch": "refs/heads/work/fn25414-probes",
+      "status_porcelain_v1_z_hex": "",
+      "head_is_source_ancestor": false
+    },
+    {
+      "worktree": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25415-native-controls-v2",
+      "HEAD": "022d614b6fc4e8263bd541c58acd31bf440c7112",
+      "branch": "refs/heads/work/fn25415-native-controls-v2",
+      "status_porcelain_v1_z_hex": "",
+      "head_is_source_ancestor": false
+    },
+    {
+      "worktree": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25415-shell-finish",
+      "HEAD": "a5c556ca2b9b46734347c20fd83381ed7758ba06",
+      "branch": "refs/heads/work/fn25415-shell-finish",
+      "status_porcelain_v1_z_hex": "",
+      "head_is_source_ancestor": false
+    },
+    {
+      "worktree": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25416-provider-adapt",
+      "HEAD": "60f1c762a618d32478b58ae4e79c151f4355aeb3",
+      "branch": "refs/heads/work/fn25416-provider-adapt",
+      "status_porcelain_v1_z_hex": "",
+      "head_is_source_ancestor": false
+    },
+    {
+      "worktree": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-mise-adapter-v2",
+      "HEAD": "ce5996f4d87c080eaf51d02e3b590318144b541c",
+      "branch": "refs/heads/work/fn25417-mise-adapter-v2",
+      "status_porcelain_v1_z_hex": "",
+      "head_is_source_ancestor": false
+    },
+    {
+      "worktree": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2546-quick",
+      "HEAD": "0c41b85a49dc38758cf0418809fbcf0de63205fc",
+      "branch": "refs/heads/work/fn2546-quick",
+      "status_porcelain_v1_z_hex": "",
+      "head_is_source_ancestor": false
+    },
+    {
+      "worktree": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2553-stable-harness",
+      "HEAD": "7010baad96ec230bd45eff977d218ab192f8464c",
+      "branch": "refs/heads/work/fn2553-stable-harness",
+      "status_porcelain_v1_z_hex": "",
+      "head_is_source_ancestor": false
+    },
+    {
+      "worktree": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2555-once-miri",
+      "HEAD": "9583f7eef765ad6c6cc41a8e400613cdb078470b",
+      "branch": "refs/heads/work/fn2555-once-miri",
+      "status_porcelain_v1_z_hex": "",
+      "head_is_source_ancestor": false
+    },
+    {
+      "worktree": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2556-coverage-fixes",
+      "HEAD": "91847b54dc4af12193379274761d00d7fd20ef04",
+      "branch": "refs/heads/work/fn2556-coverage-fixes",
+      "status_porcelain_v1_z_hex": "",
+      "head_is_source_ancestor": false
+    },
+    {
+      "worktree": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2561-retirement",
+      "HEAD": "d9a58c62ddbe931083bebb368a24065480ec0e85",
+      "branch": "refs/heads/work/fn2561-retirement",
+      "status_porcelain_v1_z_hex": "",
+      "head_is_source_ancestor": false
+    },
+    {
+      "worktree": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2562-once-retirement",
+      "HEAD": "f6e39420c2ac6308a3da9380da44c126054b6380",
+      "branch": "refs/heads/work/fn2562-once-retirement",
+      "status_porcelain_v1_z_hex": "",
+      "head_is_source_ancestor": false
+    },
+    {
+      "worktree": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2574-consumers",
+      "HEAD": "91547f57ec192d576a13056ce570c8bf47e441bf",
+      "branch": "refs/heads/work/fn2574-consumers",
+      "status_porcelain_v1_z_hex": "",
+      "head_is_source_ancestor": false
+    },
+    {
+      "worktree": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2583-consumers",
+      "HEAD": "ac60daaf47d2513b41eeff612f0e2758d33e186d",
+      "branch": "refs/heads/work/fn2583-consumers",
+      "locked": "initializing",
+      "status_porcelain_v1_z_hex": "4120202e6769746875622f616374696f6e732f707265706172652d7061697265642d636865636b6f75742f616374696f6e2e796d6c005555204d616b6566696c65004d2020636f6d6d6f6e2f74657374696e672f7465737470696c6f742f646570656e64656e63795f626f756e646172795f746573742e676f004d2020636f6d6d6f6e2f74657374696e672f7465737470696c6f742f74656d706f72616c2f6163742f6163742e676f004d2020636f6d6d6f6e2f74657374696e672f7465737470696c6f742f74656d706f72616c2f6163742f6163745f746573742e676f004d2020636f6d6d6f6e2f74657374696e672f7465737470696c6f742f74656d706f72616c2f6163742f65786368616e67652e676f004d2020636f6d6d6f6e2f74657374696e672f7465737470696c6f742f74656d706f72616c2f6163742f706f6c6c735f746573742e676f004d2020636f6d6d6f6e2f74657374696e672f7465737470696c6f742f74656d706f72616c2f6163742f7265636f6e63696c655f746573742e676f004d2020636f6d6d6f6e2f74657374696e672f7465737470696c6f742f74656d706f72616c2f6163742f7270632e676f004d2020636f6d6d6f6e2f74657374696e672f7465737470696c6f742f74656d706f72616c2f6163742f72756e6e65725f746573742e676f004d2020636f6d6d6f6e2f74657374696e672f7465737470696c6f742f74656d706f72616c2f6163742f776f726b65722e676f004d2020676f2e6d6f64004d20206d6f64656c2f436172676f2e746f6d6c004d20206d6f64656c2f524541444d452e6d64004d20206d6f64656c2f64657369676e2f6e61746976652d73796d626f6c69632f436172676f2e746f6d6c004d20206d6f64656c2f64657369676e2f6e61746976652d73796d626f6c69632f6275696c642e7273004d20206d6f64656c2f64657369676e2f6e61746976652d73796d626f6c69632f7372632f6d61696e2e7273005555206d6f64656c2f6465762f787461736b2f436172676f2e746f6d6c004d20206d6f64656c2f6465762f787461736b2f7372632f676174652e7273004d20206d6f64656c2f6465762f787461736b2f7372632f6d61696e2e7273004d20206d6f64656c2f6465762f787461736b2f7372632f717569636b2f6d6f642e7273004d20206d6f64656c2f6465762f787461736b2f74657374732f6d61696e2e7273004d20206d6f64656c2f6465762f787461736b2f74657374732f6d616b655f70617468732e7273004120206d6f64656c2f646f63732f7061697265642d636865636b6f75742e6d64004d20206d6f64656c2f736372697074732f66657463682d746c632e7368004120206d6f64656c2f736372697074732f6672616d65776f726b2d726f6f742e7368004d20206d6f64656c2f736372697074732f67756573742d66726573686e6573732e7368004d20206d6f64656c2f736372697074732f67756573742e7368004d20206d6f64656c2f736372697074732f70726f746f2d676f2e7368004d20206d6f64656c2f736372697074732f746573742d6361706162696c69746965732e7368005555206d6f64656c2f736372697074732f746573742d6d6f64656c2d76616c69646174652e7368005555206d6f64656c2f736372697074732f746573742d6d6f64656c2d776972696e672e7368004d20206d6f64656c2f736372697074732f74657374732f67756573742d726f6f74732e7368004d20206d6f64656c2f736372697074732f74657374732f70726f746f2d676f2e7368005555206d6f64656c2f736372697074732f74696d652d676174652e7368004d20206d6f64656c2f736372697074732f787461736b2e7368004d20206d6f64656c2f74656d706f72616c2f6170692f6275696c642e7273004d20206d6f64656c2f74656d706f72616c2f6170692f74657374732f636f646567656e2e7273004d20206d6f64656c2f74656d706f72616c2f6170692f74657374732f64657363726970746f722e7273004d20206d6f64656c2f74656d706f72616c2f666561747572652f61637469766974792f74657374732e7273004120206d6f64656c2f74656d706f72616c2f686f7374732f676f2f524541444d452e6d64004d20206d6f64656c2f74656d706f72616c2f686f7374732f676f2f616c6c6f636174696f6e5f746573742e676f004d20206d6f64656c2f74656d706f72616c2f686f7374732f676f2f616e6e6f746174696f6e735f746573742e676f004d20206d6f64656c2f74656d706f72616c2f686f7374732f676f2f676f2e6d6f64004d20206d6f64656c2f74656d706f72616c2f686f7374732f676f2f7061726974795f746573742e676f004d20206d6f64656c2f74656d706f72616c2f686f7374732f676f2f70726f6265732e676f004d20206d6f64656c2f74656d706f72616c2f686f7374732f676f2f70726f6265735f746573742e676f004d20206d6f64656c2f74656d706f72616c2f686f7374732f676f2f70726f6772616d5f746573742e676f004d20206d6f64656c2f74656d706f72616c2f686f7374732f676f2f70726f706f73616c5f746573742e676f004d20206d6f64656c2f74656d706f72616c2f686f7374732f676f2f7265666572656e63652f776f726b65722f6272696467652e676f004d20206d6f64656c2f74656d706f72616c2f686f7374732f676f2f7265666572656e63652f776f726b65722f70726f6772616d5f7472616e73706f72745f746573742e676f004d20206d6f64656c2f74656d706f72616c2f686f7374732f676f2f7265666572656e63652f776f726b65722f7261772f7261775f746573742e676f004d20206d6f64656c2f74656d706f72616c2f686f7374732f676f2f7265666572656e63652f776f726b65722f73646b2f636f6e74696e756174696f6e5f746573742e676f004d20206d6f64656c2f74656d706f72616c2f686f7374732f676f2f756d706972652f74656d706f72616c2f76312f70726f62652e70622e676f004d20206d6f64656c2f74656d706f72616c2f7265616c697a6174696f6e2f6d6163726f732f7372632f726f6f74732e7273004d20206d6f64656c2f74656d706f72616c2f7265616c697a6174696f6e2f6d6163726f732f74657374732f72656e616d65642f436172676f2e746f6d6c004d20206d6f64656c2f74656d706f72616c2f74657374696e672f626f756e646172792e7273004d20206d6f64656c2f74656d706f72616c2f74657374696e672f6275696c642e7273004d20206d6f64656c2f74656d706f72616c2f74657374696e672f736e617073686f745f6f776e6572736869702e7273004d202074657374732f7465737470696c6f745f63616e6172795f746573742e676f004d202074657374732f7465737470696c6f745f6d6f64656c5f616e6e6f746174696f6e735f746573742e676f004d202074657374732f7465737470696c6f745f6d6f64656c5f676170735f746573742e676f004d202074657374732f7465737470696c6f745f6d6f64656c5f7265636f6e63696c655f746573742e676f004d202074657374732f7465737470696c6f745f6d6f64656c5f736c6963655f746573742e676f004d202074657374732f7465737470696c6f745f6d6f64656c5f736c6963655f756d706972655f746573742e676f004d2020746f6f6c732f63616e6172792f636f6e74726f6c6c65722f636f6e74726f6c6c65722e676f004d2020746f6f6c732f63616e6172792f636f6e74726f6c6c65722f636f6e74726f6c6c65725f746573742e676f004d2020746f6f6c732f63616e6172792f636f6e74726f6c6c65722f66656e6365642e676f004d2020746f6f6c732f63616e6172792f636f6e74726f6c6c65722f66656e6365645f746573742e676f004d2020746f6f6c732f63616e6172792f636f6e74726f6c6c65722f6d61747269785f746573742e676f004d2020746f6f6c732f63616e6172792f636f6e74726f6c6c65722f72756e2e676f004d2020746f6f6c732f63616e6172792f636f6e74726f6c6c65722f72756e5f746573742e676f004d2020746f6f6c732f756d706972652f636d642f756d706972652f6d61696e2e676f004d2020746f6f6c732f756d706972652f636d642f756d706972652f6d61696e5f746573742e676f004d2020746f6f6c732f756d706972652f74656d706f72616c6472697665722f63616e63656c5f7270635f746573742e676f004d2020746f6f6c732f756d706972652f74656d706f72616c6472697665722f636f6e74696e756174696f6e5f746573742e676f00",
+      "head_is_source_ancestor": true
+    },
+    {
+      "worktree": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/once2552-differential",
+      "HEAD": "71d33377eeee63989daf312e9d3fd8e218968e2b",
+      "branch": "refs/heads/work/fn2552-once-differential",
+      "status_porcelain_v1_z_hex": "",
+      "head_is_source_ancestor": false
+    },
+    {
+      "worktree": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/once2556-coverage",
+      "HEAD": "daee451d5c5e2efdf72100d9a518cd16e8c438d1",
+      "branch": "refs/heads/work/fn2556-coverage",
+      "status_porcelain_v1_z_hex": "",
+      "head_is_source_ancestor": false
+    },
+    {
+      "worktree": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/prep2532-countdown",
+      "HEAD": "817904c3d01cfa456a47e2ec789ccc11e4e9363b",
+      "branch": "refs/heads/work/fn2532-prep-countdown",
+      "status_porcelain_v1_z_hex": "",
+      "head_is_source_ancestor": false
+    },
+    {
+      "worktree": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/prep254-receipt-counts",
+      "HEAD": "097e800d722ff998ce10371f48663e563433f499",
+      "branch": "refs/heads/work/fn254-receipt-counts",
+      "status_porcelain_v1_z_hex": "",
+      "head_is_source_ancestor": false
+    },
+    {
+      "worktree": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/prep25412-budgets",
+      "HEAD": "4835a4734a09575d22d50fb131c873173b79e3a9",
+      "branch": "refs/heads/work/fn25412-budget-prep",
+      "status_porcelain_v1_z_hex": "",
+      "head_is_source_ancestor": false
+    },
+    {
+      "worktree": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/prep25415-proto",
+      "HEAD": "6c726af351b70b9654c36b4ee97a8c38371c4bdf",
+      "branch": "refs/heads/work/fn25415-prep-proto",
+      "status_porcelain_v1_z_hex": "",
+      "head_is_source_ancestor": false
+    },
+    {
+      "worktree": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/prep25415-scripts",
+      "HEAD": "4d913e06d07a90655d3ef756e7b8f09933ffa010",
+      "branch": "refs/heads/work/fn25415-prep-scripts",
+      "status_porcelain_v1_z_hex": "",
+      "head_is_source_ancestor": false
+    },
+    {
+      "worktree": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/prep25416-tools",
+      "HEAD": "31e989d8092e3610f7f05259c2e8f729906de383",
+      "branch": "refs/heads/work/fn25416-prep-tools",
+      "status_porcelain_v1_z_hex": "",
+      "head_is_source_ancestor": false
+    },
+    {
+      "worktree": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/prep25417-controls",
+      "HEAD": "22b3a6b3a5f73846bb4608a591b4f8f176443ea7",
+      "branch": "refs/heads/work/fn25417-prep-controls",
+      "status_porcelain_v1_z_hex": "",
+      "head_is_source_ancestor": false
+    },
+    {
+      "worktree": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/prep25417-gate",
+      "HEAD": "64d2a62e86edb050b4e14fa7807a4f4782f81c37",
+      "branch": "refs/heads/work/fn25417-prep-gate",
+      "status_porcelain_v1_z_hex": "",
+      "head_is_source_ancestor": false
+    },
+    {
+      "worktree": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/prep25417-mise",
+      "HEAD": "c9e91a47505ecc2013a5517d4aaf5eb052148ef4",
+      "branch": "refs/heads/work/fn25417-prep-mise",
+      "status_porcelain_v1_z_hex": "",
+      "head_is_source_ancestor": false
+    },
+    {
+      "worktree": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/prep25417-nextest",
+      "HEAD": "42d06a0c6d3407e195c95b3d2fbfeee897bdde22",
+      "branch": "refs/heads/work/fn25417-prep-nextest",
+      "status_porcelain_v1_z_hex": "",
+      "head_is_source_ancestor": false
+    },
+    {
+      "worktree": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/prep2545-compiler",
+      "HEAD": "b4b9b05cdefa4874d54c9799b536a8dcb14a0845",
+      "branch": "refs/heads/work/fn2545-prep-compiler",
+      "status_porcelain_v1_z_hex": "",
+      "head_is_source_ancestor": false
+    },
+    {
+      "worktree": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/prep2545-fixtures",
+      "HEAD": "088e98ecae978b921c1d7371202bb8bd2e772f7c",
+      "branch": "refs/heads/work/fn2545-prep-fixtures",
+      "status_porcelain_v1_z_hex": "",
+      "head_is_source_ancestor": false
+    },
+    {
+      "worktree": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/prep2545-parser",
+      "HEAD": "77af035124f569ce6a335c3786dcb3181d9fa766",
+      "branch": "refs/heads/work/fn2545-prep-parser",
+      "status_porcelain_v1_z_hex": "",
+      "head_is_source_ancestor": false
+    },
+    {
+      "worktree": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/prep2553-fuzz",
+      "HEAD": "1df6f6b75d47a06642bd30b9bbe0d47b6d040ef8",
+      "branch": "refs/heads/work/fn2553-prep-fuzz",
+      "status_porcelain_v1_z_hex": "204d206d6f64656c2f756d706972652f6261636b656e64732f746c632f436172676f2e746f6d6c00204d206d6f64656c2f756d706972652f6261636b656e64732f746c632f7372632f72756e6e65722e727300204d206d6f64656c2f756d706972652f70726f746f636f6c2f72756e74696d652f436172676f2e746f6d6c00204d206d6f64656c2f756d706972652f70726f746f636f6c2f72756e74696d652f7372632f6c69622e727300204d206d6f64656c2f756d706972652f70726f746f636f6c2f72756e74696d652f7372632f72756e74696d652e7273003f3f206d6f64656c2f756d706972652f66757a7a2f00",
+      "head_is_source_ancestor": true
+    },
+    {
+      "worktree": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/prep2554-mutants",
+      "HEAD": "a573caade12cac5d50ca3f1ab6d9f59683a84ed2",
+      "branch": "refs/heads/work/fn2554-prep-mutants",
+      "status_porcelain_v1_z_hex": "",
+      "head_is_source_ancestor": false
+    }
+  ],
+  "note": "Observational only; dirty state is not backed up or transferred. Preserve every unresolved checkout/ref."
+}

@@ -1,0 +1,2 @@
+argv: ["/bin/bash", "/home/agent/.cache/codex-build/tmp/fn258-final-pair-cde-054/temporal/model/scripts/proto-go.sh", "temporal", "--check"]
+cwd: /home/agent/.cache/codex-build/tmp/fn258-final-pair-cde-054/temporal

@@ -1,0 +1,105 @@
+{
+  "observation_candidate": "ec13057227cf2159482a793b227e32653e280057",
+  "current_candidate": "3f5f613578f2857b738a7792fad08f12b3ea0a41",
+  "observed_workspace_pair": {
+    "temporal": "3658582dac5b54c1f68c2eb54a312957c97e05b6",
+    "umpire": "05473210b48c3db862f22051eb7154ce98258f98"
+  },
+  "files": [
+    {
+      "file": "readiness-followup-ec13057/missing-guard-red.log",
+      "size": 241,
+      "sha256": "d08ee270607e90099158bd64f6a6f426a9413c7f7359ad5873545ccf0d00baa9",
+      "source": "/home/agent/.cache/codex-build/fn258-consumer/missing-guard-red.log"
+    },
+    {
+      "file": "readiness-followup-ec13057/missing-guard-green.log",
+      "size": 85,
+      "sha256": "af96ee151a5ec084bb4dd7cd487fc32bfd12af7785bd988590b46bc9ae926762",
+      "source": "/home/agent/.cache/codex-build/fn258-consumer/missing-guard-green.log"
+    },
+    {
+      "file": "readiness-followup-ec13057/consumer-guard-results.json",
+      "size": 1877,
+      "sha256": "e443e1322e37b4f852c56948174349891cbf3219195770f3af725f17c7ac6558",
+      "source": "/home/agent/.cache/codex-build/fn258-consumer/consumer-guard-results.json"
+    },
+    {
+      "file": "readiness-followup-ec13057/consumer-guard-wiring.log",
+      "size": 215,
+      "sha256": "c69625951934c4b7c11908ad3fb4b903bae6a9dc8c3413215b5834eaaaa9b700",
+      "source": "/home/agent/.cache/codex-build/fn258-consumer/consumer-guard-wiring.log"
+    },
+    {
+      "file": "readiness-followup-ec13057/consumer-guard-validate.log",
+      "size": 217,
+      "sha256": "74c27e44335eed56a53058879d4c100b5f391d634567525e9f80003f55af6734",
+      "source": "/home/agent/.cache/codex-build/fn258-consumer/consumer-guard-validate.log"
+    },
+    {
+      "file": "readiness-followup-ec13057/consumer-guard-guest-roots.log",
+      "size": 239,
+      "sha256": "c74c011d163d8c0ead82db75c4d995dbb8195200222db5d5c72721b6a6c1f326",
+      "source": "/home/agent/.cache/codex-build/fn258-consumer/consumer-guard-guest-roots.log"
+    },
+    {
+      "file": "readiness-followup-ec13057/consumer-guard-proto.log",
+      "size": 240,
+      "sha256": "51888e8fc35aa41c7dcb3d68206ecba63b7e6e41fdb451a103e488b345cc9449",
+      "source": "/home/agent/.cache/codex-build/fn258-consumer/consumer-guard-proto.log"
+    },
+    {
+      "file": "readiness-followup-ec13057/missing-sibling-actual-check.log",
+      "size": 519,
+      "sha256": "621566170f90cd9102d4b1423290c01c7b3ac4503f4153b64f4267bdb5329ecc",
+      "source": "/home/agent/.cache/codex-build/fn258-consumer/missing-sibling-actual-check.log"
+    },
+    {
+      "file": "readiness-followup-ec13057/missing-sibling-actual-quick.log",
+      "size": 519,
+      "sha256": "786c0767e68c4197fd050a5eb6b96d757a987237fdb720bba60f696799f6e5e1",
+      "source": "/home/agent/.cache/codex-build/fn258-consumer/missing-sibling-actual-quick.log"
+    },
+    {
+      "file": "readiness-followup-ec13057/missing-sibling-actual-fmt.log",
+      "size": 515,
+      "sha256": "673a3458b9fbda28170179c441716b353dd67b6a02c83f334c976ba591296498",
+      "source": "/home/agent/.cache/codex-build/fn258-consumer/missing-sibling-actual-fmt.log"
+    },
+    {
+      "file": "readiness-followup-ec13057/missing-sibling-actual-update.log",
+      "size": 521,
+      "sha256": "4e4d1b0670c2523ad9236283dd170d8acaf6bef7797909fa634a894c84df3f30",
+      "source": "/home/agent/.cache/codex-build/fn258-consumer/missing-sibling-actual-update.log"
+    },
+    {
+      "file": "readiness-followup-ec13057/consumer-followup-static.log",
+      "size": 296,
+      "sha256": "05b2ce858598c7de8bd98c145d4fbb9df3abfa8c7c60f5b7fd6a4e5eb0f14b40",
+      "source": "/home/agent/.cache/codex-build/fn258-consumer/consumer-followup-static.log"
+    },
+    {
+      "file": "readiness-followup-ec13057/consumer-parent-workspace.log",
+      "size": 1357,
+      "sha256": "92d6f779714d47255914284e4df48aace8b944216e67f3e9d741c47dde2840bb",
+      "source": "/home/agent/.cache/codex-build/fn258-consumer/consumer-parent-workspace.log"
+    },
+    {
+      "file": "readiness-followup-ec13057/consumer-parent-workspace.json",
+      "size": 1622,
+      "sha256": "6d9750a848fb584da5da3f9c665a982a05c3b639adfa283b9defeefd03f1ce62",
+      "source": "/home/agent/.cache/codex-build/fn258-consumer/consumer-parent-workspace.json"
+    },
+    {
+      "file": "readiness-followup-ec13057/consumer-followup-assessment.json",
+      "size": 6758,
+      "sha256": "26d3f76dd0324a812e0cdbd10c92c711596a6ffefa7e98c5ba1f2b482de41bf5",
+      "source": "/home/agent/.cache/codex-build/fn258-consumer/consumer-followup-assessment.json"
+    }
+  ],
+  "counts": {
+    "supporting_files": 14,
+    "assessment_files": 1
+  },
+  "copy_policy": "Exact source bytes preserved, including original observation revision fields; no historical logs relabeled."
+}

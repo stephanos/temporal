@@ -1,0 +1,8 @@
+{
+  "model/umpire/author/dsl/src/lib.rs": "cd0a0e29b14b07512b87261f89453c6fda8baaa86024e65f94d22dd639915c29",
+  "model/umpire/author/dsl/src/countdown.rs": "a2c4bce70eeefef9de2e00055828f7ae9b548a01de407cb97e3ac7cd7dfbdfde",
+  "model/umpire/author/dsl/src/countdown_types.rs": "cab3f5b1eb89292e81dafd80829548a59306b5a4b5242972f259ff378a7faff1",
+  "model/umpire/author/dsl/src/countdown_proposed.rs": "5b53d928c9388fdbd392b4329c14a4afe16fa67e26b49981e5f62b02935468e6",
+  "model/temporal/realization/src/lib.rs": "c2aafebd0c5e8c74310e6c1685172e973e00789aad87c7ad384c7b6ed7118af4",
+  "model/temporal/realization/src/countdown_spike.rs": "41f8493c35f1ef870bbe48cf4a278d792c82bf8be27c97119fc654e00b88f317"
+}

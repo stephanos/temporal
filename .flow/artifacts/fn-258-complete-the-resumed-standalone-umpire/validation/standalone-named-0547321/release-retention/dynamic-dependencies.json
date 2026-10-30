@@ -1,0 +1,416 @@
+[
+  {
+    "binary": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/umpire-5715fdd004f2539c",
+    "exit": 0,
+    "stdout": "\tlinux-vdso.so.1 (0x0000ffffa693c000)\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffffa6810000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffffa6630000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffffa6940000)\n",
+    "stderr": ""
+  },
+  {
+    "binary": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/umpire_apalache-45788d1a25ab5417",
+    "exit": 0,
+    "stdout": "\tlinux-vdso.so.1 (0x0000ffff8496c000)\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffff845c0000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffff843e0000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffff84970000)\n",
+    "stderr": ""
+  },
+  {
+    "binary": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/main-87e26ebc031203f2",
+    "exit": 0,
+    "stdout": "\tlinux-vdso.so.1 (0x0000ffffb207c000)\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffffb1b40000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffffb1960000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffffb2080000)\n",
+    "stderr": ""
+  },
+  {
+    "binary": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/umpire_author_consumer-02eba2d08670513c",
+    "exit": 0,
+    "stdout": "\tlinux-vdso.so.1 (0x0000ffffb9fdc000)\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffffb9e70000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffffb9c90000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffffb9fe0000)\n",
+    "stderr": ""
+  },
+  {
+    "binary": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/umpire_backend_process-080282e03171adb1",
+    "exit": 0,
+    "stdout": "\tlinux-vdso.so.1 (0x0000ffff9854c000)\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffff983f0000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffff98210000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffff98550000)\n",
+    "stderr": ""
+  },
+  {
+    "binary": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/process-a0640ac622267c63",
+    "exit": 0,
+    "stdout": "\tlinux-vdso.so.1 (0x0000ffff992fc000)\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffff99190000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffff98fb0000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffff99300000)\n",
+    "stderr": ""
+  },
+  {
+    "binary": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/umpire_catalog-cd8766f6fc201fc2",
+    "exit": 0,
+    "stdout": "\tlinux-vdso.so.1 (0x0000ffffb6bfc000)\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffffb6ad0000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffffb68f0000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffffb6c00000)\n",
+    "stderr": ""
+  },
+  {
+    "binary": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/admission-6a3684a50c6207f0",
+    "exit": 0,
+    "stdout": "\tlinux-vdso.so.1 (0x0000ffffbea7c000)\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffffbe8b0000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffffbe6d0000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffffbea80000)\n",
+    "stderr": ""
+  },
+  {
+    "binary": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/derive_catalog-77ce0adb93926bb2",
+    "exit": 0,
+    "stdout": "\tlinux-vdso.so.1 (0x0000ffff8b76c000)\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffff8b5e0000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffff8b400000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffff8b770000)\n",
+    "stderr": ""
+  },
+  {
+    "binary": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/main-cf7d9f7d30299e67",
+    "exit": 0,
+    "stdout": "\tlinux-vdso.so.1 (0x0000ffffabb8c000)\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffffab7f0000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffffab610000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffffabb90000)\n",
+    "stderr": ""
+  },
+  {
+    "binary": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/message_map-647d1d9079a957ce",
+    "exit": 0,
+    "stdout": "\tlinux-vdso.so.1 (0x0000ffffba8ec000)\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffffba790000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffffba5b0000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffffba8f0000)\n",
+    "stderr": ""
+  },
+  {
+    "binary": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/response_checks-392ffd6da82290e1",
+    "exit": 0,
+    "stdout": "\tlinux-vdso.so.1 (0x0000ffffba0ac000)\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffffb9f70000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffffb9d90000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffffba0b0000)\n",
+    "stderr": ""
+  },
+  {
+    "binary": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/ui-a190e3ac099e3d63",
+    "exit": 0,
+    "stdout": "\tlinux-vdso.so.1 (0x0000ffff96a3c000)\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffff96870000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffff96690000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffff96a40000)\n",
+    "stderr": ""
+  },
+  {
+    "binary": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/umpire_catalog_build-b36bb8c7b781c353",
+    "exit": 0,
+    "stdout": "\tlinux-vdso.so.1 (0x0000ffff86b7c000)\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffff86a50000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffff86870000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffff86b80000)\n",
+    "stderr": ""
+  },
+  {
+    "binary": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/main-0815afda85cb7a2a",
+    "exit": 0,
+    "stdout": "\tlinux-vdso.so.1 (0x0000ffffafb9c000)\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffffaf630000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffffaf450000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffffafba0000)\n",
+    "stderr": ""
+  },
+  {
+    "binary": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/umpire_catalog_macros-2bd0f85ffde39091",
+    "exit": 0,
+    "stdout": "\tlinux-vdso.so.1 (0x0000ffff9475c000)\n\tlibstd-f9f1a1f02cfcb825.so => not found\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffff945c0000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffff943e0000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffff94760000)\n",
+    "stderr": ""
+  },
+  {
+    "binary": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/umpire_catalog_syntax-cad0f3b3c3317000",
+    "exit": 0,
+    "stdout": "\tlinux-vdso.so.1 (0x0000ffffa9fcc000)\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffffa9d10000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffffa9b30000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffffa9fd0000)\n",
+    "stderr": ""
+  },
+  {
+    "binary": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/main-7d55a07ddacd21d5",
+    "exit": 0,
+    "stdout": "\tlinux-vdso.so.1 (0x0000ffff94b5c000)\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffff94790000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffff945b0000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffff94b60000)\n",
+    "stderr": ""
+  },
+  {
+    "binary": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/caught_panic_control-57656fbe1de8807a",
+    "exit": 0,
+    "stdout": "\tlinux-vdso.so.1 (0x0000ffff9662c000)\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffff96500000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffff96320000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffff96630000)\n",
+    "stderr": ""
+  },
+  {
+    "binary": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/panic_control_reports-34f7f8539e4d9b10",
+    "exit": 0,
+    "stdout": "\tlinux-vdso.so.1 (0x0000ffffa2efc000)\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffffa2dd0000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffffa2bf0000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffffa2f00000)\n",
+    "stderr": ""
+  },
+  {
+    "binary": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/umpire_checker-9e13771fa86efc8d",
+    "exit": 0,
+    "stdout": "\tlinux-vdso.so.1 (0x0000ffffbdd3c000)\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffffbdc00000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffffbda20000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffffbdd40000)\n",
+    "stderr": ""
+  },
+  {
+    "binary": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/catalog_admission-2f4da8dd2e43ea1e",
+    "exit": 0,
+    "stdout": "\tlinux-vdso.so.1 (0x0000ffff8714c000)\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffff87000000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffff86e20000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffff87150000)\n",
+    "stderr": ""
+  },
+  {
+    "binary": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/fixtures-709286d11df0cd2f",
+    "exit": 0,
+    "stdout": "\tlinux-vdso.so.1 (0x0000ffffbe2fc000)\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffffbe040000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffffbde60000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffffbe300000)\n",
+    "stderr": ""
+  },
+  {
+    "binary": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/main-21b4fcc9fca87eea",
+    "exit": 0,
+    "stdout": "\tlinux-vdso.so.1 (0x0000ffff9805c000)\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffff97ef0000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffff97d10000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffff98060000)\n",
+    "stderr": ""
+  },
+  {
+    "binary": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/stateful_control-7edbcc5b709214ba",
+    "exit": 0,
+    "stdout": "\tlinux-vdso.so.1 (0x0000ffff8278c000)\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffff82660000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffff82480000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffff82790000)\n",
+    "stderr": ""
+  },
+  {
+    "binary": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/current_contract_reports-14ac8dec8f7cbeda",
+    "exit": 0,
+    "stdout": "\tlinux-vdso.so.1 (0x0000ffff846cc000)\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffff84590000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffff843b0000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffff846d0000)\n",
+    "stderr": ""
+  },
+  {
+    "binary": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/umpire_dsl-238518f3caad5260",
+    "exit": 0,
+    "stdout": "\tlinux-vdso.so.1 (0x0000ffffb3cec000)\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffffb3bc0000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffffb39e0000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffffb3cf0000)\n",
+    "stderr": ""
+  },
+  {
+    "binary": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/fixtures-510ad7eeefdcbff3",
+    "exit": 0,
+    "stdout": "\tlinux-vdso.so.1 (0x0000ffff9315c000)\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffff92f90000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffff92db0000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffff93160000)\n",
+    "stderr": ""
+  },
+  {
+    "binary": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/main-3a42935bb56cfa23",
+    "exit": 0,
+    "stdout": "\tlinux-vdso.so.1 (0x0000ffffaea2c000)\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffffae870000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffffae690000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffffaea30000)\n",
+    "stderr": ""
+  },
+  {
+    "binary": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/ui-1b62e0f714642edd",
+    "exit": 0,
+    "stdout": "\tlinux-vdso.so.1 (0x0000ffff9cbec000)\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffff9ca20000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffff9c840000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffff9cbf0000)\n",
+    "stderr": ""
+  },
+  {
+    "binary": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/umpire_dsl_macros-0297ca116f04ac10",
+    "exit": 0,
+    "stdout": "\tlinux-vdso.so.1 (0x0000ffffa84bc000)\n\tlibstd-f9f1a1f02cfcb825.so => not found\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffffa81e0000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffffa8000000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffffa84c0000)\n",
+    "stderr": ""
+  },
+  {
+    "binary": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/fixtures-f3ce281cb6e7e23f",
+    "exit": 0,
+    "stdout": "\tlinux-vdso.so.1 (0x0000ffff9291c000)\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffff92430000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffff92250000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffff92920000)\n",
+    "stderr": ""
+  },
+  {
+    "binary": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/main-829f6194137730a2",
+    "exit": 0,
+    "stdout": "\tlinux-vdso.so.1 (0x0000ffff9ca9c000)\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffff9c7c0000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffff9c5e0000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffff9caa0000)\n",
+    "stderr": ""
+  },
+  {
+    "binary": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/fixtures-63e82cd6925f89f7",
+    "exit": 0,
+    "stdout": "\tlinux-vdso.so.1 (0x0000ffff9219c000)\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffff91510000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffff91330000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffff921a0000)\n",
+    "stderr": ""
+  },
+  {
+    "binary": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/umpire_front-2fcd8737e607ce59",
+    "exit": 0,
+    "stdout": "\tlinux-vdso.so.1 (0x0000ffffa199c000)\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffffa1660000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffffa1480000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffffa19a0000)\n",
+    "stderr": ""
+  },
+  {
+    "binary": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/world_fairness-4e7bec87cb7a2f3a",
+    "exit": 0,
+    "stdout": "\tlinux-vdso.so.1 (0x0000ffff9512c000)\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffff94de0000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffff94c00000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffff95130000)\n",
+    "stderr": ""
+  },
+  {
+    "binary": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/umpire_guest_driver-34056505bdf03254",
+    "exit": 0,
+    "stdout": "\tlinux-vdso.so.1 (0x0000ffff85b4c000)\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffff85a10000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffff85830000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffff85b50000)\n",
+    "stderr": ""
+  },
+  {
+    "binary": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/umpire_guest_driver-3448beb5a45242aa",
+    "exit": 0,
+    "stdout": "\tlinux-vdso.so.1 (0x0000ffffb313c000)\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffffb3010000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffffb2e30000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffffb3140000)\n",
+    "stderr": ""
+  },
+  {
+    "binary": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/main-e6260761972d67c0",
+    "exit": 0,
+    "stdout": "\tlinux-vdso.so.1 (0x0000ffff9f31c000)\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffff9f140000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffff9ef60000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffff9f320000)\n",
+    "stderr": ""
+  },
+  {
+    "binary": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/umpire_ir-d3440bcd44a86c8d",
+    "exit": 0,
+    "stdout": "\tlinux-vdso.so.1 (0x0000ffffa730c000)\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffffa71b0000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffffa6fd0000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffffa7310000)\n",
+    "stderr": ""
+  },
+  {
+    "binary": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/umpire_ir_derive-a58bbf1a261b842d",
+    "exit": 0,
+    "stdout": "\tlinux-vdso.so.1 (0x0000ffffba41c000)\n\tlibstd-f9f1a1f02cfcb825.so => not found\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffffba350000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffffba170000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffffba420000)\n",
+    "stderr": ""
+  },
+  {
+    "binary": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/umpire_kettle_guest-60cd3a5808518a38",
+    "exit": 0,
+    "stdout": "\tlinux-vdso.so.1 (0x0000ffffa41fc000)\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffffa40d0000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffffa3ef0000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffffa4200000)\n",
+    "stderr": ""
+  },
+  {
+    "binary": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/overflow_control-4758f37fabad436c",
+    "exit": 0,
+    "stdout": "\tlinux-vdso.so.1 (0x0000ffff92a0c000)\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffff928e0000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffff92700000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffff92a10000)\n",
+    "stderr": ""
+  },
+  {
+    "binary": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/umpire_reference_kettle-cfac31c5060a2258",
+    "exit": 0,
+    "stdout": "\tlinux-vdso.so.1 (0x0000ffff88fbc000)\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffff88e90000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffff88cb0000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffff88fc0000)\n",
+    "stderr": ""
+  },
+  {
+    "binary": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/exhaustiveness-6f498d42568a1987",
+    "exit": 0,
+    "stdout": "\tlinux-vdso.so.1 (0x0000ffffb326c000)\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffffb30a0000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffffb2ec0000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffffb3270000)\n",
+    "stderr": ""
+  },
+  {
+    "binary": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/live_snapshots-2a55f37c1bb7bbe3",
+    "exit": 0,
+    "stdout": "\tlinux-vdso.so.1 (0x0000ffffaf2bc000)\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffffaf120000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffffaef40000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffffaf2c0000)\n",
+    "stderr": ""
+  },
+  {
+    "binary": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/main-e42dc141dfd47875",
+    "exit": 0,
+    "stdout": "\tlinux-vdso.so.1 (0x0000ffff9c68c000)\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffff9c210000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffff9c030000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffff9c690000)\n",
+    "stderr": ""
+  },
+  {
+    "binary": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/umpire_runtime-df799720eedcb524",
+    "exit": 0,
+    "stdout": "\tlinux-vdso.so.1 (0x0000ffff8a2ac000)\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffff8a180000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffff89fa0000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffff8a2b0000)\n",
+    "stderr": ""
+  },
+  {
+    "binary": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/capabilities-43683602aed5f492",
+    "exit": 0,
+    "stdout": "\tlinux-vdso.so.1 (0x0000ffffb570c000)\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffffb55e0000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffffb5400000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffffb5710000)\n",
+    "stderr": ""
+  },
+  {
+    "binary": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/main-587681c93eee0517",
+    "exit": 0,
+    "stdout": "\tlinux-vdso.so.1 (0x0000ffff88cbc000)\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffff88b00000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffff88920000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffff88cc0000)\n",
+    "stderr": ""
+  },
+  {
+    "binary": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/reach-a244e00cf62034c2",
+    "exit": 0,
+    "stdout": "\tlinux-vdso.so.1 (0x0000ffffbc82c000)\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffffbc6e0000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffffbc500000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffffbc830000)\n",
+    "stderr": ""
+  },
+  {
+    "binary": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/umpire_stock_guest-e04b96744c2dd20e",
+    "exit": 0,
+    "stdout": "\tlinux-vdso.so.1 (0x0000ffff8576c000)\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffff85640000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffff85460000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffff85770000)\n",
+    "stderr": ""
+  },
+  {
+    "binary": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/umpire_suite-6bcdfc8f8f800e42",
+    "exit": 0,
+    "stdout": "\tlinux-vdso.so.1 (0x0000ffffb1f3c000)\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffffb1df0000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffffb1c10000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffffb1f40000)\n",
+    "stderr": ""
+  },
+  {
+    "binary": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/main-452b6173121b1805",
+    "exit": 0,
+    "stdout": "\tlinux-vdso.so.1 (0x0000ffffbf29c000)\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffffbf020000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffffbee40000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffffbf2a0000)\n",
+    "stderr": ""
+  },
+  {
+    "binary": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/retained-67a56a71345197e8",
+    "exit": 0,
+    "stdout": "\tlinux-vdso.so.1 (0x0000ffffb10cc000)\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffffb0f80000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffffb0da0000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffffb10d0000)\n",
+    "stderr": ""
+  },
+  {
+    "binary": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/umpire_testing-ec6429914cbf758d",
+    "exit": 0,
+    "stdout": "\tlinux-vdso.so.1 (0x0000ffff97edc000)\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffff97ab0000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffff978d0000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffff97ee0000)\n",
+    "stderr": ""
+  },
+  {
+    "binary": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/consumers-b73f74ed09e3efc5",
+    "exit": 0,
+    "stdout": "\tlinux-vdso.so.1 (0x0000ffffbce1c000)\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffffbcc60000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffffbca80000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffffbce20000)\n",
+    "stderr": ""
+  },
+  {
+    "binary": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/external_consumers-9781c18b7a9cd675",
+    "exit": 0,
+    "stdout": "\tlinux-vdso.so.1 (0x0000ffff97a9c000)\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffff978f0000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffff97710000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffff97aa0000)\n",
+    "stderr": ""
+  },
+  {
+    "binary": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/fixture_composition-5c738fb7f819d02e",
+    "exit": 0,
+    "stdout": "\tlinux-vdso.so.1 (0x0000ffff9fc3c000)\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffff9fb10000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffff9f930000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffff9fc40000)\n",
+    "stderr": ""
+  },
+  {
+    "binary": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/main-bedace5a8d4e385c",
+    "exit": 0,
+    "stdout": "\tlinux-vdso.so.1 (0x0000ffffb84cc000)\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffffb8310000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffffb8130000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffffb84d0000)\n",
+    "stderr": ""
+  },
+  {
+    "binary": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/native_backend-24b62e4af06927c3",
+    "exit": 0,
+    "stdout": "\tlinux-vdso.so.1 (0x0000ffffbc9dc000)\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffffbc6f0000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffffbc510000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffffbc9e0000)\n",
+    "stderr": ""
+  },
+  {
+    "binary": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/suite_consumers-cec625728a58b22d",
+    "exit": 0,
+    "stdout": "\tlinux-vdso.so.1 (0x0000ffff9c59c000)\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffff9c3f0000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffff9c210000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffff9c5a0000)\n",
+    "stderr": ""
+  },
+  {
+    "binary": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/umpire_tla-85fd968187a42551",
+    "exit": 0,
+    "stdout": "\tlinux-vdso.so.1 (0x0000ffffa332c000)\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffffa31e0000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffffa3000000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffffa3330000)\n",
+    "stderr": ""
+  },
+  {
+    "binary": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/main-a3d778aef64545f0",
+    "exit": 0,
+    "stdout": "\tlinux-vdso.so.1 (0x0000ffff9451c000)\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffff93f80000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffff93da0000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffff94520000)\n",
+    "stderr": ""
+  },
+  {
+    "binary": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/umpire_tlc-2c2375dd219d0cbd",
+    "exit": 0,
+    "stdout": "\tlinux-vdso.so.1 (0x0000ffff8721c000)\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffff86e10000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffff86c30000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffff87220000)\n",
+    "stderr": ""
+  },
+  {
+    "binary": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/main-615d5c88882ae234",
+    "exit": 0,
+    "stdout": "\tlinux-vdso.so.1 (0x0000ffff8809c000)\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffff87cb0000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffff87ad0000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffff880a0000)\n",
+    "stderr": ""
+  },
+  {
+    "binary": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/xtask-00fe51f09ffc641d",
+    "exit": 0,
+    "stdout": "\tlinux-vdso.so.1 (0x0000ffff8a3ec000)\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffff8a170000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffff89f90000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffff8a3f0000)\n",
+    "stderr": ""
+  },
+  {
+    "binary": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/xtask-fa5210ad20f7aeaa",
+    "exit": 0,
+    "stdout": "\tlinux-vdso.so.1 (0x0000ffff8dcbc000)\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffff8db90000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffff8d9b0000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffff8dcc0000)\n",
+    "stderr": ""
+  },
+  {
+    "binary": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn258-standalone-release-0547321/release/deps/main-445be5b0c040204c",
+    "exit": 0,
+    "stdout": "\tlinux-vdso.so.1 (0x0000ffffaaadc000)\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffffaa8c0000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffffaa6e0000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffffaaae0000)\n",
+    "stderr": ""
+  }
+]

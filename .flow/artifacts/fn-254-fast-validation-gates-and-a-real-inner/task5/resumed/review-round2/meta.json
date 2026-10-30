@@ -1,0 +1,39 @@
+{
+  "type": "impl_review_fanout",
+  "focus": "Scoped re-review of task5 follow-ups at85c0a39f8a only; previous three draws SHIP finalized rid81b94a664e4b4012aace6c1e0fa7d73a. Read eight changed source files and task5/resumed/review-fixes/summary.json. Required mode now takes minimum positive numeric inherited or explicit Command nextest threads and TLC4/Apalache1; native defaults untouched, repeated configure idempotent, standalone receipt and real child use same effective cap. Temporal keeps single tested stage configuration. UI glob restored, exact original18 negative plus4 positive and61 parser rows freshly passed. Active consumer-owned snapshots under INSTA_UPDATE=always skip text prevalidation across selected and unselected cases so owning case can repair without sibling fail-fast races; skipped/external goldens remain strict, all normal-mode admission unchanged. New actual subprocess controls reproduce old failures and validate umbrella/selected/sibling repair and normal/skipped refusal. Focused35lib13wiring6standalone12Temporal12consumer, fullmacro8pass, strict4clippy scopes andfmt green. Original required-TLC and Temporal activity source evidence unchanged outside eight explicit followup files,202snapshots/bothlocks preserved. Supporting task17 read-only design/probe reports are not implemented or claimed complete; exclude them from this scoped task5 source review. Check fixes for concrete regressions and prior four followups.",
+  "claim_token": null,
+  "id": "fn-254-fast-validation-gates-and-a-real-inner.5",
+  "standalone": false,
+  "base_branch": "fdf115db99",
+  "reviewed_base_sha": "fdf115db9986e67e20b2d9c5c1fdcb1afb741aa8",
+  "reviewed_head_sha": "85c0a39f8aa372c6598a610486121299f3034fcc",
+  "artifact_sha256": "9a06baf586ebad5ed62cdaab90260711298334241b252cbb159fd0e34f06b3f5",
+  "reservation_id": "6123c05d6b554f9fb57748df542d09d3",
+  "rid": "6123c05d6b554f9fb57748df542d09d3",
+  "primary_axis": "correctness",
+  "draws": [
+    {
+      "axis": "correctness",
+      "parse_status": {
+        "status": "parsed",
+        "reason": null,
+        "block": null
+      },
+      "backend": "claude",
+      "model": "claude-fable-5-1",
+      "effort": "high",
+      "session_id": "1e5afc64-cfb8-40a9-98db-5fc3cb7c1f2c",
+      "verdict": "SHIP",
+      "failed": false,
+      "failure_class": null,
+      "failure_message": null,
+      "exit_code": 0,
+      "started_at": "2026-10-26T23:44:30.008091Z",
+      "finished_at": "2026-10-26T23:48:04.448219Z",
+      "review_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/review-fanout/6123c05d6b554f9fb57748df542d09d3/correctness.review.md",
+      "output_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/review-fanout/6123c05d6b554f9fb57748df542d09d3/correctness.out.txt"
+    }
+  ],
+  "receipt_path": "/tmp/impl-review-receipt-8f37faba39e2-fn-254-fast-validation-gates-and-a-real-inner.5.json",
+  "created_at": "2026-10-26T23:48:04.458531Z"
+}

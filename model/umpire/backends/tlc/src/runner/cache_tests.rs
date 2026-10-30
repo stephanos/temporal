@@ -1,5 +1,5 @@
 use super::*;
-use std::{os::unix::fs::PermissionsExt, process::Command, sync::Arc, time::Duration};
+use std::{process::Command, sync::Arc, time::Duration};
 use umpire_tla::Type;
 
 fn owner() -> Result<Scratch, Refusal> {
@@ -69,6 +69,10 @@ fn manifest_integrity_limits_and_interrupted_publication() -> Result<(), Refusal
         assert!(bundle(scratch.path()).load().is_err());
         abandoned.finish(Ok(()))
     })();
+    let result = result.and_then(|()| {
+        fixture::complete(scratch.path())?;
+        Ok(())
+    });
     scratch.finish(result)
 }
 const VERSION_MARKER: &str = cache::VERSION;
@@ -115,6 +119,10 @@ fn concurrent_writers_and_readers_see_only_complete_bundles() -> Result<(), Refu
             Ok(())
         })
     };
+    let result = result.and_then(|()| {
+        fixture::complete(scratch.path())?;
+        Ok(())
+    });
     scratch.finish(result)
 }
 
@@ -125,6 +133,14 @@ fn backend(root: &Path) -> Tlc {
         jar: root.join("tlc.jar"),
         limits: Limits::default(),
         property_workers: 2,
+        origin: if root.join("fixture-test").exists() {
+            InvocationOrigin::ProtocolFixture(
+                fixture::invocation(root, &fixture::Case::Cache)
+                    .unwrap_or_else(|error| panic!("{error}")),
+            )
+        } else {
+            InvocationOrigin::Unclassified
+        },
     }
 }
 fn schema() -> Schema {
@@ -351,14 +367,96 @@ fn every_effective_identity_input_invalidates() {
     assert!(!cache::enabled(None, None));
 }
 
+fn mixed_module() -> umpire_tla::Module {
+    let cfg = "SPECIFICATION Spec\nINVARIANT A\n";
+    umpire_tla::Module {
+        name: "M".into(),
+        tla: "---- MODULE M ----\nA == TRUE\nB == FALSE\n====\n".into(),
+        cfg: cfg.into(),
+        metadata: umpire_tla::Metadata {
+            state_name: "Model".into(),
+            world_path: "World".into(),
+            parameters: vec![],
+            binding: None,
+            fields: vec![umpire_tla::Field { name: "x".into(), ty: Type::Bool }],
+            actions: vec![],
+            catalog: vec![],
+            invariants: vec![umpire_tla::Property {
+                name: "good".into(),
+                operator: "A".into(),
+                cfg: cfg.into(),
+            }],
+            postconditions: vec![],
+            arithmetic: vec![],
+            progress: vec![],
+            negative: vec![umpire_tla::Property {
+                name: "bad".into(),
+                operator: "B".into(),
+                cfg: "SPECIFICATION Spec\nINVARIANT B\n".into(),
+            }],
+            observer_fields: vec![],
+            observer_types: BTreeMap::new(),
+            outcome_type: Type::Bool,
+        },
+    }
+}
+
 #[test]
 fn cache_child() -> Result<(), Box<dyn std::error::Error>> {
     let Some(root) = std::env::var_os("UMPIRE_CACHE_TEST_ROOT") else {
         return Ok(());
     };
     let root = PathBuf::from(root);
+    if std::env::var_os("UMPIRE_CACHE_TEST_REAL_KETTLE").is_some() {
+        let source = format!(
+            "{}\n{}",
+            include_str!("../../../../dev/fixtures/fixtures/sample_kettle/model.rs"),
+            include_str!("../../../../dev/fixtures/fixtures/sample_kettle/tests.rs")
+        );
+        let module = umpire_tla::Tla::emit(&umpire_tla::Lift::parse("kettle.rs", &source)?)?;
+        let checked = Tlc::discover(&root)?.check_module(&module)?;
+        assert_eq!(checked.states.len(), 283);
+        assert_eq!(checked.properties.len(), 5);
+        assert_eq!(
+            checked
+                .properties
+                .values()
+                .filter(|property| property.verdict == Verdict::Verified)
+                .count(),
+            4
+        );
+        assert_eq!(module.metadata.negative.len(), 1);
+        for property in &module.metadata.negative {
+            assert_eq!(checked.properties[&property.operator].verdict, Verdict::Refuted);
+        }
+        for property in checked.properties.values() {
+            if property.verdict == Verdict::Refuted {
+                assert!(property.trace.is_some());
+            }
+        }
+        return Ok(());
+    }
     let tlc = backend(&root);
-    let result = if std::env::var_os("UMPIRE_CACHE_TEST_MODULE").is_some() {
+    let result = if fs::read_to_string(root.join("mode"))? == "mixed" {
+        let module = mixed_module();
+        if std::env::var("UMPIRE_CACHE_TEST_EXPECT").as_deref() == Ok("identity-refresh") {
+            for change in [None, Some("jar"), Some("java")] {
+                match change {
+                    Some("jar") => fs::write(root.join("tlc.jar"), "changed jar")?,
+                    Some("java") => fs::write(root.join("java-version"), "fake-java-v2")?,
+                    _ => {}
+                }
+                let before = runs(&root);
+                let checked = tlc.check_module(&module)?;
+                assert_eq!(checked.properties["A"].verdict, Verdict::Verified);
+                assert_eq!(checked.properties["B"].verdict, Verdict::Refuted);
+                assert_eq!(runs(&root), before + 4);
+            }
+            assert_eq!(fs::read_to_string(root.join("identities"))?.lines().count(), 3);
+            return Ok(());
+        }
+        tlc.check_module(&module)
+    } else if std::env::var_os("UMPIRE_CACHE_TEST_MODULE").is_some() {
         let module = umpire_tla::Tla::emit(&umpire_tla::Lift::parse(
             "scaling.rs",
             include_str!("../../tests/fixtures/scaling_model.rs"),
@@ -374,6 +472,11 @@ fn cache_child() -> Result<(), Box<dyn std::error::Error>> {
     };
     match std::env::var("UMPIRE_CACHE_TEST_EXPECT").as_deref() {
         Ok("error") => assert!(result.is_err(), "{result:?}"),
+        Ok("mixed") => {
+            let result = result?;
+            assert_eq!(result.properties["A"].verdict, Verdict::Verified);
+            assert_eq!(result.properties["B"].verdict, Verdict::Refuted);
+        }
         Ok("refuted") => assert_eq!(result?.properties["A"].verdict, Verdict::Refuted),
         _ => assert!(all_verified(&result?)),
     }
@@ -416,52 +519,8 @@ fn runs(root: &Path) -> usize {
 fn fake_backend(root: &Path) -> Result<(), Refusal> {
     fs::write(root.join("tlc.jar"), "jar identity")?;
     fs::write(root.join("mode"), "verified")?;
-    fs::write(
-        root.join("java"),
-        r#"#!/bin/bash
-set -eu
-base=$(dirname "$0")
-if [ "${1:-}" = '-version' ]; then
- if [ "$(cat "$base/mode")" = 'identity-failure' ]; then exit 1; fi
- echo fake-java-v1; echo version >> "$base/identities"; exit 0
-fi
-config=''
-dump=''
-while [ "$#" -gt 0 ]; do
- case "$1" in
- -dump) shift; dump=$1 ;;
- -config) shift; config=$1 ;;
- esac
- shift
-done
-echo run >> "$base/runs"
-mode=$(cat "$base/mode")
-if [ "$mode" = 'failure' ]; then exit 1; fi
-if [ "$mode" = 'module-failure' ] && /usr/bin/grep -q 'Progress_' "$config"; then exit 1; fi
-message() { printf '@!@!@STARTMSG %s:%s @!@!@\n%s\n@!@!@ENDMSG %s @!@!@\n' "$1" "$2" "$3" "$1"; }
-if [ "$mode" = 'module-failure' ]; then
- : > "$dump"
- message 2199 0 '0 states generated, 0 distinct states found, 0 states left on queue.'
-else
- printf 'State 1:\nx = TRUE\n' > "$dump"
- message 2199 0 '1 states generated, 1 distinct states found, 0 states left on queue.'
-fi
-if [ "$mode" = 'bad-dump' ]; then printf 'State 1:\nx = 99\n' > "$dump"; fi
-if [ "$mode" = 'evaluation' ] && /usr/bin/grep -q 'INVARIANT A' "$config"; then
- message 2111 1 $'Evaluating invariant A failed.\nOverflow'
- exit 1
-fi
-if [ "$mode" = 'refuted' ] && /usr/bin/grep -q 'INVARIANT A' "$config"; then
- message 2110 1 'Invariant A is violated.'
- message 2217 4 $'1: <Initial predicate>\nx = TRUE'
- message 2186 0 Finished
- exit 12
-fi
-message 2193 0 'Model checking completed. No error has been found.'
-message 2186 0 Finished
-"#,
-    )?;
-    fs::set_permissions(root.join("java"), fs::Permissions::from_mode(0o700))?;
+    fs::write(root.join("java-version"), "fake-java-v1")?;
+    fixture::install(root, &fixture::Case::Cache)?;
     Ok(())
 }
 
@@ -521,6 +580,96 @@ fn populated_cache_hits_and_authoritative_disable_runs_fresh() -> Result<(), Ref
         assert_eq!(fs::read_to_string(scratch.path().join("identities"))?.lines().count(), 4);
         Ok(())
     })();
+    let result = result.and_then(|()| {
+        fixture::complete(scratch.path())?;
+        Ok(())
+    });
+    scratch.finish(result)
+}
+
+#[test]
+fn verified_configuration_publishes_despite_refuted_sibling() -> Result<(), Refusal> {
+    if cfg!(feature = "strategy-equivalence") {
+        return Ok(());
+    }
+    let scratch = owner()?;
+    let result = (|| {
+        fake_backend(scratch.path())?;
+        fs::write(scratch.path().join("mode"), "mixed")?;
+        let cache_root = scratch.path().join("cache");
+        let first = run_child(scratch.path(), &cache_root, "1", "0", "mixed", true)?;
+        assert!(!first.contains("cache hit"));
+        assert_eq!(runs(scratch.path()), 4);
+        let second = run_child(scratch.path(), &cache_root, "1", "0", "mixed", true)?;
+        assert!(second.contains("TLC cache hit M configuration 0"), "{second}");
+        assert!(second.contains("TLC cache miss M configuration 1"), "{second}");
+        assert_eq!(runs(scratch.path()), 6);
+        assert_eq!(fs::read_to_string(scratch.path().join("identities"))?.lines().count(), 2);
+        assert_eq!(fs::read_dir(cache_root.join("quick-tlc-v1"))?.count(), 1);
+        Ok(())
+    })();
+    let result = result.and_then(|()| {
+        fixture::complete(scratch.path())?;
+        Ok(())
+    });
+    scratch.finish(result)
+}
+
+#[test]
+fn identity_refreshes_between_module_calls_and_is_shared_between_configurations()
+-> Result<(), Refusal> {
+    if cfg!(feature = "strategy-equivalence") {
+        return Ok(());
+    }
+    let scratch = owner()?;
+    let result = (|| {
+        fake_backend(scratch.path())?;
+        fs::write(scratch.path().join("mode"), "mixed")?;
+        run_child(
+            scratch.path(),
+            &scratch.path().join("cache"),
+            "1",
+            "0",
+            "identity-refresh",
+            true,
+        )?;
+        Ok(())
+    })();
+    let result = result.and_then(|()| {
+        fixture::complete(scratch.path())?;
+        Ok(())
+    });
+    scratch.finish(result)
+}
+
+#[test]
+fn cache_root_refusal_reports_its_cause_without_following_symlinks() -> Result<(), Refusal> {
+    if cfg!(feature = "strategy-equivalence") {
+        return Ok(());
+    }
+    let scratch = owner()?;
+    let result = (|| {
+        fake_backend(scratch.path())?;
+        let real = scratch.path().join("real");
+        fs::create_dir(&real)?;
+        std::os::unix::fs::symlink(&real, scratch.path().join("link"))?;
+        let log = run_child(
+            scratch.path(),
+            &scratch.path().join("link/cache"),
+            "1",
+            "0",
+            "verified",
+            false,
+        )?;
+        assert!(log.contains("unsafe quick cache root"), "{log}");
+        assert!(!real.join("cache").exists());
+        assert_eq!(runs(scratch.path()), 2);
+        Ok(())
+    })();
+    let result = result.and_then(|()| {
+        fixture::complete(scratch.path())?;
+        Ok(())
+    });
     scratch.finish(result)
 }
 
@@ -552,6 +701,10 @@ fn failures_refutations_and_incomplete_modules_never_publish() -> Result<(), Ref
         }
         Ok(())
     })();
+    let result = result.and_then(|()| {
+        fixture::complete(scratch.path())?;
+        Ok(())
+    });
     scratch.finish(result)
 }
 

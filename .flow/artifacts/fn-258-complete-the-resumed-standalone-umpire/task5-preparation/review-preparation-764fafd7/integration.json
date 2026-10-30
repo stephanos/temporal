@@ -1,0 +1,21 @@
+{
+  "axis": "integration",
+  "parse_status": {
+    "status": "parsed",
+    "reason": null,
+    "block": null
+  },
+  "backend": "claude",
+  "model": "claude-fable-5-1",
+  "effort": "high",
+  "session_id": "1b1b9966-62fe-44a4-b91b-97d42ddfe4f9",
+  "verdict": "SHIP",
+  "failed": false,
+  "failure_class": null,
+  "failure_message": null,
+  "exit_code": 0,
+  "started_at": "2026-10-28T15:20:11.613481Z",
+  "finished_at": "2026-10-28T15:27:24.145315Z",
+  "review_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/review-fanout/fa309dea5e6eeb51c521dc37dcddfc12/integration.review.md",
+  "output_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/review-fanout/fa309dea5e6eeb51c521dc37dcddfc12/integration.out.txt"
+}

@@ -1,0 +1,264 @@
+{
+  "activity": {
+    "equal": true,
+    "scope": "Cargo/nextest shipping-profile listings; no test bodies",
+    "identities": 148,
+    "nonignored": 148,
+    "ignored": 0,
+    "binary_footprint": 28,
+    "prior_F2_identities": 148,
+    "added": [],
+    "removed": [],
+    "per_package": {
+      "umpire-temporal": 118,
+      "umpire-temporal-api": 21,
+      "umpire-temporal-guest": 0,
+      "umpire-temporal-realization-macros": 8,
+      "umpire-temporal-tests": 1
+    },
+    "eligible_doctest_targets": [
+      {
+        "package": "umpire-temporal",
+        "name": "umpire_temporal",
+        "kind": [
+          "lib"
+        ],
+        "doctest": true
+      },
+      {
+        "package": "umpire-temporal-api",
+        "name": "umpire_temporal_api",
+        "kind": [
+          "lib"
+        ],
+        "doctest": true
+      },
+      {
+        "package": "umpire-temporal-realization-macros",
+        "name": "umpire_temporal_realization_macros",
+        "kind": [
+          "proc-macro"
+        ],
+        "doctest": true
+      }
+    ]
+  },
+  "framework-affected": {
+    "equal": true,
+    "scope": "Cargo/nextest shipping-profile listings; no test bodies",
+    "identities": 165,
+    "nonignored": 165,
+    "ignored": 0,
+    "binary_footprint": 5,
+    "prior_F2_identities": 152,
+    "added": [
+      [
+        "framework",
+        "umpire-backend-process",
+        "test",
+        "process",
+        "cancellation_keeps_controller_alive_to_wait_its_separate_child_group",
+        false
+      ],
+      [
+        "framework",
+        "umpire-backend-process",
+        "test",
+        "process",
+        "lifecycle_locators_without_both_pipe_capabilities_refuse_before_launch",
+        false
+      ],
+      [
+        "framework",
+        "umpire-backend-process",
+        "test",
+        "process",
+        "linux_root_reaps_paused_nested_guardian_before_releasing_lease",
+        false
+      ],
+      [
+        "framework",
+        "umpire-backend-process",
+        "test",
+        "process",
+        "nested_normal_completion_does_not_cancel_following_stage",
+        false
+      ],
+      [
+        "framework",
+        "umpire-backend-process",
+        "test",
+        "process",
+        "root_broadcast_cancels_checker_while_rust_owner_is_stopped",
+        false
+      ],
+      [
+        "framework",
+        "xtask",
+        "lib",
+        "xtask",
+        "gate::scheduler::execution_controls::captured_leaf_preserves_cwd_environment_bytes_and_failed_status",
+        false
+      ],
+      [
+        "framework",
+        "xtask",
+        "lib",
+        "xtask",
+        "gate::scheduler::execution_controls::captured_leaf_preserves_signal_status",
+        false
+      ],
+      [
+        "framework",
+        "xtask",
+        "lib",
+        "xtask",
+        "gate::scheduler::execution_controls::streamed_channels_are_not_returned_as_captured_output",
+        false
+      ],
+      [
+        "framework",
+        "xtask",
+        "lib",
+        "xtask",
+        "gate::scheduler::execution_controls::unconfigured_leaf_uses_the_callers_working_directory",
+        false
+      ],
+      [
+        "framework",
+        "xtask",
+        "lib",
+        "xtask",
+        "gate::tests::stage_reaps_background_children_before_returning_the_failed_status",
+        false
+      ],
+      [
+        "framework",
+        "xtask",
+        "lib",
+        "xtask",
+        "quick::tests::global_fallback_compiles_zero_harness_members_and_keeps_their_tests_and_doctests",
+        false
+      ],
+      [
+        "framework",
+        "xtask",
+        "lib",
+        "xtask",
+        "quick::tests::quick_leaf_reaps_background_children_and_preserves_failed_status",
+        false
+      ],
+      [
+        "framework",
+        "xtask",
+        "lib",
+        "xtask",
+        "quick::tests::stage_receipt_reports_missing_tool_as_failed_status",
+        false
+      ]
+    ],
+    "removed": [],
+    "per_package": {
+      "umpire-backend-process": 52,
+      "xtask": 113
+    },
+    "eligible_doctest_targets": [
+      {
+        "package": "umpire-backend-process",
+        "name": "umpire_backend_process",
+        "kind": [
+          "lib"
+        ],
+        "doctest": true
+      },
+      {
+        "package": "xtask",
+        "name": "xtask",
+        "kind": [
+          "lib"
+        ],
+        "doctest": true
+      }
+    ]
+  },
+  "temporal-xtask": {
+    "equal": true,
+    "scope": "Cargo/nextest shipping-profile listings; no test bodies",
+    "identities": 21,
+    "nonignored": 21,
+    "ignored": 0,
+    "binary_footprint": 2,
+    "prior_F2_identities": 19,
+    "added": [
+      [
+        "temporal",
+        "temporal-xtask",
+        "bin",
+        "temporal-xtask",
+        "gate::tests::invalid_working_directory_names_the_stage",
+        false
+      ],
+      [
+        "temporal",
+        "temporal-xtask",
+        "bin",
+        "temporal-xtask",
+        "gate::tests::missing_tool_control_child",
+        false
+      ],
+      [
+        "temporal",
+        "temporal-xtask",
+        "bin",
+        "temporal-xtask",
+        "gate::tests::missing_tool_reports_the_failed_stage",
+        false
+      ]
+    ],
+    "removed": [
+      [
+        "temporal",
+        "temporal-xtask",
+        "bin",
+        "temporal-xtask",
+        "gate::tests::spawn_failure_names_the_stage",
+        false
+      ]
+    ],
+    "per_package": {
+      "temporal-xtask": 21
+    },
+    "eligible_doctest_targets": []
+  },
+  "historical_full_workspace_projection": {
+    "framework": {
+      "F2_count": 860,
+      "projected_current_count": 873,
+      "meaning": "Historical F2 identity set plus freshly listed affected-package delta; not a new full-workspace inventory or execution"
+    },
+    "temporal": {
+      "F2_count": 235,
+      "projected_current_count": 237,
+      "meaning": "Historical F2 identity set plus freshly listed affected-package delta; not a new full-workspace inventory or execution"
+    }
+  },
+  "root_head": "ede5fadc613e66ed33d083b4141a4ccf9dd2b76a",
+  "source_binaries_locks_snapshots_unchanged": true,
+  "registry_tuples": 119,
+  "protected_snapshots": 202,
+  "compile_input_files": 1566,
+  "binary_input_files": 66,
+  "broader_execution_input_files": 78,
+  "combined_growth_bytes": 1580206876,
+  "free_bytes": 13859491840,
+  "phase_complete": "F3.1 inventories and native refresh only",
+  "test_bodies_executed": false,
+  "java_invoked": false,
+  "shipping_profile_overrides": "none: all CARGO_PROFILE_* removed for inventories",
+  "native_refresh_profile": "dev; CARGO_PROFILE_DEV_DEBUG=0; incremental0",
+  "pending": [
+    "Root identified locator-only lifecycle control needs closing inherited FD10/11 before body execution; listing is unaffected.",
+    "No actual six/five quick workloads or production standalone executed.",
+    "No new global-full-workspace execution or baseline timing campaign."
+  ]
+}

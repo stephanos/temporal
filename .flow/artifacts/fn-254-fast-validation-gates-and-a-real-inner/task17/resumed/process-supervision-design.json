@@ -1,0 +1,112 @@
+{
+  "task": "fn-254-fast-validation-gates-and-a-real-inner.17",
+  "root_head": "fdf115db9986e67e20b2d9c5c1fdcb1afb741aa8",
+  "scope": "Read-only repository/candidate inspection and primary-source web research. No code, builds, tests, Git or Flow mutations. Only this requested report written.",
+  "verdict": {
+    "linux": "Reuse the existing native parent-liveness/subreaper supervisor. Port the candidate OwnedProcess/Orchestration surface narrowly; add cancellation/deadline polling and JVM lease custody. Keep mise as the sole stage scheduler.",
+    "darwin": "Candidate Orchestration is insufficient for escaped descendants. Native kqueue tracking was checked and cannot supply the missing custody. No complete minimal Darwin orchestration containment design is established by these sources. Keep this as an explicit unresolved platform obligation; do not claim cross-platform closure or silently weaken cleanup.",
+    "dependency_scope": "A small explicit amendment for local dependency edges, corresponding lock edge records and process ownership files is technically justified. Avoid a new helper CLI, source inclusion or transitive re-export merely to preserve byte-identical locks. No new registry package/version is needed."
+  },
+  "observed_tool_contract": {
+    "evidence": "mise-capability-probe.json, including supplemental_results",
+    "facts": [
+      "Verified mise 2026.10.11 owns dependencies/jobs and ordinary fail-fast.",
+      "Spawned descendants survive certain failures/timeout/termination; detached descendants also survive. Supplemental ordinary cases exit correctly. Keep those distinctions.",
+      "Native code must supply process lifetime/resource custody and deterministic receipt collection, not another dependency scheduler."
+    ]
+  },
+  "current_process_contract": {
+    "public_api": "model/umpire/backends/process/src/support.rs exposes run_process[_cancelled]; lib.rs exports support. No current OwnedProcess/run_owned surface.",
+    "liveness": "syscall.rs Running::spawn creates an owner pipe and forks an isolated supervisor. Running::Drop closes the pipe and waits; wait_for_target watches pipe EOF and stop signals. try_wait returns supervisor completion after cleanup, rather than only target exit.",
+    "linux": "child_main installs a subreaper before target fork. The target creates its own session. After target completion/owner EOF/stop, supervisor kills its target group, waits for the direct target, then repeatedly kills and reaps adopted descendants via /proc children until ECHILD. Separate-session descendants are covered by adoption, not only group killing.",
+    "darwin_checker": "Current target_main applies RLIMIT_NPROC=0 on non-root Darwin, preventing legitimate children as well as escapes. Root is refused. This checker isolation cannot execute a compiler/mise orchestration tree.",
+    "existing_controls_not_rerun": [
+      "process.rs::timeout_cleans_descendants_before_return",
+      "cancellation_reaps_descendants_in_separate_sessions_and_closes_stdin",
+      "owner_death_terminates_and_reaps_separate_session_descendants",
+      "owner_group_and_direct_supervisor_termination_reap_owned_tree",
+      "simulated_darwin_helper_cannot_start_an_escaped_descendant"
+    ],
+    "limits": "Current platform claims cover Linux subreaper ownership and Darwin child prevention. Existing raw child code remains allocation-free and resolves libc calls in the parent. Preserve checker defaults and this audit boundary."
+  },
+  "candidate_assessment": {
+    "7f3ecb042f": "Adds explicit Checker/Orchestration policies, OwnedProcess::spawn/try_wait and run_owned with inherited raw output. Linux ownership is reused; Darwin Orchestration skips descendant prevention and admits root. Its own docs exclude detached groups/adopted descendants on Darwin. Policy tests prove admission only, not complete ownership.",
+    "a2f285b716": "Earlier shell group-kill/wait and ordinary cleanup preparation plus a Temporal dependency edge. Its scheduler kill code is superseded by native process reuse; do not import it as a second cleanup implementation.",
+    "run_owned_gap": "Candidate run_owned polls indefinitely and has no external cancellation/deadline. Use the same OwnedProcess handle in the gate adapter with the admitted timer/cancellation signal. Drop/finish must complete native cleanup before returning a stage outcome or releasing admission.",
+    "scope": "Neither candidate is a validated whole-commit import. Preserve dirty assembly and .12/.15/.16 preparation; port only ownership/API and required local edges."
+  },
+  "darwin_primary_source_check": {
+    "kqueue": "Apple XNU event.h says NOTE_TRACK, NOTE_TRACKERR and NOTE_CHILD are unsupported since macOS 10.5. kern_event.c::filt_procattach rejects those bits with ENOTSUP. Their defined constants and FreeBSD documentation do not establish macOS support.",
+    "note_fork": "NOTE_FORK is available, but current filt_procevent aggregates event bits and does not automatically attach child filters. Post-notification process enumeration cannot close the rapid-fork/reparent/setsid race. NOTE_EXIT on known PIDs is useful observation, not descendant containment.",
+    "groups": "setsid creates a new session/group; setpgid can create another group inside a session. kill(-initial_pgid) therefore cannot cover both escape forms.",
+    "sandbox": "Existing RLIMIT_NPROC=0 prevents every child and cannot be the orchestration policy. Reviewed XNU setsid/setpgid implementations contain no MAC-policy check at those entry points; no reviewed supported sandbox rule selectively denies those escapes while allowing ordinary compiler children. This is an unresolved supported-mechanism question, not proof that every conceivable Darwin facility is impossible.",
+    "recommendation": "Do not replace the gap with /bin/kill, process-list polling, DYLD interposition, launchd group cleanup or FreeBSD NOTE_TRACK assumptions. A Darwin implementation must establish kernel-enforced group/session containment or reliable native descendant lifecycle custody with actual fork/exec/double-fork/setsid/setpgid/owner-death proof. Until then, explicitly refuse the strong orchestration mode before launching children, and keep Darwin completion open; platform refusal is a declared limitation, not task acceptance."
+  },
+  "smallest_linux_design": [
+    "Keep one mise graph. Wrap the real mise invocation with the existing backend native owner-pipe supervisor through a narrowly exported OwnedProcess-style API. Preserve raw stdout/stderr, cwd/env removals, disabled auto-install, named child statuses and invocation-local receipt paths.",
+    "Use bounded polling for cancellation/deadline/fail-fast notification; mise still schedules dependencies and stops dependent starts. Native code supplies lifetime cleanup and harvests actual completed/failed/cancelled/not-started receipts after supervisor completion.",
+    "On every success, failure, signal and owner EOF, supervisor first closes target work, kills/waits its target, kills/reaps adopted ordinary and escaped descendants, then reports completion. Keep original failing stage/status plus cleanup failures; cleanup failure never becomes success.",
+    "First use conservative admission across entire heavy gate/quick invocations, rather than introducing nested per-leaf lease owners whose custody can disappear when an outer subreaper kills an adopted inner supervisor. This serializes independent heavy invocations while preserving the single invocation mise parallelism. Finer admission requires its own custody proof.",
+    "Standalone nested gates run under explicit delegated authority in the same admitted invocation, rather than reacquiring their parent-held lock. A bare environment held flag is insufficient. Use an explicitly admitted inherited descriptor/capability and invocation association, validate it in nested entry points, and fail if delegation is missing or invalid. Independent entry points always acquire the canonical host lease."
+  ],
+  "lease_custody": {
+    "pitfall": "Current child_main closes descriptors >=4 and target_main closes >=3. A File::lock held only by the xtask parent is released on abrupt parent death before owner-pipe cleanup completes. Successful normal RAII order alone does not solve SIGKILL of the owner.",
+    "required_fd_policy": "Duplicate the already locked open-file description into the surviving outer cleanup supervisor before target admission; preserve that descriptor in its explicit close allowlist through the final cleanup/wait. Retain separate owner-pipe EOF semantics. Keep a controlled descriptor only where nested delegation requires it; close lease descriptors in unrelated backend targets. Do not explicitly unlock a shared duplicate while any cleanup is pending.",
+    "lifetime": "Acquire before heavy child admission; make descriptor custody continuous over fork/error paths. Return completion/release only after cleanup. Supervisor liveness and actual child termination precede any competing invocation acquiring the lease.",
+    "nested_hazard": "An outer Linux reaper may kill an adopted inner supervisor and release its leaf-only lock while still cleaning deeper descendants. Outer invocation custody avoids this gap. Any later per-leaf scheme must preserve custody at the outer cleanup authority too.",
+    "path": "Lease identity must be canonical and shared across independent worktrees, gate/quick processes and isolated standalone children. Deriving it from each checkout/target or differing CARGO_HOME gives separate locks. Admit the shared host lease path explicitly at the isolated-child boundary.",
+    "kill_boundary": "Owner death and supervisor stop signals are in scope. SIGKILL of the cleanup supervisor itself cannot execute cleanup; do not infer that existing direct-supervisor SIGTERM controls prove this stronger failure model."
+  },
+  "minimal_dependency_amendment": {
+    "current": "Neither framework xtask nor guest-driver directly depends on umpire-backend-process. temporal-xtask has guest-driver normally and xtask as a dev dependency. Both locks already contain the process package and every registry dependency it requires.",
+    "preferred": "Add framework xtask -> umpire-backend-process as a normal workspace/local path edge. If Temporal calls the same framework scheduler library, move its already-present xtask dev edge to a normal edge; otherwise add its own process edge only where source calls the API. Keep one supervision implementation.",
+    "lock_effect": "Framework xtask normal dependency-list records change in model/umpire/Cargo.lock and model/Cargo.lock. Moving the existing Temporal xtask edge alone need not add a new lock package-list name; direct Temporal process use would add that local edge record. All registry coordinates/checksums/versions can remain unchanged.",
+    "why_no_lock_is_unsound": "Using a new Rust crate name without a normal dependency fails compilation. Copying unsafe syscall modules into xtask or exposing process supervision through the unrelated guest compiler facade hides the same dependency and duplicates or misplaces ownership. A new supervisor executable requires another production entry/authority contract and is not smaller.",
+    "source_paths": [
+      "model/umpire/backends/process/src/support.rs",
+      "model/umpire/backends/process/src/syscall.rs",
+      "model/umpire/backends/process/src/syscall/calls.rs only if custody needs an additional already-pinned libc call",
+      "existing process tests/fixture binary",
+      "model/umpire/dev/xtask/Cargo.toml",
+      "model/dev/xtask/Cargo.toml only for the chosen direct/library edge",
+      "model/umpire/Cargo.lock",
+      "model/Cargo.lock"
+    ],
+    "scope_action": "Conductor should record a narrow .17 source/lock-edge exception before implementation. No new registry packages, version changes, lock reconciliation commit, .16 provisioning changes or extra scheduler."
+  },
+  "required_focused_proof_not_run": [
+    "Real mise ordinary failure, spawned-child failure, detached-child timeout, SIGTERM/cancellation and outer owner SIGKILL; demonstrate all owned Linux PIDs gone/reaped before return without fallback test cleanup receiving credit.",
+    "Second independent invocation must remain blocked on the shared lease throughout deliberately delayed descendant cleanup after parent death; acquire only after cleanup is complete.",
+    "Nested framework/Temporal/standalone delegation must avoid reacquisition deadlock, reject invalid/missing authority, preserve source-only standalone admission and share exclusion with quick processes.",
+    "Prove successful exit, target signal, spawn failure and cleanup error preserve named stage statuses and deterministic simultaneous-failure receipts; no cancelled/incomplete work can count as executed.",
+    "Keep all checker Darwin non-root/root/descendant-prevention controls unchanged. Darwin orchestration requires a separate actual macOS proof before it can satisfy the strong task contract.",
+    "Regenerate only local dependency edge records and check that no registry package/version/checksum changed; then scoped formatting/clippy/process/graph/real standalone checks at the frozen source boundary."
+  ],
+  "sources": [
+    {
+      "url": "https://github.com/apple-oss-distributions/xnu/blob/main/bsd/sys/event.h#L334-L341",
+      "supports": "NOTE_TRACK-family unsupported since 10.5."
+    },
+    {
+      "url": "https://github.com/apple-oss-distributions/xnu/blob/main/bsd/kern/kern_event.c#L1030-L1039",
+      "supports": "filt_procattach returns ENOTSUP for track-family flags."
+    },
+    {
+      "url": "https://github.com/apple-oss-distributions/xnu/blob/main/bsd/kern/kern_event.c#L1109-L1163",
+      "supports": "NOTE_FORK event-bit aggregation has no child-filter custody."
+    },
+    {
+      "url": "https://developer.apple.com/library/archive/documentation/System/Conceptual/ManPages_iPhoneOS/man2/setsid.2.html",
+      "supports": "setsid changes session and process group."
+    },
+    {
+      "url": "https://github.com/apple-oss-distributions/xnu/blob/main/bsd/kern/kern_prot.c#L460-L608",
+      "supports": "setsid/setpgid implementation and absence of a MAC check in those reviewed routines."
+    },
+    {
+      "url": "https://doc.rust-lang.org/std/fs/struct.File.html#method.lock",
+      "supports": "File lock holds through duplicated/inherited handles until closure or explicit unlock; current Unix implementation uses flock."
+    }
+  ],
+  "remaining_uncertainty": "Linux candidate API/lease/delegation changes are design recommendations, not validated implementations. Darwin strong orchestration cleanup remains unresolved after primary-source checks. Do not auto-ask the human or declare platform impossibility; keep useful Linux work separate from the unfulfilled cross-platform acceptance."
+}

@@ -1,0 +1,17 @@
+{
+  "task": "fn-258-complete-the-resumed-standalone-umpire.4",
+  "source_pair": {
+    "temporal": "cde1ee67efd266a058193694c2ddb287598b9ea5",
+    "umpire": "05473210b48c3db862f22051eb7154ce98258f98"
+  },
+  "previous_pair": {
+    "temporal": "3f5f613578f2857b738a7792fad08f12b3ea0a41",
+    "umpire": "05473210b48c3db862f22051eb7154ce98258f98"
+  },
+  "source_correction": "Only model/scripts/test-model-wiring.sh expected model-update cache fields now use inherited values. Actual production policy unchanged.",
+  "focused_evidence": "consumer-cache-control-cde/handoff.json",
+  "failed_previous_gate": "final-pair-3f5-054/failed-default-3f5/diagnosis.json",
+  "acceptance_status": "New exact pair preparation, initially-empty target, generation/guest/default/required/quick/local-edit proof and final review remain required.",
+  "historical_closures": "Task2 standalone054 and task3 consumer3f5 readiness remain closed; they do not claim new cde whole-gate acceptance.",
+  "unaffected": "Standalone054 cold-required/check/time/release evidence remains exact; no framework source changed."
+}

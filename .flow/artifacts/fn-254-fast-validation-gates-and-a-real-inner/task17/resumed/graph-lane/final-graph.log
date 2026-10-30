@@ -1,0 +1,36 @@
+   Compiling xtask v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire/dev/xtask)
+    Finished `test` profile [unoptimized] target(s) in 2.05s
+     Running tests/main.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/target/debug/deps/main-399733285a0719a5)
+
+running 28 tests
+test gate_graph::graph_keeps_independent_read_only_work_schedulable_together ... ok
+test gate_graph::shared_cargo_targets_and_generated_outputs_have_predecessor_barriers ... ok
+test gate_graph::shipping_graph_has_unique_complete_stage_metadata_and_no_cycle ... ok
+test gate_wiring::actual_mise_failed_leaf_reaps_its_active_sibling_descendant_before_return ... ok
+test gate_wiring::compiled_stage_inventory_matches_preserved_framework_stages ... ok
+test gate_wiring::concurrent_duplicate_stage_claim_runs_leaf_exactly_once_and_preserves_receipt ... ok
+test gate_wiring::convenience_entries_keep_exact_arguments_and_propagate_failed_inner_status ... ok
+test gate_wiring::every_command_boundary_preserves_failure_status_and_environment_in_both_modes ... ok
+test gate_wiring::failed_scheduler_is_waited_and_its_owned_descendant_is_terminated_before_return ... ok
+test gate_wiring::full_dispatch_runs_each_leaf_once_in_order_and_bypasses_cache_from_first_command ... ok
+test gate_wiring::full_dispatch_stops_at_every_failed_leaf_in_both_modes ... ok
+test gate_wiring::full_gate_publishes_complete_ordered_invocation_local_receipts_on_every_run ... ok
+test gate_wiring::guest_and_go_stage_target_matrix_preserves_unset_relative_and_absolute_paths ... ok
+test gate_wiring::independent_native_stages_reach_each_other_while_both_are_active ... ok
+test gate_wiring::outer_supervision_streams_separate_diagnostics_before_scheduler_completion ... ok
+test gate_wiring::required_optional_backend_fetch_failure_is_named_and_prevents_first_stage ... ok
+test gate_wiring::required_profile_reaches_gate_update_and_direct_test_children ... ok
+test gate_wiring::required_test_stage_selects_bounded_profile_and_empty_selection_status_is_preserved ... ok
+test gate_wiring::root_required_backend_environment_selects_standalone_on_gate_and_time_routes ... ok
+test gate_wiring::scanner_stages_reject_real_planted_inputs_and_full_gate_stops_before_later_commands ... ok
+test gate_wiring::scheduled_stage_atomically_commits_success_failure_and_scanner_error_receipts ... ok
+test gate_wiring::scheduled_stage_requires_invocation_directory_before_starting_leaf ... ok
+test gate_wiring::shipping_mise_graph_really_overlaps_independent_native_leaves ... ok
+test gate_wiring::signaled_stage_retains_shell_status_diagnostics_and_stops_dispatch ... ok
+test gate_wiring::simultaneous_failed_native_leaves_both_retain_names_receipts_and_status ... ok
+test gate_wiring::successful_scheduler_status_cannot_replace_complete_unique_atomic_stage_records ... ok
+test gate_wiring::test_runner_route_preserves_one_workspace_call_and_failures_in_both_modes ... ok
+test gate_wiring::validate_forces_backend_mode_and_time_entries_stop_before_benchmark_after_failed_gate ... ok
+
+test result: ok. 28 passed; 0 failed; 0 ignored; 0 measured; 18 filtered out; finished in 14.34s
+

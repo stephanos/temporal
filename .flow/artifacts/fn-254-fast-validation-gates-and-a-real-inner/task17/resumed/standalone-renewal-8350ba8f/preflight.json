@@ -1,0 +1,9 @@
+{
+  "head": "8350ba8f03312d6675145693614b6276672f6941",
+  "free_bytes": 65728712704,
+  "owned_target": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25417-standalone-renewal/target",
+  "independent_child_output": "/tmp/umpire-fn25417-standalone-8350ba8f",
+  "admission": "Root transferred sole build/JVM lane; target has no active task process. Other observed Cargo/rustc processes belong to gomad sessions; no cache cleanup.",
+  "free_guard_bytes": 32212254720,
+  "macos": "Owner deferred"
+}

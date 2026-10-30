@@ -1,0 +1,3202 @@
+{
+  "schema": "fn25415-final-script-control-map-v1",
+  "purpose": "Frozen29-script/current-source complete mapping; source/evidence only; root owns runtime, deletion, versioning and acceptance",
+  "recorded_utc": "2026-10-28T18:43:49.473490+00:00",
+  "source_head": "4d980c9acdb6654b7d460e0aaf87b92aa14709a4",
+  "working_tree_status": [
+    " M .flow/tasks/fn-254-fast-validation-gates-and-a-real-inner.15.json",
+    " M .flow/tasks/fn-254-fast-validation-gates-and-a-real-inner.15.md",
+    " M model/dev/xtask/src/build_guests.rs",
+    " M model/dev/xtask/src/temporal_guest_path_controls.rs",
+    " M model/umpire/dev/guest-driver/src/guest.rs",
+    " M model/umpire/dev/guest-driver/tests/guest_pipeline.rs",
+    " M model/umpire/dev/xtask/src/build_guest_path_controls.rs",
+    " M model/umpire/dev/xtask/src/capability_controls.rs",
+    " M model/umpire/dev/xtask/src/gate.rs",
+    " M model/umpire/dev/xtask/src/gate/boundary.rs",
+    " M model/umpire/dev/xtask/src/main.rs",
+    " M model/umpire/dev/xtask/src/proto.rs",
+    " M model/umpire/dev/xtask/src/proto_controls.rs",
+    " M model/umpire/dev/xtask/tests/gate_wiring.rs",
+    " M model/umpire/dev/xtask/tests/retired_names.rs"
+  ],
+  "source_files": {
+    "model/umpire/dev/xtask/src/proto_controls.rs": {
+      "sha256": "5323aa2f40e310e0f6d02eb07ea0d4fdcef6ea2acfcc3b4b44eea1c2090c9f3c"
+    },
+    "model/umpire/dev/xtask/tests/native_leaves.rs": {
+      "sha256": "70fbcae0691d6572e7dda111c6b7a2e224e8743d3d49625b8af44cee9bf57751"
+    },
+    "model/umpire/dev/xtask/src/build_guests.rs": {
+      "sha256": "b1f376381a5b68d7d20294ff9929351c861f9dc57469d2980cc09ed81cb534e4"
+    },
+    "model/umpire/dev/xtask/src/build_guest_path_controls.rs": {
+      "sha256": "7bd4e1d3b0694bc0e32cafbea73bd517b1fc3a5c1f843c6800424fe3836bfb37"
+    },
+    "model/umpire/dev/xtask/src/capability_controls.rs": {
+      "sha256": "86cb1bbadb163b5fcd3beb05b22ae256cebcc4dee1a09f09f58293baf1d0ab72"
+    },
+    "model/umpire/dev/xtask/src/retired_name_controls.rs": {
+      "sha256": "cb274a01a6f559efbe9276331d161de7cfb4c5cfa7abd2edca0e185c14ec2c09"
+    },
+    "model/umpire/dev/xtask/tests/retired_names.rs": {
+      "sha256": "5e63fdfda6f1449d0b8a0ae01ee5768e4337797fe04902444e39a0980297b908"
+    },
+    "model/umpire/dev/xtask/tests/gate_wiring.rs": {
+      "sha256": "9db5c888e077a9ead753d7baf1c79ad8cd1ac44e13f88640c71258dd9304b8a8"
+    },
+    "model/umpire/dev/xtask/tests/apalache_install.rs": {
+      "sha256": "8c40e6a2aa325226d1eaa1baccb6d11ee1f6793d7e8a91016d705e3fe995e3ec"
+    },
+    "model/dev/xtask/src/proto.rs": {
+      "sha256": "26874ddfd02de1df87d75ff4dd569edf702706f70e6d3ce3225ecb4c16d8b07d"
+    },
+    "model/dev/xtask/src/proto_bridge_controls.rs": {
+      "sha256": "e64ecb2cc012afcfd292120cd7b3c0079354f1a9ab7913b83da32358c9cb3b10"
+    },
+    "model/dev/xtask/src/guest_route_controls.rs": {
+      "sha256": "3aa6b94f7789901b287c478b1a87f4694c09b3b868249efc93e32a63b97cbf73"
+    },
+    "model/dev/xtask/src/temporal_guest_path_controls.rs": {
+      "sha256": "1b945d65292fe63dd7040b69ac3b1f3ec40ab15069b82aa5f213035d468863a5"
+    },
+    "model/dev/xtask/src/model_controls.rs": {
+      "sha256": "5be019dd00503d63abaef1fc8b9b6f41cae942570ebd2a29e103e2f8017fb083"
+    },
+    "model/dev/xtask/src/gate/timing_controls.rs": {
+      "sha256": "a0101fcb6bbf2eb25cf7bc69e43f34de261fc2d455276ac5411b5c0d9a07edc3"
+    },
+    "model/dev/xtask/src/gate/timing.rs": {
+      "sha256": "4e21ac7ead777ccda0a426ac6b0b21802f1b7d0346057c015d7030f13fcdd30b"
+    },
+    "model/dev/xtask/tests/retired_names.rs": {
+      "sha256": "02217b87b5f65612aefa0e549f67495e669771b19a1a0c988ce1e0dde50d3d7c"
+    },
+    "model/umpire/dev/guest-driver/tests/guest_pipeline.rs": {
+      "sha256": "18d27f1fe5fc6d2d748774aeb6a1beb06e2fd22cfcecf42486e5ca0d5ce26058"
+    },
+    "model/umpire/dev/guest-driver/src/guest.rs": {
+      "sha256": "ec123a574a4fab6186efd3bef31b54652aa7b48fe28758d762aaaacd9b654d26"
+    },
+    "model/umpire/backends/process/src/tool_provider.rs": {
+      "sha256": "2ae0fa285b763ba7dc03fe01bbede05fa2f508c2e3afb062506d968338f594ff"
+    },
+    "model/umpire/backends/tlc/src/runner.rs": {
+      "sha256": "095e741147410309ab2c762bfc9bb0985bc389127fa9ceb7879e1b997696e7b6"
+    },
+    "model/dev/xtask/src/main.rs": {
+      "sha256": "f7c921bd98fceef88a49c226e9a2886b45ec8ad1ac98f553a7e63821f6ed526d"
+    },
+    "model/umpire/dev/xtask/src/retired_names.rs": {
+      "sha256": "4925a454d04954c79dd52084832a67f6c2bd09a40d8237f388c2fe4bfc15e758"
+    },
+    "model/umpire/dev/xtask/src/fetch_apalache.rs": {
+      "sha256": "876ea1772407a232119b16a7e018354ac91c90a7f67662c627e608c06ec71f84"
+    },
+    "model/scripts/xtask.sh": {
+      "sha256": "c559af5d1c154147f4922887f4ed02dc7e0695706a58c6844c5162c3f08793a1"
+    },
+    "model/dev/xtask/src/build_guests.rs": {
+      "sha256": "0cff25993b03a4ee5313b7b47a9b65f3dce560d6079966f8673dc3257ecc2c45"
+    },
+    "model/umpire/scripts/xtask.sh": {
+      "sha256": "2cd2d88ec0a66f69783f7eb5d510875c7e48d2a3604c3b6a6142e31a2bf5aa82"
+    },
+    "model/umpire/dev/xtask/src/main.rs": {
+      "sha256": "e9871388f53f558f4deedb0fd16eb05a0d12b066ca298e1b5ef8ac2eb8c2a1f6"
+    },
+    "model/dev/xtask/src/guest_routes.rs": {
+      "sha256": "1ad064868d7c6f78772ea71230030a8834c57e31d30fd40e82bd4d1c65dc3c10"
+    },
+    "model/umpire/dev/xtask/src/proto.rs": {
+      "sha256": "a6412f662ba3ae31f5b8463c13ac6b994e59304cdbba162e148eca8e0e267ece"
+    },
+    "model/dev/xtask/src/retired_names.rs": {
+      "sha256": "aa4788f92f78957387a9eb11439abe14230f404983680166204bfff3783b4b15"
+    },
+    "model/umpire/dev/xtask/src/gate.rs": {
+      "sha256": "0cb8016352c9712f2286914d0770e2af0968e300782cf9aa841492097728b150"
+    },
+    "model/umpire/dev/xtask/src/timing_controls.rs": {
+      "sha256": "38c4670c54ddead0d5b1be996e30aa3c458b7298f43b192c85ea529e5645ac27"
+    },
+    "model/dev/xtask/src/gate.rs": {
+      "sha256": "b808728efae5f1e44fc1130386f2cc27f96abab3fd7779387e5b35a3b4db10cf"
+    },
+    "Makefile": {
+      "sha256": "fefcee67172f565665c5991df0f8f1e29031f978f1db69e119964e416554273d"
+    },
+    "model/umpire/dev/xtask/src/gate/timing.rs": {
+      "sha256": "b4b8733e493f9d9a53b6312fbceb68f5d5f1742210a9fd1d63f9530602e16154"
+    }
+  },
+  "frozen_inventory": {
+    "path": ".flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/task15/script-control-map-60f1c762.json",
+    "source": "60f1c762a618d32478b58ae4e79c151f4355aeb3",
+    "sha256": "02a91ca75812cc33756a05d3f0c66aca759c08a17fd4a27eb664382191b1b9db"
+  },
+  "runtime_acceptance": false,
+  "task_complete": false,
+  "source_inventory": {
+    "current_shell_count": 29,
+    "removable_count": 27,
+    "retained_count": 2,
+    "current_shell_paths": [
+      "model/scripts/fetch-tlc.sh",
+      "model/scripts/guest-freshness.sh",
+      "model/scripts/guest.sh",
+      "model/scripts/proto-go.sh",
+      "model/scripts/retired-names.sh",
+      "model/scripts/test-capabilities.sh",
+      "model/scripts/test-model-validate.sh",
+      "model/scripts/test-model-wiring.sh",
+      "model/scripts/test-time-gate.sh",
+      "model/scripts/tests/build-guests.sh",
+      "model/scripts/tests/guest-roots.sh",
+      "model/scripts/tests/proto-go.sh",
+      "model/scripts/time-gate.sh",
+      "model/scripts/xtask.sh",
+      "model/umpire/scripts/fetch-tlc.sh",
+      "model/umpire/scripts/guest-freshness.sh",
+      "model/umpire/scripts/guest.sh",
+      "model/umpire/scripts/proto-go.sh",
+      "model/umpire/scripts/proto-tools.sh",
+      "model/umpire/scripts/retired-names.sh",
+      "model/umpire/scripts/test-capabilities.sh",
+      "model/umpire/scripts/test-time-gate.sh",
+      "model/umpire/scripts/tests/bootstrap.sh",
+      "model/umpire/scripts/tests/build-guests-controls.sh",
+      "model/umpire/scripts/tests/build-guests.sh",
+      "model/umpire/scripts/tests/proto-go.sh",
+      "model/umpire/scripts/tests/proto-tools.sh",
+      "model/umpire/scripts/time-gate.sh",
+      "model/umpire/scripts/xtask.sh"
+    ],
+    "removable_paths": [
+      "model/scripts/fetch-tlc.sh",
+      "model/scripts/guest-freshness.sh",
+      "model/scripts/guest.sh",
+      "model/scripts/proto-go.sh",
+      "model/scripts/retired-names.sh",
+      "model/scripts/test-capabilities.sh",
+      "model/scripts/test-model-validate.sh",
+      "model/scripts/test-model-wiring.sh",
+      "model/scripts/test-time-gate.sh",
+      "model/scripts/tests/build-guests.sh",
+      "model/scripts/tests/guest-roots.sh",
+      "model/scripts/tests/proto-go.sh",
+      "model/scripts/time-gate.sh",
+      "model/umpire/scripts/fetch-tlc.sh",
+      "model/umpire/scripts/guest-freshness.sh",
+      "model/umpire/scripts/guest.sh",
+      "model/umpire/scripts/proto-go.sh",
+      "model/umpire/scripts/proto-tools.sh",
+      "model/umpire/scripts/retired-names.sh",
+      "model/umpire/scripts/test-capabilities.sh",
+      "model/umpire/scripts/test-time-gate.sh",
+      "model/umpire/scripts/tests/bootstrap.sh",
+      "model/umpire/scripts/tests/build-guests-controls.sh",
+      "model/umpire/scripts/tests/build-guests.sh",
+      "model/umpire/scripts/tests/proto-go.sh",
+      "model/umpire/scripts/tests/proto-tools.sh",
+      "model/umpire/scripts/time-gate.sh"
+    ],
+    "retained_paths": [
+      "model/scripts/xtask.sh",
+      "model/umpire/scripts/xtask.sh"
+    ],
+    "proposed_post_deletion_inventory": [
+      "model/scripts/xtask.sh",
+      "model/umpire/scripts/xtask.sh"
+    ],
+    "deletions_performed": false
+  },
+  "controls": {
+    "xtask/lib:proto::controls::tests::native_protobuf_behavior_controls": {
+      "target": "xtask/lib",
+      "identity": "proto::controls::tests::native_protobuf_behavior_controls",
+      "path": "model/umpire/dev/xtask/src/proto_controls.rs",
+      "line": 343,
+      "source_sha256": "5323aa2f40e310e0f6d02eb07ea0d4fdcef6ea2acfcc3b4b44eea1c2090c9f3c",
+      "runtime_accepted": false
+    },
+    "xtask/main:native_leaves::capability_controls_enforce_core_and_unsafe_policies": {
+      "target": "xtask/main",
+      "identity": "native_leaves::capability_controls_enforce_core_and_unsafe_policies",
+      "path": "model/umpire/dev/xtask/tests/native_leaves.rs",
+      "line": 4,
+      "source_sha256": "70fbcae0691d6572e7dda111c6b7a2e224e8743d3d49625b8af44cee9bf57751",
+      "runtime_accepted": false
+    },
+    "xtask/main:native_leaves::public_timing_front_door_preserves_status_diagnostics_and_cleanup": {
+      "target": "xtask/main",
+      "identity": "native_leaves::public_timing_front_door_preserves_status_diagnostics_and_cleanup",
+      "path": "model/umpire/dev/xtask/tests/native_leaves.rs",
+      "line": 11,
+      "source_sha256": "70fbcae0691d6572e7dda111c6b7a2e224e8743d3d49625b8af44cee9bf57751",
+      "runtime_accepted": false
+    },
+    "xtask/main:native_leaves::public_protobuf_controls_reach_the_native_implementation": {
+      "target": "xtask/main",
+      "identity": "native_leaves::public_protobuf_controls_reach_the_native_implementation",
+      "path": "model/umpire/dev/xtask/tests/native_leaves.rs",
+      "line": 17,
+      "source_sha256": "70fbcae0691d6572e7dda111c6b7a2e224e8743d3d49625b8af44cee9bf57751",
+      "runtime_accepted": false
+    },
+    "xtask/lib:build_guests::tests::five_artifacts_then_two_reports_keep_spaces_and_child_status": {
+      "target": "xtask/lib",
+      "identity": "build_guests::tests::five_artifacts_then_two_reports_keep_spaces_and_child_status",
+      "path": "model/umpire/dev/xtask/src/build_guests.rs",
+      "line": 93,
+      "source_sha256": "b1f376381a5b68d7d20294ff9929351c861f9dc57469d2980cc09ed81cb534e4",
+      "runtime_accepted": false
+    },
+    "xtask/lib:build_guests::path_controls::isolated_build_child": {
+      "target": "xtask/lib",
+      "identity": "build_guests::path_controls::isolated_build_child",
+      "path": "model/umpire/dev/xtask/src/build_guest_path_controls.rs",
+      "line": 17,
+      "source_sha256": "7bd4e1d3b0694bc0e32cafbea73bd517b1fc3a5c1f843c6800424fe3836bfb37",
+      "runtime_accepted": false
+    },
+    "xtask/lib:build_guests::path_controls::relative_absolute_default_and_symlink_cargo_paths_preserve_seven_children": {
+      "target": "xtask/lib",
+      "identity": "build_guests::path_controls::relative_absolute_default_and_symlink_cargo_paths_preserve_seven_children",
+      "path": "model/umpire/dev/xtask/src/build_guest_path_controls.rs",
+      "line": 127,
+      "source_sha256": "7bd4e1d3b0694bc0e32cafbea73bd517b1fc3a5c1f843c6800424fe3836bfb37",
+      "runtime_accepted": false
+    },
+    "xtask/lib:build_guests::path_controls::guest_and_native_statuses_stop_without_following_children": {
+      "target": "xtask/lib",
+      "identity": "build_guests::path_controls::guest_and_native_statuses_stop_without_following_children",
+      "path": "model/umpire/dev/xtask/src/build_guest_path_controls.rs",
+      "line": 159,
+      "source_sha256": "7bd4e1d3b0694bc0e32cafbea73bd517b1fc3a5c1f843c6800424fe3836bfb37",
+      "runtime_accepted": false
+    },
+    "xtask/lib:capability_controls::tests::negative_control_requires_failure_and_every_symbol": {
+      "target": "xtask/lib",
+      "identity": "capability_controls::tests::negative_control_requires_failure_and_every_symbol",
+      "path": "model/umpire/dev/xtask/src/capability_controls.rs",
+      "line": 141,
+      "source_sha256": "86cb1bbadb163b5fcd3beb05b22ae256cebcc4dee1a09f09f58293baf1d0ab72",
+      "runtime_accepted": false
+    },
+    "xtask/lib:capability_controls::tests::both_policies_six_safe_roots_and_audited_exception": {
+      "target": "xtask/lib",
+      "identity": "capability_controls::tests::both_policies_six_safe_roots_and_audited_exception",
+      "path": "model/umpire/dev/xtask/src/capability_controls.rs",
+      "line": 148,
+      "source_sha256": "86cb1bbadb163b5fcd3beb05b22ae256cebcc4dee1a09f09f58293baf1d0ab72",
+      "runtime_accepted": false
+    },
+    "xtask/lib:retired_names::controls::raw_records_keep_non_utf8_paths_lines_and_numeric_spelling": {
+      "target": "xtask/lib",
+      "identity": "retired_names::controls::raw_records_keep_non_utf8_paths_lines_and_numeric_spelling",
+      "path": "model/umpire/dev/xtask/src/retired_name_controls.rs",
+      "line": 8,
+      "source_sha256": "cb274a01a6f559efbe9276331d161de7cfb4c5cfa7abd2edca0e185c14ec2c09",
+      "runtime_accepted": false
+    },
+    "xtask/lib:retired_names::controls::rust_patterns_and_malformed_records_fail_closed": {
+      "target": "xtask/lib",
+      "identity": "retired_names::controls::rust_patterns_and_malformed_records_fail_closed",
+      "path": "model/umpire/dev/xtask/src/retired_name_controls.rs",
+      "line": 22,
+      "source_sha256": "cb274a01a6f559efbe9276331d161de7cfb4c5cfa7abd2edca0e185c14ec2c09",
+      "runtime_accepted": false
+    },
+    "xtask/lib:retired_names::controls::facade_token_exemption_checks_boundaries_and_remaining_matches": {
+      "target": "xtask/lib",
+      "identity": "retired_names::controls::facade_token_exemption_checks_boundaries_and_remaining_matches",
+      "path": "model/umpire/dev/xtask/src/retired_name_controls.rs",
+      "line": 35,
+      "source_sha256": "cb274a01a6f559efbe9276331d161de7cfb4c5cfa7abd2edca0e185c14ec2c09",
+      "runtime_accepted": false
+    },
+    "xtask/lib:retired_names::controls::native_scan_handles_git_binary_missing_and_symlink_policy": {
+      "target": "xtask/lib",
+      "identity": "retired_names::controls::native_scan_handles_git_binary_missing_and_symlink_policy",
+      "path": "model/umpire/dev/xtask/src/retired_name_controls.rs",
+      "line": 57,
+      "source_sha256": "cb274a01a6f559efbe9276331d161de7cfb4c5cfa7abd2edca0e185c14ec2c09",
+      "runtime_accepted": false
+    },
+    "xtask/lib:retired_names::controls::writer_failure_returns_error_status": {
+      "target": "xtask/lib",
+      "identity": "retired_names::controls::writer_failure_returns_error_status",
+      "path": "model/umpire/dev/xtask/src/retired_name_controls.rs",
+      "line": 82,
+      "source_sha256": "cb274a01a6f559efbe9276331d161de7cfb4c5cfa7abd2edca0e185c14ec2c09",
+      "runtime_accepted": false
+    },
+    "xtask/main:retired_names::raw_records_exempt_only_author_facade_tokens": {
+      "target": "xtask/main",
+      "identity": "retired_names::raw_records_exempt_only_author_facade_tokens",
+      "path": "model/umpire/dev/xtask/tests/retired_names.rs",
+      "line": 22,
+      "source_sha256": "5e63fdfda6f1449d0b8a0ae01ee5768e4337797fe04902444e39a0980297b908",
+      "runtime_accepted": false
+    },
+    "xtask/main:retired_names::malformed_records_fail_closed": {
+      "target": "xtask/main",
+      "identity": "retired_names::malformed_records_fail_closed",
+      "path": "model/umpire/dev/xtask/tests/retired_names.rs",
+      "line": 45,
+      "source_sha256": "5e63fdfda6f1449d0b8a0ae01ee5768e4337797fe04902444e39a0980297b908",
+      "runtime_accepted": false
+    },
+    "xtask/main:retired_names::rust_regex_character_classes_and_invalid_patterns": {
+      "target": "xtask/main",
+      "identity": "retired_names::rust_regex_character_classes_and_invalid_patterns",
+      "path": "model/umpire/dev/xtask/tests/retired_names.rs",
+      "line": 54,
+      "source_sha256": "5e63fdfda6f1449d0b8a0ae01ee5768e4337797fe04902444e39a0980297b908",
+      "runtime_accepted": false
+    },
+    "xtask/main:retired_names::io_failure_and_absent_grep_are_handled_natively": {
+      "target": "xtask/main",
+      "identity": "retired_names::io_failure_and_absent_grep_are_handled_natively",
+      "path": "model/umpire/dev/xtask/tests/retired_names.rs",
+      "line": 63,
+      "source_sha256": "5e63fdfda6f1449d0b8a0ae01ee5768e4337797fe04902444e39a0980297b908",
+      "runtime_accepted": false
+    },
+    "xtask/main:retired_names::native_scan_catches_each_planted_retired_name": {
+      "target": "xtask/main",
+      "identity": "retired_names::native_scan_catches_each_planted_retired_name",
+      "path": "model/umpire/dev/xtask/tests/retired_names.rs",
+      "line": 98,
+      "source_sha256": "5e63fdfda6f1449d0b8a0ae01ee5768e4337797fe04902444e39a0980297b908",
+      "runtime_accepted": false
+    },
+    "xtask/main:gate_wiring::compiled_stage_inventory_matches_preserved_framework_stages": {
+      "target": "xtask/main",
+      "identity": "gate_wiring::compiled_stage_inventory_matches_preserved_framework_stages",
+      "path": "model/umpire/dev/xtask/tests/gate_wiring.rs",
+      "line": 520,
+      "source_sha256": "9db5c888e077a9ead753d7baf1c79ad8cd1ac44e13f88640c71258dd9304b8a8",
+      "runtime_accepted": false
+    },
+    "xtask/main:gate_wiring::every_command_boundary_preserves_failure_status_and_environment_in_both_modes": {
+      "target": "xtask/main",
+      "identity": "gate_wiring::every_command_boundary_preserves_failure_status_and_environment_in_both_modes",
+      "path": "model/umpire/dev/xtask/tests/gate_wiring.rs",
+      "line": 540,
+      "source_sha256": "9db5c888e077a9ead753d7baf1c79ad8cd1ac44e13f88640c71258dd9304b8a8",
+      "runtime_accepted": false
+    },
+    "xtask/main:gate_wiring::full_dispatch_runs_each_leaf_once_in_order_and_bypasses_cache_from_first_command": {
+      "target": "xtask/main",
+      "identity": "gate_wiring::full_dispatch_runs_each_leaf_once_in_order_and_bypasses_cache_from_first_command",
+      "path": "model/umpire/dev/xtask/tests/gate_wiring.rs",
+      "line": 570,
+      "source_sha256": "9db5c888e077a9ead753d7baf1c79ad8cd1ac44e13f88640c71258dd9304b8a8",
+      "runtime_accepted": false
+    },
+    "xtask/main:gate_wiring::full_dispatch_stops_at_every_failed_leaf_in_both_modes": {
+      "target": "xtask/main",
+      "identity": "gate_wiring::full_dispatch_stops_at_every_failed_leaf_in_both_modes",
+      "path": "model/umpire/dev/xtask/tests/gate_wiring.rs",
+      "line": 591,
+      "source_sha256": "9db5c888e077a9ead753d7baf1c79ad8cd1ac44e13f88640c71258dd9304b8a8",
+      "runtime_accepted": false
+    },
+    "xtask/main:gate_wiring::scanner_stages_reject_real_planted_inputs_and_full_gate_stops_before_later_commands": {
+      "target": "xtask/main",
+      "identity": "gate_wiring::scanner_stages_reject_real_planted_inputs_and_full_gate_stops_before_later_commands",
+      "path": "model/umpire/dev/xtask/tests/gate_wiring.rs",
+      "line": 612,
+      "source_sha256": "9db5c888e077a9ead753d7baf1c79ad8cd1ac44e13f88640c71258dd9304b8a8",
+      "runtime_accepted": false
+    },
+    "xtask/main:gate_wiring::required_optional_backend_fetch_failure_is_named_and_prevents_first_stage": {
+      "target": "xtask/main",
+      "identity": "gate_wiring::required_optional_backend_fetch_failure_is_named_and_prevents_first_stage",
+      "path": "model/umpire/dev/xtask/tests/gate_wiring.rs",
+      "line": 650,
+      "source_sha256": "9db5c888e077a9ead753d7baf1c79ad8cd1ac44e13f88640c71258dd9304b8a8",
+      "runtime_accepted": false
+    },
+    "xtask/main:gate_wiring::validate_forces_backend_mode_and_time_entries_stop_before_benchmark_after_failed_gate": {
+      "target": "xtask/main",
+      "identity": "gate_wiring::validate_forces_backend_mode_and_time_entries_stop_before_benchmark_after_failed_gate",
+      "path": "model/umpire/dev/xtask/tests/gate_wiring.rs",
+      "line": 665,
+      "source_sha256": "9db5c888e077a9ead753d7baf1c79ad8cd1ac44e13f88640c71258dd9304b8a8",
+      "runtime_accepted": false
+    },
+    "xtask/main:gate_wiring::supervision_public_fmt_finishes_while_host_lease_is_held": {
+      "target": "xtask/main",
+      "identity": "gate_wiring::supervision_public_fmt_finishes_while_host_lease_is_held",
+      "path": "model/umpire/dev/xtask/tests/gate_wiring.rs",
+      "line": 739,
+      "source_sha256": "9db5c888e077a9ead753d7baf1c79ad8cd1ac44e13f88640c71258dd9304b8a8",
+      "runtime_accepted": false
+    },
+    "xtask/main:gate_wiring::supervision_public_fmt_reaps_background_children_before_returning_failure": {
+      "target": "xtask/main",
+      "identity": "gate_wiring::supervision_public_fmt_reaps_background_children_before_returning_failure",
+      "path": "model/umpire/dev/xtask/tests/gate_wiring.rs",
+      "line": 764,
+      "source_sha256": "9db5c888e077a9ead753d7baf1c79ad8cd1ac44e13f88640c71258dd9304b8a8",
+      "runtime_accepted": false
+    },
+    "xtask/main:gate_wiring::supervision_scratch_is_private_and_removed_after_success_and_failure": {
+      "target": "xtask/main",
+      "identity": "gate_wiring::supervision_scratch_is_private_and_removed_after_success_and_failure",
+      "path": "model/umpire/dev/xtask/tests/gate_wiring.rs",
+      "line": 792,
+      "source_sha256": "9db5c888e077a9ead753d7baf1c79ad8cd1ac44e13f88640c71258dd9304b8a8",
+      "runtime_accepted": false
+    },
+    "xtask/main:gate_wiring::supervision_ignores_obstructed_legacy_shared_scratch_parent": {
+      "target": "xtask/main",
+      "identity": "gate_wiring::supervision_ignores_obstructed_legacy_shared_scratch_parent",
+      "path": "model/umpire/dev/xtask/tests/gate_wiring.rs",
+      "line": 846,
+      "source_sha256": "9db5c888e077a9ead753d7baf1c79ad8cd1ac44e13f88640c71258dd9304b8a8",
+      "runtime_accepted": false
+    },
+    "xtask/main:gate_wiring::convenience_entries_keep_exact_arguments_and_propagate_failed_inner_status": {
+      "target": "xtask/main",
+      "identity": "gate_wiring::convenience_entries_keep_exact_arguments_and_propagate_failed_inner_status",
+      "path": "model/umpire/dev/xtask/tests/gate_wiring.rs",
+      "line": 867,
+      "source_sha256": "9db5c888e077a9ead753d7baf1c79ad8cd1ac44e13f88640c71258dd9304b8a8",
+      "runtime_accepted": false
+    },
+    "xtask/main:gate_wiring::signaled_stage_retains_shell_status_diagnostics_and_stops_dispatch": {
+      "target": "xtask/main",
+      "identity": "gate_wiring::signaled_stage_retains_shell_status_diagnostics_and_stops_dispatch",
+      "path": "model/umpire/dev/xtask/tests/gate_wiring.rs",
+      "line": 923,
+      "source_sha256": "9db5c888e077a9ead753d7baf1c79ad8cd1ac44e13f88640c71258dd9304b8a8",
+      "runtime_accepted": false
+    },
+    "xtask/main:gate_wiring::guest_and_go_stage_target_matrix_preserves_unset_relative_and_absolute_paths": {
+      "target": "xtask/main",
+      "identity": "gate_wiring::guest_and_go_stage_target_matrix_preserves_unset_relative_and_absolute_paths",
+      "path": "model/umpire/dev/xtask/tests/gate_wiring.rs",
+      "line": 954,
+      "source_sha256": "9db5c888e077a9ead753d7baf1c79ad8cd1ac44e13f88640c71258dd9304b8a8",
+      "runtime_accepted": false
+    },
+    "xtask/main:gate_wiring::test_runner_route_preserves_one_workspace_call_and_failures_in_both_modes": {
+      "target": "xtask/main",
+      "identity": "gate_wiring::test_runner_route_preserves_one_workspace_call_and_failures_in_both_modes",
+      "path": "model/umpire/dev/xtask/tests/gate_wiring.rs",
+      "line": 988,
+      "source_sha256": "9db5c888e077a9ead753d7baf1c79ad8cd1ac44e13f88640c71258dd9304b8a8",
+      "runtime_accepted": false
+    },
+    "xtask/main:gate_wiring::root_required_backend_environment_selects_standalone_on_gate_and_time_routes": {
+      "target": "xtask/main",
+      "identity": "gate_wiring::root_required_backend_environment_selects_standalone_on_gate_and_time_routes",
+      "path": "model/umpire/dev/xtask/tests/gate_wiring.rs",
+      "line": 1037,
+      "source_sha256": "9db5c888e077a9ead753d7baf1c79ad8cd1ac44e13f88640c71258dd9304b8a8",
+      "runtime_accepted": false
+    },
+    "xtask/main:gate_wiring::required_profile_reaches_gate_update_and_direct_test_children": {
+      "target": "xtask/main",
+      "identity": "gate_wiring::required_profile_reaches_gate_update_and_direct_test_children",
+      "path": "model/umpire/dev/xtask/tests/gate_wiring.rs",
+      "line": 1054,
+      "source_sha256": "9db5c888e077a9ead753d7baf1c79ad8cd1ac44e13f88640c71258dd9304b8a8",
+      "runtime_accepted": false
+    },
+    "xtask/main:gate_wiring::scheduled_stage_requires_invocation_directory_before_starting_leaf": {
+      "target": "xtask/main",
+      "identity": "gate_wiring::scheduled_stage_requires_invocation_directory_before_starting_leaf",
+      "path": "model/umpire/dev/xtask/tests/gate_wiring.rs",
+      "line": 1112,
+      "source_sha256": "9db5c888e077a9ead753d7baf1c79ad8cd1ac44e13f88640c71258dd9304b8a8",
+      "runtime_accepted": false
+    },
+    "xtask/main:gate_wiring::scheduled_stage_atomically_commits_success_failure_and_scanner_error_receipts": {
+      "target": "xtask/main",
+      "identity": "gate_wiring::scheduled_stage_atomically_commits_success_failure_and_scanner_error_receipts",
+      "path": "model/umpire/dev/xtask/tests/gate_wiring.rs",
+      "line": 1122,
+      "source_sha256": "9db5c888e077a9ead753d7baf1c79ad8cd1ac44e13f88640c71258dd9304b8a8",
+      "runtime_accepted": false
+    },
+    "xtask/main:gate_wiring::concurrent_duplicate_stage_claim_runs_leaf_exactly_once_and_preserves_receipt": {
+      "target": "xtask/main",
+      "identity": "gate_wiring::concurrent_duplicate_stage_claim_runs_leaf_exactly_once_and_preserves_receipt",
+      "path": "model/umpire/dev/xtask/tests/gate_wiring.rs",
+      "line": 1210,
+      "source_sha256": "9db5c888e077a9ead753d7baf1c79ad8cd1ac44e13f88640c71258dd9304b8a8",
+      "runtime_accepted": false
+    },
+    "xtask/main:gate_wiring::successful_scheduler_status_cannot_replace_complete_unique_atomic_stage_records": {
+      "target": "xtask/main",
+      "identity": "gate_wiring::successful_scheduler_status_cannot_replace_complete_unique_atomic_stage_records",
+      "path": "model/umpire/dev/xtask/tests/gate_wiring.rs",
+      "line": 1239,
+      "source_sha256": "9db5c888e077a9ead753d7baf1c79ad8cd1ac44e13f88640c71258dd9304b8a8",
+      "runtime_accepted": false
+    },
+    "xtask/main:gate_wiring::independent_native_stages_reach_each_other_while_both_are_active": {
+      "target": "xtask/main",
+      "identity": "gate_wiring::independent_native_stages_reach_each_other_while_both_are_active",
+      "path": "model/umpire/dev/xtask/tests/gate_wiring.rs",
+      "line": 1267,
+      "source_sha256": "9db5c888e077a9ead753d7baf1c79ad8cd1ac44e13f88640c71258dd9304b8a8",
+      "runtime_accepted": false
+    },
+    "xtask/main:gate_wiring::full_gate_publishes_complete_ordered_invocation_local_receipts_on_every_run": {
+      "target": "xtask/main",
+      "identity": "gate_wiring::full_gate_publishes_complete_ordered_invocation_local_receipts_on_every_run",
+      "path": "model/umpire/dev/xtask/tests/gate_wiring.rs",
+      "line": 1307,
+      "source_sha256": "9db5c888e077a9ead753d7baf1c79ad8cd1ac44e13f88640c71258dd9304b8a8",
+      "runtime_accepted": false
+    },
+    "xtask/main:gate_wiring::simultaneous_failed_native_leaves_both_retain_names_receipts_and_status": {
+      "target": "xtask/main",
+      "identity": "gate_wiring::simultaneous_failed_native_leaves_both_retain_names_receipts_and_status",
+      "path": "model/umpire/dev/xtask/tests/gate_wiring.rs",
+      "line": 1342,
+      "source_sha256": "9db5c888e077a9ead753d7baf1c79ad8cd1ac44e13f88640c71258dd9304b8a8",
+      "runtime_accepted": false
+    },
+    "xtask/main:gate_wiring::failed_scheduler_is_waited_and_its_owned_descendant_is_terminated_before_return": {
+      "target": "xtask/main",
+      "identity": "gate_wiring::failed_scheduler_is_waited_and_its_owned_descendant_is_terminated_before_return",
+      "path": "model/umpire/dev/xtask/tests/gate_wiring.rs",
+      "line": 1382,
+      "source_sha256": "9db5c888e077a9ead753d7baf1c79ad8cd1ac44e13f88640c71258dd9304b8a8",
+      "runtime_accepted": false
+    },
+    "xtask/main:gate_wiring::shipping_mise_graph_really_overlaps_independent_native_leaves": {
+      "target": "xtask/main",
+      "identity": "gate_wiring::shipping_mise_graph_really_overlaps_independent_native_leaves",
+      "path": "model/umpire/dev/xtask/tests/gate_wiring.rs",
+      "line": 1420,
+      "source_sha256": "9db5c888e077a9ead753d7baf1c79ad8cd1ac44e13f88640c71258dd9304b8a8",
+      "runtime_accepted": false
+    },
+    "xtask/main:gate_wiring::required_test_stage_selects_bounded_profile_and_empty_selection_status_is_preserved": {
+      "target": "xtask/main",
+      "identity": "gate_wiring::required_test_stage_selects_bounded_profile_and_empty_selection_status_is_preserved",
+      "path": "model/umpire/dev/xtask/tests/gate_wiring.rs",
+      "line": 1450,
+      "source_sha256": "9db5c888e077a9ead753d7baf1c79ad8cd1ac44e13f88640c71258dd9304b8a8",
+      "runtime_accepted": false
+    },
+    "xtask/main:gate_wiring::actual_mise_failed_leaf_reaps_its_active_sibling_descendant_before_return": {
+      "target": "xtask/main",
+      "identity": "gate_wiring::actual_mise_failed_leaf_reaps_its_active_sibling_descendant_before_return",
+      "path": "model/umpire/dev/xtask/tests/gate_wiring.rs",
+      "line": 1474,
+      "source_sha256": "9db5c888e077a9ead753d7baf1c79ad8cd1ac44e13f88640c71258dd9304b8a8",
+      "runtime_accepted": false
+    },
+    "xtask/main:gate_wiring::outer_supervision_streams_separate_diagnostics_before_scheduler_completion": {
+      "target": "xtask/main",
+      "identity": "gate_wiring::outer_supervision_streams_separate_diagnostics_before_scheduler_completion",
+      "path": "model/umpire/dev/xtask/tests/gate_wiring.rs",
+      "line": 1507,
+      "source_sha256": "9db5c888e077a9ead753d7baf1c79ad8cd1ac44e13f88640c71258dd9304b8a8",
+      "runtime_accepted": false
+    },
+    "xtask/main:gate_wiring::native_guest_stage_stops_at_each_driver_and_report_failure": {
+      "target": "xtask/main",
+      "identity": "gate_wiring::native_guest_stage_stops_at_each_driver_and_report_failure",
+      "path": "model/umpire/dev/xtask/tests/gate_wiring.rs",
+      "line": 1534,
+      "source_sha256": "9db5c888e077a9ead753d7baf1c79ad8cd1ac44e13f88640c71258dd9304b8a8",
+      "runtime_accepted": false
+    },
+    "xtask/main:gate_wiring::native_protobuf_tools_provision_exact_plugins_and_leave_no_owned_install_lock": {
+      "target": "xtask/main",
+      "identity": "gate_wiring::native_protobuf_tools_provision_exact_plugins_and_leave_no_owned_install_lock",
+      "path": "model/umpire/dev/xtask/tests/gate_wiring.rs",
+      "line": 1566,
+      "source_sha256": "9db5c888e077a9ead753d7baf1c79ad8cd1ac44e13f88640c71258dd9304b8a8",
+      "runtime_accepted": false
+    },
+    "xtask/main:gate_wiring::native_guest_driver_bootstrap_failure_stops_before_guest_jobs": {
+      "target": "xtask/main",
+      "identity": "gate_wiring::native_guest_driver_bootstrap_failure_stops_before_guest_jobs",
+      "path": "model/umpire/dev/xtask/tests/gate_wiring.rs",
+      "line": 1582,
+      "source_sha256": "9db5c888e077a9ead753d7baf1c79ad8cd1ac44e13f88640c71258dd9304b8a8",
+      "runtime_accepted": false
+    },
+    "xtask/main:apalache_install::dispatch_usage_failure_is_nonzero_and_structured": {
+      "target": "xtask/main",
+      "identity": "apalache_install::dispatch_usage_failure_is_nonzero_and_structured",
+      "path": "model/umpire/dev/xtask/tests/apalache_install.rs",
+      "line": 11,
+      "source_sha256": "8c40e6a2aa325226d1eaa1baccb6d11ee1f6793d7e8a91016d705e3fe995e3ec",
+      "runtime_accepted": false
+    },
+    "xtask/main:apalache_install::non_utf8_provider_root_has_a_native_status_one_refusal_before_mise": {
+      "target": "xtask/main",
+      "identity": "apalache_install::non_utf8_provider_root_has_a_native_status_one_refusal_before_mise",
+      "path": "model/umpire/dev/xtask/tests/apalache_install.rs",
+      "line": 69,
+      "source_sha256": "8c40e6a2aa325226d1eaa1baccb6d11ee1f6793d7e8a91016d705e3fe995e3ec",
+      "runtime_accepted": false
+    },
+    "xtask/main:apalache_install::path_list_provider_root_has_a_native_status_one_refusal_before_mise": {
+      "target": "xtask/main",
+      "identity": "apalache_install::path_list_provider_root_has_a_native_status_one_refusal_before_mise",
+      "path": "model/umpire/dev/xtask/tests/apalache_install.rs",
+      "line": 79,
+      "source_sha256": "8c40e6a2aa325226d1eaa1baccb6d11ee1f6793d7e8a91016d705e3fe995e3ec",
+      "runtime_accepted": false
+    },
+    "xtask/main:apalache_install::provider_uses_explicit_opt_in_and_surfaces_install_failure": {
+      "target": "xtask/main",
+      "identity": "apalache_install::provider_uses_explicit_opt_in_and_surfaces_install_failure",
+      "path": "model/umpire/dev/xtask/tests/apalache_install.rs",
+      "line": 87,
+      "source_sha256": "8c40e6a2aa325226d1eaa1baccb6d11ee1f6793d7e8a91016d705e3fe995e3ec",
+      "runtime_accepted": false
+    },
+    "xtask/main:apalache_install::concurrent_failed_provisioning_preserves_partial_data_and_cleans_capture": {
+      "target": "xtask/main",
+      "identity": "apalache_install::concurrent_failed_provisioning_preserves_partial_data_and_cleans_capture",
+      "path": "model/umpire/dev/xtask/tests/apalache_install.rs",
+      "line": 143,
+      "source_sha256": "8c40e6a2aa325226d1eaa1baccb6d11ee1f6793d7e8a91016d705e3fe995e3ec",
+      "runtime_accepted": false
+    },
+    "temporal-xtask/bin:proto::tests::raw_repository_and_tool_paths_remain_lossless": {
+      "target": "temporal-xtask/bin",
+      "identity": "proto::tests::raw_repository_and_tool_paths_remain_lossless",
+      "path": "model/dev/xtask/src/proto.rs",
+      "line": 64,
+      "source_sha256": "26874ddfd02de1df87d75ff4dd569edf702706f70e6d3ce3225ecb4c16d8b07d",
+      "runtime_accepted": false
+    },
+    "temporal-xtask/bin:proto::tests::only_temporal_and_optional_check_are_admitted_before_execution": {
+      "target": "temporal-xtask/bin",
+      "identity": "proto::tests::only_temporal_and_optional_check_are_admitted_before_execution",
+      "path": "model/dev/xtask/src/proto.rs",
+      "line": 85,
+      "source_sha256": "26874ddfd02de1df87d75ff4dd569edf702706f70e6d3ce3225ecb4c16d8b07d",
+      "runtime_accepted": false
+    },
+    "temporal-xtask/bin:proto::tests::temporal_inputs_subtree_and_repository_plugin_preserve_raw_paths_and_status": {
+      "target": "temporal-xtask/bin",
+      "identity": "proto::tests::temporal_inputs_subtree_and_repository_plugin_preserve_raw_paths_and_status",
+      "path": "model/dev/xtask/src/proto.rs",
+      "line": 104,
+      "source_sha256": "26874ddfd02de1df87d75ff4dd569edf702706f70e6d3ce3225ecb4c16d8b07d",
+      "runtime_accepted": false
+    },
+    "temporal-xtask/bin:proto::bridge_controls::bridge_child": {
+      "target": "temporal-xtask/bin",
+      "identity": "proto::bridge_controls::bridge_child",
+      "path": "model/dev/xtask/src/proto_bridge_controls.rs",
+      "line": 13,
+      "source_sha256": "e64ecb2cc012afcfd292120cd7b3c0079354f1a9ab7913b83da32358c9cb3b10",
+      "runtime_accepted": false
+    },
+    "temporal-xtask/bin:proto::bridge_controls::temporal_spec_composes_with_native_generation_freshness_and_refusals": {
+      "target": "temporal-xtask/bin",
+      "identity": "proto::bridge_controls::temporal_spec_composes_with_native_generation_freshness_and_refusals",
+      "path": "model/dev/xtask/src/proto_bridge_controls.rs",
+      "line": 109,
+      "source_sha256": "e64ecb2cc012afcfd292120cd7b3c0079354f1a9ab7913b83da32358c9cb3b10",
+      "runtime_accepted": false
+    },
+    "temporal-xtask/bin:guest_routes::tests::seven_packages_two_entries_preserve_caller_paths_and_exact_arguments": {
+      "target": "temporal-xtask/bin",
+      "identity": "guest_routes::tests::seven_packages_two_entries_preserve_caller_paths_and_exact_arguments",
+      "path": "model/dev/xtask/src/guest_route_controls.rs",
+      "line": 12,
+      "source_sha256": "3aa6b94f7789901b287c478b1a87f4694c09b3b868249efc93e32a63b97cbf73",
+      "runtime_accepted": false
+    },
+    "temporal-xtask/bin:guest_routes::tests::non_unicode_output_and_target_are_lossless": {
+      "target": "temporal-xtask/bin",
+      "identity": "guest_routes::tests::non_unicode_output_and_target_are_lossless",
+      "path": "model/dev/xtask/src/guest_route_controls.rs",
+      "line": 87,
+      "source_sha256": "3aa6b94f7789901b287c478b1a87f4694c09b3b868249efc93e32a63b97cbf73",
+      "runtime_accepted": false
+    },
+    "temporal-xtask/bin:guest_routes::tests::raw_arguments_check_output_and_failure_status_survive_execution": {
+      "target": "temporal-xtask/bin",
+      "identity": "guest_routes::tests::raw_arguments_check_output_and_failure_status_survive_execution",
+      "path": "model/dev/xtask/src/guest_route_controls.rs",
+      "line": 110,
+      "source_sha256": "3aa6b94f7789901b287c478b1a87f4694c09b3b868249efc93e32a63b97cbf73",
+      "runtime_accepted": false
+    },
+    "temporal-xtask/bin:build_guests::path_controls::isolated_build_child": {
+      "target": "temporal-xtask/bin",
+      "identity": "build_guests::path_controls::isolated_build_child",
+      "path": "model/dev/xtask/src/temporal_guest_path_controls.rs",
+      "line": 13,
+      "source_sha256": "1b945d65292fe63dd7040b69ac3b1f3ec40ab15069b82aa5f213035d468863a5",
+      "runtime_accepted": false
+    },
+    "temporal-xtask/bin:build_guests::path_controls::relative_absolute_default_and_symlink_paths_preserve_temporal_guest": {
+      "target": "temporal-xtask/bin",
+      "identity": "build_guests::path_controls::relative_absolute_default_and_symlink_paths_preserve_temporal_guest",
+      "path": "model/dev/xtask/src/temporal_guest_path_controls.rs",
+      "line": 22,
+      "source_sha256": "1b945d65292fe63dd7040b69ac3b1f3ec40ab15069b82aa5f213035d468863a5",
+      "runtime_accepted": false
+    },
+    "temporal-xtask/bin:model_controls::time_control_child": {
+      "target": "temporal-xtask/bin",
+      "identity": "model_controls::time_control_child",
+      "path": "model/dev/xtask/src/model_controls.rs",
+      "line": 511,
+      "source_sha256": "5be019dd00503d63abaef1fc8b9b6f41cae942570ebd2a29e103e2f8017fb083",
+      "runtime_accepted": false
+    },
+    "temporal-xtask/bin:model_controls::shipping_model_recipes_with_disposable_children": {
+      "target": "temporal-xtask/bin",
+      "identity": "model_controls::shipping_model_recipes_with_disposable_children",
+      "path": "model/dev/xtask/src/model_controls.rs",
+      "line": 521,
+      "source_sha256": "5be019dd00503d63abaef1fc8b9b6f41cae942570ebd2a29e103e2f8017fb083",
+      "runtime_accepted": false
+    },
+    "temporal-xtask/bin:gate::timing_controls::tests::soft_budget_defaults_equality_overrides_and_warning_order": {
+      "target": "temporal-xtask/bin",
+      "identity": "gate::timing_controls::tests::soft_budget_defaults_equality_overrides_and_warning_order",
+      "path": "model/dev/xtask/src/gate/timing_controls.rs",
+      "line": 33,
+      "source_sha256": "a0101fcb6bbf2eb25cf7bc69e43f34de261fc2d455276ac5411b5c0d9a07edc3",
+      "runtime_accepted": false
+    },
+    "temporal-xtask/bin:gate::timing::tests::benchmark_selects_authoritative_package_runner_and_disables_caches": {
+      "target": "temporal-xtask/bin",
+      "identity": "gate::timing::tests::benchmark_selects_authoritative_package_runner_and_disables_caches",
+      "path": "model/dev/xtask/src/gate/timing.rs",
+      "line": 135,
+      "source_sha256": "4e21ac7ead777ccda0a426ac6b0b21802f1b7d0346057c015d7030f13fcdd30b",
+      "runtime_accepted": false
+    },
+    "temporal-xtask/bin:gate::timing::tests::source_edit_restores_original_content_after_failed_child": {
+      "target": "temporal-xtask/bin",
+      "identity": "gate::timing::tests::source_edit_restores_original_content_after_failed_child",
+      "path": "model/dev/xtask/src/gate/timing.rs",
+      "line": 161,
+      "source_sha256": "4e21ac7ead777ccda0a426ac6b0b21802f1b7d0346057c015d7030f13fcdd30b",
+      "runtime_accepted": false
+    },
+    "temporal-xtask/bin:retired_name_policy_controls::scan_child": {
+      "target": "temporal-xtask/bin",
+      "identity": "retired_name_policy_controls::scan_child",
+      "path": "model/dev/xtask/tests/retired_names.rs",
+      "line": 8,
+      "source_sha256": "02217b87b5f65612aefa0e549f67495e669771b19a1a0c988ce1e0dde50d3d7c",
+      "runtime_accepted": false
+    },
+    "temporal-xtask/bin:retired_name_policy_controls::active_spellings_and_historical_exclusions": {
+      "target": "temporal-xtask/bin",
+      "identity": "retired_name_policy_controls::active_spellings_and_historical_exclusions",
+      "path": "model/dev/xtask/tests/retired_names.rs",
+      "line": 60,
+      "source_sha256": "02217b87b5f65612aefa0e549f67495e669771b19a1a0c988ce1e0dde50d3d7c",
+      "runtime_accepted": false
+    },
+    "temporal-xtask/bin:retired_name_policy_controls::tool_failures_never_report_clean": {
+      "target": "temporal-xtask/bin",
+      "identity": "retired_name_policy_controls::tool_failures_never_report_clean",
+      "path": "model/dev/xtask/tests/retired_names.rs",
+      "line": 145,
+      "source_sha256": "02217b87b5f65612aefa0e549f67495e669771b19a1a0c988ce1e0dde50d3d7c",
+      "runtime_accepted": false
+    },
+    "temporal-xtask/bin:retired_name_policy_controls::raw_path_bytes_and_io_failures_reach_native_policy": {
+      "target": "temporal-xtask/bin",
+      "identity": "retired_name_policy_controls::raw_path_bytes_and_io_failures_reach_native_policy",
+      "path": "model/dev/xtask/tests/retired_names.rs",
+      "line": 171,
+      "source_sha256": "02217b87b5f65612aefa0e549f67495e669771b19a1a0c988ce1e0dde50d3d7c",
+      "runtime_accepted": false
+    },
+    "umpire-guest-driver/main:guest_pipeline::guest_build_check_and_artifact_refusals": {
+      "target": "umpire-guest-driver/main",
+      "identity": "guest_pipeline::guest_build_check_and_artifact_refusals",
+      "path": "model/umpire/dev/guest-driver/tests/guest_pipeline.rs",
+      "line": 9,
+      "source_sha256": "18d27f1fe5fc6d2d748774aeb6a1beb06e2fd22cfcecf42486e5ca0d5ce26058",
+      "runtime_accepted": false
+    },
+    "umpire-guest-driver/main:guest_pipeline::cold_retained_bootstrap_and_cached_native_validation": {
+      "target": "umpire-guest-driver/main",
+      "identity": "guest_pipeline::cold_retained_bootstrap_and_cached_native_validation",
+      "path": "model/umpire/dev/guest-driver/tests/guest_pipeline.rs",
+      "line": 40,
+      "source_sha256": "18d27f1fe5fc6d2d748774aeb6a1beb06e2fd22cfcecf42486e5ca0d5ce26058",
+      "runtime_accepted": false
+    },
+    "umpire-guest-driver/main:guest_pipeline::cold_bootstrap_failure_never_builds_or_publishes": {
+      "target": "umpire-guest-driver/main",
+      "identity": "guest_pipeline::cold_bootstrap_failure_never_builds_or_publishes",
+      "path": "model/umpire/dev/guest-driver/tests/guest_pipeline.rs",
+      "line": 68,
+      "source_sha256": "18d27f1fe5fc6d2d748774aeb6a1beb06e2fd22cfcecf42486e5ca0d5ce26058",
+      "runtime_accepted": false
+    },
+    "umpire-guest-driver/main:guest_pipeline::native_caller_relative_paths_and_changed_inputs_select_new_cache": {
+      "target": "umpire-guest-driver/main",
+      "identity": "guest_pipeline::native_caller_relative_paths_and_changed_inputs_select_new_cache",
+      "path": "model/umpire/dev/guest-driver/tests/guest_pipeline.rs",
+      "line": 78,
+      "source_sha256": "18d27f1fe5fc6d2d748774aeb6a1beb06e2fd22cfcecf42486e5ca0d5ce26058",
+      "runtime_accepted": false
+    },
+    "umpire-guest-driver/main:guest_pipeline::loader_inheritance_survives_orchestration_environment_purge": {
+      "target": "umpire-guest-driver/main",
+      "identity": "guest_pipeline::loader_inheritance_survives_orchestration_environment_purge",
+      "path": "model/umpire/dev/guest-driver/tests/guest_pipeline.rs",
+      "line": 107,
+      "source_sha256": "18d27f1fe5fc6d2d748774aeb6a1beb06e2fd22cfcecf42486e5ca0d5ce26058",
+      "runtime_accepted": false
+    },
+    "umpire-guest-driver/main:guest_pipeline::relative_cargo_home_stays_with_distinct_caller_for_probes_metadata_and_build": {
+      "target": "umpire-guest-driver/main",
+      "identity": "guest_pipeline::relative_cargo_home_stays_with_distinct_caller_for_probes_metadata_and_build",
+      "path": "model/umpire/dev/guest-driver/tests/guest_pipeline.rs",
+      "line": 121,
+      "source_sha256": "18d27f1fe5fc6d2d748774aeb6a1beb06e2fd22cfcecf42486e5ca0d5ce26058",
+      "runtime_accepted": false
+    },
+    "umpire-guest-driver/main:guest_pipeline::retained_bootstrap_stdout_selects_executable_and_native_route_creates_output": {
+      "target": "umpire-guest-driver/main",
+      "identity": "guest_pipeline::retained_bootstrap_stdout_selects_executable_and_native_route_creates_output",
+      "path": "model/umpire/dev/guest-driver/tests/guest_pipeline.rs",
+      "line": 144,
+      "source_sha256": "18d27f1fe5fc6d2d748774aeb6a1beb06e2fd22cfcecf42486e5ca0d5ce26058",
+      "runtime_accepted": false
+    },
+    "umpire-guest-driver/main:guest_pipeline::missing_mise_refuses_bootstrap_without_fallback_cargo": {
+      "target": "umpire-guest-driver/main",
+      "identity": "guest_pipeline::missing_mise_refuses_bootstrap_without_fallback_cargo",
+      "path": "model/umpire/dev/guest-driver/tests/guest_pipeline.rs",
+      "line": 162,
+      "source_sha256": "18d27f1fe5fc6d2d748774aeb6a1beb06e2fd22cfcecf42486e5ca0d5ce26058",
+      "runtime_accepted": false
+    },
+    "umpire-guest-driver/lib:guest::tests::invalid_guest_arguments_are_refused_before_tool_discovery": {
+      "target": "umpire-guest-driver/lib",
+      "identity": "guest::tests::invalid_guest_arguments_are_refused_before_tool_discovery",
+      "path": "model/umpire/dev/guest-driver/src/guest.rs",
+      "line": 283,
+      "source_sha256": "ec123a574a4fab6186efd3bef31b54652aa7b48fe28758d762aaaacd9b654d26",
+      "runtime_accepted": false
+    },
+    "umpire-backend-process/lib:tool_provider::tests::non_utf8_root_refuses_before_mise_or_data_side_effects": {
+      "target": "umpire-backend-process/lib",
+      "identity": "tool_provider::tests::non_utf8_root_refuses_before_mise_or_data_side_effects",
+      "path": "model/umpire/backends/process/src/tool_provider.rs",
+      "line": 282,
+      "source_sha256": "2ae0fa285b763ba7dc03fe01bbede05fa2f508c2e3afb062506d968338f594ff",
+      "runtime_accepted": false
+    },
+    "umpire-backend-process/lib:tool_provider::tests::path_list_root_refuses_before_mise_or_data_side_effects": {
+      "target": "umpire-backend-process/lib",
+      "identity": "tool_provider::tests::path_list_root_refuses_before_mise_or_data_side_effects",
+      "path": "model/umpire/backends/process/src/tool_provider.rs",
+      "line": 292,
+      "source_sha256": "2ae0fa285b763ba7dc03fe01bbede05fa2f508c2e3afb062506d968338f594ff",
+      "runtime_accepted": false
+    },
+    "umpire-backend-process/lib:tool_provider::tests::scoped_commands_only_select_optional_apalache_explicitly": {
+      "target": "umpire-backend-process/lib",
+      "identity": "tool_provider::tests::scoped_commands_only_select_optional_apalache_explicitly",
+      "path": "model/umpire/backends/process/src/tool_provider.rs",
+      "line": 300,
+      "source_sha256": "2ae0fa285b763ba7dc03fe01bbede05fa2f508c2e3afb062506d968338f594ff",
+      "runtime_accepted": false
+    },
+    "umpire-backend-process/lib:tool_provider::tests::exact_installations_reject_partial_trees_directories_and_symlinks": {
+      "target": "umpire-backend-process/lib",
+      "identity": "tool_provider::tests::exact_installations_reject_partial_trees_directories_and_symlinks",
+      "path": "model/umpire/backends/process/src/tool_provider.rs",
+      "line": 343,
+      "source_sha256": "2ae0fa285b763ba7dc03fe01bbede05fa2f508c2e3afb062506d968338f594ff",
+      "runtime_accepted": false
+    },
+    "umpire-backend-process/lib:tool_provider::tests::orchestration_policy_allows_extractor_children": {
+      "target": "umpire-backend-process/lib",
+      "identity": "tool_provider::tests::orchestration_policy_allows_extractor_children",
+      "path": "model/umpire/backends/process/src/tool_provider.rs",
+      "line": 381,
+      "source_sha256": "2ae0fa285b763ba7dc03fe01bbede05fa2f508c2e3afb062506d968338f594ff",
+      "runtime_accepted": false
+    },
+    "umpire-backend-process/lib:tool_provider::tests::cancellation_and_timeout_refuse_and_clean_owned_capture": {
+      "target": "umpire-backend-process/lib",
+      "identity": "tool_provider::tests::cancellation_and_timeout_refuse_and_clean_owned_capture",
+      "path": "model/umpire/backends/process/src/tool_provider.rs",
+      "line": 398,
+      "source_sha256": "2ae0fa285b763ba7dc03fe01bbede05fa2f508c2e3afb062506d968338f594ff",
+      "runtime_accepted": false
+    },
+    "umpire-backend-process/lib:tool_provider::tests::interrupted_partial_install_never_reaches_resolution": {
+      "target": "umpire-backend-process/lib",
+      "identity": "tool_provider::tests::interrupted_partial_install_never_reaches_resolution",
+      "path": "model/umpire/backends/process/src/tool_provider.rs",
+      "line": 426,
+      "source_sha256": "2ae0fa285b763ba7dc03fe01bbede05fa2f508c2e3afb062506d968338f594ff",
+      "runtime_accepted": false
+    },
+    "umpire-backend-process/lib:tool_provider::tests::in_flight_cancellation_uses_existing_supervisor": {
+      "target": "umpire-backend-process/lib",
+      "identity": "tool_provider::tests::in_flight_cancellation_uses_existing_supervisor",
+      "path": "model/umpire/backends/process/src/tool_provider.rs",
+      "line": 446,
+      "source_sha256": "2ae0fa285b763ba7dc03fe01bbede05fa2f508c2e3afb062506d968338f594ff",
+      "runtime_accepted": false
+    },
+    "umpire-backend-process/lib:tool_provider::tests::concurrent_provider_capture_and_failure_propagation_are_independent": {
+      "target": "umpire-backend-process/lib",
+      "identity": "tool_provider::tests::concurrent_provider_capture_and_failure_propagation_are_independent",
+      "path": "model/umpire/backends/process/src/tool_provider.rs",
+      "line": 475,
+      "source_sha256": "2ae0fa285b763ba7dc03fe01bbede05fa2f508c2e3afb062506d968338f594ff",
+      "runtime_accepted": false
+    },
+    "umpire-tlc/lib:runner::tests::located_property_invariants_name_only_the_selected_operator": {
+      "target": "umpire-tlc/lib",
+      "identity": "runner::tests::located_property_invariants_name_only_the_selected_operator",
+      "path": "model/umpire/backends/tlc/src/runner.rs",
+      "line": 1040,
+      "source_sha256": "095e741147410309ab2c762bfc9bb0985bc389127fa9ceb7879e1b997696e7b6",
+      "runtime_accepted": false
+    },
+    "umpire-tlc/lib:runner::tests::typed_module_refuses_inconsistent_declarations_before_spawning": {
+      "target": "umpire-tlc/lib",
+      "identity": "runner::tests::typed_module_refuses_inconsistent_declarations_before_spawning",
+      "path": "model/umpire/backends/tlc/src/runner.rs",
+      "line": 1070,
+      "source_sha256": "095e741147410309ab2c762bfc9bb0985bc389127fa9ceb7879e1b997696e7b6",
+      "runtime_accepted": false
+    },
+    "umpire-tlc/lib:runner::tests::counterexample_requires_consecutive_states_and_a_valid_lasso": {
+      "target": "umpire-tlc/lib",
+      "identity": "runner::tests::counterexample_requires_consecutive_states_and_a_valid_lasso",
+      "path": "model/umpire/backends/tlc/src/runner.rs",
+      "line": 1143,
+      "source_sha256": "095e741147410309ab2c762bfc9bb0985bc389127fa9ceb7879e1b997696e7b6",
+      "runtime_accepted": false
+    },
+    "umpire-tlc/lib:runner::tests::incomplete_messages_and_exploration_are_refused": {
+      "target": "umpire-tlc/lib",
+      "identity": "runner::tests::incomplete_messages_and_exploration_are_refused",
+      "path": "model/umpire/backends/tlc/src/runner.rs",
+      "line": 1159,
+      "source_sha256": "095e741147410309ab2c762bfc9bb0985bc389127fa9ceb7879e1b997696e7b6",
+      "runtime_accepted": false
+    },
+    "umpire-tlc/lib:runner::tests::evaluation_errors_name_the_property_and_state": {
+      "target": "umpire-tlc/lib",
+      "identity": "runner::tests::evaluation_errors_name_the_property_and_state",
+      "path": "model/umpire/backends/tlc/src/runner.rs",
+      "line": 1192,
+      "source_sha256": "095e741147410309ab2c762bfc9bb0985bc389127fa9ceb7879e1b997696e7b6",
+      "runtime_accepted": false
+    },
+    "umpire-tlc/lib:runner::tests::escaping_cache_symlinks_are_refused_before_creating_files": {
+      "target": "umpire-tlc/lib",
+      "identity": "runner::tests::escaping_cache_symlinks_are_refused_before_creating_files",
+      "path": "model/umpire/backends/tlc/src/runner.rs",
+      "line": 1256,
+      "source_sha256": "095e741147410309ab2c762bfc9bb0985bc389127fa9ceb7879e1b997696e7b6",
+      "runtime_accepted": false
+    },
+    "umpire-tlc/lib:runner::tests::process_limits_kill_and_reap_and_jar_admission_fails_closed": {
+      "target": "umpire-tlc/lib",
+      "identity": "runner::tests::process_limits_kill_and_reap_and_jar_admission_fails_closed",
+      "path": "model/umpire/backends/tlc/src/runner.rs",
+      "line": 1290,
+      "source_sha256": "095e741147410309ab2c762bfc9bb0985bc389127fa9ceb7879e1b997696e7b6",
+      "runtime_accepted": false
+    }
+  },
+  "shared_behavior_vectors": {
+    "guest": [
+      {
+        "id": "guest.1",
+        "frozen_behavior": "arity/refuse unsupported option before execution",
+        "current_control_refs": [
+          "umpire-guest-driver/lib:guest::tests::invalid_guest_arguments_are_refused_before_tool_discovery"
+        ],
+        "coverage": "source_controls_present_runtime_pending",
+        "note": "New root inline five-vector argument control; root runtime still pending. Frozen guest-roots shell itself had no negative arity matrix."
+      },
+      {
+        "id": "guest.2",
+        "frozen_behavior": "relative output anchored to original caller; absolute output unchanged; --check preserved",
+        "current_control_refs": [
+          "temporal-xtask/bin:guest_routes::tests::non_unicode_output_and_target_are_lossless",
+          "temporal-xtask/bin:guest_routes::tests::raw_arguments_check_output_and_failure_status_survive_execution",
+          "temporal-xtask/bin:guest_routes::tests::seven_packages_two_entries_preserve_caller_paths_and_exact_arguments",
+          "umpire-guest-driver/lib:guest::tests::invalid_guest_arguments_are_refused_before_tool_discovery",
+          "umpire-guest-driver/main:guest_pipeline::cold_bootstrap_failure_never_builds_or_publishes",
+          "umpire-guest-driver/main:guest_pipeline::cold_retained_bootstrap_and_cached_native_validation",
+          "umpire-guest-driver/main:guest_pipeline::guest_build_check_and_artifact_refusals",
+          "umpire-guest-driver/main:guest_pipeline::missing_mise_refuses_bootstrap_without_fallback_cargo",
+          "umpire-guest-driver/main:guest_pipeline::native_caller_relative_paths_and_changed_inputs_select_new_cache",
+          "umpire-guest-driver/main:guest_pipeline::relative_cargo_home_stays_with_distinct_caller_for_probes_metadata_and_build",
+          "umpire-guest-driver/main:guest_pipeline::retained_bootstrap_stdout_selects_executable_and_native_route_creates_output"
+        ],
+        "coverage": "source_controls_present_runtime_pending"
+      },
+      {
+        "id": "guest.3",
+        "frozen_behavior": "CARGO_HOME relative/physical symlink; CARGO_TARGET_DIR relative/absolute/default",
+        "current_control_refs": [
+          "temporal-xtask/bin:guest_routes::tests::non_unicode_output_and_target_are_lossless",
+          "temporal-xtask/bin:guest_routes::tests::raw_arguments_check_output_and_failure_status_survive_execution",
+          "temporal-xtask/bin:guest_routes::tests::seven_packages_two_entries_preserve_caller_paths_and_exact_arguments",
+          "umpire-guest-driver/lib:guest::tests::invalid_guest_arguments_are_refused_before_tool_discovery",
+          "umpire-guest-driver/main:guest_pipeline::cold_bootstrap_failure_never_builds_or_publishes",
+          "umpire-guest-driver/main:guest_pipeline::cold_retained_bootstrap_and_cached_native_validation",
+          "umpire-guest-driver/main:guest_pipeline::guest_build_check_and_artifact_refusals",
+          "umpire-guest-driver/main:guest_pipeline::missing_mise_refuses_bootstrap_without_fallback_cargo",
+          "umpire-guest-driver/main:guest_pipeline::native_caller_relative_paths_and_changed_inputs_select_new_cache",
+          "umpire-guest-driver/main:guest_pipeline::relative_cargo_home_stays_with_distinct_caller_for_probes_metadata_and_build",
+          "umpire-guest-driver/main:guest_pipeline::retained_bootstrap_stdout_selects_executable_and_native_route_creates_output"
+        ],
+        "coverage": "source_controls_present_runtime_pending"
+      },
+      {
+        "id": "guest.4",
+        "frozen_behavior": "five framework package routing versus temporal/custom extension",
+        "current_control_refs": [
+          "temporal-xtask/bin:guest_routes::tests::non_unicode_output_and_target_are_lossless",
+          "temporal-xtask/bin:guest_routes::tests::raw_arguments_check_output_and_failure_status_survive_execution",
+          "temporal-xtask/bin:guest_routes::tests::seven_packages_two_entries_preserve_caller_paths_and_exact_arguments",
+          "umpire-guest-driver/lib:guest::tests::invalid_guest_arguments_are_refused_before_tool_discovery",
+          "umpire-guest-driver/main:guest_pipeline::cold_bootstrap_failure_never_builds_or_publishes",
+          "umpire-guest-driver/main:guest_pipeline::cold_retained_bootstrap_and_cached_native_validation",
+          "umpire-guest-driver/main:guest_pipeline::guest_build_check_and_artifact_refusals",
+          "umpire-guest-driver/main:guest_pipeline::missing_mise_refuses_bootstrap_without_fallback_cargo",
+          "umpire-guest-driver/main:guest_pipeline::native_caller_relative_paths_and_changed_inputs_select_new_cache",
+          "umpire-guest-driver/main:guest_pipeline::relative_cargo_home_stays_with_distinct_caller_for_probes_metadata_and_build",
+          "umpire-guest-driver/main:guest_pipeline::retained_bootstrap_stdout_selects_executable_and_native_route_creates_output"
+        ],
+        "coverage": "source_controls_present_runtime_pending"
+      },
+      {
+        "id": "guest.5",
+        "frozen_behavior": "spaces and raw Unix output/target bytes",
+        "current_control_refs": [
+          "temporal-xtask/bin:guest_routes::tests::non_unicode_output_and_target_are_lossless",
+          "temporal-xtask/bin:guest_routes::tests::raw_arguments_check_output_and_failure_status_survive_execution",
+          "temporal-xtask/bin:guest_routes::tests::seven_packages_two_entries_preserve_caller_paths_and_exact_arguments",
+          "umpire-guest-driver/lib:guest::tests::invalid_guest_arguments_are_refused_before_tool_discovery",
+          "umpire-guest-driver/main:guest_pipeline::cold_bootstrap_failure_never_builds_or_publishes",
+          "umpire-guest-driver/main:guest_pipeline::cold_retained_bootstrap_and_cached_native_validation",
+          "umpire-guest-driver/main:guest_pipeline::guest_build_check_and_artifact_refusals",
+          "umpire-guest-driver/main:guest_pipeline::missing_mise_refuses_bootstrap_without_fallback_cargo",
+          "umpire-guest-driver/main:guest_pipeline::native_caller_relative_paths_and_changed_inputs_select_new_cache",
+          "umpire-guest-driver/main:guest_pipeline::relative_cargo_home_stays_with_distinct_caller_for_probes_metadata_and_build",
+          "umpire-guest-driver/main:guest_pipeline::retained_bootstrap_stdout_selects_executable_and_native_route_creates_output"
+        ],
+        "coverage": "source_controls_present_runtime_pending"
+      },
+      {
+        "id": "guest.6",
+        "frozen_behavior": "child status37; stale freshness refuses and preserves existing output",
+        "current_control_refs": [
+          "temporal-xtask/bin:guest_routes::tests::non_unicode_output_and_target_are_lossless",
+          "temporal-xtask/bin:guest_routes::tests::raw_arguments_check_output_and_failure_status_survive_execution",
+          "temporal-xtask/bin:guest_routes::tests::seven_packages_two_entries_preserve_caller_paths_and_exact_arguments",
+          "umpire-guest-driver/lib:guest::tests::invalid_guest_arguments_are_refused_before_tool_discovery",
+          "umpire-guest-driver/main:guest_pipeline::cold_bootstrap_failure_never_builds_or_publishes",
+          "umpire-guest-driver/main:guest_pipeline::cold_retained_bootstrap_and_cached_native_validation",
+          "umpire-guest-driver/main:guest_pipeline::guest_build_check_and_artifact_refusals",
+          "umpire-guest-driver/main:guest_pipeline::missing_mise_refuses_bootstrap_without_fallback_cargo",
+          "umpire-guest-driver/main:guest_pipeline::native_caller_relative_paths_and_changed_inputs_select_new_cache",
+          "umpire-guest-driver/main:guest_pipeline::relative_cargo_home_stays_with_distinct_caller_for_probes_metadata_and_build",
+          "umpire-guest-driver/main:guest_pipeline::retained_bootstrap_stdout_selects_executable_and_native_route_creates_output"
+        ],
+        "coverage": "source_controls_present_runtime_pending"
+      }
+    ],
+    "proto": [
+      {
+        "id": "proto.1",
+        "frozen_behavior": "selector/arity/--check refusal before protoc",
+        "current_control_refs": [
+          "xtask/lib:proto::controls::tests::native_protobuf_behavior_controls",
+          "xtask/main:native_leaves::public_protobuf_controls_reach_the_native_implementation",
+          "temporal-xtask/bin:proto::bridge_controls::temporal_spec_composes_with_native_generation_freshness_and_refusals",
+          "temporal-xtask/bin:proto::tests::only_temporal_and_optional_check_are_admitted_before_execution",
+          "temporal-xtask/bin:proto::tests::raw_repository_and_tool_paths_remain_lossless",
+          "temporal-xtask/bin:proto::tests::temporal_inputs_subtree_and_repository_plugin_preserve_raw_paths_and_status"
+        ],
+        "coverage": "source_controls_present_runtime_pending",
+        "note": "Current Temporal bridge composition control now calls actual xtask::proto::go_spec through run_with seam; exact Temporal inputs, handwritten/stale/symlink trees, failures and cleanup are source-present. Latest runtime pending."
+      },
+      {
+        "id": "proto.2",
+        "frozen_behavior": "exact Go v1.36.6 and optional gRPC1.3.0 executable/version admission",
+        "current_control_refs": [
+          "xtask/lib:proto::controls::tests::native_protobuf_behavior_controls",
+          "xtask/main:native_leaves::public_protobuf_controls_reach_the_native_implementation",
+          "temporal-xtask/bin:proto::bridge_controls::temporal_spec_composes_with_native_generation_freshness_and_refusals",
+          "temporal-xtask/bin:proto::tests::only_temporal_and_optional_check_are_admitted_before_execution",
+          "temporal-xtask/bin:proto::tests::raw_repository_and_tool_paths_remain_lossless",
+          "temporal-xtask/bin:proto::tests::temporal_inputs_subtree_and_repository_plugin_preserve_raw_paths_and_status"
+        ],
+        "coverage": "source_controls_present_runtime_pending",
+        "note": "Current Temporal bridge composition control now calls actual xtask::proto::go_spec through run_with seam; exact Temporal inputs, handwritten/stale/symlink trees, failures and cleanup are source-present. Latest runtime pending."
+      },
+      {
+        "id": "proto.3",
+        "frozen_behavior": "core run.proto closure; kettle probe.proto closure plus gRPC; temporal activity.proto closure without gRPC",
+        "current_control_refs": [
+          "xtask/lib:proto::controls::tests::native_protobuf_behavior_controls",
+          "xtask/main:native_leaves::public_protobuf_controls_reach_the_native_implementation",
+          "temporal-xtask/bin:proto::bridge_controls::temporal_spec_composes_with_native_generation_freshness_and_refusals",
+          "temporal-xtask/bin:proto::tests::only_temporal_and_optional_check_are_admitted_before_execution",
+          "temporal-xtask/bin:proto::tests::raw_repository_and_tool_paths_remain_lossless",
+          "temporal-xtask/bin:proto::tests::temporal_inputs_subtree_and_repository_plugin_preserve_raw_paths_and_status"
+        ],
+        "coverage": "source_controls_present_runtime_pending",
+        "note": "Current Temporal bridge composition control now calls actual xtask::proto::go_spec through run_with seam; exact Temporal inputs, handwritten/stale/symlink trees, failures and cleanup are source-present. Latest runtime pending."
+      },
+      {
+        "id": "proto.4",
+        "frozen_behavior": "generation then freshness check",
+        "current_control_refs": [
+          "xtask/lib:proto::controls::tests::native_protobuf_behavior_controls",
+          "xtask/main:native_leaves::public_protobuf_controls_reach_the_native_implementation",
+          "temporal-xtask/bin:proto::bridge_controls::temporal_spec_composes_with_native_generation_freshness_and_refusals",
+          "temporal-xtask/bin:proto::tests::only_temporal_and_optional_check_are_admitted_before_execution",
+          "temporal-xtask/bin:proto::tests::raw_repository_and_tool_paths_remain_lossless",
+          "temporal-xtask/bin:proto::tests::temporal_inputs_subtree_and_repository_plugin_preserve_raw_paths_and_status"
+        ],
+        "coverage": "source_controls_present_runtime_pending",
+        "note": "Current Temporal bridge composition control now calls actual xtask::proto::go_spec through run_with seam; exact Temporal inputs, handwritten/stale/symlink trees, failures and cleanup are source-present. Latest runtime pending."
+      },
+      {
+        "id": "proto.5",
+        "frozen_behavior": "stale extra file and changed bytes; subtree excludes handwritten host",
+        "current_control_refs": [
+          "xtask/lib:proto::controls::tests::native_protobuf_behavior_controls",
+          "xtask/main:native_leaves::public_protobuf_controls_reach_the_native_implementation",
+          "temporal-xtask/bin:proto::bridge_controls::temporal_spec_composes_with_native_generation_freshness_and_refusals",
+          "temporal-xtask/bin:proto::tests::only_temporal_and_optional_check_are_admitted_before_execution",
+          "temporal-xtask/bin:proto::tests::raw_repository_and_tool_paths_remain_lossless",
+          "temporal-xtask/bin:proto::tests::temporal_inputs_subtree_and_repository_plugin_preserve_raw_paths_and_status"
+        ],
+        "coverage": "source_controls_present_runtime_pending",
+        "note": "Current Temporal bridge composition control now calls actual xtask::proto::go_spec through run_with seam; exact Temporal inputs, handwritten/stale/symlink trees, failures and cleanup are source-present. Latest runtime pending."
+      },
+      {
+        "id": "proto.6",
+        "frozen_behavior": "generated-tree and generator symlink refusal",
+        "current_control_refs": [
+          "xtask/lib:proto::controls::tests::native_protobuf_behavior_controls",
+          "xtask/main:native_leaves::public_protobuf_controls_reach_the_native_implementation",
+          "temporal-xtask/bin:proto::bridge_controls::temporal_spec_composes_with_native_generation_freshness_and_refusals",
+          "temporal-xtask/bin:proto::tests::only_temporal_and_optional_check_are_admitted_before_execution",
+          "temporal-xtask/bin:proto::tests::raw_repository_and_tool_paths_remain_lossless",
+          "temporal-xtask/bin:proto::tests::temporal_inputs_subtree_and_repository_plugin_preserve_raw_paths_and_status"
+        ],
+        "coverage": "source_controls_present_runtime_pending",
+        "note": "Current Temporal bridge composition control now calls actual xtask::proto::go_spec through run_with seam; exact Temporal inputs, handwritten/stale/symlink trees, failures and cleanup are source-present. Latest runtime pending."
+      },
+      {
+        "id": "proto.7",
+        "frozen_behavior": "child protoc42 and generator37 propagated; private check output cleanup",
+        "current_control_refs": [
+          "xtask/lib:proto::controls::tests::native_protobuf_behavior_controls",
+          "xtask/main:native_leaves::public_protobuf_controls_reach_the_native_implementation",
+          "temporal-xtask/bin:proto::bridge_controls::temporal_spec_composes_with_native_generation_freshness_and_refusals",
+          "temporal-xtask/bin:proto::tests::only_temporal_and_optional_check_are_admitted_before_execution",
+          "temporal-xtask/bin:proto::tests::raw_repository_and_tool_paths_remain_lossless",
+          "temporal-xtask/bin:proto::tests::temporal_inputs_subtree_and_repository_plugin_preserve_raw_paths_and_status"
+        ],
+        "coverage": "source_controls_present_runtime_pending",
+        "note": "Current Temporal bridge composition control now calls actual xtask::proto::go_spec through run_with seam; exact Temporal inputs, handwritten/stale/symlink trees, failures and cleanup are source-present. Latest runtime pending."
+      },
+      {
+        "id": "proto.8",
+        "frozen_behavior": "mise auto-install disabled and caller Cargo paths retained",
+        "current_control_refs": [
+          "xtask/lib:proto::controls::tests::native_protobuf_behavior_controls",
+          "xtask/main:native_leaves::public_protobuf_controls_reach_the_native_implementation",
+          "temporal-xtask/bin:proto::bridge_controls::temporal_spec_composes_with_native_generation_freshness_and_refusals",
+          "temporal-xtask/bin:proto::tests::only_temporal_and_optional_check_are_admitted_before_execution",
+          "temporal-xtask/bin:proto::tests::raw_repository_and_tool_paths_remain_lossless",
+          "temporal-xtask/bin:proto::tests::temporal_inputs_subtree_and_repository_plugin_preserve_raw_paths_and_status"
+        ],
+        "coverage": "source_controls_present_runtime_pending",
+        "note": "Current Temporal bridge composition control now calls actual xtask::proto::go_spec through run_with seam; exact Temporal inputs, handwritten/stale/symlink trees, failures and cleanup are source-present. Latest runtime pending."
+      }
+    ],
+    "proto_tools": [
+      {
+        "id": "proto_tools.1",
+        "frozen_behavior": "exact Go install module/version for both plugins",
+        "current_control_refs": [
+          "xtask/lib:proto::controls::tests::native_protobuf_behavior_controls",
+          "xtask/main:native_leaves::public_protobuf_controls_reach_the_native_implementation",
+          "xtask/main:gate_wiring::native_protobuf_tools_provision_exact_plugins_and_leave_no_owned_install_lock"
+        ],
+        "coverage": "source_controls_present_runtime_pending"
+      },
+      {
+        "id": "proto_tools.2",
+        "frozen_behavior": "repeat provisioning does not reinstall admitted pins",
+        "current_control_refs": [
+          "xtask/lib:proto::controls::tests::native_protobuf_behavior_controls",
+          "xtask/main:native_leaves::public_protobuf_controls_reach_the_native_implementation",
+          "xtask/main:gate_wiring::native_protobuf_tools_provision_exact_plugins_and_leave_no_owned_install_lock"
+        ],
+        "coverage": "source_controls_present_runtime_pending"
+      },
+      {
+        "id": "proto_tools.3",
+        "frozen_behavior": "pre-existing lock directory refuses (simulated contention, not a live concurrency test); lock cleanup on success and install42 failure",
+        "current_control_refs": [
+          "xtask/lib:proto::controls::tests::native_protobuf_behavior_controls",
+          "xtask/main:native_leaves::public_protobuf_controls_reach_the_native_implementation",
+          "xtask/main:gate_wiring::native_protobuf_tools_provision_exact_plugins_and_leave_no_owned_install_lock"
+        ],
+        "coverage": "source_controls_present_runtime_pending"
+      },
+      {
+        "id": "proto_tools.4",
+        "frozen_behavior": "generator symlink refusal; .bin symlink refusal",
+        "current_control_refs": [
+          "xtask/lib:proto::controls::tests::native_protobuf_behavior_controls",
+          "xtask/main:native_leaves::public_protobuf_controls_reach_the_native_implementation",
+          "xtask/main:gate_wiring::native_protobuf_tools_provision_exact_plugins_and_leave_no_owned_install_lock"
+        ],
+        "coverage": "source_controls_present_runtime_pending"
+      },
+      {
+        "id": "proto_tools.5",
+        "frozen_behavior": "staged executable/version admission before publication; destination appearance rechecked",
+        "current_control_refs": [
+          "xtask/lib:proto::controls::tests::native_protobuf_behavior_controls",
+          "xtask/main:native_leaves::public_protobuf_controls_reach_the_native_implementation",
+          "xtask/main:gate_wiring::native_protobuf_tools_provision_exact_plugins_and_leave_no_owned_install_lock"
+        ],
+        "coverage": "source_controls_present_runtime_pending",
+        "note": "Source tools_with retains staged version admission and destination-appearance recheck. Normal staging and wrong installed pins are tested; removed shell had no dedicated concurrent destination-race control."
+      },
+      {
+        "id": "proto_tools.6",
+        "frozen_behavior": "retry after failed install succeeds",
+        "current_control_refs": [
+          "xtask/lib:proto::controls::tests::native_protobuf_behavior_controls",
+          "xtask/main:native_leaves::public_protobuf_controls_reach_the_native_implementation",
+          "xtask/main:gate_wiring::native_protobuf_tools_provision_exact_plugins_and_leave_no_owned_install_lock"
+        ],
+        "coverage": "source_controls_present_runtime_pending"
+      }
+    ],
+    "build": [
+      {
+        "id": "build.1",
+        "frozen_behavior": "five framework guest artifacts in fixed order then panic/current-contract native reports",
+        "current_control_refs": [
+          "temporal-xtask/bin:build_guests::path_controls::relative_absolute_default_and_symlink_paths_preserve_temporal_guest",
+          "xtask/lib:build_guests::path_controls::guest_and_native_statuses_stop_without_following_children",
+          "xtask/lib:build_guests::path_controls::relative_absolute_default_and_symlink_cargo_paths_preserve_seven_children",
+          "xtask/lib:build_guests::tests::five_artifacts_then_two_reports_keep_spaces_and_child_status",
+          "xtask/main:gate_wiring::native_guest_driver_bootstrap_failure_stops_before_guest_jobs",
+          "xtask/main:gate_wiring::native_guest_stage_stops_at_each_driver_and_report_failure"
+        ],
+        "coverage": "source_controls_present_runtime_pending"
+      },
+      {
+        "id": "build.2",
+        "frozen_behavior": "caller home relative/absolute/physical symlink; target default/relative/absolute/physical symlink",
+        "current_control_refs": [
+          "temporal-xtask/bin:build_guests::path_controls::relative_absolute_default_and_symlink_paths_preserve_temporal_guest",
+          "xtask/lib:build_guests::path_controls::guest_and_native_statuses_stop_without_following_children",
+          "xtask/lib:build_guests::path_controls::relative_absolute_default_and_symlink_cargo_paths_preserve_seven_children",
+          "xtask/lib:build_guests::tests::five_artifacts_then_two_reports_keep_spaces_and_child_status",
+          "xtask/main:gate_wiring::native_guest_driver_bootstrap_failure_stops_before_guest_jobs",
+          "xtask/main:gate_wiring::native_guest_stage_stops_at_each_driver_and_report_failure"
+        ],
+        "coverage": "source_controls_present_runtime_pending"
+      },
+      {
+        "id": "build.3",
+        "frozen_behavior": "first failing guest37 stops following children; first native-report42 stops final report",
+        "current_control_refs": [
+          "temporal-xtask/bin:build_guests::path_controls::relative_absolute_default_and_symlink_paths_preserve_temporal_guest",
+          "xtask/lib:build_guests::path_controls::guest_and_native_statuses_stop_without_following_children",
+          "xtask/lib:build_guests::path_controls::relative_absolute_default_and_symlink_cargo_paths_preserve_seven_children",
+          "xtask/lib:build_guests::tests::five_artifacts_then_two_reports_keep_spaces_and_child_status",
+          "xtask/main:gate_wiring::native_guest_driver_bootstrap_failure_stops_before_guest_jobs",
+          "xtask/main:gate_wiring::native_guest_stage_stops_at_each_driver_and_report_failure"
+        ],
+        "coverage": "source_controls_present_runtime_pending"
+      },
+      {
+        "id": "build.4",
+        "frozen_behavior": "Temporal builds only temporal guest to target wasm32-wasip1/guest path",
+        "current_control_refs": [
+          "temporal-xtask/bin:build_guests::path_controls::relative_absolute_default_and_symlink_paths_preserve_temporal_guest",
+          "xtask/lib:build_guests::path_controls::guest_and_native_statuses_stop_without_following_children",
+          "xtask/lib:build_guests::path_controls::relative_absolute_default_and_symlink_cargo_paths_preserve_seven_children",
+          "xtask/lib:build_guests::tests::five_artifacts_then_two_reports_keep_spaces_and_child_status",
+          "xtask/main:gate_wiring::native_guest_driver_bootstrap_failure_stops_before_guest_jobs",
+          "xtask/main:gate_wiring::native_guest_stage_stops_at_each_driver_and_report_failure"
+        ],
+        "coverage": "source_controls_present_runtime_pending"
+      },
+      {
+        "id": "build.5",
+        "frozen_behavior": "spaces/exact raw arguments; scratch cleanup",
+        "current_control_refs": [
+          "temporal-xtask/bin:build_guests::path_controls::relative_absolute_default_and_symlink_paths_preserve_temporal_guest",
+          "xtask/lib:build_guests::path_controls::guest_and_native_statuses_stop_without_following_children",
+          "xtask/lib:build_guests::path_controls::relative_absolute_default_and_symlink_cargo_paths_preserve_seven_children",
+          "xtask/lib:build_guests::tests::five_artifacts_then_two_reports_keep_spaces_and_child_status",
+          "xtask/main:gate_wiring::native_guest_driver_bootstrap_failure_stops_before_guest_jobs",
+          "xtask/main:gate_wiring::native_guest_stage_stops_at_each_driver_and_report_failure"
+        ],
+        "coverage": "source_controls_present_runtime_pending"
+      }
+    ],
+    "bootstrap": [
+      {
+        "id": "bootstrap.1",
+        "frozen_behavior": "locked dev build of xtask and umpire-guest-driver into target/xtask-bootstrap",
+        "current_control_refs": [
+          "umpire-guest-driver/main:guest_pipeline::cold_bootstrap_failure_never_builds_or_publishes",
+          "umpire-guest-driver/main:guest_pipeline::cold_retained_bootstrap_and_cached_native_validation",
+          "umpire-guest-driver/main:guest_pipeline::missing_mise_refuses_bootstrap_without_fallback_cargo",
+          "umpire-guest-driver/main:guest_pipeline::relative_cargo_home_stays_with_distinct_caller_for_probes_metadata_and_build",
+          "umpire-guest-driver/main:guest_pipeline::retained_bootstrap_stdout_selects_executable_and_native_route_creates_output"
+        ],
+        "coverage": "source_controls_present_runtime_pending"
+      },
+      {
+        "id": "bootstrap.2",
+        "frozen_behavior": "all guest compiler wrappers/flags/target removed before bootstrap",
+        "current_control_refs": [
+          "umpire-guest-driver/main:guest_pipeline::cold_bootstrap_failure_never_builds_or_publishes",
+          "umpire-guest-driver/main:guest_pipeline::cold_retained_bootstrap_and_cached_native_validation",
+          "umpire-guest-driver/main:guest_pipeline::missing_mise_refuses_bootstrap_without_fallback_cargo",
+          "umpire-guest-driver/main:guest_pipeline::relative_cargo_home_stays_with_distinct_caller_for_probes_metadata_and_build",
+          "umpire-guest-driver/main:guest_pipeline::retained_bootstrap_stdout_selects_executable_and_native_route_creates_output"
+        ],
+        "coverage": "source_controls_present_runtime_pending"
+      },
+      {
+        "id": "bootstrap.3",
+        "frozen_behavior": "auto-install false; framework tool root explicit; caller home/target canonicalization",
+        "current_control_refs": [
+          "umpire-guest-driver/main:guest_pipeline::cold_bootstrap_failure_never_builds_or_publishes",
+          "umpire-guest-driver/main:guest_pipeline::cold_retained_bootstrap_and_cached_native_validation",
+          "umpire-guest-driver/main:guest_pipeline::missing_mise_refuses_bootstrap_without_fallback_cargo",
+          "umpire-guest-driver/main:guest_pipeline::relative_cargo_home_stays_with_distinct_caller_for_probes_metadata_and_build",
+          "umpire-guest-driver/main:guest_pipeline::retained_bootstrap_stdout_selects_executable_and_native_route_creates_output"
+        ],
+        "coverage": "source_controls_present_runtime_pending"
+      },
+      {
+        "id": "bootstrap.4",
+        "frozen_behavior": "both executables checked; bootstrap child failure diagnosed; missing executable refuses",
+        "current_control_refs": [
+          "umpire-guest-driver/main:guest_pipeline::cold_bootstrap_failure_never_builds_or_publishes",
+          "umpire-guest-driver/main:guest_pipeline::cold_retained_bootstrap_and_cached_native_validation",
+          "umpire-guest-driver/main:guest_pipeline::missing_mise_refuses_bootstrap_without_fallback_cargo",
+          "umpire-guest-driver/main:guest_pipeline::relative_cargo_home_stays_with_distinct_caller_for_probes_metadata_and_build",
+          "umpire-guest-driver/main:guest_pipeline::retained_bootstrap_stdout_selects_executable_and_native_route_creates_output"
+        ],
+        "coverage": "source_controls_present_runtime_pending",
+        "note": "Both executable checks and missing-output refusal remain in retained bootstrap source. Native controls assert both executable outputs and bootstrap failure; removed bootstrap shell did not include a separate missing-executable negative vector."
+      },
+      {
+        "id": "bootstrap.5",
+        "frozen_behavior": "missing mise has no cargo fallback/stdout/artifact publication",
+        "current_control_refs": [
+          "umpire-guest-driver/main:guest_pipeline::cold_bootstrap_failure_never_builds_or_publishes",
+          "umpire-guest-driver/main:guest_pipeline::cold_retained_bootstrap_and_cached_native_validation",
+          "umpire-guest-driver/main:guest_pipeline::missing_mise_refuses_bootstrap_without_fallback_cargo",
+          "umpire-guest-driver/main:guest_pipeline::relative_cargo_home_stays_with_distinct_caller_for_probes_metadata_and_build",
+          "umpire-guest-driver/main:guest_pipeline::retained_bootstrap_stdout_selects_executable_and_native_route_creates_output"
+        ],
+        "coverage": "source_controls_present_runtime_pending"
+      },
+      {
+        "id": "bootstrap.6",
+        "frozen_behavior": "guest/freshness arguments and caller output preserved",
+        "current_control_refs": [
+          "umpire-guest-driver/main:guest_pipeline::cold_bootstrap_failure_never_builds_or_publishes",
+          "umpire-guest-driver/main:guest_pipeline::cold_retained_bootstrap_and_cached_native_validation",
+          "umpire-guest-driver/main:guest_pipeline::missing_mise_refuses_bootstrap_without_fallback_cargo",
+          "umpire-guest-driver/main:guest_pipeline::relative_cargo_home_stays_with_distinct_caller_for_probes_metadata_and_build",
+          "umpire-guest-driver/main:guest_pipeline::retained_bootstrap_stdout_selects_executable_and_native_route_creates_output"
+        ],
+        "coverage": "source_controls_present_runtime_pending"
+      }
+    ],
+    "capability": [
+      {
+        "id": "capability.1",
+        "frozen_behavior": "both author/dsl and native checker reject fs/clock/thread APIs and named types including aliased fs read",
+        "current_control_refs": [
+          "xtask/lib:capability_controls::tests::both_policies_six_safe_roots_and_audited_exception",
+          "xtask/lib:capability_controls::tests::negative_control_requires_failure_and_every_symbol",
+          "xtask/main:native_leaves::capability_controls_enforce_core_and_unsafe_policies"
+        ],
+        "coverage": "source_controls_present_runtime_pending"
+      },
+      {
+        "id": "capability.2",
+        "frozen_behavior": "six safe source/build/test roots have forbid(unsafe_code), reject local allow override with E0453",
+        "current_control_refs": [
+          "xtask/lib:capability_controls::tests::both_policies_six_safe_roots_and_audited_exception",
+          "xtask/lib:capability_controls::tests::negative_control_requires_failure_and_every_symbol",
+          "xtask/main:native_leaves::capability_controls_enforce_core_and_unsafe_policies"
+        ],
+        "coverage": "source_controls_present_runtime_pending"
+      },
+      {
+        "id": "capability.3",
+        "frozen_behavior": "audited deny + local allowance compiles",
+        "current_control_refs": [
+          "xtask/lib:capability_controls::tests::both_policies_six_safe_roots_and_audited_exception",
+          "xtask/lib:capability_controls::tests::negative_control_requires_failure_and_every_symbol",
+          "xtask/main:native_leaves::capability_controls_enforce_core_and_unsafe_policies"
+        ],
+        "coverage": "source_controls_present_runtime_pending"
+      },
+      {
+        "id": "capability.4",
+        "frozen_behavior": "unaudited unsafe declaration under deny refuses",
+        "current_control_refs": [
+          "xtask/lib:capability_controls::tests::both_policies_six_safe_roots_and_audited_exception",
+          "xtask/lib:capability_controls::tests::negative_control_requires_failure_and_every_symbol",
+          "xtask/main:native_leaves::capability_controls_enforce_core_and_unsafe_policies"
+        ],
+        "coverage": "source_controls_present_runtime_pending"
+      },
+      {
+        "id": "capability.5",
+        "frozen_behavior": "temporary compiler artifacts cleaned; no restored .14 tool-version preflights",
+        "current_control_refs": [
+          "xtask/lib:capability_controls::tests::both_policies_six_safe_roots_and_audited_exception",
+          "xtask/lib:capability_controls::tests::negative_control_requires_failure_and_every_symbol",
+          "xtask/main:native_leaves::capability_controls_enforce_core_and_unsafe_policies"
+        ],
+        "coverage": "source_controls_present_runtime_pending"
+      }
+    ],
+    "fetch": [
+      {
+        "id": "fetch.1",
+        "frozen_behavior": "thin wrapper forwards optional framework root and rejects excess arguments through native CLI",
+        "current_control_refs": [
+          "umpire-backend-process/lib:tool_provider::tests::concurrent_provider_capture_and_failure_propagation_are_independent",
+          "umpire-backend-process/lib:tool_provider::tests::exact_installations_reject_partial_trees_directories_and_symlinks",
+          "umpire-backend-process/lib:tool_provider::tests::in_flight_cancellation_uses_existing_supervisor",
+          "umpire-backend-process/lib:tool_provider::tests::interrupted_partial_install_never_reaches_resolution",
+          "umpire-tlc/lib:runner::tests::process_limits_kill_and_reap_and_jar_admission_fails_closed",
+          "xtask/main:apalache_install::concurrent_failed_provisioning_preserves_partial_data_and_cleans_capture",
+          "xtask/main:apalache_install::dispatch_usage_failure_is_nonzero_and_structured",
+          "xtask/main:apalache_install::non_utf8_provider_root_has_a_native_status_one_refusal_before_mise",
+          "xtask/main:apalache_install::path_list_provider_root_has_a_native_status_one_refusal_before_mise",
+          "xtask/main:apalache_install::provider_uses_explicit_opt_in_and_surfaces_install_failure"
+        ],
+        "coverage": "source_controls_present_runtime_pending"
+      },
+      {
+        "id": "fetch.2",
+        "frozen_behavior": "explicit locked mise HTTP provider; default TLC versus explicit Apalache",
+        "current_control_refs": [
+          "umpire-backend-process/lib:tool_provider::tests::concurrent_provider_capture_and_failure_propagation_are_independent",
+          "umpire-backend-process/lib:tool_provider::tests::exact_installations_reject_partial_trees_directories_and_symlinks",
+          "umpire-backend-process/lib:tool_provider::tests::in_flight_cancellation_uses_existing_supervisor",
+          "umpire-backend-process/lib:tool_provider::tests::interrupted_partial_install_never_reaches_resolution",
+          "umpire-tlc/lib:runner::tests::process_limits_kill_and_reap_and_jar_admission_fails_closed",
+          "xtask/main:apalache_install::concurrent_failed_provisioning_preserves_partial_data_and_cleans_capture",
+          "xtask/main:apalache_install::dispatch_usage_failure_is_nonzero_and_structured",
+          "xtask/main:apalache_install::non_utf8_provider_root_has_a_native_status_one_refusal_before_mise",
+          "xtask/main:apalache_install::path_list_provider_root_has_a_native_status_one_refusal_before_mise",
+          "xtask/main:apalache_install::provider_uses_explicit_opt_in_and_surfaces_install_failure"
+        ],
+        "coverage": "source_controls_present_runtime_pending"
+      },
+      {
+        "id": "fetch.3",
+        "frozen_behavior": "admitted absolute jar path stdout and diagnostics stderr; failure1",
+        "current_control_refs": [
+          "umpire-backend-process/lib:tool_provider::tests::concurrent_provider_capture_and_failure_propagation_are_independent",
+          "umpire-backend-process/lib:tool_provider::tests::exact_installations_reject_partial_trees_directories_and_symlinks",
+          "umpire-backend-process/lib:tool_provider::tests::in_flight_cancellation_uses_existing_supervisor",
+          "umpire-backend-process/lib:tool_provider::tests::interrupted_partial_install_never_reaches_resolution",
+          "umpire-tlc/lib:runner::tests::process_limits_kill_and_reap_and_jar_admission_fails_closed",
+          "xtask/main:apalache_install::concurrent_failed_provisioning_preserves_partial_data_and_cleans_capture",
+          "xtask/main:apalache_install::dispatch_usage_failure_is_nonzero_and_structured",
+          "xtask/main:apalache_install::non_utf8_provider_root_has_a_native_status_one_refusal_before_mise",
+          "xtask/main:apalache_install::path_list_provider_root_has_a_native_status_one_refusal_before_mise",
+          "xtask/main:apalache_install::provider_uses_explicit_opt_in_and_surfaces_install_failure"
+        ],
+        "coverage": "source_controls_present_runtime_pending"
+      },
+      {
+        "id": "fetch.4",
+        "frozen_behavior": "checksum/regular-file/contained no-symlink admission; corrupt/partial/missing installation refuses",
+        "current_control_refs": [
+          "umpire-backend-process/lib:tool_provider::tests::concurrent_provider_capture_and_failure_propagation_are_independent",
+          "umpire-backend-process/lib:tool_provider::tests::exact_installations_reject_partial_trees_directories_and_symlinks",
+          "umpire-backend-process/lib:tool_provider::tests::in_flight_cancellation_uses_existing_supervisor",
+          "umpire-backend-process/lib:tool_provider::tests::interrupted_partial_install_never_reaches_resolution",
+          "umpire-tlc/lib:runner::tests::process_limits_kill_and_reap_and_jar_admission_fails_closed",
+          "xtask/main:apalache_install::concurrent_failed_provisioning_preserves_partial_data_and_cleans_capture",
+          "xtask/main:apalache_install::dispatch_usage_failure_is_nonzero_and_structured",
+          "xtask/main:apalache_install::non_utf8_provider_root_has_a_native_status_one_refusal_before_mise",
+          "xtask/main:apalache_install::path_list_provider_root_has_a_native_status_one_refusal_before_mise",
+          "xtask/main:apalache_install::provider_uses_explicit_opt_in_and_surfaces_install_failure"
+        ],
+        "coverage": "source_controls_present_runtime_pending"
+      },
+      {
+        "id": "fetch.5",
+        "frozen_behavior": "provider concurrency/interruption/capture cleanup delegated and checked by .16",
+        "current_control_refs": [
+          "umpire-backend-process/lib:tool_provider::tests::concurrent_provider_capture_and_failure_propagation_are_independent",
+          "umpire-backend-process/lib:tool_provider::tests::exact_installations_reject_partial_trees_directories_and_symlinks",
+          "umpire-backend-process/lib:tool_provider::tests::in_flight_cancellation_uses_existing_supervisor",
+          "umpire-backend-process/lib:tool_provider::tests::interrupted_partial_install_never_reaches_resolution",
+          "umpire-tlc/lib:runner::tests::process_limits_kill_and_reap_and_jar_admission_fails_closed",
+          "xtask/main:apalache_install::concurrent_failed_provisioning_preserves_partial_data_and_cleans_capture",
+          "xtask/main:apalache_install::dispatch_usage_failure_is_nonzero_and_structured",
+          "xtask/main:apalache_install::non_utf8_provider_root_has_a_native_status_one_refusal_before_mise",
+          "xtask/main:apalache_install::path_list_provider_root_has_a_native_status_one_refusal_before_mise",
+          "xtask/main:apalache_install::provider_uses_explicit_opt_in_and_surfaces_install_failure"
+        ],
+        "coverage": "source_controls_present_runtime_pending"
+      },
+      {
+        "id": "fetch.6",
+        "frozen_behavior": "UTF-8 and path-list-representable framework-root admission from frozen60f before creating build; Unix non-UTF8 and colon roots refuse; no second cache/copy layer",
+        "current_control_refs": [
+          "umpire-backend-process/lib:tool_provider::tests::concurrent_provider_capture_and_failure_propagation_are_independent",
+          "umpire-backend-process/lib:tool_provider::tests::exact_installations_reject_partial_trees_directories_and_symlinks",
+          "umpire-backend-process/lib:tool_provider::tests::in_flight_cancellation_uses_existing_supervisor",
+          "umpire-backend-process/lib:tool_provider::tests::interrupted_partial_install_never_reaches_resolution",
+          "umpire-tlc/lib:runner::tests::process_limits_kill_and_reap_and_jar_admission_fails_closed",
+          "xtask/main:apalache_install::concurrent_failed_provisioning_preserves_partial_data_and_cleans_capture",
+          "xtask/main:apalache_install::dispatch_usage_failure_is_nonzero_and_structured",
+          "xtask/main:apalache_install::non_utf8_provider_root_has_a_native_status_one_refusal_before_mise",
+          "xtask/main:apalache_install::path_list_provider_root_has_a_native_status_one_refusal_before_mise",
+          "xtask/main:apalache_install::provider_uses_explicit_opt_in_and_surfaces_install_failure"
+        ],
+        "coverage": "source_controls_present_runtime_pending"
+      }
+    ],
+    "retired": [
+      {
+        "id": "retired.1",
+        "frozen_behavior": "normal clean0; planted legacy/layout token1 and diagnostic",
+        "current_control_refs": [
+          "temporal-xtask/bin:retired_name_policy_controls::active_spellings_and_historical_exclusions",
+          "temporal-xtask/bin:retired_name_policy_controls::raw_path_bytes_and_io_failures_reach_native_policy",
+          "temporal-xtask/bin:retired_name_policy_controls::tool_failures_never_report_clean",
+          "xtask/lib:retired_names::controls::native_scan_handles_git_binary_missing_and_symlink_policy",
+          "xtask/lib:retired_names::controls::raw_records_keep_non_utf8_paths_lines_and_numeric_spelling",
+          "xtask/lib:retired_names::controls::writer_failure_returns_error_status",
+          "xtask/main:retired_names::io_failure_and_absent_grep_are_handled_natively",
+          "xtask/main:retired_names::malformed_records_fail_closed",
+          "xtask/main:retired_names::native_scan_catches_each_planted_retired_name",
+          "xtask/main:retired_names::raw_records_exempt_only_author_facade_tokens",
+          "xtask/main:retired_names::rust_regex_character_classes_and_invalid_patterns"
+        ],
+        "coverage": "source_controls_present_runtime_pending"
+      },
+      {
+        "id": "retired.2",
+        "frozen_behavior": "author/umpire/tests token exemption only",
+        "current_control_refs": [
+          "temporal-xtask/bin:retired_name_policy_controls::active_spellings_and_historical_exclusions",
+          "temporal-xtask/bin:retired_name_policy_controls::raw_path_bytes_and_io_failures_reach_native_policy",
+          "temporal-xtask/bin:retired_name_policy_controls::tool_failures_never_report_clean",
+          "xtask/lib:retired_names::controls::native_scan_handles_git_binary_missing_and_symlink_policy",
+          "xtask/lib:retired_names::controls::raw_records_keep_non_utf8_paths_lines_and_numeric_spelling",
+          "xtask/lib:retired_names::controls::writer_failure_returns_error_status",
+          "xtask/main:retired_names::io_failure_and_absent_grep_are_handled_natively",
+          "xtask/main:retired_names::malformed_records_fail_closed",
+          "xtask/main:retired_names::native_scan_catches_each_planted_retired_name",
+          "xtask/main:retired_names::raw_records_exempt_only_author_facade_tokens",
+          "xtask/main:retired_names::rust_regex_character_classes_and_invalid_patterns"
+        ],
+        "coverage": "source_controls_present_runtime_pending"
+      },
+      {
+        "id": "retired.3",
+        "frozen_behavior": "historical archive/.flow/framework exclusions and layout-history exclusions",
+        "current_control_refs": [
+          "temporal-xtask/bin:retired_name_policy_controls::active_spellings_and_historical_exclusions",
+          "temporal-xtask/bin:retired_name_policy_controls::raw_path_bytes_and_io_failures_reach_native_policy",
+          "temporal-xtask/bin:retired_name_policy_controls::tool_failures_never_report_clean",
+          "xtask/lib:retired_names::controls::native_scan_handles_git_binary_missing_and_symlink_policy",
+          "xtask/lib:retired_names::controls::raw_records_keep_non_utf8_paths_lines_and_numeric_spelling",
+          "xtask/lib:retired_names::controls::writer_failure_returns_error_status",
+          "xtask/main:retired_names::io_failure_and_absent_grep_are_handled_natively",
+          "xtask/main:retired_names::malformed_records_fail_closed",
+          "xtask/main:retired_names::native_scan_catches_each_planted_retired_name",
+          "xtask/main:retired_names::raw_records_exempt_only_author_facade_tokens",
+          "xtask/main:retired_names::rust_regex_character_classes_and_invalid_patterns"
+        ],
+        "coverage": "source_controls_present_runtime_pending"
+      },
+      {
+        "id": "retired.4",
+        "frozen_behavior": "spaces/non-Unicode filenames, malformed records, Git and local-I/O failures",
+        "current_control_refs": [
+          "temporal-xtask/bin:retired_name_policy_controls::active_spellings_and_historical_exclusions",
+          "temporal-xtask/bin:retired_name_policy_controls::raw_path_bytes_and_io_failures_reach_native_policy",
+          "temporal-xtask/bin:retired_name_policy_controls::tool_failures_never_report_clean",
+          "xtask/lib:retired_names::controls::native_scan_handles_git_binary_missing_and_symlink_policy",
+          "xtask/lib:retired_names::controls::raw_records_keep_non_utf8_paths_lines_and_numeric_spelling",
+          "xtask/lib:retired_names::controls::writer_failure_returns_error_status",
+          "xtask/main:retired_names::io_failure_and_absent_grep_are_handled_natively",
+          "xtask/main:retired_names::malformed_records_fail_closed",
+          "xtask/main:retired_names::native_scan_catches_each_planted_retired_name",
+          "xtask/main:retired_names::raw_records_exempt_only_author_facade_tokens",
+          "xtask/main:retired_names::rust_regex_character_classes_and_invalid_patterns"
+        ],
+        "coverage": "source_controls_present_runtime_pending"
+      },
+      {
+        "id": "retired.5",
+        "frozen_behavior": "external grep failure and SIGPIPE precedence are pipeline-specific obsolete cases after native scan removal",
+        "current_control_refs": [],
+        "coverage": "obsolete_pipeline_only",
+        "reason": "No external grep/filter pipe exists after native scan. Git inventory errors, raw records, invalid regex and local I/O failures remain separately tested."
+      }
+    ]
+  },
+  "exact_shell_cases": [
+    {
+      "id": "validate.backend_precedence",
+      "inputs": {
+        "conflict_sources": [
+          "absent",
+          "environment",
+          "command-line",
+          "MAKEFLAGS",
+          "command-line MAKEFLAGS"
+        ],
+        "UMPIRE_APALACHE": [
+          "skip",
+          "require"
+        ]
+      },
+      "expected": "10 cases; gate then benchmark each see require + preserved Apalache",
+      "script": "model/scripts/test-model-validate.sh",
+      "coverage": "source_control_present_runtime_pending",
+      "current_control_refs": [
+        "temporal-xtask/bin:model_controls::shipping_model_recipes_with_disposable_children",
+        "temporal-xtask/bin:gate::timing::tests::source_edit_restores_original_content_after_failed_child"
+      ]
+    },
+    {
+      "id": "time.backend_preservation",
+      "inputs": {
+        "UMPIRE_BACKENDS": [
+          "unset",
+          "skip",
+          "require"
+        ]
+      },
+      "expected": "3 cases; gate then benchmark preserve mode and absent Apalache",
+      "script": "model/scripts/test-model-validate.sh",
+      "coverage": "source_control_present_runtime_pending",
+      "current_control_refs": [
+        "temporal-xtask/bin:model_controls::shipping_model_recipes_with_disposable_children",
+        "temporal-xtask/bin:gate::timing::tests::source_edit_restores_original_content_after_failed_child"
+      ]
+    },
+    {
+      "id": "validate.gate_fail",
+      "inputs": {
+        "CONTROL_GATE_STATUS": 37,
+        "entry": "make model-validate"
+      },
+      "expected": "Make2; gate only; both gate diagnostic streams; no budget warnings",
+      "script": "model/scripts/test-model-validate.sh",
+      "coverage": "source_control_present_runtime_pending",
+      "current_control_refs": [
+        "temporal-xtask/bin:model_controls::shipping_model_recipes_with_disposable_children",
+        "temporal-xtask/bin:gate::timing::tests::source_edit_restores_original_content_after_failed_child"
+      ]
+    },
+    {
+      "id": "validate.benchmark_fail",
+      "inputs": {
+        "CONTROL_BENCHMARK_STATUS": 37,
+        "entry": "make model-validate"
+      },
+      "expected": "Make2; gate then benchmark; both benchmark diagnostics; no warnings",
+      "script": "model/scripts/test-model-validate.sh",
+      "coverage": "source_control_present_runtime_pending",
+      "current_control_refs": [
+        "temporal-xtask/bin:model_controls::shipping_model_recipes_with_disposable_children",
+        "temporal-xtask/bin:gate::timing::tests::source_edit_restores_original_content_after_failed_child"
+      ]
+    },
+    {
+      "id": "time.raw_benchmark_fail",
+      "inputs": {
+        "CONTROL_BENCHMARK_STATUS": 37,
+        "entry": "public model timer"
+      },
+      "expected": "37; gate then benchmark; no budget warnings",
+      "script": "model/scripts/test-model-validate.sh",
+      "coverage": "source_control_present_runtime_pending",
+      "current_control_refs": [
+        "temporal-xtask/bin:model_controls::shipping_model_recipes_with_disposable_children",
+        "temporal-xtask/bin:gate::timing::tests::source_edit_restores_original_content_after_failed_child"
+      ]
+    },
+    {
+      "id": "time.bootstrap_fail",
+      "inputs": {
+        "CONTROL_BOOTSTRAP_STATUS": 37,
+        "entry": "public model timer"
+      },
+      "expected": "37; successful gate only; failed bootstrap prevents benchmark",
+      "script": "model/scripts/test-model-validate.sh",
+      "coverage": "source_control_present_runtime_pending",
+      "current_control_refs": [
+        "temporal-xtask/bin:model_controls::shipping_model_recipes_with_disposable_children",
+        "temporal-xtask/bin:gate::timing::tests::source_edit_restores_original_content_after_failed_child"
+      ]
+    },
+    {
+      "id": "timer.environment",
+      "inputs": {
+        "CARGO_HOME": "relative-home",
+        "CARGO_TARGET_DIR": "relative-target",
+        "UMPIRE_QUICK_CACHE": 1,
+        "UMPIRE_CACHE_DISABLE": 0,
+        "CARGO_BUILD_JOBS": 99
+      },
+      "expected": "benchmark sees original caller Cargo paths, cache0:1, auto-install false; no direct mise test invocation",
+      "script": "model/scripts/test-model-validate.sh",
+      "coverage": "source_control_present_runtime_pending",
+      "current_control_refs": [
+        "temporal-xtask/bin:model_controls::shipping_model_recipes_with_disposable_children",
+        "temporal-xtask/bin:gate::timing::tests::source_edit_restores_original_content_after_failed_child"
+      ],
+      "native_contract": "Benchmark cwd is framework workspace, Cargo home physical, Cargo target caller-absolutized retaining symlink spelling; cache0:1/auto-install false. Make boundary separately preserves caller relative strings."
+    },
+    {
+      "id": "timer.bootstrap_resources",
+      "inputs": {
+        "required_modes": [
+          "UMPIRE_BACKENDS=require",
+          "UMPIRE_APALACHE=require"
+        ],
+        "initial_jobs": 99
+      },
+      "expected": "required bootstrap jobs1; ordinary mode preserves99",
+      "script": "model/scripts/test-model-validate.sh",
+      "coverage": "source_control_present_runtime_pending",
+      "current_control_refs": [
+        "temporal-xtask/bin:model_controls::shipping_model_recipes_with_disposable_children",
+        "temporal-xtask/bin:gate::timing::tests::source_edit_restores_original_content_after_failed_child"
+      ]
+    },
+    {
+      "id": "timer.cleanup_and_soft_warnings",
+      "inputs": {
+        "budgets": [
+          -1,
+          -1
+        ],
+        "TMPDIR": "owned output"
+      },
+      "expected": "every call removes captures; success has gate+inner warning; failure has neither",
+      "script": "model/scripts/test-model-validate.sh",
+      "coverage": "source_control_present_runtime_pending",
+      "current_control_refs": [
+        "temporal-xtask/bin:model_controls::shipping_model_recipes_with_disposable_children",
+        "temporal-xtask/bin:gate::timing::tests::source_edit_restores_original_content_after_failed_child"
+      ]
+    },
+    {
+      "id": "wiring.ci_minimum",
+      "inputs": {
+        "minimum_configs": [
+          "mise.toml",
+          "model/umpire/mise.toml"
+        ],
+        "workflow": ".github/workflows/umpire.yml"
+      },
+      "expected": "both minima present; each mise-action version present and >= minimum by three numeric components",
+      "script": "model/scripts/test-model-wiring.sh",
+      "coverage": "source_control_present_runtime_pending",
+      "current_control_refs": [
+        "temporal-xtask/bin:model_controls::shipping_model_recipes_with_disposable_children",
+        "temporal-xtask/bin:gate::timing::tests::source_edit_restores_original_content_after_failed_child"
+      ]
+    },
+    {
+      "id": "wiring.combined_gate_once",
+      "inputs": {
+        "UMPIRE_TIME_STEPS": [
+          0,
+          1
+        ],
+        "command_and_env_cache": "1:0"
+      },
+      "expected": "one Temporal cargo-run gate invocation; caller cwd/home/target preserved; cache0:1",
+      "script": "model/scripts/test-model-wiring.sh",
+      "coverage": "source_control_present_runtime_pending",
+      "current_control_refs": [
+        "temporal-xtask/bin:model_controls::shipping_model_recipes_with_disposable_children",
+        "temporal-xtask/bin:gate::timing::tests::source_edit_restores_original_content_after_failed_child"
+      ]
+    },
+    {
+      "id": "wiring.backend_mode_once",
+      "inputs": {
+        "UMPIRE_BACKENDS": "require",
+        "alternative_UMPIRE_APALACHE": "require"
+      },
+      "expected": "one combined gate call for each mode",
+      "script": "model/scripts/test-model-wiring.sh",
+      "coverage": "source_control_present_runtime_pending",
+      "current_control_refs": [
+        "temporal-xtask/bin:model_controls::shipping_model_recipes_with_disposable_children",
+        "temporal-xtask/bin:gate::timing::tests::source_edit_restores_original_content_after_failed_child"
+      ]
+    },
+    {
+      "id": "wiring.quick_once",
+      "inputs": {
+        "entry": "make model-quick"
+      },
+      "expected": "one Temporal quick invocation",
+      "script": "model/scripts/test-model-wiring.sh",
+      "coverage": "source_control_present_runtime_pending",
+      "current_control_refs": [
+        "temporal-xtask/bin:model_controls::shipping_model_recipes_with_disposable_children",
+        "temporal-xtask/bin:gate::timing::tests::source_edit_restores_original_content_after_failed_child"
+      ]
+    },
+    {
+      "id": "wiring.bootstrap_jobs",
+      "inputs": {
+        "entry_modes": [
+          "required TLC gate",
+          "required Apalache gate",
+          "quick"
+        ],
+        "initial_jobs": 99
+      },
+      "expected": "all three bootstrap calls jobs1; ordinary calls preserve99",
+      "script": "model/scripts/test-model-wiring.sh",
+      "coverage": "source_control_present_runtime_pending",
+      "current_control_refs": [
+        "temporal-xtask/bin:model_controls::shipping_model_recipes_with_disposable_children",
+        "temporal-xtask/bin:gate::timing::tests::source_edit_restores_original_content_after_failed_child"
+      ]
+    },
+    {
+      "id": "wiring.producer_prerequisites",
+      "inputs": {
+        "entry": "make -j1 model-prerequisites",
+        "cache": "command and env1:0"
+      },
+      "expected": "control-go then control-grpc then control-api; each sees0:1",
+      "script": "model/scripts/test-model-wiring.sh",
+      "coverage": "source_control_present_runtime_pending",
+      "current_control_refs": [
+        "temporal-xtask/bin:model_controls::shipping_model_recipes_with_disposable_children",
+        "temporal-xtask/bin:gate::timing::tests::source_edit_restores_original_content_after_failed_child"
+      ]
+    },
+    {
+      "id": "wiring.gate_fail",
+      "inputs": {
+        "CONTROL_TEMPORAL_STATUS": 37
+      },
+      "expected": "Make2; one combined gate invocation",
+      "script": "model/scripts/test-model-wiring.sh",
+      "coverage": "source_control_present_runtime_pending",
+      "current_control_refs": [
+        "temporal-xtask/bin:model_controls::shipping_model_recipes_with_disposable_children",
+        "temporal-xtask/bin:gate::timing::tests::source_edit_restores_original_content_after_failed_child"
+      ]
+    },
+    {
+      "id": "wiring.fmt_update_order",
+      "inputs": {
+        "actions": [
+          "fmt",
+          "update"
+        ]
+      },
+      "expected": "framework first then Temporal; update uses Temporal test-run with cache vars unset",
+      "script": "model/scripts/test-model-wiring.sh",
+      "coverage": "source_control_present_runtime_pending",
+      "current_control_refs": [
+        "temporal-xtask/bin:model_controls::shipping_model_recipes_with_disposable_children",
+        "temporal-xtask/bin:gate::timing::tests::source_edit_restores_original_content_after_failed_child"
+      ],
+      "native_contract": "Framework first, Temporal authoritative test-run second; explicitly inherited cache1:0 remains inherited (owner-approved correction), replacing stale unset expectation."
+    },
+    {
+      "id": "wiring.framework_fail_stops",
+      "inputs": {
+        "actions": [
+          "fmt",
+          "update"
+        ],
+        "CONTROL_FRAMEWORK_STATUS": 37
+      },
+      "expected": "Make2; only framework call",
+      "script": "model/scripts/test-model-wiring.sh",
+      "coverage": "source_control_present_runtime_pending",
+      "current_control_refs": [
+        "temporal-xtask/bin:model_controls::shipping_model_recipes_with_disposable_children",
+        "temporal-xtask/bin:gate::timing::tests::source_edit_restores_original_content_after_failed_child"
+      ]
+    },
+    {
+      "id": "wiring.paths_and_auto_install",
+      "inputs": {
+        "CARGO_HOME": "relative-home",
+        "CARGO_TARGET_DIR": "relative-target",
+        "caller": "root"
+      },
+      "expected": "same caller/cargo path values; mise auto-install false",
+      "script": "model/scripts/test-model-wiring.sh",
+      "coverage": "source_control_present_runtime_pending",
+      "current_control_refs": [
+        "temporal-xtask/bin:model_controls::shipping_model_recipes_with_disposable_children",
+        "temporal-xtask/bin:gate::timing::tests::source_edit_restores_original_content_after_failed_child"
+      ]
+    },
+    {
+      "id": "warnings.default_equal",
+      "inputs": {
+        "inner": 10,
+        "total": 60,
+        "inner_budget": "",
+        "gate_budget": ""
+      },
+      "expected": [],
+      "script": "model/scripts/test-time-gate.sh",
+      "coverage": "source_control_present_runtime_pending",
+      "current_control_refs": [
+        "temporal-xtask/bin:gate::timing_controls::tests::soft_budget_defaults_equality_overrides_and_warning_order"
+      ]
+    },
+    {
+      "id": "warnings.inner_over",
+      "inputs": {
+        "inner": 10.001,
+        "total": 60,
+        "budgets": "defaults"
+      },
+      "expected": [
+        "inner loop warning"
+      ],
+      "script": "model/scripts/test-time-gate.sh",
+      "coverage": "source_control_present_runtime_pending",
+      "current_control_refs": [
+        "temporal-xtask/bin:gate::timing_controls::tests::soft_budget_defaults_equality_overrides_and_warning_order"
+      ]
+    },
+    {
+      "id": "warnings.gate_over",
+      "inputs": {
+        "inner": 10,
+        "total": 60.001,
+        "budgets": "defaults"
+      },
+      "expected": [
+        "gate warning"
+      ],
+      "script": "model/scripts/test-time-gate.sh",
+      "coverage": "source_control_present_runtime_pending",
+      "current_control_refs": [
+        "temporal-xtask/bin:gate::timing_controls::tests::soft_budget_defaults_equality_overrides_and_warning_order"
+      ]
+    },
+    {
+      "id": "warnings.override_equal",
+      "inputs": {
+        "inner": 2,
+        "total": 4,
+        "inner_budget": 2,
+        "gate_budget": 4
+      },
+      "expected": [],
+      "script": "model/scripts/test-time-gate.sh",
+      "coverage": "source_control_present_runtime_pending",
+      "current_control_refs": [
+        "temporal-xtask/bin:gate::timing_controls::tests::soft_budget_defaults_equality_overrides_and_warning_order"
+      ]
+    },
+    {
+      "id": "warnings.override_both_over",
+      "inputs": {
+        "inner": 3,
+        "total": 5,
+        "inner_budget": 2,
+        "gate_budget": 4
+      },
+      "expected": [
+        "gate warning",
+        "inner loop warning"
+      ],
+      "script": "model/scripts/test-time-gate.sh",
+      "coverage": "source_control_present_runtime_pending",
+      "current_control_refs": [
+        "temporal-xtask/bin:gate::timing_controls::tests::soft_budget_defaults_equality_overrides_and_warning_order"
+      ]
+    },
+    {
+      "id": "warnings.transitive_controls",
+      "inputs": {
+        "after_warning_table": [
+          "test-model-validate.sh",
+          "test-model-wiring.sh"
+        ]
+      },
+      "expected": "both complete control families execute",
+      "script": "model/scripts/test-time-gate.sh",
+      "coverage": "source_control_present_runtime_pending",
+      "current_control_refs": [
+        "temporal-xtask/bin:gate::timing_controls::tests::soft_budget_defaults_equality_overrides_and_warning_order",
+        "temporal-xtask/bin:model_controls::shipping_model_recipes_with_disposable_children",
+        "temporal-xtask/bin:gate::timing::tests::source_edit_restores_original_content_after_failed_child"
+      ],
+      "note": "Temporal gate::control_tests timing family selects warning renderer plus complete Model Make wrapper and guest/build path controls in its admitted batch."
+    },
+    {
+      "id": "step.status",
+      "inputs": [
+        [
+          "true",
+          0
+        ],
+        [
+          "false",
+          1
+        ],
+        [
+          "exit 37",
+          37
+        ]
+      ],
+      "expected": "same child exit status",
+      "script": "model/umpire/scripts/test-time-gate.sh",
+      "coverage": "source_control_present_runtime_pending",
+      "current_control_refs": [
+        "xtask/main:native_leaves::public_timing_front_door_preserves_status_diagnostics_and_cleanup"
+      ]
+    },
+    {
+      "id": "step.diagnostics.success",
+      "inputs": {
+        "child": "stdout diagnostic; stderr diagnostic; exit0"
+      },
+      "expected": "child diagnostics suppressed; timing label visible; capture removed",
+      "script": "model/umpire/scripts/test-time-gate.sh",
+      "coverage": "source_control_present_runtime_pending",
+      "current_control_refs": [
+        "xtask/main:native_leaves::public_timing_front_door_preserves_status_diagnostics_and_cleanup"
+      ]
+    },
+    {
+      "id": "step.diagnostics.failure",
+      "inputs": {
+        "child": "stdout diagnostic; stderr diagnostic; exit37"
+      },
+      "expected": "status37; stdout then stderr diagnostic replayed; capture removed",
+      "script": "model/umpire/scripts/test-time-gate.sh",
+      "coverage": "source_control_present_runtime_pending",
+      "current_control_refs": [
+        "xtask/main:native_leaves::public_timing_front_door_preserves_status_diagnostics_and_cleanup"
+      ]
+    },
+    {
+      "id": "step.cwd",
+      "inputs": {
+        "cwd": "different scratch directory",
+        "child": "test PWD equals caller"
+      },
+      "expected": "success and original caller cwd",
+      "script": "model/umpire/scripts/test-time-gate.sh",
+      "coverage": "source_control_present_runtime_pending",
+      "current_control_refs": [
+        "xtask/main:native_leaves::public_timing_front_door_preserves_status_diagnostics_and_cleanup"
+      ]
+    },
+    {
+      "id": "step.frontdoor37",
+      "inputs": {
+        "entry": "--step child-status",
+        "child": "exit37"
+      },
+      "expected": "37 through public step front door",
+      "script": "model/umpire/scripts/test-time-gate.sh",
+      "coverage": "source_control_present_runtime_pending",
+      "current_control_refs": [
+        "xtask/main:native_leaves::public_timing_front_door_preserves_status_diagnostics_and_cleanup"
+      ]
+    },
+    {
+      "id": "step.shell_substitution",
+      "inputs": {
+        "legacy": "out=$(step ...)"
+      },
+      "expected": "failure propagates through wrapper command substitution",
+      "script": "model/umpire/scripts/test-time-gate.sh",
+      "coverage": "obsolete_shell_composition",
+      "current_control_refs": [
+        "xtask/main:native_leaves::public_timing_front_door_preserves_status_diagnostics_and_cleanup"
+      ],
+      "reason": "Bash command substitution wrapper removed. Public native step failures37/signal143 preserve the actual status contract."
+    }
+  ],
+  "scripts": [
+    {
+      "path": "model/scripts/fetch-tlc.sh",
+      "frozen_source": {
+        "commit": "60f1c762a618d32478b58ae4e79c151f4355aeb3",
+        "path": "model/scripts/fetch-tlc.sh",
+        "blob": "7acda4c2783a92ecf2977c4402983c18a10894c1"
+      },
+      "original_job": "Temporal forwarding bridge",
+      "action": "remove_after_joined_runtime_acceptance",
+      "currently_exists": true,
+      "current_source_sha256": "a36114b2d2eac71f7f1fd9c09815d639f9055c0c05cad5883e65b3658bce9ece",
+      "replacement": "cargo xtask fetch-tlc [framework-root]",
+      "implementation_files": [
+        "model/umpire/dev/xtask/src/fetch_apalache.rs",
+        "model/umpire/backends/process/src/tool_provider.rs"
+      ],
+      "shared_behavior_group": "fetch",
+      "exact_case_ids": [],
+      "current_control_refs": [
+        "umpire-backend-process/lib:tool_provider::tests::concurrent_provider_capture_and_failure_propagation_are_independent",
+        "umpire-backend-process/lib:tool_provider::tests::exact_installations_reject_partial_trees_directories_and_symlinks",
+        "umpire-backend-process/lib:tool_provider::tests::in_flight_cancellation_uses_existing_supervisor",
+        "umpire-backend-process/lib:tool_provider::tests::interrupted_partial_install_never_reaches_resolution",
+        "umpire-tlc/lib:runner::tests::process_limits_kill_and_reap_and_jar_admission_fails_closed",
+        "xtask/main:apalache_install::concurrent_failed_provisioning_preserves_partial_data_and_cleans_capture",
+        "xtask/main:apalache_install::dispatch_usage_failure_is_nonzero_and_structured",
+        "xtask/main:apalache_install::non_utf8_provider_root_has_a_native_status_one_refusal_before_mise",
+        "xtask/main:apalache_install::path_list_provider_root_has_a_native_status_one_refusal_before_mise",
+        "xtask/main:apalache_install::provider_uses_explicit_opt_in_and_surfaces_install_failure"
+      ],
+      "runtime_accepted": false
+    },
+    {
+      "path": "model/scripts/guest-freshness.sh",
+      "frozen_source": {
+        "commit": "60f1c762a618d32478b58ae4e79c151f4355aeb3",
+        "path": "model/scripts/guest-freshness.sh",
+        "blob": "9b03fe782c6a1c1dadf1ecca67a8014aed8e8a7e"
+      },
+      "original_job": "Route five framework packages versus Temporal/custom, then forward",
+      "action": "remove_after_joined_runtime_acceptance",
+      "currently_exists": true,
+      "current_source_sha256": "c2b907d3e5bb502a3f94ff2790b467ba619d8d7f25d83795c0206a750e154276",
+      "replacement": "cargo xtask guest-freshness PACKAGE OUTPUT / umpire-guest-driver guest-freshness",
+      "implementation_files": [
+        "model/dev/xtask/src/guest_routes.rs",
+        "model/umpire/dev/guest-driver/src/guest.rs"
+      ],
+      "shared_behavior_group": "guest",
+      "exact_case_ids": [],
+      "current_control_refs": [
+        "temporal-xtask/bin:guest_routes::tests::non_unicode_output_and_target_are_lossless",
+        "temporal-xtask/bin:guest_routes::tests::raw_arguments_check_output_and_failure_status_survive_execution",
+        "temporal-xtask/bin:guest_routes::tests::seven_packages_two_entries_preserve_caller_paths_and_exact_arguments",
+        "umpire-guest-driver/lib:guest::tests::invalid_guest_arguments_are_refused_before_tool_discovery",
+        "umpire-guest-driver/main:guest_pipeline::cold_bootstrap_failure_never_builds_or_publishes",
+        "umpire-guest-driver/main:guest_pipeline::cold_retained_bootstrap_and_cached_native_validation",
+        "umpire-guest-driver/main:guest_pipeline::guest_build_check_and_artifact_refusals",
+        "umpire-guest-driver/main:guest_pipeline::missing_mise_refuses_bootstrap_without_fallback_cargo",
+        "umpire-guest-driver/main:guest_pipeline::native_caller_relative_paths_and_changed_inputs_select_new_cache",
+        "umpire-guest-driver/main:guest_pipeline::relative_cargo_home_stays_with_distinct_caller_for_probes_metadata_and_build",
+        "umpire-guest-driver/main:guest_pipeline::retained_bootstrap_stdout_selects_executable_and_native_route_creates_output"
+      ],
+      "runtime_accepted": false
+    },
+    {
+      "path": "model/scripts/guest.sh",
+      "frozen_source": {
+        "commit": "60f1c762a618d32478b58ae4e79c151f4355aeb3",
+        "path": "model/scripts/guest.sh",
+        "blob": "458f97df8628105476563de744c2e469a826e23d"
+      },
+      "original_job": "Route five framework packages versus Temporal/custom, then forward",
+      "action": "remove_after_joined_runtime_acceptance",
+      "currently_exists": true,
+      "current_source_sha256": "a54f24495d05bfea6a6b961f57d5627ef592ed5b4247c71da972ecf7a2b0a580",
+      "replacement": "cargo xtask guest PACKAGE OUTPUT [--check] / umpire-guest-driver guest",
+      "implementation_files": [
+        "model/dev/xtask/src/guest_routes.rs",
+        "model/umpire/dev/guest-driver/src/guest.rs"
+      ],
+      "shared_behavior_group": "guest",
+      "exact_case_ids": [],
+      "current_control_refs": [
+        "temporal-xtask/bin:guest_routes::tests::non_unicode_output_and_target_are_lossless",
+        "temporal-xtask/bin:guest_routes::tests::raw_arguments_check_output_and_failure_status_survive_execution",
+        "temporal-xtask/bin:guest_routes::tests::seven_packages_two_entries_preserve_caller_paths_and_exact_arguments",
+        "umpire-guest-driver/lib:guest::tests::invalid_guest_arguments_are_refused_before_tool_discovery",
+        "umpire-guest-driver/main:guest_pipeline::cold_bootstrap_failure_never_builds_or_publishes",
+        "umpire-guest-driver/main:guest_pipeline::cold_retained_bootstrap_and_cached_native_validation",
+        "umpire-guest-driver/main:guest_pipeline::guest_build_check_and_artifact_refusals",
+        "umpire-guest-driver/main:guest_pipeline::missing_mise_refuses_bootstrap_without_fallback_cargo",
+        "umpire-guest-driver/main:guest_pipeline::native_caller_relative_paths_and_changed_inputs_select_new_cache",
+        "umpire-guest-driver/main:guest_pipeline::relative_cargo_home_stays_with_distinct_caller_for_probes_metadata_and_build",
+        "umpire-guest-driver/main:guest_pipeline::retained_bootstrap_stdout_selects_executable_and_native_route_creates_output"
+      ],
+      "runtime_accepted": false
+    },
+    {
+      "path": "model/scripts/proto-go.sh",
+      "frozen_source": {
+        "commit": "60f1c762a618d32478b58ae4e79c151f4355aeb3",
+        "path": "model/scripts/proto-go.sh",
+        "blob": "f482805fae559cedfdd2a9c46caf3d274ab70c7c"
+      },
+      "original_job": "Generate/check Temporal protobuf subtree",
+      "action": "remove_after_joined_runtime_acceptance",
+      "currently_exists": true,
+      "current_source_sha256": "1ff1a39d9d5c72aa457d11f603b432ae212f36ea7fdb7e1cf3d7770933b1d9d1",
+      "replacement": "cargo xtask proto-go temporal [--check]",
+      "implementation_files": [
+        "model/dev/xtask/src/proto.rs",
+        "model/umpire/dev/xtask/src/proto.rs"
+      ],
+      "shared_behavior_group": "proto",
+      "exact_case_ids": [],
+      "current_control_refs": [
+        "xtask/lib:proto::controls::tests::native_protobuf_behavior_controls",
+        "xtask/main:native_leaves::public_protobuf_controls_reach_the_native_implementation",
+        "temporal-xtask/bin:proto::bridge_controls::temporal_spec_composes_with_native_generation_freshness_and_refusals",
+        "temporal-xtask/bin:proto::tests::only_temporal_and_optional_check_are_admitted_before_execution",
+        "temporal-xtask/bin:proto::tests::raw_repository_and_tool_paths_remain_lossless",
+        "temporal-xtask/bin:proto::tests::temporal_inputs_subtree_and_repository_plugin_preserve_raw_paths_and_status"
+      ],
+      "runtime_accepted": false
+    },
+    {
+      "path": "model/scripts/retired-names.sh",
+      "frozen_source": {
+        "commit": "60f1c762a618d32478b58ae4e79c151f4355aeb3",
+        "path": "model/scripts/retired-names.sh",
+        "blob": "28acf0d3be14c83ed2260a3dbbaf9a5eecbd192e"
+      },
+      "original_job": "Repository exclusions and pipeline status control",
+      "action": "remove_after_joined_runtime_acceptance",
+      "currently_exists": true,
+      "current_source_sha256": "cd3c6ccc5917fbaadbf4e473109dad423a2318ab8e3a3442c3dfc30e1ca4839b",
+      "replacement": "cargo xtask retired-names",
+      "implementation_files": [
+        "model/dev/xtask/src/retired_names.rs",
+        "model/umpire/dev/xtask/src/retired_names.rs"
+      ],
+      "shared_behavior_group": "retired",
+      "exact_case_ids": [],
+      "current_control_refs": [
+        "temporal-xtask/bin:retired_name_policy_controls::active_spellings_and_historical_exclusions",
+        "temporal-xtask/bin:retired_name_policy_controls::raw_path_bytes_and_io_failures_reach_native_policy",
+        "temporal-xtask/bin:retired_name_policy_controls::tool_failures_never_report_clean",
+        "xtask/lib:retired_names::controls::native_scan_handles_git_binary_missing_and_symlink_policy",
+        "xtask/lib:retired_names::controls::raw_records_keep_non_utf8_paths_lines_and_numeric_spelling",
+        "xtask/lib:retired_names::controls::writer_failure_returns_error_status",
+        "xtask/main:retired_names::io_failure_and_absent_grep_are_handled_natively",
+        "xtask/main:retired_names::malformed_records_fail_closed",
+        "xtask/main:retired_names::native_scan_catches_each_planted_retired_name",
+        "xtask/main:retired_names::raw_records_exempt_only_author_facade_tokens",
+        "xtask/main:retired_names::rust_regex_character_classes_and_invalid_patterns"
+      ],
+      "runtime_accepted": false
+    },
+    {
+      "path": "model/scripts/test-capabilities.sh",
+      "frozen_source": {
+        "commit": "60f1c762a618d32478b58ae4e79c151f4355aeb3",
+        "path": "model/scripts/test-capabilities.sh",
+        "blob": "5b80183738ff5521450e7ad540c720ef86f7d6f7"
+      },
+      "original_job": "Forward framework capability policy controls",
+      "action": "remove_after_joined_runtime_acceptance",
+      "currently_exists": true,
+      "current_source_sha256": "921c842487f82c54f5f2a34570014cf0d462249c0d93807af40f1bd3e8636da1",
+      "replacement": "cargo xtask capability-controls / native_leaves::capability_controls_enforce_core_and_unsafe_policies",
+      "implementation_files": [
+        "model/umpire/dev/xtask/src/capability_controls.rs"
+      ],
+      "shared_behavior_group": "capability",
+      "exact_case_ids": [],
+      "current_control_refs": [
+        "xtask/lib:capability_controls::tests::both_policies_six_safe_roots_and_audited_exception",
+        "xtask/lib:capability_controls::tests::negative_control_requires_failure_and_every_symbol",
+        "xtask/main:native_leaves::capability_controls_enforce_core_and_unsafe_policies"
+      ],
+      "runtime_accepted": false
+    },
+    {
+      "path": "model/scripts/test-model-validate.sh",
+      "frozen_source": {
+        "commit": "60f1c762a618d32478b58ae4e79c151f4355aeb3",
+        "path": "model/scripts/test-model-validate.sh",
+        "blob": "989074a0a88eaf83a7fcaafa5a73d1ccc0b141ba"
+      },
+      "original_job": "Shipping model-time/model-validate controls with fake gate, bootstrap and test-run",
+      "action": "remove_after_joined_runtime_acceptance",
+      "currently_exists": true,
+      "current_source_sha256": "836fca71c224a57c1d599155fae0f73ec0f4ff2b751e6ee1650addbc71038580",
+      "replacement": "model_controls::shipping_model_recipes_with_disposable_children",
+      "implementation_files": [
+        "model/dev/xtask/src/model_controls.rs"
+      ],
+      "shared_behavior_group": null,
+      "exact_case_ids": [
+        "validate.backend_precedence",
+        "time.backend_preservation",
+        "validate.gate_fail",
+        "validate.benchmark_fail",
+        "time.raw_benchmark_fail",
+        "time.bootstrap_fail",
+        "timer.environment",
+        "timer.bootstrap_resources",
+        "timer.cleanup_and_soft_warnings"
+      ],
+      "current_control_refs": [
+        "temporal-xtask/bin:gate::timing::tests::source_edit_restores_original_content_after_failed_child",
+        "temporal-xtask/bin:model_controls::shipping_model_recipes_with_disposable_children"
+      ],
+      "runtime_accepted": false
+    },
+    {
+      "path": "model/scripts/test-model-wiring.sh",
+      "frozen_source": {
+        "commit": "60f1c762a618d32478b58ae4e79c151f4355aeb3",
+        "path": "model/scripts/test-model-wiring.sh",
+        "blob": "87f3aa1777c0a84e32ab2d0ac0b0496b5099db23"
+      },
+      "original_job": "Shipping Make composition, producer, CPU bootstrap and CI-floor controls",
+      "action": "remove_after_joined_runtime_acceptance",
+      "currently_exists": true,
+      "current_source_sha256": "8af5aea95b4822b5e5e8a62f8661a3c48d40c9e4f471170aaa2687436b1c6493",
+      "replacement": "model_controls::shipping_model_recipes_with_disposable_children",
+      "implementation_files": [
+        "model/dev/xtask/src/model_controls.rs"
+      ],
+      "shared_behavior_group": null,
+      "exact_case_ids": [
+        "wiring.ci_minimum",
+        "wiring.combined_gate_once",
+        "wiring.backend_mode_once",
+        "wiring.quick_once",
+        "wiring.bootstrap_jobs",
+        "wiring.producer_prerequisites",
+        "wiring.gate_fail",
+        "wiring.fmt_update_order",
+        "wiring.framework_fail_stops",
+        "wiring.paths_and_auto_install"
+      ],
+      "current_control_refs": [
+        "temporal-xtask/bin:gate::timing::tests::source_edit_restores_original_content_after_failed_child",
+        "temporal-xtask/bin:model_controls::shipping_model_recipes_with_disposable_children"
+      ],
+      "runtime_accepted": false
+    },
+    {
+      "path": "model/scripts/test-time-gate.sh",
+      "frozen_source": {
+        "commit": "60f1c762a618d32478b58ae4e79c151f4355aeb3",
+        "path": "model/scripts/test-time-gate.sh",
+        "blob": "e83b10a975b58c2a977a2fdf416c19f189b3f8cb"
+      },
+      "original_job": "Warnings then validation and Make wiring controls",
+      "action": "remove_after_joined_runtime_acceptance",
+      "currently_exists": true,
+      "current_source_sha256": "f30dbef2e590b45ff523431e02efc03018de0629923c75cf9d8996cf55a368fc",
+      "replacement": "cargo xtask timing-controls / native registered test family",
+      "implementation_files": [
+        "model/dev/xtask/src/gate/timing_controls.rs",
+        "model/dev/xtask/src/model_controls.rs",
+        "model/dev/xtask/src/gate.rs"
+      ],
+      "shared_behavior_group": null,
+      "exact_case_ids": [
+        "warnings.default_equal",
+        "warnings.inner_over",
+        "warnings.gate_over",
+        "warnings.override_equal",
+        "warnings.override_both_over",
+        "warnings.transitive_controls"
+      ],
+      "current_control_refs": [
+        "temporal-xtask/bin:gate::timing::tests::source_edit_restores_original_content_after_failed_child",
+        "temporal-xtask/bin:gate::timing_controls::tests::soft_budget_defaults_equality_overrides_and_warning_order",
+        "temporal-xtask/bin:model_controls::shipping_model_recipes_with_disposable_children"
+      ],
+      "runtime_accepted": false
+    },
+    {
+      "path": "model/scripts/tests/build-guests.sh",
+      "frozen_source": {
+        "commit": "60f1c762a618d32478b58ae4e79c151f4355aeb3",
+        "path": "model/scripts/tests/build-guests.sh",
+        "blob": "6c3cd6f6d5546da6bb5039acb8874b225c9acba3"
+      },
+      "original_job": "Build Temporal wasm guest in selected target",
+      "action": "remove_after_joined_runtime_acceptance",
+      "currently_exists": true,
+      "current_source_sha256": "1eb8e6013517ba50f85703ce2e9732a4d0b43860ebc335e55d2d867b661ab190",
+      "replacement": "cargo xtask build-guests",
+      "implementation_files": [
+        "model/dev/xtask/src/build_guests.rs",
+        "model/umpire/dev/xtask/src/build_guests.rs"
+      ],
+      "shared_behavior_group": "build",
+      "exact_case_ids": [],
+      "current_control_refs": [
+        "temporal-xtask/bin:build_guests::path_controls::relative_absolute_default_and_symlink_paths_preserve_temporal_guest",
+        "xtask/lib:build_guests::path_controls::guest_and_native_statuses_stop_without_following_children",
+        "xtask/lib:build_guests::path_controls::relative_absolute_default_and_symlink_cargo_paths_preserve_seven_children",
+        "xtask/lib:build_guests::tests::five_artifacts_then_two_reports_keep_spaces_and_child_status",
+        "xtask/main:gate_wiring::native_guest_driver_bootstrap_failure_stops_before_guest_jobs",
+        "xtask/main:gate_wiring::native_guest_stage_stops_at_each_driver_and_report_failure"
+      ],
+      "runtime_accepted": false
+    },
+    {
+      "path": "model/scripts/tests/guest-roots.sh",
+      "frozen_source": {
+        "commit": "60f1c762a618d32478b58ae4e79c151f4355aeb3",
+        "path": "model/scripts/tests/guest-roots.sh",
+        "blob": "abc7ff0e6655aee2efc61aad0818d5cf7704279f"
+      },
+      "original_job": "Seven-package/two-entry routing and raw caller-path controls",
+      "action": "remove_after_joined_runtime_acceptance",
+      "currently_exists": true,
+      "current_source_sha256": "987b84cb3dc8a6122ba2c1ab547c77bc5e1b6062ddcf34482f251e0936e1882f",
+      "replacement": "guest_routes::tests seven-package/two-entry process controls",
+      "implementation_files": [
+        "model/dev/xtask/src/guest_routes.rs",
+        "model/umpire/dev/guest-driver/src/guest.rs"
+      ],
+      "shared_behavior_group": "guest",
+      "exact_case_ids": [],
+      "current_control_refs": [
+        "temporal-xtask/bin:guest_routes::tests::non_unicode_output_and_target_are_lossless",
+        "temporal-xtask/bin:guest_routes::tests::raw_arguments_check_output_and_failure_status_survive_execution",
+        "temporal-xtask/bin:guest_routes::tests::seven_packages_two_entries_preserve_caller_paths_and_exact_arguments",
+        "umpire-guest-driver/lib:guest::tests::invalid_guest_arguments_are_refused_before_tool_discovery",
+        "umpire-guest-driver/main:guest_pipeline::cold_bootstrap_failure_never_builds_or_publishes",
+        "umpire-guest-driver/main:guest_pipeline::cold_retained_bootstrap_and_cached_native_validation",
+        "umpire-guest-driver/main:guest_pipeline::guest_build_check_and_artifact_refusals",
+        "umpire-guest-driver/main:guest_pipeline::missing_mise_refuses_bootstrap_without_fallback_cargo",
+        "umpire-guest-driver/main:guest_pipeline::native_caller_relative_paths_and_changed_inputs_select_new_cache",
+        "umpire-guest-driver/main:guest_pipeline::relative_cargo_home_stays_with_distinct_caller_for_probes_metadata_and_build",
+        "umpire-guest-driver/main:guest_pipeline::retained_bootstrap_stdout_selects_executable_and_native_route_creates_output"
+      ],
+      "runtime_accepted": false,
+      "control_scope": "Same7\u00d72 routing/path/status matrix executes native routing helpers and fake child. Public main uses helpers; actual native gate/driver/standalone runtime remains separate authority."
+    },
+    {
+      "path": "model/scripts/tests/proto-go.sh",
+      "frozen_source": {
+        "commit": "60f1c762a618d32478b58ae4e79c151f4355aeb3",
+        "path": "model/scripts/tests/proto-go.sh",
+        "blob": "2dcd7085dabe7245fbe5e353f6f434ac1e96c2f9"
+      },
+      "original_job": "Temporal selector/subtree/freshness/symlink controls",
+      "action": "remove_after_joined_runtime_acceptance",
+      "currently_exists": true,
+      "current_source_sha256": "e04c626054f51d32416dcef10628a96390bd23a61a3bd1df19fa336fd4cd0c94",
+      "replacement": "cargo xtask proto-go temporal [--check] -> native proto controls",
+      "implementation_files": [
+        "model/dev/xtask/src/proto.rs",
+        "model/dev/xtask/src/proto_bridge_controls.rs",
+        "model/umpire/dev/xtask/src/proto.rs"
+      ],
+      "shared_behavior_group": "proto",
+      "exact_case_ids": [],
+      "current_control_refs": [
+        "xtask/lib:proto::controls::tests::native_protobuf_behavior_controls",
+        "xtask/main:native_leaves::public_protobuf_controls_reach_the_native_implementation",
+        "temporal-xtask/bin:proto::bridge_controls::temporal_spec_composes_with_native_generation_freshness_and_refusals",
+        "temporal-xtask/bin:proto::tests::only_temporal_and_optional_check_are_admitted_before_execution",
+        "temporal-xtask/bin:proto::tests::raw_repository_and_tool_paths_remain_lossless",
+        "temporal-xtask/bin:proto::tests::temporal_inputs_subtree_and_repository_plugin_preserve_raw_paths_and_status"
+      ],
+      "runtime_accepted": false
+    },
+    {
+      "path": "model/scripts/time-gate.sh",
+      "frozen_source": {
+        "commit": "60f1c762a618d32478b58ae4e79c151f4355aeb3",
+        "path": "model/scripts/time-gate.sh",
+        "blob": "6028931ab49401a884c0b309cb12c141e6d7f133"
+      },
+      "original_job": "Whole Model gate then edited-package test-run benchmark; also step helper",
+      "action": "remove_after_joined_runtime_acceptance",
+      "currently_exists": true,
+      "current_source_sha256": "a05fa9d3a94458784b3c3d52ea76a16b817bae263df501669b01725fdbda281f",
+      "replacement": "cargo xtask time / make model-time / make model-validate",
+      "implementation_files": [
+        "model/dev/xtask/src/gate/timing.rs"
+      ],
+      "shared_behavior_group": null,
+      "exact_case_ids": [
+        "step.status",
+        "step.diagnostics.success",
+        "step.diagnostics.failure",
+        "step.cwd",
+        "step.frontdoor37",
+        "step.shell_substitution",
+        "validate.backend_precedence",
+        "time.backend_preservation",
+        "validate.gate_fail",
+        "validate.benchmark_fail",
+        "time.raw_benchmark_fail",
+        "time.bootstrap_fail",
+        "timer.environment",
+        "timer.bootstrap_resources",
+        "timer.cleanup_and_soft_warnings"
+      ],
+      "current_control_refs": [
+        "temporal-xtask/bin:gate::timing::tests::source_edit_restores_original_content_after_failed_child",
+        "temporal-xtask/bin:model_controls::shipping_model_recipes_with_disposable_children",
+        "xtask/main:native_leaves::public_timing_front_door_preserves_status_diagnostics_and_cleanup"
+      ],
+      "runtime_accepted": false
+    },
+    {
+      "path": "model/scripts/xtask.sh",
+      "frozen_source": {
+        "commit": "60f1c762a618d32478b58ae4e79c151f4355aeb3",
+        "path": "model/scripts/xtask.sh",
+        "blob": "4a97bc6093b3e965883c1602b7695bdf6be9a72d"
+      },
+      "original_job": "Thin framework bootstrap forwarding bridge",
+      "action": "retain_minimal_bootstrap",
+      "currently_exists": true,
+      "current_source_sha256": "c559af5d1c154147f4922887f4ed02dc7e0695706a58c6844c5162c3f08793a1",
+      "replacement": "retain minimal bootstrap",
+      "implementation_files": [
+        "model/scripts/xtask.sh",
+        "model/umpire/scripts/xtask.sh"
+      ],
+      "shared_behavior_group": "bootstrap",
+      "exact_case_ids": [],
+      "current_control_refs": [
+        "umpire-guest-driver/main:guest_pipeline::cold_bootstrap_failure_never_builds_or_publishes",
+        "umpire-guest-driver/main:guest_pipeline::cold_retained_bootstrap_and_cached_native_validation",
+        "umpire-guest-driver/main:guest_pipeline::missing_mise_refuses_bootstrap_without_fallback_cargo",
+        "umpire-guest-driver/main:guest_pipeline::relative_cargo_home_stays_with_distinct_caller_for_probes_metadata_and_build",
+        "umpire-guest-driver/main:guest_pipeline::retained_bootstrap_stdout_selects_executable_and_native_route_creates_output"
+      ],
+      "runtime_accepted": false
+    },
+    {
+      "path": "model/umpire/scripts/fetch-tlc.sh",
+      "frozen_source": {
+        "commit": "60f1c762a618d32478b58ae4e79c151f4355aeb3",
+        "path": "model/umpire/scripts/fetch-tlc.sh",
+        "blob": "5ae13d4c3a58592f000c344682cad73bc9c4a5f8"
+      },
+      "original_job": "Bootstrap then exec native .16 TLC provider",
+      "action": "remove_after_joined_runtime_acceptance",
+      "currently_exists": true,
+      "current_source_sha256": "9e5b3ac0943d09a4a9e6efaea793b59f44e67e6028a9745cc9d23e6b4f3d113b",
+      "replacement": "cargo xtask fetch-tlc [framework-root]",
+      "implementation_files": [
+        "model/umpire/dev/xtask/src/fetch_apalache.rs",
+        "model/umpire/backends/process/src/tool_provider.rs"
+      ],
+      "shared_behavior_group": "fetch",
+      "exact_case_ids": [],
+      "current_control_refs": [
+        "umpire-backend-process/lib:tool_provider::tests::concurrent_provider_capture_and_failure_propagation_are_independent",
+        "umpire-backend-process/lib:tool_provider::tests::exact_installations_reject_partial_trees_directories_and_symlinks",
+        "umpire-backend-process/lib:tool_provider::tests::in_flight_cancellation_uses_existing_supervisor",
+        "umpire-backend-process/lib:tool_provider::tests::interrupted_partial_install_never_reaches_resolution",
+        "umpire-tlc/lib:runner::tests::process_limits_kill_and_reap_and_jar_admission_fails_closed",
+        "xtask/main:apalache_install::concurrent_failed_provisioning_preserves_partial_data_and_cleans_capture",
+        "xtask/main:apalache_install::dispatch_usage_failure_is_nonzero_and_structured",
+        "xtask/main:apalache_install::non_utf8_provider_root_has_a_native_status_one_refusal_before_mise",
+        "xtask/main:apalache_install::path_list_provider_root_has_a_native_status_one_refusal_before_mise",
+        "xtask/main:apalache_install::provider_uses_explicit_opt_in_and_surfaces_install_failure"
+      ],
+      "runtime_accepted": false
+    },
+    {
+      "path": "model/umpire/scripts/guest-freshness.sh",
+      "frozen_source": {
+        "commit": "60f1c762a618d32478b58ae4e79c151f4355aeb3",
+        "path": "model/umpire/scripts/guest-freshness.sh",
+        "blob": "ee269889077c7444f2bd4058559e13f17c2f3e92"
+      },
+      "original_job": "Admit arguments; anchor output/home; bootstrap then native guest route",
+      "action": "remove_after_joined_runtime_acceptance",
+      "currently_exists": true,
+      "current_source_sha256": "9f2d301b508924fbf7fa4a5b54a30c238ce246709dcf8603289d74090c27e2d2",
+      "replacement": "cargo xtask guest-freshness PACKAGE OUTPUT / umpire-guest-driver guest-freshness",
+      "implementation_files": [
+        "model/dev/xtask/src/guest_routes.rs",
+        "model/umpire/dev/guest-driver/src/guest.rs"
+      ],
+      "shared_behavior_group": "guest",
+      "exact_case_ids": [],
+      "current_control_refs": [
+        "temporal-xtask/bin:guest_routes::tests::non_unicode_output_and_target_are_lossless",
+        "temporal-xtask/bin:guest_routes::tests::raw_arguments_check_output_and_failure_status_survive_execution",
+        "temporal-xtask/bin:guest_routes::tests::seven_packages_two_entries_preserve_caller_paths_and_exact_arguments",
+        "umpire-guest-driver/lib:guest::tests::invalid_guest_arguments_are_refused_before_tool_discovery",
+        "umpire-guest-driver/main:guest_pipeline::cold_bootstrap_failure_never_builds_or_publishes",
+        "umpire-guest-driver/main:guest_pipeline::cold_retained_bootstrap_and_cached_native_validation",
+        "umpire-guest-driver/main:guest_pipeline::guest_build_check_and_artifact_refusals",
+        "umpire-guest-driver/main:guest_pipeline::missing_mise_refuses_bootstrap_without_fallback_cargo",
+        "umpire-guest-driver/main:guest_pipeline::native_caller_relative_paths_and_changed_inputs_select_new_cache",
+        "umpire-guest-driver/main:guest_pipeline::relative_cargo_home_stays_with_distinct_caller_for_probes_metadata_and_build",
+        "umpire-guest-driver/main:guest_pipeline::retained_bootstrap_stdout_selects_executable_and_native_route_creates_output"
+      ],
+      "runtime_accepted": false
+    },
+    {
+      "path": "model/umpire/scripts/guest.sh",
+      "frozen_source": {
+        "commit": "60f1c762a618d32478b58ae4e79c151f4355aeb3",
+        "path": "model/umpire/scripts/guest.sh",
+        "blob": "244a0616908fc642243d80d835bc7c52ec5c2ce6"
+      },
+      "original_job": "Admit arguments; anchor output/home; bootstrap then native guest route",
+      "action": "remove_after_joined_runtime_acceptance",
+      "currently_exists": true,
+      "current_source_sha256": "806c70cb2e1753b5fefddbe9921bd4fa92d760eb49b98a6d68d25446dcd1da0e",
+      "replacement": "cargo xtask guest PACKAGE OUTPUT [--check] / umpire-guest-driver guest",
+      "implementation_files": [
+        "model/dev/xtask/src/guest_routes.rs",
+        "model/umpire/dev/guest-driver/src/guest.rs"
+      ],
+      "shared_behavior_group": "guest",
+      "exact_case_ids": [],
+      "current_control_refs": [
+        "temporal-xtask/bin:guest_routes::tests::non_unicode_output_and_target_are_lossless",
+        "temporal-xtask/bin:guest_routes::tests::raw_arguments_check_output_and_failure_status_survive_execution",
+        "temporal-xtask/bin:guest_routes::tests::seven_packages_two_entries_preserve_caller_paths_and_exact_arguments",
+        "umpire-guest-driver/lib:guest::tests::invalid_guest_arguments_are_refused_before_tool_discovery",
+        "umpire-guest-driver/main:guest_pipeline::cold_bootstrap_failure_never_builds_or_publishes",
+        "umpire-guest-driver/main:guest_pipeline::cold_retained_bootstrap_and_cached_native_validation",
+        "umpire-guest-driver/main:guest_pipeline::guest_build_check_and_artifact_refusals",
+        "umpire-guest-driver/main:guest_pipeline::missing_mise_refuses_bootstrap_without_fallback_cargo",
+        "umpire-guest-driver/main:guest_pipeline::native_caller_relative_paths_and_changed_inputs_select_new_cache",
+        "umpire-guest-driver/main:guest_pipeline::relative_cargo_home_stays_with_distinct_caller_for_probes_metadata_and_build",
+        "umpire-guest-driver/main:guest_pipeline::retained_bootstrap_stdout_selects_executable_and_native_route_creates_output"
+      ],
+      "runtime_accepted": false
+    },
+    {
+      "path": "model/umpire/scripts/proto-go.sh",
+      "frozen_source": {
+        "commit": "60f1c762a618d32478b58ae4e79c151f4355aeb3",
+        "path": "model/umpire/scripts/proto-go.sh",
+        "blob": "37733dffd41a6f9e4dfd62a065594a1efea2db8a"
+      },
+      "original_job": "Generate/check core or kettle protobuf subtree",
+      "action": "remove_after_joined_runtime_acceptance",
+      "currently_exists": true,
+      "current_source_sha256": "76b2309467590a11f1127adc2d99c89aff6d3d44c89671823f51c4aa1b32e161",
+      "replacement": "cargo xtask proto-go core|kettle [--check]",
+      "implementation_files": [
+        "model/dev/xtask/src/proto.rs",
+        "model/umpire/dev/xtask/src/proto.rs"
+      ],
+      "shared_behavior_group": "proto",
+      "exact_case_ids": [],
+      "current_control_refs": [
+        "xtask/lib:proto::controls::tests::native_protobuf_behavior_controls",
+        "xtask/main:native_leaves::public_protobuf_controls_reach_the_native_implementation",
+        "temporal-xtask/bin:proto::bridge_controls::temporal_spec_composes_with_native_generation_freshness_and_refusals",
+        "temporal-xtask/bin:proto::tests::only_temporal_and_optional_check_are_admitted_before_execution",
+        "temporal-xtask/bin:proto::tests::raw_repository_and_tool_paths_remain_lossless",
+        "temporal-xtask/bin:proto::tests::temporal_inputs_subtree_and_repository_plugin_preserve_raw_paths_and_status"
+      ],
+      "runtime_accepted": false
+    },
+    {
+      "path": "model/umpire/scripts/proto-tools.sh",
+      "frozen_source": {
+        "commit": "60f1c762a618d32478b58ae4e79c151f4355aeb3",
+        "path": "model/umpire/scripts/proto-tools.sh",
+        "blob": "c93321190368487b9963835a6ea16d31e8c7f4c6"
+      },
+      "original_job": "Provision two Go generator pins with private lock/staging",
+      "action": "remove_after_joined_runtime_acceptance",
+      "currently_exists": true,
+      "current_source_sha256": "4b93a2fbabc372d9561ec63372d547da98834b4d03623647c4292ab3f570c1a3",
+      "replacement": "cargo xtask proto-tools",
+      "implementation_files": [
+        "model/umpire/dev/xtask/src/proto.rs"
+      ],
+      "shared_behavior_group": "proto_tools",
+      "exact_case_ids": [],
+      "current_control_refs": [
+        "xtask/lib:proto::controls::tests::native_protobuf_behavior_controls",
+        "xtask/main:native_leaves::public_protobuf_controls_reach_the_native_implementation",
+        "xtask/main:gate_wiring::native_protobuf_tools_provision_exact_plugins_and_leave_no_owned_install_lock"
+      ],
+      "runtime_accepted": false
+    },
+    {
+      "path": "model/umpire/scripts/retired-names.sh",
+      "frozen_source": {
+        "commit": "60f1c762a618d32478b58ae4e79c151f4355aeb3",
+        "path": "model/umpire/scripts/retired-names.sh",
+        "blob": "5f1a6e6e2f7b87c7fc6aa6369237879bd18f55ba"
+      },
+      "original_job": "Bootstrap/filter forwarding wrapper",
+      "action": "remove_after_joined_runtime_acceptance",
+      "currently_exists": true,
+      "current_source_sha256": "9114e8ec17b9f9c286c36651c074fbfeab7e98a1482cd8ce65f8a668c8a1d6c6",
+      "replacement": "cargo xtask retired-names PATTERN (NUL-record stdin); framework gate native retired scanner",
+      "implementation_files": [
+        "model/dev/xtask/src/retired_names.rs",
+        "model/umpire/dev/xtask/src/retired_names.rs"
+      ],
+      "shared_behavior_group": "retired",
+      "exact_case_ids": [],
+      "current_control_refs": [
+        "temporal-xtask/bin:retired_name_policy_controls::active_spellings_and_historical_exclusions",
+        "temporal-xtask/bin:retired_name_policy_controls::raw_path_bytes_and_io_failures_reach_native_policy",
+        "temporal-xtask/bin:retired_name_policy_controls::tool_failures_never_report_clean",
+        "xtask/lib:retired_names::controls::native_scan_handles_git_binary_missing_and_symlink_policy",
+        "xtask/lib:retired_names::controls::raw_records_keep_non_utf8_paths_lines_and_numeric_spelling",
+        "xtask/lib:retired_names::controls::writer_failure_returns_error_status",
+        "xtask/main:retired_names::io_failure_and_absent_grep_are_handled_natively",
+        "xtask/main:retired_names::malformed_records_fail_closed",
+        "xtask/main:retired_names::native_scan_catches_each_planted_retired_name",
+        "xtask/main:retired_names::raw_records_exempt_only_author_facade_tokens",
+        "xtask/main:retired_names::rust_regex_character_classes_and_invalid_patterns"
+      ],
+      "runtime_accepted": false
+    },
+    {
+      "path": "model/umpire/scripts/test-capabilities.sh",
+      "frozen_source": {
+        "commit": "60f1c762a618d32478b58ae4e79c151f4355aeb3",
+        "path": "model/umpire/scripts/test-capabilities.sh",
+        "blob": "411ea647c0196d8cbcafdf96ad0a550258b8a089"
+      },
+      "original_job": "Compile forbidden API and unsafe-policy controls",
+      "action": "remove_after_joined_runtime_acceptance",
+      "currently_exists": true,
+      "current_source_sha256": "78ac66736ac6c8469e32b05f43af3460ade436000edb129b32a9017b65fd8b52",
+      "replacement": "cargo xtask capability-controls / native_leaves::capability_controls_enforce_core_and_unsafe_policies",
+      "implementation_files": [
+        "model/umpire/dev/xtask/src/capability_controls.rs"
+      ],
+      "shared_behavior_group": "capability",
+      "exact_case_ids": [],
+      "current_control_refs": [
+        "xtask/lib:capability_controls::tests::both_policies_six_safe_roots_and_audited_exception",
+        "xtask/lib:capability_controls::tests::negative_control_requires_failure_and_every_symbol",
+        "xtask/main:native_leaves::capability_controls_enforce_core_and_unsafe_policies"
+      ],
+      "runtime_accepted": false
+    },
+    {
+      "path": "model/umpire/scripts/test-time-gate.sh",
+      "frozen_source": {
+        "commit": "60f1c762a618d32478b58ae4e79c151f4355aeb3",
+        "path": "model/umpire/scripts/test-time-gate.sh",
+        "blob": "a1544c2184df4dff4a428202d1aeba344916755d"
+      },
+      "original_job": "Time-step status/diagnostic/cwd/cleanup controls",
+      "action": "remove_after_joined_runtime_acceptance",
+      "currently_exists": true,
+      "current_source_sha256": "fe00ca265166d3384e9177ef133e1522af7a9b6ff6bf21263fc8f178a2e569fe",
+      "replacement": "cargo xtask timing-controls / native registered test family",
+      "implementation_files": [
+        "model/umpire/dev/xtask/src/timing_controls.rs"
+      ],
+      "shared_behavior_group": null,
+      "exact_case_ids": [
+        "step.status",
+        "step.diagnostics.success",
+        "step.diagnostics.failure",
+        "step.cwd",
+        "step.frontdoor37",
+        "step.shell_substitution"
+      ],
+      "current_control_refs": [
+        "xtask/main:native_leaves::public_timing_front_door_preserves_status_diagnostics_and_cleanup"
+      ],
+      "runtime_accepted": false
+    },
+    {
+      "path": "model/umpire/scripts/tests/bootstrap.sh",
+      "frozen_source": {
+        "commit": "60f1c762a618d32478b58ae4e79c151f4355aeb3",
+        "path": "model/umpire/scripts/tests/bootstrap.sh",
+        "blob": "4eebe9ae32e4f2e32357ef417632530a54b1c424"
+      },
+      "original_job": "Wrapper-to-bootstrap integration and missing-mise controls",
+      "action": "remove_after_joined_runtime_acceptance",
+      "currently_exists": true,
+      "current_source_sha256": "44125d7e6569da276427c0fb616df84e7b373314882328f75bbf9d1f16cf2ff6",
+      "replacement": "guest_pipeline retained bootstrap/process controls",
+      "implementation_files": [
+        "model/scripts/xtask.sh",
+        "model/umpire/scripts/xtask.sh"
+      ],
+      "shared_behavior_group": "bootstrap",
+      "exact_case_ids": [],
+      "current_control_refs": [
+        "umpire-guest-driver/main:guest_pipeline::cold_bootstrap_failure_never_builds_or_publishes",
+        "umpire-guest-driver/main:guest_pipeline::cold_retained_bootstrap_and_cached_native_validation",
+        "umpire-guest-driver/main:guest_pipeline::missing_mise_refuses_bootstrap_without_fallback_cargo",
+        "umpire-guest-driver/main:guest_pipeline::relative_cargo_home_stays_with_distinct_caller_for_probes_metadata_and_build",
+        "umpire-guest-driver/main:guest_pipeline::retained_bootstrap_stdout_selects_executable_and_native_route_creates_output"
+      ],
+      "runtime_accepted": false
+    },
+    {
+      "path": "model/umpire/scripts/tests/build-guests-controls.sh",
+      "frozen_source": {
+        "commit": "60f1c762a618d32478b58ae4e79c151f4355aeb3",
+        "path": "model/umpire/scripts/tests/build-guests-controls.sh",
+        "blob": "9c575fc863e3b02af90f61d15ceba8d19cac4b5b"
+      },
+      "original_job": "Five guest plus two report control matrix",
+      "action": "remove_after_joined_runtime_acceptance",
+      "currently_exists": true,
+      "current_source_sha256": "e76d467727d4198a43ce7f2c9809b31df7f144be822ef6b7836d71a7f4b99abc",
+      "replacement": "build_guests::path_controls and native seven-job failure controls",
+      "implementation_files": [
+        "model/dev/xtask/src/build_guests.rs",
+        "model/umpire/dev/xtask/src/build_guests.rs"
+      ],
+      "shared_behavior_group": "build",
+      "exact_case_ids": [],
+      "current_control_refs": [
+        "temporal-xtask/bin:build_guests::path_controls::relative_absolute_default_and_symlink_paths_preserve_temporal_guest",
+        "xtask/lib:build_guests::path_controls::guest_and_native_statuses_stop_without_following_children",
+        "xtask/lib:build_guests::path_controls::relative_absolute_default_and_symlink_cargo_paths_preserve_seven_children",
+        "xtask/lib:build_guests::tests::five_artifacts_then_two_reports_keep_spaces_and_child_status",
+        "xtask/main:gate_wiring::native_guest_driver_bootstrap_failure_stops_before_guest_jobs",
+        "xtask/main:gate_wiring::native_guest_stage_stops_at_each_driver_and_report_failure"
+      ],
+      "runtime_accepted": false
+    },
+    {
+      "path": "model/umpire/scripts/tests/build-guests.sh",
+      "frozen_source": {
+        "commit": "60f1c762a618d32478b58ae4e79c151f4355aeb3",
+        "path": "model/umpire/scripts/tests/build-guests.sh",
+        "blob": "9c9ca926bd20551449cbd1a98ea168ba0944e95c"
+      },
+      "original_job": "Produce five framework wasm guests and two native report directories",
+      "action": "remove_after_joined_runtime_acceptance",
+      "currently_exists": true,
+      "current_source_sha256": "e3e486cffc161e6635154566c41e88ea7b7bb82d4f4ba429c35f0783789ccda3",
+      "replacement": "cargo xtask build-guests",
+      "implementation_files": [
+        "model/dev/xtask/src/build_guests.rs",
+        "model/umpire/dev/xtask/src/build_guests.rs"
+      ],
+      "shared_behavior_group": "build",
+      "exact_case_ids": [],
+      "current_control_refs": [
+        "temporal-xtask/bin:build_guests::path_controls::relative_absolute_default_and_symlink_paths_preserve_temporal_guest",
+        "xtask/lib:build_guests::path_controls::guest_and_native_statuses_stop_without_following_children",
+        "xtask/lib:build_guests::path_controls::relative_absolute_default_and_symlink_cargo_paths_preserve_seven_children",
+        "xtask/lib:build_guests::tests::five_artifacts_then_two_reports_keep_spaces_and_child_status",
+        "xtask/main:gate_wiring::native_guest_driver_bootstrap_failure_stops_before_guest_jobs",
+        "xtask/main:gate_wiring::native_guest_stage_stops_at_each_driver_and_report_failure"
+      ],
+      "runtime_accepted": false
+    },
+    {
+      "path": "model/umpire/scripts/tests/proto-go.sh",
+      "frozen_source": {
+        "commit": "60f1c762a618d32478b58ae4e79c151f4355aeb3",
+        "path": "model/umpire/scripts/tests/proto-go.sh",
+        "blob": "74bfdcb0e9636dff9d1b905ba8c2b14e19662d18"
+      },
+      "original_job": "Core/kettle generation, pins, freshness, refusal/status/cleanup controls",
+      "action": "remove_after_joined_runtime_acceptance",
+      "currently_exists": true,
+      "current_source_sha256": "11af2da62c642caa6e3c0b03a0acd9bc634d7290fa92833809991fd26c1aef7a",
+      "replacement": "cargo xtask proto-go core|kettle [--check] -> native proto controls",
+      "implementation_files": [
+        "model/dev/xtask/src/proto.rs",
+        "model/umpire/dev/xtask/src/proto.rs"
+      ],
+      "shared_behavior_group": "proto",
+      "exact_case_ids": [],
+      "current_control_refs": [
+        "xtask/lib:proto::controls::tests::native_protobuf_behavior_controls",
+        "xtask/main:native_leaves::public_protobuf_controls_reach_the_native_implementation",
+        "temporal-xtask/bin:proto::bridge_controls::temporal_spec_composes_with_native_generation_freshness_and_refusals",
+        "temporal-xtask/bin:proto::tests::only_temporal_and_optional_check_are_admitted_before_execution",
+        "temporal-xtask/bin:proto::tests::raw_repository_and_tool_paths_remain_lossless",
+        "temporal-xtask/bin:proto::tests::temporal_inputs_subtree_and_repository_plugin_preserve_raw_paths_and_status"
+      ],
+      "runtime_accepted": false
+    },
+    {
+      "path": "model/umpire/scripts/tests/proto-tools.sh",
+      "frozen_source": {
+        "commit": "60f1c762a618d32478b58ae4e79c151f4355aeb3",
+        "path": "model/umpire/scripts/tests/proto-tools.sh",
+        "blob": "ee663ffbf144e80b07f7603a76075487ed4145d0"
+      },
+      "original_job": "Pinned plugin provision/repeat/lock/refusal/failure recovery controls",
+      "action": "remove_after_joined_runtime_acceptance",
+      "currently_exists": true,
+      "current_source_sha256": "474089adca28db659db1ddacd1972c9e5e6e3104e2cff0143596da56f8342867",
+      "replacement": "cargo xtask proto-tools",
+      "implementation_files": [
+        "model/umpire/dev/xtask/src/proto.rs"
+      ],
+      "shared_behavior_group": "proto_tools",
+      "exact_case_ids": [],
+      "current_control_refs": [
+        "xtask/lib:proto::controls::tests::native_protobuf_behavior_controls",
+        "xtask/main:native_leaves::public_protobuf_controls_reach_the_native_implementation",
+        "xtask/main:gate_wiring::native_protobuf_tools_provision_exact_plugins_and_leave_no_owned_install_lock"
+      ],
+      "runtime_accepted": false
+    },
+    {
+      "path": "model/umpire/scripts/time-gate.sh",
+      "frozen_source": {
+        "commit": "60f1c762a618d32478b58ae4e79c151f4355aeb3",
+        "path": "model/umpire/scripts/time-gate.sh",
+        "blob": "2b045e54c65149cdb38965276a2d21eaf1014088"
+      },
+      "original_job": "Step-only timing/status/output helper",
+      "action": "remove_after_joined_runtime_acceptance",
+      "currently_exists": true,
+      "current_source_sha256": "d6a382c36bd0118b6c09f7e241e6a487a2501492bace9ab6b714b5163a3e1be1",
+      "replacement": "cargo xtask time --step NAME PROGRAM [ARG...]",
+      "implementation_files": [
+        "model/umpire/dev/xtask/src/main.rs",
+        "model/umpire/dev/xtask/src/gate/timing.rs"
+      ],
+      "shared_behavior_group": null,
+      "exact_case_ids": [
+        "step.status",
+        "step.diagnostics.success",
+        "step.diagnostics.failure",
+        "step.cwd",
+        "step.frontdoor37",
+        "step.shell_substitution"
+      ],
+      "current_control_refs": [
+        "xtask/main:native_leaves::public_timing_front_door_preserves_status_diagnostics_and_cleanup"
+      ],
+      "runtime_accepted": false
+    },
+    {
+      "path": "model/umpire/scripts/xtask.sh",
+      "frozen_source": {
+        "commit": "60f1c762a618d32478b58ae4e79c151f4355aeb3",
+        "path": "model/umpire/scripts/xtask.sh",
+        "blob": "2672d49ff3f1200b7c079381c55cbde3241ae060"
+      },
+      "original_job": "Minimal two-native-binary host bootstrap",
+      "action": "retain_minimal_bootstrap",
+      "currently_exists": true,
+      "current_source_sha256": "2cd2d88ec0a66f69783f7eb5d510875c7e48d2a3604c3b6a6142e31a2bf5aa82",
+      "replacement": "retain minimal bootstrap",
+      "implementation_files": [
+        "model/scripts/xtask.sh",
+        "model/umpire/scripts/xtask.sh"
+      ],
+      "shared_behavior_group": "bootstrap",
+      "exact_case_ids": [],
+      "current_control_refs": [
+        "umpire-guest-driver/main:guest_pipeline::cold_bootstrap_failure_never_builds_or_publishes",
+        "umpire-guest-driver/main:guest_pipeline::cold_retained_bootstrap_and_cached_native_validation",
+        "umpire-guest-driver/main:guest_pipeline::missing_mise_refuses_bootstrap_without_fallback_cargo",
+        "umpire-guest-driver/main:guest_pipeline::relative_cargo_home_stays_with_distinct_caller_for_probes_metadata_and_build",
+        "umpire-guest-driver/main:guest_pipeline::retained_bootstrap_stdout_selects_executable_and_native_route_creates_output"
+      ],
+      "runtime_accepted": false
+    }
+  ],
+  "cross_cutting_control_refs": [
+    "xtask/main:gate_wiring::actual_mise_failed_leaf_reaps_its_active_sibling_descendant_before_return",
+    "xtask/main:gate_wiring::every_command_boundary_preserves_failure_status_and_environment_in_both_modes",
+    "xtask/main:gate_wiring::full_dispatch_runs_each_leaf_once_in_order_and_bypasses_cache_from_first_command",
+    "xtask/main:gate_wiring::full_gate_publishes_complete_ordered_invocation_local_receipts_on_every_run",
+    "xtask/main:gate_wiring::native_protobuf_tools_provision_exact_plugins_and_leave_no_owned_install_lock",
+    "xtask/main:gate_wiring::shipping_mise_graph_really_overlaps_independent_native_leaves"
+  ],
+  "caller_inventory": {
+    "rg_arguments": [
+      "rg",
+      "--hidden",
+      "--glob",
+      "!.git/**",
+      "--glob",
+      "!.worktrees/**",
+      "--glob",
+      "!.turbo/**",
+      "-n",
+      "(fetch-tlc|guest-freshness|guest|proto-go|proto-tools|retired-names|test-capabilities|test-model-validate|test-model-wiring|test-time-gate|build-guests-controls|build-guests|guest-roots|time-gate)\\.sh|tests/bootstrap\\.sh",
+      "--glob",
+      "!.flow/**",
+      "--glob",
+      "!.plans/**",
+      "--glob",
+      "!model/archived/**",
+      "--glob",
+      "!model/design/**",
+      "--glob",
+      "!**/design/**",
+      "--glob",
+      "!model/scripts/**",
+      "--glob",
+      "!model/umpire/scripts/**",
+      "--glob",
+      "!**/target/**",
+      "--glob",
+      "!**/build/**",
+      "."
+    ],
+    "exit_status": 0,
+    "all_results": [
+      "./MIGRATE.md:227:Retain framework-local generator provisioning in `scripts/proto-tools.sh`;",
+      "./MIGRATE.md:326:- `model/scripts/proto-go.sh` \u2014 The generation/freshness helper resolves the workspace and parent repository, uses the pinned Go protobuf generator, enforces the protoc version and compares generated Go bytes.",
+      "./MIGRATE.md:327:- `model/scripts/time-gate.sh` \u2014 The timing helper measures the actual parent-repository `model-check` target and the checker's edit/test loop, reporting the 10-second inner-loop and 60-second gate soft budgets."
+    ],
+    "unexpected_maintained_results": [],
+    "maintained_callers_clean": true,
+    "historical_dispositions": [
+      {
+        "path": "MIGRATE.md",
+        "lines": [
+          227,
+          326,
+          327
+        ],
+        "reason": "Header explicitly owner-defers extraction and preserves historical source/proof checkpoints; docs handover explicitly preserves deferred MIGRATE artifact. Not an active task15 entry point."
+      }
+    ],
+    "scan_limit": "Excludes removed-script bodies plus Flow/plans/archive/design/generated history; root reruns after deletion/final source."
+  },
+  "coverage_findings": [
+    {
+      "id": "temporal-proto-composition",
+      "disposition": "source gap closed in integrated4fd176c256, latest runtime pending",
+      "control_refs": [
+        "temporal-xtask/bin:proto::bridge_controls::temporal_spec_composes_with_native_generation_freshness_and_refusals",
+        "temporal-xtask/bin:proto::tests::only_temporal_and_optional_check_are_admitted_before_execution",
+        "temporal-xtask/bin:proto::tests::raw_repository_and_tool_paths_remain_lossless",
+        "temporal-xtask/bin:proto::tests::temporal_inputs_subtree_and_repository_plugin_preserve_raw_paths_and_status"
+      ]
+    },
+    {
+      "id": "guest-argument-refusal",
+      "disposition": "new root inline five-vector control source-present; runtime pending",
+      "control_refs": [
+        "umpire-guest-driver/lib:guest::tests::invalid_guest_arguments_are_refused_before_tool_discovery"
+      ]
+    },
+    {
+      "id": "empty-temporal-target",
+      "disposition": "root reports new Some(empty) path vector, RED1failure, production filter-empty correction, GREEN1pass; source present; this lane did not execute/review runtime",
+      "control_refs": [
+        "temporal-xtask/bin:build_guests::path_controls::relative_absolute_default_and_symlink_paths_preserve_temporal_guest"
+      ]
+    }
+  ],
+  "uncovered_original_shell_controls": [],
+  "explicit_obsolete_cases": [
+    {
+      "case": "step.shell_substitution",
+      "reason": "Removed Bash wrapper has no command substitution; public native37/143 contracts remain."
+    },
+    {
+      "case": "external grep absent/failure9/ERE child errors and Git-grep SIGPIPE precedence",
+      "reason": "Rust byte regex and completed Git ls-files inventory remove the grep child and producer/filter pipeline; Git failures, malformed inventories, native I/O and invalid patterns remain controlled."
+    },
+    {
+      "case": "old timer repository cwd/relative Cargo strings at final benchmark boundary",
+      "reason": "Owner-approved framework test-run cwd and admitted caller Cargo paths; Make caller strings remain separately preserved."
+    },
+    {
+      "case": "old update cache flags always unset",
+      "reason": "Owner-approved inherited flags correction; native Make fixture requires inherited1:0."
+    },
+    {
+      "case": "mise presence/version probes removed in task14",
+      "reason": "Task15 must not restore retired preflight probes; native generator pins and source CI mise floor checks remain."
+    }
+  ],
+  "handover_inputs": [
+    {
+      "path": ".flow/tmp/fn25415-caller-controls-handover.json",
+      "sha256": "988bc023062912b593ff55999359db93e45134f1e29bdea3ec6b11cb40e1396c"
+    },
+    {
+      "path": ".flow/tmp/fn25415-docs-handover.json",
+      "sha256": "bc5e3c2bce6330cff4790c079ed25641def7949366e16720c70c65f9286da060"
+    },
+    {
+      "path": ".flow/tmp/fn25415-framework-gate-handover.json",
+      "sha256": "f662b5d9e996d718b10ce1e4e9078c6eec5fd2f035104992b2822430d29f2d6b"
+    },
+    {
+      "path": ".flow/tmp/fn25415-framework-handover.json",
+      "sha256": "9461b1c04d2c068f87acf98b8d8c5934e25ac3e131fd32045b7da5fb5c462c70"
+    },
+    {
+      "path": ".flow/tmp/fn25415-make-controls-handover.json",
+      "sha256": "95c18628fd0c5f2f673a01378cb237660bb38786423096290635e66e2db2d145"
+    },
+    {
+      "path": ".flow/tmp/fn25415-temporal-gate-handover.json",
+      "sha256": "0d4683218350e660edb585b688a046ed8a7f43beaf9446cb984a76c1e70f8f39"
+    },
+    {
+      "path": ".flow/tmp/fn25415-temporal-handover.json",
+      "sha256": "c0a0bbe7be71ebd6dd73ac31081be954d7e4af3bb69a78a6203602d7628c9d70"
+    },
+    {
+      "path": ".flow/tmp/fn25415-temporal-proto-handover.json",
+      "sha256": "cb60c443339fed0715152923ec9ae69b64ecfba81131fb43fddda7782647dffd"
+    },
+    {
+      "path": ".flow/tmp/fn25415-timing-handover.json",
+      "sha256": "7b44a0bcbc3bdbf4449068c73f06edc651bb401b51668ead88709841f920cd85"
+    }
+  ],
+  "runtime_validation_notes": [
+    "No runtime/build/review/bridge/agent calls performed by mapping lane. Source hashes describe joined working bytes, including root WIP listed above.",
+    "Root reports earlier158framework xtask/37guest-driver tests passed before latest mechanical refactors/new driver unit; latest composed bridge, driver argument control and lint retry remain pending. No earlier report is promoted to final acceptance.",
+    "All31 frozen case IDs accounted for:30 native source mappings plus1 shell-only substitution case explicitly moot. All47 shared vectors retained or explicitly classified; no silent drop.",
+    "Fake child fixture execution is not live Model/checker equivalence evidence."
+  ],
+  "next_root_steps": [
+    "Run latest registered native controls/driver/TLC/standalone and final changed gate using authoritative scheduler/counts/leases.",
+    "Delete exactly27 mapped scripts only after their runtime acceptance; retain2 bootstrap paths.",
+    "Rerun caller/shell inventories after deletion and final edits; refresh source HEAD/hashes and attach actual runtime receipt references before versioning map."
+  ]
+}

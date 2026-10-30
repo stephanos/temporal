@@ -1,0 +1,23 @@
+   Compiling umpire-backend-process v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-supervision-resumed/model/umpire/backends/process)
+    Finished `test` profile [unoptimized] target(s) in 0.40s
+     Running unittests src/lib.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/target/debug/deps/umpire_backend_process-080fd156155bc007)
+
+running 1 test
+test support::lease_tests::checker_guardian_holds_last_private_description_while_target_has_no_capability ... 
+thread 'support::lease_tests::checker_guardian_holds_last_private_description_while_target_has_no_capability' (673550) panicked at backends/process/src/support.rs:762:17:
+Checker target failed before readiness: exit status: 101: 
+thread 'support::lease_tests::checker_target_control' (673553) panicked at backends/process/src/support.rs:803:9:
+Checker target received lease locator
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+FAILED
+
+failures:
+
+failures:
+    support::lease_tests::checker_guardian_holds_last_private_description_while_target_has_no_capability
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 21 filtered out; finished in 0.01s
+
+error: test failed, to rerun pass `-p umpire-backend-process --lib`

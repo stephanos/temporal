@@ -1,0 +1,15 @@
+cwd: /home/agent/.cache/codex-build/tmp/fn258-pair/temporal/model/temporal/hosts/go
+CGO_ENABLED=0 GOTOOLCHAIN=local; only task-local PATH prepended
+Sentinel lookup:
+/home/agent/.cache/codex-build/tmp/fn258-go-no-rust-verified-psntz2y3/cargo
+/home/agent/.cache/codex-build/tmp/fn258-go-no-rust-verified-psntz2y3/rustc
+/home/agent/.cache/codex-build/tmp/fn258-go-no-rust-verified-psntz2y3/mise
+Each sentinel logs invocations then exits89. Script SHA256 43412a5ab216466e08952cd2848722f0e7c6b6b748b14da92891206762114088
+$ /home/agent/.local/share/mise/installs/go/1.27.0/bin/go test -p 2 -tags test_dep -count=1 -run ^TestResetProgramRowsAndScenarioHeader$ ./...
+ok  	umpire.local/temporal	0.468s
+ok  	umpire.local/temporal/reference/worker	0.003s [no tests to run]
+ok  	umpire.local/temporal/reference/worker/raw	0.003s [no tests to run]
+ok  	umpire.local/temporal/reference/worker/sdk	0.003s [no tests to run]
+?   	umpire.local/temporal/umpire/temporal/v1	[no test files]
+exit: 0
+forbidden_tool_invocations: ''

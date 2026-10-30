@@ -1,0 +1,24 @@
+   Compiling umpire-guest-driver v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-lifecycle-callers/model/umpire/dev/guest-driver)
+   Compiling umpire-backend-process v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-lifecycle-callers/model/umpire/backends/process)
+   Compiling xtask v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-lifecycle-callers/model/umpire/dev/xtask)
+   Compiling temporal-xtask v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-lifecycle-callers/model/dev/xtask)
+    Finished `test` profile [unoptimized] target(s) in 4.00s
+────────────
+ Nextest run ID acc8f754-ef22-4a3d-819a-a402290ec947 with nextest profile: default
+    Starting 14 tests across 1 binary (1 test skipped)
+        PASS [  13.493s] ( 1/14) temporal-xtask::bin/temporal-xtask gate::tests::actual_temporal_gate_wiring_and_named_failures
+        PASS [   0.040s] ( 2/14) temporal-xtask::bin/temporal-xtask gate::tests::full_gate_overrides_cache_and_preserves_failure
+        PASS [   0.003s] ( 3/14) temporal-xtask::bin/temporal-xtask gate::tests::invalid_working_directory_names_the_stage
+        PASS [   0.003s] ( 4/14) temporal-xtask::bin/temporal-xtask gate::tests::missing_tool_control_child
+        PASS [   0.038s] ( 5/14) temporal-xtask::bin/temporal-xtask gate::tests::missing_tool_reports_the_failed_stage
+        PASS [   0.003s] ( 6/14) temporal-xtask::bin/temporal-xtask gate::tests::run_control_child
+        PASS [   0.002s] ( 7/14) temporal-xtask::bin/temporal-xtask gate::tests::test_policy_control_child
+        PASS [   0.362s] ( 8/14) temporal-xtask::bin/temporal-xtask gate::tests::test_stage_propagates_required_policy_and_preserves_skipped_defaults
+        PASS [   0.005s] ( 9/14) temporal-xtask::bin/temporal-xtask test_run::tests::binaries_then_doctests_exactly_once
+        PASS [   0.005s] (10/14) temporal-xtask::bin/temporal-xtask test_run::tests::binary_failure_stops_before_doctests
+        PASS [   0.005s] (11/14) temporal-xtask::bin/temporal-xtask test_run::tests::doctest_failure_preserves_status
+        PASS [   0.005s] (12/14) temporal-xtask::bin/temporal-xtask test_run::tests::missing_runner_fails_without_fallback
+        PASS [   0.013s] (13/14) temporal-xtask::bin/temporal-xtask test_run::tests::required_backend_policy_caps_inherited_threads_and_preserves_skipped_defaults
+        PASS [   0.003s] (14/14) temporal-xtask::bin/temporal-xtask test_run::tests::workspace_selection_rejects_an_unexpected_zero_test_run
+────────────
+     Summary [  13.982s] 14 tests run: 14 passed, 1 skipped

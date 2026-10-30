@@ -1,0 +1,26 @@
+{
+  "command": [
+    "cargo",
+    "+1.99.1",
+    "nextest",
+    "run",
+    "--manifest-path",
+    "model/umpire/Cargo.toml",
+    "--locked",
+    "-p",
+    "xtask",
+    "--lib",
+    "-E",
+    "test(stage_reaps_background_children) | test(quick_leaf_reaps_background_children)",
+    "--test-threads",
+    "1",
+    "--no-tests",
+    "fail",
+    "--no-fail-fast"
+  ],
+  "status": 100,
+  "guard": null,
+  "seconds": 2.040229558944702,
+  "cache_kib": 6465224,
+  "free_bytes": 15650189312
+}

@@ -1,0 +1,57 @@
+   Compiling unicode-ident v1.0.27
+   Compiling proc-macro2 v1.0.107
+   Compiling quote v1.0.47
+   Compiling typenum v1.20.1
+   Compiling hybrid-array v0.4.15
+   Compiling syn v3.0.9
+   Compiling libc v0.2.191
+   Compiling serde_core v1.0.229
+   Compiling cfg-if v1.0.5
+   Compiling memchr v2.8.3
+   Compiling crypto-common v0.2.2
+   Compiling block-buffer v0.12.1
+   Compiling linux-raw-sys v0.12.1
+   Compiling bitflags v2.13.2
+   Compiling const-oid v0.10.2
+   Compiling digest v0.11.3
+   Compiling rustix v1.1.5
+   Compiling getrandom v0.4.3
+   Compiling cpufeatures v0.3.1
+   Compiling thiserror-impl v2.0.21
+   Compiling winnow v1.0.4
+   Compiling once_cell v1.21.4
+   Compiling fastrand v2.5.0
+   Compiling tempfile v3.27.0
+   Compiling toml_parser v1.1.5+spec-1.1.0
+   Compiling thiserror v2.0.21
+   Compiling sha2 v0.11.1
+   Compiling zmij v1.0.23
+   Compiling aho-corasick v1.1.5
+   Compiling toml_datetime v1.1.2+spec-1.1.0
+   Compiling serde_spanned v1.1.2
+   Compiling serde_derive v1.0.229
+   Compiling regex-syntax v0.8.11
+   Compiling itoa v1.0.18
+   Compiling serde_json v1.0.154
+   Compiling regex-automata v0.4.18
+   Compiling serde v1.0.229
+   Compiling toml v1.1.8+spec-1.1.0
+   Compiling umpire-guest-driver v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/dev/guest-driver)
+   Compiling regex v1.13.1
+   Compiling umpire-backend-process v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/backends/process)
+   Compiling xtask v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/dev/xtask)
+error[E0277]: can't compare `&OsStr` with `str`
+  --> dev/xtask/src/proto_controls.rs:63:42
+   |
+63 |                     .find(|(key, _)| key == "GOBIN")
+   |                                          ^^ no implementation for `&OsStr == str`
+   |
+   = help: the trait `PartialEq<str>` is not implemented for `&OsStr`
+   = note: required for `&&OsStr` to implement `PartialEq<&str>`
+help: consider dereferencing here
+   |
+63 |                     .find(|(key, _)| *key == "GOBIN")
+   |                                      +
+
+For more information about this error, try `rustc --explain E0277`.
+error: could not compile `xtask` (lib) due to 1 previous error

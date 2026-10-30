@@ -1,0 +1,14 @@
+   Compiling xtask v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-graph-resumed/model/umpire/dev/xtask)
+    Finished `test` profile [unoptimized] target(s) in 1.81s
+     Running tests/main.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/target/debug/deps/main-399733285a0719a5)
+
+running 6 tests
+test standalone::child_cannot_reenter_copy_stage ... ok
+test standalone::child_requires_copy_provenance_instead_of_parent_fallback ... ok
+test standalone::copied_missing_local_configuration_refuses_parent_configuration ... ok
+test standalone::declared_existing_outside_dependency_fails_containment ... ok
+test standalone::manifest_root_escape_fails_source_containment ... ok
+test standalone::policy_planted_identifier_fails_named_scanner ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 38 filtered out; finished in 0.07s
+

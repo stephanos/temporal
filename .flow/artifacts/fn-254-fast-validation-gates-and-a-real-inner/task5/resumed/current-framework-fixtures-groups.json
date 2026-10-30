@@ -1,0 +1,49 @@
+{
+  "command": [
+    "mise",
+    "exec",
+    "--",
+    "cargo",
+    "nextest",
+    "show-config",
+    "test-groups",
+    "--locked",
+    "--profile",
+    "required",
+    "--run-ignored",
+    "all",
+    "--groups",
+    "jvm",
+    "--no-pager",
+    "-p",
+    "umpire-fixtures",
+    "--test",
+    "fixtures"
+  ],
+  "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire",
+  "started_utc": "2026-10-26T23:10:32.448459+00:00",
+  "phase_baseline_bytes": {
+    "rust": 6596954054,
+    "go": 244873430
+  },
+  "phase_budget_bytes": 536870912,
+  "environment": {
+    "CARGO_TARGET_DIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/target",
+    "TMPDIR": "/tmp/umpire-fn2545-temporal-activity",
+    "CARGO_BUILD_JOBS": "1",
+    "CARGO_INCREMENTAL": "0",
+    "CARGO_PROFILE_DEV_DEBUG": "0",
+    "CARGO_PROFILE_TEST_DEBUG": "0",
+    "GOCACHE": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2545-temporal-api/go-cache",
+    "GOFLAGS": "-p=1",
+    "GOMAXPROCS": "1"
+  },
+  "BASH_ENV": "removed",
+  "execution_scope": "nextestshow-config/listonly; testbodiesnotexecuted",
+  "exit_code": 0,
+  "elapsed_seconds": 0.16579529200134857,
+  "rust_phase_growth_bytes": 87392462,
+  "go_phase_growth_bytes": 0,
+  "free_after_bytes": 31472054272,
+  "log_sha256": "30a7d6f769a3b55f3bc5b33ece082f61fe88375782696bfa22ce035ab24a149f"
+}

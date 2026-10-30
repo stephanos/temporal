@@ -1,0 +1,215 @@
+{
+  "result": "F1 local Linux frozen ROOT native/resource checkpoint green; not task17 or model-semantic closure",
+  "root_commit": "be7aeb36e29de5a7137501757f1d1009db416bed",
+  "root_source_unchanged": true,
+  "source_files_count": 78,
+  "binary_input_files_count": 66,
+  "source_manifest": "root-source-final.json",
+  "build_receipt": "successful-build.json",
+  "registry_tuple_union": 119,
+  "registry_tuple_identity_unchanged": true,
+  "tools": {
+    "mise-version": [
+      "2026.10.11 linux-arm64 (2026-10-15)"
+    ],
+    "rustc-version": [
+      "rustc 1.99.1 (58cf8f9c3 2026-10-13)",
+      "binary: rustc",
+      "commit-hash: 58cf8f9c35b355199727627d07ae34a4e2846d67",
+      "commit-date: 2026-10-13",
+      "host: aarch64-unknown-linux-gnu",
+      "release: 1.99.1",
+      "LLVM version: 23.1.1"
+    ],
+    "cargo-version": [
+      "cargo 1.99.1 (5f94df478 2026-08-27)",
+      "release: 1.99.1",
+      "commit-hash: 5f94df4789f005f9a352888e8355ffc645b7ed0e",
+      "commit-date: 2026-08-27",
+      "host: aarch64-unknown-linux-gnu",
+      "libgit2: 1.9.6 (sys:0.21.0 vendored)",
+      "libcurl: 8.21.0-DEV (sys:0.4.90+curl-8.21.0 vendored ssl:OpenSSL/3.6.3)",
+      "ssl: OpenSSL 3.6.3 9 Jun 2026",
+      "os: Ubuntu 26.4.0 (resolute) [64-bit]"
+    ],
+    "nextest-version": [
+      "cargo-nextest 0.9.149 (3fe4ef319 2026-10-20)",
+      "release: 0.9.149",
+      "commit-hash: 3fe4ef31972f24e0c94cfe291718eab0fe678260",
+      "commit-date: 2026-10-20",
+      "host: aarch64-unknown-linux-gnu"
+    ]
+  },
+  "build": {
+    "framework": "actualproductionmodel/umpire/scripts/xtask.sh, pinnedcargo--locked,profiledev,job1/debug0/incremental0",
+    "bootstrap_cache_initial": "target/xtask-bootstrap absent at prelaunch inspection; main4.6GiBtarget+registry source cache reused. Not a machine-wide clean build.",
+    "framework_seconds": 10.936318714000663,
+    "Temporal": "actualROOT model cargo build --locked -j1 -p temporal-xtask --bin temporal-xtask --profile dev",
+    "Temporal_seconds": 1.5006742919977114,
+    "binaries": {
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/target/xtask-bootstrap/debug/xtask": "0890797d0f6729f50d91a43e2c79434c3588cce9688f93ce203abdb6d7989ab8",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/target/xtask-bootstrap/debug/umpire-guest-driver": "2bca7d08c3734750b41126e33a60c2e76fd66917001a2c82e9b5f72dc546c368",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/target/debug/temporal-xtask": "2c687af7d0ec15003661aeeb2c0524fee6b818b32b034e031cd6fe0f7e4cbb41"
+    }
+  },
+  "public_required_native": {
+    "command": [
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/target/xtask-bootstrap/debug/xtask",
+      "test-run",
+      "--package",
+      "umpire-backend-process"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire",
+    "command_seconds": 2.876500459999079,
+    "nextest_profile": "required",
+    "inherited_global_test_threads": 4,
+    "actual_nextest_summary": "47testsrun:47passed,0skipped across2binaries",
+    "library": 22,
+    "integration": 25,
+    "old42_preserved": true,
+    "ignored": 0,
+    "eligible_Cargo_doctest_phase": "executed;0doctests",
+    "actual_inventory": "native-process-inventory.stdout.json",
+    "interpretation": "ROOT-built publicscopedentrypoint and actualpinnednextest executeA/defaultCheckerguardian/privateOFDcontrols underouterinheritedFD9; notonlyunleaseddirectCargo"
+  },
+  "resource_wiring": {
+    "definitive_run": "admission-run-2-child-events/summary.json",
+    "earlier_complete_run": "admission-run-1/summary.json",
+    "cases": [
+      {
+        "name": "gate-then-quick-normal",
+        "holder_exit": 0,
+        "contender_exit": 0,
+        "recorded_holder_owned_PIDs": 13,
+        "all_owned_observed_PIDs_absent": true,
+        "different_roots_targets_Cargo_homes_TMPDIRs": true
+      },
+      {
+        "name": "quick-then-gate-owner-kill",
+        "holder_exit": -9,
+        "contender_exit": 0,
+        "recorded_holder_owned_PIDs": 5,
+        "all_owned_observed_PIDs_absent": true,
+        "different_roots_targets_Cargo_homes_TMPDIRs": true
+      },
+      {
+        "name": "parent-isolated-child-handoff",
+        "holder_exit": 0,
+        "contender_exit": 0,
+        "recorded_holder_owned_PIDs": 13,
+        "all_owned_observed_PIDs_absent": true,
+        "different_roots_targets_Cargo_homes_TMPDIRs": true
+      }
+    ],
+    "copied_child_authority_events": 4,
+    "copied_child_same_host_lock_identity": true,
+    "copied_child_wrong_target_input_recursion_refusals": 3,
+    "direct_forged_authority_cases": [
+      {
+        "locator": null,
+        "exit_code": 1,
+        "stderr": "xtask: missing owned-command descriptor\n"
+      },
+      {
+        "locator": "1",
+        "exit_code": 1,
+        "stderr": "xtask: invalid inherited JVM lease descriptor locator\n"
+      },
+      {
+        "locator": "9",
+        "exit_code": 1,
+        "stderr": "xtask: Bad file descriptor (os error 9)\n"
+      },
+      {
+        "locator": "9/foreign-regular-file",
+        "exit_code": 1,
+        "stderr": "xtask: JVM lease is not a stable private owned regular file\n"
+      }
+    ],
+    "driver_fidelity_delta": "Afterfirstgreenrun, retainedcopiedchildauthorityevents/manifest/binaryhash andassertedsamehostdev/ino; freshseal+native-onlyrerun. No ROOTcode or expectedvectorrelaxation.",
+    "scope": "Nativepublicgate/quickadmission and oneleafsyntheticgraph/leafwiring; actualCargo/nextest/modeltestsNOTexecutedbyresource stubs. Public47actualnativeexecution above isseparate.",
+    "standalone_boundary": "CopiedactualnativeCLI, realprovenanceadmission andFD9transport; explicitnonexecutedguestdriverplaceholder. Doesnotrenewproductionstandalonebuild/artifacts/clean-commandpath."
+  },
+  "resources": {
+    "phase_budget_bytes": 1610612736,
+    "guard_free_bytes": 8589934592,
+    "net_target_growth_bytes": 127577715,
+    "free_after_bytes": 11743248384,
+    "copied_native_binary_bytes": 5913416,
+    "copy_bound_bytes": 67108864,
+    "owned_build_JVM_Go_native_processes": [],
+    "compiler_phase_released": true,
+    "main_target_retained": true
+  },
+  "not_run": [
+    "actualJava/JVM/Go/modelsemantics",
+    "real6consumerKettlequick",
+    "real5consumerTemporalquick",
+    "framework218/Temporal41membership/consumeridentityrenewal",
+    "productionrealstandalone",
+    "fullworkspace/fullgates",
+    "cooperativecancellationBimplementation",
+    "Darwinescaped/adopteddescendantproof"
+  ],
+  "platform_gap": "LinuxsubreaperresourceproofdoesnotestablishDarwincleanup. Acustody !=cleanup-before-CLI-return; Bdesignonly9023a6554d remainsunimplemented.",
+  "finished_utc": "2026-10-27T01:54:15.442346+00:00",
+  "evidence_sha256": {
+    "admission-run-1/forgery-cases.json": "d9929980befceaff2e0b9ce461426f63cec7c6c5735250af94d383562439d30f",
+    "admission-run-1/gate-then-quick-normal-contender.log": "623a4eb27939d15cf0f04fd7ca1476c1ef5b8488f72716dff38904897043646c",
+    "admission-run-1/gate-then-quick-normal-holder.log": "5fd61893a00b445c87b2ee1d03ef5079e38c36b42d3ede0f2007c1adc4a19cab",
+    "admission-run-1/gate-then-quick-normal.json": "c85b6156449fe69271086a6053c214cac90a93927a1565ea250197c6f27a9026",
+    "admission-run-1/parent-isolated-child-handoff-contender.log": "60995dea4d94bb2f73e6650ca7d5084d4c453977aa6136f98bcd1adc09f5eece",
+    "admission-run-1/parent-isolated-child-handoff-holder.log": "ab0c0b3c1305927e94be6aaf3e48059ebbfee2e6003225a3204f74f9fbb3846e",
+    "admission-run-1/parent-isolated-child-handoff.json": "5caa3ec67d7ac8588da7e3e7717571556e7088f9c541bcc394b84e85e32a7579",
+    "admission-run-1/quick-then-gate-owner-kill-contender.log": "5fd61893a00b445c87b2ee1d03ef5079e38c36b42d3ede0f2007c1adc4a19cab",
+    "admission-run-1/quick-then-gate-owner-kill-holder.log": "68f88c65781f07af01ecb6aa9df57ffe7b4268ab4608cccf61c80fd867b818c7",
+    "admission-run-1/quick-then-gate-owner-kill.json": "b381ba5431f39a422892809ba43269c4474ff879ecb3db3dadeee60990984b20",
+    "admission-run-1/summary.json": "8e5d8abf6d19aa99e91c7a4c1dddb171213a9c73e574ecbf468ed8049b98182c",
+    "admission-run-2-child-events/forgery-cases.json": "d9929980befceaff2e0b9ce461426f63cec7c6c5735250af94d383562439d30f",
+    "admission-run-2-child-events/gate-then-quick-normal-contender.log": "a3c5448f1eee824d720f6ca29ac09714d761fd9e019726fb61729d339affb472",
+    "admission-run-2-child-events/gate-then-quick-normal-holder.log": "5fd61893a00b445c87b2ee1d03ef5079e38c36b42d3ede0f2007c1adc4a19cab",
+    "admission-run-2-child-events/gate-then-quick-normal.json": "e39e986f994c46e2f75b621e9178fee5c67f255d1592c3d91208c1b9b7e0a638",
+    "admission-run-2-child-events/parent-isolated-child-handoff-contender.log": "e04dba240710b9debd19bf9644ac1ffd343fbd74bc1c025081d8a8ca7212bc2c",
+    "admission-run-2-child-events/parent-isolated-child-handoff-holder.log": "ab0c0b3c1305927e94be6aaf3e48059ebbfee2e6003225a3204f74f9fbb3846e",
+    "admission-run-2-child-events/parent-isolated-child-handoff.json": "f77fd1b1d6b6c0dd17119c99c1ac0bf8c51e88eb5e88af7d9aeff4dc886bc5fb",
+    "admission-run-2-child-events/quick-then-gate-owner-kill-contender.log": "5fd61893a00b445c87b2ee1d03ef5079e38c36b42d3ede0f2007c1adc4a19cab",
+    "admission-run-2-child-events/quick-then-gate-owner-kill-holder.log": "dcb97349172ee2ebd18e263d381f9f37b489e0efbf3a0d81d72a93e859d2eadf",
+    "admission-run-2-child-events/quick-then-gate-owner-kill.json": "fdec0767c6e9326f597817192767f9e5c0ed3b4a7dcb2337e6d9d7a6e90af256",
+    "admission-run-2-child-events/summary.json": "2019484306ac92d06cb833ddfa8b5957df9453b6720246beade69f0d9f778626",
+    "authoritative-commands.json": "53a8eab2e182a41adc277a181a2f7458aff94df53367be33c303a8507be4fd77",
+    "build-and-scope.py": "0694306e9ba2f33c367755618e7a2fe2c89d8c16ccd9222a301e603880fdd829",
+    "cargo-version.json": "6c10875911936f8359df74b5db256de6c92e7d32a7601c05c7d09d6c0692aff3",
+    "cargo-version.stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "cargo-version.stdout.log": "13bef1085dbc9ecc32d4ea122c68ae0778e67dcedbdf756fc271a31dfb211f5f",
+    "framework-production-bootstrap.json": "beab6cbefdc7dd9ad0d9560dd822a0ac8c75b3e60465bc5f136f95e5f824a3ac",
+    "framework-production-bootstrap.stderr.log": "4bc82e79f2e5ae93a669e8873a5aaf2ebbce7def0deeb4d21be0c03e423d2aa6",
+    "framework-production-bootstrap.stdout.log": "c6e69b03378d33c578918ec2b7fbbdd19c65f027afbf26f14f43586e40743afe",
+    "frozen-seal-with-child-events.json": "3dd8daf4f5134b7c15aab13262733ffc50baf9625e6867166cf106b47a2ee051",
+    "frozen-seal.json": "69a1549a7de3ab8cc593394194b2afd5c1f03ad723d9c798a26ad6732a484d49",
+    "mise-version.json": "a209d068aed3082d5f62fbfae7cda168788d1041de0a4dcaa3ab48b2b562a21d",
+    "mise-version.stderr.log": "53a838c0b7f71409950dd038b4fdefcec3be98f97330048078f8640d05a4a0b5",
+    "mise-version.stdout.log": "fe79b31dd2ec09ad49e07d73e8d190c14277e4dc6f7127f700b1384bb5041472",
+    "native-process-inventory.json": "758c89b960b45c39a7e0f81f56496e4d3953044eb53f9b95034e4b4ea7261601",
+    "native-process-inventory.stderr.log": "ab719a3bf8e43ddb53edfb30837b0e0daee4ca0db891353697a4a5564d2e8662",
+    "native-process-inventory.stdout.json": "17bf1efd3f6e4e0fff41573581f76542309766c8740e18d0c0b158d18e79b82f",
+    "nextest-version.json": "36d5713d96302354d1c16dece255117e6db05e3e799ec4411bf04d3b59368ee0",
+    "nextest-version.stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "nextest-version.stdout.log": "dac5c3c42f79f6b1476ff24f07637a80e055b8b0ab430a05e3ca01fc85aa835a",
+    "public-required-backend-process.json": "56ca6c05bb1490482d9c33d8cc002f790046ef50f5bd79ecbe7a1928a16cefef",
+    "public-required-backend-process.stderr.log": "e70e40e372f66b5b9d4e417bcef1e83753a46615a4917b864f6ebc63b34f13c4",
+    "public-required-backend-process.stdout.log": "df166913f47ff1f04202cae9b31df67ed272d692d99a0023a8117dc3029100dd",
+    "resource-baseline.json": "a24ece64d6f9351e76cdfe111aa4d776375319553a3e2cc60de9e5df81aff2d5",
+    "root-source-after-build.json": "ab931b7bdcb650be091a496f08312fe0c71d3a97e8972d43e8ac286007680921",
+    "root-source-after-public.json": "ab931b7bdcb650be091a496f08312fe0c71d3a97e8972d43e8ac286007680921",
+    "root-source-before.json": "ab931b7bdcb650be091a496f08312fe0c71d3a97e8972d43e8ac286007680921",
+    "root-source-final.json": "b9ac4920d9b3e0a66d21d5022833b4aea1fa955dc8c65b696dd6886ecc5e402b",
+    "rustc-version.json": "391adf6233be1d79829e9dbc3a79cc3d404d54be398617d85a006cbe76a039c1",
+    "rustc-version.stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "rustc-version.stdout.log": "ba203e33fe4a5b8e05147bb6e57fb1ddace26d9f799f357420b666887dd7e2f1",
+    "successful-build.json": "46acc46e4d162128578734d0775623a7f3f22b77f7bbaf7f42a7407a03471a5c",
+    "temporal-native-build.json": "ba29025dbcd53856e8bcba64f6a0b1fc278aebc96c5e07cc1907b99a40df26f3",
+    "temporal-native-build.stderr.log": "2a485eef3e586da83bba9ed5d3d1c551f5962f17a1f5d7e3dc911a12afa3894b",
+    "temporal-native-build.stdout.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "authoritative_commands": "authoritative-commands.json"
+}

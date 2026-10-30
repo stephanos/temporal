@@ -11,6 +11,6 @@
   "spec": "fn-240-symbolic-back-end-models-as-btor2",
   "spec_path": ".flow/tasks/fn-240-symbolic-back-end-models-as-btor2.6.md",
   "status": "todo",
-  "title": "Rest of the admitted subset: action inputs, non-unit outcomes, bounded sequences, Rust widths on Type::Int; action_inputs and shared_returns goldens",
-  "updated_at": "2026-10-24T22:03:34.796200Z"
+  "title": "Rest of the admitted subset: action inputs, non-unit outcomes, bounded sequences, finite sets/maps from fn-245; input, return and collection goldens",
+  "updated_at": "2026-10-26T05:37:54.809845Z"
 }

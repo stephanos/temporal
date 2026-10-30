@@ -1,0 +1,119 @@
+{
+  "at": "2026-10-26T21:31:07.170790+00:00",
+  "closed_spec": "fn-247-one-language-for-the-framework-a-rust",
+  "recovery": "Clone this repository locally, checkout recorded head; restore ignored_source and git config if exact original clone layout is needed.",
+  "clones": [
+    {
+      "clone": ".flow/tmp/fn2475-joined-proof.MstS6i/source-a",
+      "head": "523d131d2cf992b04a43b4d595ea0f1a434f44b6",
+      "clean": true,
+      "refs": [
+        "523d131d2cf992b04a43b4d595ea0f1a434f44b6 refs/heads/umpire",
+        "523d131d2cf992b04a43b4d595ea0f1a434f44b6 refs/remotes/origin/HEAD",
+        "bac2d44038362121939b0904e1993e2e8e25f787 refs/remotes/origin/agent/attempt-fencing-prototype",
+        "b6638e9d2e79d76cd34331d77e42ef5a4ef49bb3 refs/remotes/origin/agent/batch2-anchor",
+        "ee6921caa49982ef71d5d6db7e0e1524355cc624 refs/remotes/origin/agent/fn1292-source",
+        "5676998ad310442669e7f6a8e5f7735cc718f5bf refs/remotes/origin/agent/fn142",
+        "f674900e81537efda0e93c9f65a503da3a3f637c refs/remotes/origin/agent/fn1451-current",
+        "18033cf12563817fb9109447e35176c5693007c3 refs/remotes/origin/agent/fn1452-current",
+        "30872af04029cdc35aea3f340fde21156f1cc3af refs/remotes/origin/agent/fn1453-current",
+        "ac261f72aa2a4d90bfca85b893ad1604bae6015b refs/remotes/origin/agent/fn1454-current",
+        "fcb608ecf4fbd419386a07fa97d392059049781a refs/remotes/origin/agent/fn146-boundary-review",
+        "2250d1f9ae4ca7c5b64a5641901511978d25819e refs/remotes/origin/agent/fn155-task6",
+        "a325f98d350dff75ff16c82a9b1ab29dd9bda83b refs/remotes/origin/checklocks-matcher-data",
+        "10be643d3bdd04d93c68523c1a94b97cc598c89a refs/remotes/origin/fn-146-adopt-cel-for-runtime-predicates-and",
+        "2b449cb7b59c84bcfd51ce7bc92a0fe857a179df refs/remotes/origin/fn-149-safety-and-liveness-groups-for-object",
+        "dc482b82f8383347fb3c212f40c1bd66b8654b2f refs/remotes/origin/fn-156-let-the-scala-compiler-and-lint-enforce",
+        "6875191ef7d7ea191549150812c3b7b36507215c refs/remotes/origin/main",
+        "523d131d2cf992b04a43b4d595ea0f1a434f44b6 refs/remotes/origin/umpire",
+        "243f9dd525b16b7ab15b7f1fa5d486e0f7ce822a refs/remotes/origin/w-1d-core",
+        "86e4ee2505d9c3f379d820fb1d5bb1a658629287 refs/remotes/origin/w-1d-shared",
+        "f4fba65eb634f11f547679279597bf48a69fa797 refs/remotes/origin/w-perf",
+        "f4fba65eb634f11f547679279597bf48a69fa797 refs/remotes/origin/w-perf-dev",
+        "0299b17d72740fa25719b963d603d2fee4687ece refs/remotes/origin/work/fn1643-bridges",
+        "4b4fa23c1104444de4d7fc0bdb664bff63f0c9f8 refs/remotes/origin/work/fn1742-driver",
+        "ff5d179061cb35732c2a0846cbf3873d4cca8256 refs/remotes/origin/work/fn1742-temporal",
+        "6936fab02e40acbd8649ae8531871a883f926e5b refs/remotes/origin/work/fn1742-verification",
+        "8359d2818bad75c3032aaedae3d592f4a372c6b0 refs/remotes/origin/work/fn19015-runtime",
+        "989d17c61b3249cde029a59a161a1e257413bfdf refs/remotes/origin/work/fn19522-conformance",
+        "13251fe12b4c0eb33ba1690dbc10519ecf5f8b84 refs/remotes/origin/work/fn2092-graal",
+        "6ceb466cf13ae0da4539794aa677f3aa2a448991 refs/remotes/origin/work/fn2095-wasm",
+        "280fc46eab71e446df59422ff823a45864005b63 refs/remotes/origin/work/fn2103-fixtures",
+        "62cfa7fcf37355a1fe7d42d2a08f051bc55e9bf3 refs/remotes/origin/work/fn2103-oracle",
+        "fee5fc56ae071808ddf143521fe3670c9fba85b2 refs/remotes/origin/work/fn2114-deferred",
+        "6deb7dcb9dc71204bcd61423aea3ae9720928628 refs/remotes/origin/work/fn2386-interpreted-switch",
+        "c21571b8acf881892309ffc6cb63b56ba716ffab refs/remotes/origin/work/fn2475-port",
+        "17bce75e1cbd28bb7e6939a869ee961c0df784a7 refs/remotes/origin/work/fn2476-port",
+        "e4899e270f052ff24e864fe4617e18911fb348de refs/remotes/origin/work/fn2477-port"
+      ],
+      "recovery_refs": [
+        "refs/recovery/fn2475-proof-clones/c21571b8acf881892309ffc6cb63b56ba716ffab",
+        "refs/recovery/fn2475-proof-clones/e4899e270f052ff24e864fe4617e18911fb348de",
+        "refs/recovery/fn2475-proof-clones/17bce75e1cbd28bb7e6939a869ee961c0df784a7",
+        "refs/recovery/fn2475-proof-clones/523d131d2cf992b04a43b4d595ea0f1a434f44b6"
+      ],
+      "ignored_source": [
+        {
+          "path": "proto/api.binpb",
+          "sha256": "7f6189c1629d253dc8873c640aa2a584e932d55166a4357b3d9f75c9e32eceb0",
+          "saved_as": ".flow/artifacts/fn-247-one-language-for-the-framework-a-rust/retired-proof-clones/7f6189c1629d253dc8873c640aa2a584e932d55166a4357b3d9f75c9e32eceb0-api.binpb"
+        }
+      ],
+      "git_config_sha256": "0ad5fa37cccf6aceed227abdd0f4118b9f76476f1e170d1362794e906d355063"
+    },
+    {
+      "clone": ".flow/tmp/fn2475-joined-proof.MstS6i/different-source-b",
+      "head": "523d131d2cf992b04a43b4d595ea0f1a434f44b6",
+      "clean": true,
+      "refs": [
+        "523d131d2cf992b04a43b4d595ea0f1a434f44b6 refs/heads/umpire",
+        "523d131d2cf992b04a43b4d595ea0f1a434f44b6 refs/remotes/origin/HEAD",
+        "bac2d44038362121939b0904e1993e2e8e25f787 refs/remotes/origin/agent/attempt-fencing-prototype",
+        "b6638e9d2e79d76cd34331d77e42ef5a4ef49bb3 refs/remotes/origin/agent/batch2-anchor",
+        "ee6921caa49982ef71d5d6db7e0e1524355cc624 refs/remotes/origin/agent/fn1292-source",
+        "5676998ad310442669e7f6a8e5f7735cc718f5bf refs/remotes/origin/agent/fn142",
+        "f674900e81537efda0e93c9f65a503da3a3f637c refs/remotes/origin/agent/fn1451-current",
+        "18033cf12563817fb9109447e35176c5693007c3 refs/remotes/origin/agent/fn1452-current",
+        "30872af04029cdc35aea3f340fde21156f1cc3af refs/remotes/origin/agent/fn1453-current",
+        "ac261f72aa2a4d90bfca85b893ad1604bae6015b refs/remotes/origin/agent/fn1454-current",
+        "fcb608ecf4fbd419386a07fa97d392059049781a refs/remotes/origin/agent/fn146-boundary-review",
+        "2250d1f9ae4ca7c5b64a5641901511978d25819e refs/remotes/origin/agent/fn155-task6",
+        "a325f98d350dff75ff16c82a9b1ab29dd9bda83b refs/remotes/origin/checklocks-matcher-data",
+        "10be643d3bdd04d93c68523c1a94b97cc598c89a refs/remotes/origin/fn-146-adopt-cel-for-runtime-predicates-and",
+        "2b449cb7b59c84bcfd51ce7bc92a0fe857a179df refs/remotes/origin/fn-149-safety-and-liveness-groups-for-object",
+        "dc482b82f8383347fb3c212f40c1bd66b8654b2f refs/remotes/origin/fn-156-let-the-scala-compiler-and-lint-enforce",
+        "6875191ef7d7ea191549150812c3b7b36507215c refs/remotes/origin/main",
+        "523d131d2cf992b04a43b4d595ea0f1a434f44b6 refs/remotes/origin/umpire",
+        "243f9dd525b16b7ab15b7f1fa5d486e0f7ce822a refs/remotes/origin/w-1d-core",
+        "86e4ee2505d9c3f379d820fb1d5bb1a658629287 refs/remotes/origin/w-1d-shared",
+        "f4fba65eb634f11f547679279597bf48a69fa797 refs/remotes/origin/w-perf",
+        "f4fba65eb634f11f547679279597bf48a69fa797 refs/remotes/origin/w-perf-dev",
+        "0299b17d72740fa25719b963d603d2fee4687ece refs/remotes/origin/work/fn1643-bridges",
+        "4b4fa23c1104444de4d7fc0bdb664bff63f0c9f8 refs/remotes/origin/work/fn1742-driver",
+        "ff5d179061cb35732c2a0846cbf3873d4cca8256 refs/remotes/origin/work/fn1742-temporal",
+        "6936fab02e40acbd8649ae8531871a883f926e5b refs/remotes/origin/work/fn1742-verification",
+        "8359d2818bad75c3032aaedae3d592f4a372c6b0 refs/remotes/origin/work/fn19015-runtime",
+        "989d17c61b3249cde029a59a161a1e257413bfdf refs/remotes/origin/work/fn19522-conformance",
+        "13251fe12b4c0eb33ba1690dbc10519ecf5f8b84 refs/remotes/origin/work/fn2092-graal",
+        "6ceb466cf13ae0da4539794aa677f3aa2a448991 refs/remotes/origin/work/fn2095-wasm",
+        "280fc46eab71e446df59422ff823a45864005b63 refs/remotes/origin/work/fn2103-fixtures",
+        "62cfa7fcf37355a1fe7d42d2a08f051bc55e9bf3 refs/remotes/origin/work/fn2103-oracle",
+        "fee5fc56ae071808ddf143521fe3670c9fba85b2 refs/remotes/origin/work/fn2114-deferred",
+        "6deb7dcb9dc71204bcd61423aea3ae9720928628 refs/remotes/origin/work/fn2386-interpreted-switch",
+        "c21571b8acf881892309ffc6cb63b56ba716ffab refs/remotes/origin/work/fn2475-port",
+        "17bce75e1cbd28bb7e6939a869ee961c0df784a7 refs/remotes/origin/work/fn2476-port",
+        "e4899e270f052ff24e864fe4617e18911fb348de refs/remotes/origin/work/fn2477-port"
+      ],
+      "recovery_refs": [],
+      "ignored_source": [
+        {
+          "path": "proto/api.binpb",
+          "sha256": "bd2487b28208ccdddceda4238507d5eedd5b4b18a108eb473da34bc2d6426e38",
+          "saved_as": ".flow/artifacts/fn-247-one-language-for-the-framework-a-rust/retired-proof-clones/bd2487b28208ccdddceda4238507d5eedd5b4b18a108eb473da34bc2d6426e38-api.binpb"
+        }
+      ],
+      "git_config_sha256": "0ad5fa37cccf6aceed227abdd0f4118b9f76476f1e170d1362794e906d355063"
+    }
+  ],
+  "selected_targets_absent": true
+}

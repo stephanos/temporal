@@ -1,0 +1,2198 @@
+{
+  "observed_at": "2026-10-28T07:29:06.804031+00:00",
+  "source_commit": "05473210b48c3db862f22051eb7154ce98258f98",
+  "source_tree": "46829511b6d582b40f3fa5095f42bdf980c7d466",
+  "checks": [
+    {
+      "name": "source HEAD pinned",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "source tree pinned",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "fresh source checkout tracked/nonignored cleanliness",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "successful complete cold standalone result",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "manifest seal",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "child stages seal",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "child stage authority copy matches child run",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "expected ordered child stages",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "expected ordered parent stages",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "parent successful exclusive authority proto-tools",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "parent individual stage equals ordered authority proto-tools",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "parent successful exclusive authority retired-names",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "parent individual stage equals ordered authority retired-names",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "parent successful exclusive authority timing-controls",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "parent individual stage equals ordered authority timing-controls",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "parent successful exclusive authority capability-controls",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "parent individual stage equals ordered authority capability-controls",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "parent successful exclusive authority source-boundary",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "parent individual stage equals ordered authority source-boundary",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "parent successful exclusive authority protobuf-controls",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "parent individual stage equals ordered authority protobuf-controls",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "parent successful exclusive authority protobuf-freshness",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "parent individual stage equals ordered authority protobuf-freshness",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "parent successful exclusive authority kettle-protobuf-freshness",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "parent individual stage equals ordered authority kettle-protobuf-freshness",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "parent successful exclusive authority fmt",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "parent individual stage equals ordered authority fmt",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "parent successful exclusive authority clippy",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "parent individual stage equals ordered authority clippy",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "parent successful exclusive authority docs",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "parent individual stage equals ordered authority docs",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "parent successful exclusive authority tests",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "parent individual stage equals ordered authority tests",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "parent successful exclusive authority wasm32-wasip1",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "parent individual stage equals ordered authority wasm32-wasip1",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "parent successful exclusive authority core-wasm-clippy",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "parent individual stage equals ordered authority core-wasm-clippy",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "parent successful exclusive authority wasm-guest",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "parent individual stage equals ordered authority wasm-guest",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "parent successful exclusive authority go-host",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "parent individual stage equals ordered authority go-host",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "parent successful exclusive authority kettle-go-host",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "parent individual stage equals ordered authority kettle-go-host",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "parent successful exclusive authority standalone",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "parent individual stage equals ordered authority standalone",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "child successful exclusive authority proto-tools",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "child individual stage equals ordered authority proto-tools",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "child successful exclusive authority retired-names",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "child individual stage equals ordered authority retired-names",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "child successful exclusive authority timing-controls",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "child individual stage equals ordered authority timing-controls",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "child successful exclusive authority capability-controls",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "child individual stage equals ordered authority capability-controls",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "child successful exclusive authority source-boundary",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "child individual stage equals ordered authority source-boundary",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "child successful exclusive authority protobuf-controls",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "child individual stage equals ordered authority protobuf-controls",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "child successful exclusive authority protobuf-freshness",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "child individual stage equals ordered authority protobuf-freshness",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "child successful exclusive authority kettle-protobuf-freshness",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "child individual stage equals ordered authority kettle-protobuf-freshness",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "child successful exclusive authority fmt",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "child individual stage equals ordered authority fmt",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "child successful exclusive authority clippy",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "child individual stage equals ordered authority clippy",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "child successful exclusive authority docs",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "child individual stage equals ordered authority docs",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "child successful exclusive authority tests",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "child individual stage equals ordered authority tests",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "child successful exclusive authority wasm32-wasip1",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "child individual stage equals ordered authority wasm32-wasip1",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "child successful exclusive authority core-wasm-clippy",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "child individual stage equals ordered authority core-wasm-clippy",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "child successful exclusive authority wasm-guest",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "child individual stage equals ordered authority wasm-guest",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "child successful exclusive authority go-host",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "child individual stage equals ordered authority go-host",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "child successful exclusive authority kettle-go-host",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "child individual stage equals ordered authority kettle-go-host",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "exact child authority embedded once in parent",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "all input source bytes and executable modes unchanged in both copies",
+      "passed": true,
+      "detail": []
+    },
+    {
+      "name": "provenance input path set equals pinned Git source tree",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "test producer begin/finish identities complete: /home/agent/.cache/codex-build/fn258-standalone-0547321/gate-receipts/gate-3673200-1793168894098797616/work/framework/tests",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "producer arithmetic",
+      "passed": true,
+      "detail": {
+        "discovered": 910,
+        "executed": 908,
+        "ignored": 2,
+        "skipped": 0
+      }
+    },
+    {
+      "name": "producer arithmetic",
+      "passed": true,
+      "detail": {
+        "discovered": 5,
+        "executed": 4,
+        "ignored": 1,
+        "skipped": 0
+      }
+    },
+    {
+      "name": "parent producer counts equal authoritative tests receipt",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "test producer begin/finish identities complete: /home/agent/.cache/codex-build/tmp/umpire-standalone-Bnt8GY/target/gate-receipts/gate-3755479-1793169855293335824/work/framework/tests",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "producer arithmetic",
+      "passed": true,
+      "detail": {
+        "discovered": 910,
+        "executed": 908,
+        "ignored": 2,
+        "skipped": 0
+      }
+    },
+    {
+      "name": "producer arithmetic",
+      "passed": true,
+      "detail": {
+        "discovered": 5,
+        "executed": 4,
+        "ignored": 1,
+        "skipped": 0
+      }
+    },
+    {
+      "name": "child producer counts equal authoritative tests receipt",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "sealed directory file inventory current-contract-native",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "sealed directory aggregate current-contract-native",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "sealed directory file inventory panic-native",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "sealed directory aggregate panic-native",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "successful pinned tool version cargo",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "successful pinned tool version cargo-nextest",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "successful pinned tool version go",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "successful pinned tool version java",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "successful pinned tool version protoc",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "successful pinned tool version rustc",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/admission.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/stages.jsonl",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/stdout.log",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/stderr.log",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/stages/capability-controls.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/stages/clippy.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/stages/core-wasm-clippy.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/stages/docs.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/stages/fmt.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/stages/go-host.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/stages/kettle-go-host.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/stages/kettle-protobuf-freshness.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/stages/proto-tools.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/stages/protobuf-controls.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/stages/protobuf-freshness.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/stages/retired-names.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/stages/source-boundary.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/stages/standalone.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/stages/tests.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/stages/timing-controls.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/stages/wasm-guest.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/stages/wasm32-wasip1.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/admission.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/stages.jsonl",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/stdout.log",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/stderr.log",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/stages/capability-controls.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/stages/clippy.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/stages/core-wasm-clippy.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/stages/docs.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/stages/fmt.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/stages/go-host.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/stages/kettle-go-host.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/stages/kettle-protobuf-freshness.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/stages/proto-tools.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/stages/protobuf-controls.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/stages/protobuf-freshness.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/stages/retired-names.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/stages/source-boundary.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/stages/tests.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/stages/timing-controls.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/stages/wasm-guest.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/stages/wasm32-wasip1.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified cold-proof/inputs.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified cold-proof/result.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified cold-proof/controls.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified cold-proof/tools.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified cold-proof/setup.jsonl",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified cold-proof/stages.jsonl",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified make-validate.log",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/named/debug/umpire-guest-driver",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/named/debug/umpire-guest-driver",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/named/debug/xtask",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/named/debug/xtask",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/named/guest/current-contract-reports",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/named/guest/current-contract-reports",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/named/guest/panic-control-reports",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/named/guest/panic-control-reports",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/named/xtask-bootstrap/debug/umpire-guest-driver",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/named/xtask-bootstrap/debug/umpire-guest-driver",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/named/xtask-bootstrap/debug/xtask",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/named/xtask-bootstrap/debug/xtask",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/named/.bin/protoc-gen-go-grpc-v1.3.0",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/named/.bin/protoc-gen-go-grpc-v1.3.0",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/named/.bin/protoc-gen-go-v1.36.6",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/named/.bin/protoc-gen-go-v1.36.6",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/named/build/tlc/tla2tools-1.7.4.jar",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/named/build/tlc/tla2tools-1.7.4.jar",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/named/current-contract-native/callback-0.request.pb",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/named/current-contract-native/callback-0.response.pb",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/named/current-contract-native/callback-1.request.pb",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/named/current-contract-native/callback-1.response.pb",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/named/current-contract-native/callback-2.request.pb",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/named/current-contract-native/callback-2.response.pb",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/named/current-contract-native/callback-3.request.pb",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/named/current-contract-native/callback-3.response.pb",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/named/current-contract-native/callback-4.request.pb",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/named/current-contract-native/callback-4.response.pb",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/named/current-contract-native/callback-5.request.pb",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/named/current-contract-native/callback-5.response.pb",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/named/current-contract-native/callback-6.request.pb",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/named/current-contract-native/callback-6.response.pb",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/named/current-contract-native/callback-7.request.pb",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/named/current-contract-native/callback-7.response.pb",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/named/current-contract-native/callback-8.request.pb",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/named/current-contract-native/callback-8.response.pb",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/named/current-contract-native/callback.methods",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/named/current-contract-native/configured-0.request.pb",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/named/current-contract-native/configured-0.response.pb",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/named/current-contract-native/configured-1.request.pb",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/named/current-contract-native/configured-1.response.pb",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/named/current-contract-native/configured-2.request.pb",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/named/current-contract-native/configured-2.response.pb",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/named/current-contract-native/configured-3.request.pb",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/named/current-contract-native/configured-3.response.pb",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/named/current-contract-native/configured-4.request.pb",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/named/current-contract-native/configured-4.response.pb",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/named/current-contract-native/configured-5.request.pb",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/named/current-contract-native/configured-5.response.pb",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/named/current-contract-native/configured-6.request.pb",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/named/current-contract-native/configured-6.response.pb",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/named/current-contract-native/configured-7.request.pb",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/named/current-contract-native/configured-7.response.pb",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/named/current-contract-native/configured-8.request.pb",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/named/current-contract-native/configured-8.response.pb",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/named/current-contract-native/configured.methods",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/named/current-contract-native/ordinary-0.request.pb",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/named/current-contract-native/ordinary-0.response.pb",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/named/current-contract-native/ordinary-1.request.pb",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/named/current-contract-native/ordinary-1.response.pb",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/named/current-contract-native/ordinary-2.request.pb",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/named/current-contract-native/ordinary-2.response.pb",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/named/current-contract-native/ordinary-3.request.pb",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/named/current-contract-native/ordinary-3.response.pb",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/named/current-contract-native/ordinary-4.request.pb",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/named/current-contract-native/ordinary-4.response.pb",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/named/current-contract-native/ordinary-5.request.pb",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/named/current-contract-native/ordinary-5.response.pb",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/named/current-contract-native/ordinary-6.request.pb",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/named/current-contract-native/ordinary-6.response.pb",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/named/current-contract-native/ordinary.methods",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/named/current-contract-native/callback-0.request.pb",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/named/current-contract-native/callback-0.response.pb",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/named/current-contract-native/callback-1.request.pb",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/named/current-contract-native/callback-1.response.pb",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/named/current-contract-native/callback-2.request.pb",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/named/current-contract-native/callback-2.response.pb",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/named/current-contract-native/callback-3.request.pb",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/named/current-contract-native/callback-3.response.pb",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/named/current-contract-native/callback-4.request.pb",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/named/current-contract-native/callback-4.response.pb",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/named/current-contract-native/callback-5.request.pb",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/named/current-contract-native/callback-5.response.pb",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/named/current-contract-native/callback-6.request.pb",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/named/current-contract-native/callback-6.response.pb",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/named/current-contract-native/callback-7.request.pb",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/named/current-contract-native/callback-7.response.pb",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/named/current-contract-native/callback-8.request.pb",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/named/current-contract-native/callback-8.response.pb",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/named/current-contract-native/callback.methods",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/named/current-contract-native/configured-0.request.pb",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/named/current-contract-native/configured-0.response.pb",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/named/current-contract-native/configured-1.request.pb",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/named/current-contract-native/configured-1.response.pb",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/named/current-contract-native/configured-2.request.pb",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/named/current-contract-native/configured-2.response.pb",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/named/current-contract-native/configured-3.request.pb",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/named/current-contract-native/configured-3.response.pb",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/named/current-contract-native/configured-4.request.pb",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/named/current-contract-native/configured-4.response.pb",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/named/current-contract-native/configured-5.request.pb",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/named/current-contract-native/configured-5.response.pb",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/named/current-contract-native/configured-6.request.pb",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/named/current-contract-native/configured-6.response.pb",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/named/current-contract-native/configured-7.request.pb",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/named/current-contract-native/configured-7.response.pb",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/named/current-contract-native/configured-8.request.pb",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/named/current-contract-native/configured-8.response.pb",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/named/current-contract-native/configured.methods",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/named/current-contract-native/ordinary-0.request.pb",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/named/current-contract-native/ordinary-0.response.pb",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/named/current-contract-native/ordinary-1.request.pb",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/named/current-contract-native/ordinary-1.response.pb",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/named/current-contract-native/ordinary-2.request.pb",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/named/current-contract-native/ordinary-2.response.pb",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/named/current-contract-native/ordinary-3.request.pb",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/named/current-contract-native/ordinary-3.response.pb",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/named/current-contract-native/ordinary-4.request.pb",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/named/current-contract-native/ordinary-4.response.pb",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/named/current-contract-native/ordinary-5.request.pb",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/named/current-contract-native/ordinary-5.response.pb",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/named/current-contract-native/ordinary-6.request.pb",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/named/current-contract-native/ordinary-6.response.pb",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/named/current-contract-native/ordinary.methods",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/named/panic-native/effect_overflow.pb",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/named/panic-native/effect_panic.pb",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/named/panic-native/effect_overflow.pb",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/named/panic-native/effect_panic.pb",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/named/wasm32-wasip1/guest/caught_panic_control.wasm",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/named/wasm32-wasip1/guest/caught_panic_control.wasm",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/named/wasm32-wasip1/guest/overflow_control.wasm",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/named/wasm32-wasip1/guest/overflow_control.wasm",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/named/wasm32-wasip1/guest/stateful_control.wasm",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/named/wasm32-wasip1/guest/stateful_control.wasm",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/named/wasm32-wasip1/guest/umpire_kettle_guest.wasm",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/named/wasm32-wasip1/guest/umpire_kettle_guest.wasm",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/named/wasm32-wasip1/guest/umpire_stock_guest.wasm",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/named/wasm32-wasip1/guest/umpire_stock_guest.wasm",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/identity/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/guest/deps/darling_macro-57862c4d2c537235.umpire-id",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/identity/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/guest/deps/manyhow_macros-522bb03fecc0c642.umpire-id",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/identity/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/guest/deps/manyhow_macros-5be4a10a87b03003.umpire-id",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/identity/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/guest/deps/prost_derive-43975aa2e4258748.umpire-id",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/identity/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/guest/deps/thiserror_impl-d9ec474b72def7c1.umpire-id",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/identity/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/guest/deps/umpire_catalog_macros-bbe30119c7585d5d.umpire-id",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/identity/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/guest/deps/umpire_dsl_macros-8eea8cbda1d0ba48.umpire-id",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/identity/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/guest/deps/umpire_dsl_macros-afe464b25c4bb8b2.umpire-id",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/identity/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/guest/deps/umpire_ir_derive-5b9651b9f1794cb7.umpire-id",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/identity/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/umpire-lock-6411935ef7f53435f8945f4a0e1ca45db74ff74aa30f3bae8d9984f48b8eaf68.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/identity/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/addr2line-255ee5934a3d8660.umpire-id",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/identity/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/adler2-dcfe9e712de83524.umpire-id",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/identity/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/alloc-ee1b94c4e41bab4b.umpire-id",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/identity/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/bytes-65a877ea08f4b25c.umpire-id",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/identity/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/caught_panic_control.umpire-id",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/identity/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/cfg_if-b5eb0e6e1854091e.umpire-id",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/identity/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/compiler_builtins-6ffcd43c04af33f9.umpire-id",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/identity/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/core-60364901c1ec5ea7.umpire-id",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/identity/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/equivalent-f1c0d3e51dc60161.umpire-id",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/identity/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/fixedbitset-356c64dc03150e9a.umpire-id",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/identity/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/foldhash-3e7f58451663f456.umpire-id",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/identity/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/gimli-0b043c20b392a812.umpire-id",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/identity/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/hashbrown-73a47db5d20f8095.umpire-id",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/identity/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/hashbrown-cf473af66d91d5b2.umpire-id",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/identity/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/hashbrown-d03968f63b3a8ee3.umpire-id",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/identity/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/indexmap-e3af5fa5c6133605.umpire-id",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/identity/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/libc-8bcdf4d93a2fcdc7.umpire-id",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/identity/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/memchr-0ab2081f1519fc00.umpire-id",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/identity/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/miniz_oxide-21e596a6bf8f2e58.umpire-id",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/identity/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/object-804fc83b706b6d74.umpire-id",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/identity/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/overflow_control.umpire-id",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/identity/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/panic_abort-7056431d09fb88ab.umpire-id",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/identity/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/panic_unwind-47e5619adda0bdbc.umpire-id",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/identity/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/petgraph-6e633b6a91d6ca32.umpire-id",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/identity/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/proc_macro-0c07ff060e06c015.umpire-id",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/identity/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/prost-56abc82f06ab2a8b.umpire-id",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/identity/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/prost_types-10c907dc5d820385.umpire-id",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/identity/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/rustc_demangle-81b16fae9c94da4d.umpire-id",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/identity/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/rustc_hash-b89a28e22e2ae749.umpire-id",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/identity/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/rustc_literal_escaper-e9fc47435d3c0e1a.umpire-id",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/identity/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/rustc_std_workspace_alloc-c2674c78804632f7.umpire-id",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/identity/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/rustc_std_workspace_core-6f2d9eb9e9811fd4.umpire-id",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/identity/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/smallvec-833d7999866c1279.umpire-id",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/identity/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/stateful_control.umpire-id",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/identity/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/std-76a3c866e1aa0810.umpire-id",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/identity/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/std_detect-73af2212f1f209a7.umpire-id",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/identity/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/thiserror-c6ddba7c2cc3b5e7.umpire-id",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/identity/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/umpire-0558061cc73d6314.umpire-id",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/identity/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/umpire_catalog-d12cb35172fd9ce2.umpire-id",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/identity/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/umpire_checker-273f83604a5ad181.umpire-id",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/identity/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/umpire_checker-b80f2ad934c82c11.umpire-id",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/identity/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/umpire_dsl-577dafa04ada3703.umpire-id",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/identity/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/umpire_dsl-7fd24e574ce2f3c7.umpire-id",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/identity/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/umpire_kettle_guest.umpire-id",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/identity/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/umpire_reference_kettle-6740d5904ab841a0.umpire-id",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/identity/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/umpire_runtime-28db93f8e8738bc3.umpire-id",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/identity/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/umpire_runtime-d8759717eb2ef94e.umpire-id",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/identity/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/umpire_stock_guest.umpire-id",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/identity/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/umpire_suite-4323e1e3b7a942fa.umpire-id",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/identity/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/unwind-d30f0132eb6d0e9e.umpire-id",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/identity/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1/guest/deps/wasip1-70660f1f0ab1374e.umpire-id",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified parent/identity/guest-wrappers/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/guest-rustc",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/identity/guest-cache/f0f05f7fda2ab4a76453069c43072797caa0380231b41ee90093e19a9fc03210/guest/deps/darling_macro-57862c4d2c537235.umpire-id",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/identity/guest-cache/f0f05f7fda2ab4a76453069c43072797caa0380231b41ee90093e19a9fc03210/guest/deps/manyhow_macros-522bb03fecc0c642.umpire-id",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/identity/guest-cache/f0f05f7fda2ab4a76453069c43072797caa0380231b41ee90093e19a9fc03210/guest/deps/manyhow_macros-5be4a10a87b03003.umpire-id",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/identity/guest-cache/f0f05f7fda2ab4a76453069c43072797caa0380231b41ee90093e19a9fc03210/guest/deps/prost_derive-43975aa2e4258748.umpire-id",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/identity/guest-cache/f0f05f7fda2ab4a76453069c43072797caa0380231b41ee90093e19a9fc03210/guest/deps/thiserror_impl-d9ec474b72def7c1.umpire-id",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/identity/guest-cache/f0f05f7fda2ab4a76453069c43072797caa0380231b41ee90093e19a9fc03210/guest/deps/umpire_catalog_macros-bbe30119c7585d5d.umpire-id",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/identity/guest-cache/f0f05f7fda2ab4a76453069c43072797caa0380231b41ee90093e19a9fc03210/guest/deps/umpire_dsl_macros-8eea8cbda1d0ba48.umpire-id",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/identity/guest-cache/f0f05f7fda2ab4a76453069c43072797caa0380231b41ee90093e19a9fc03210/guest/deps/umpire_dsl_macros-afe464b25c4bb8b2.umpire-id",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/identity/guest-cache/f0f05f7fda2ab4a76453069c43072797caa0380231b41ee90093e19a9fc03210/guest/deps/umpire_ir_derive-5b9651b9f1794cb7.umpire-id",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/identity/guest-cache/f0f05f7fda2ab4a76453069c43072797caa0380231b41ee90093e19a9fc03210/umpire-lock-6411935ef7f53435f8945f4a0e1ca45db74ff74aa30f3bae8d9984f48b8eaf68.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/identity/guest-cache/f0f05f7fda2ab4a76453069c43072797caa0380231b41ee90093e19a9fc03210/wasm32-wasip1/guest/deps/addr2line-255ee5934a3d8660.umpire-id",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/identity/guest-cache/f0f05f7fda2ab4a76453069c43072797caa0380231b41ee90093e19a9fc03210/wasm32-wasip1/guest/deps/adler2-dcfe9e712de83524.umpire-id",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/identity/guest-cache/f0f05f7fda2ab4a76453069c43072797caa0380231b41ee90093e19a9fc03210/wasm32-wasip1/guest/deps/alloc-ee1b94c4e41bab4b.umpire-id",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/identity/guest-cache/f0f05f7fda2ab4a76453069c43072797caa0380231b41ee90093e19a9fc03210/wasm32-wasip1/guest/deps/bytes-65a877ea08f4b25c.umpire-id",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/identity/guest-cache/f0f05f7fda2ab4a76453069c43072797caa0380231b41ee90093e19a9fc03210/wasm32-wasip1/guest/deps/caught_panic_control.umpire-id",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/identity/guest-cache/f0f05f7fda2ab4a76453069c43072797caa0380231b41ee90093e19a9fc03210/wasm32-wasip1/guest/deps/cfg_if-b5eb0e6e1854091e.umpire-id",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/identity/guest-cache/f0f05f7fda2ab4a76453069c43072797caa0380231b41ee90093e19a9fc03210/wasm32-wasip1/guest/deps/compiler_builtins-6ffcd43c04af33f9.umpire-id",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/identity/guest-cache/f0f05f7fda2ab4a76453069c43072797caa0380231b41ee90093e19a9fc03210/wasm32-wasip1/guest/deps/core-60364901c1ec5ea7.umpire-id",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/identity/guest-cache/f0f05f7fda2ab4a76453069c43072797caa0380231b41ee90093e19a9fc03210/wasm32-wasip1/guest/deps/equivalent-f1c0d3e51dc60161.umpire-id",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/identity/guest-cache/f0f05f7fda2ab4a76453069c43072797caa0380231b41ee90093e19a9fc03210/wasm32-wasip1/guest/deps/fixedbitset-356c64dc03150e9a.umpire-id",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/identity/guest-cache/f0f05f7fda2ab4a76453069c43072797caa0380231b41ee90093e19a9fc03210/wasm32-wasip1/guest/deps/foldhash-3e7f58451663f456.umpire-id",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/identity/guest-cache/f0f05f7fda2ab4a76453069c43072797caa0380231b41ee90093e19a9fc03210/wasm32-wasip1/guest/deps/gimli-0b043c20b392a812.umpire-id",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/identity/guest-cache/f0f05f7fda2ab4a76453069c43072797caa0380231b41ee90093e19a9fc03210/wasm32-wasip1/guest/deps/hashbrown-73a47db5d20f8095.umpire-id",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/identity/guest-cache/f0f05f7fda2ab4a76453069c43072797caa0380231b41ee90093e19a9fc03210/wasm32-wasip1/guest/deps/hashbrown-cf473af66d91d5b2.umpire-id",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/identity/guest-cache/f0f05f7fda2ab4a76453069c43072797caa0380231b41ee90093e19a9fc03210/wasm32-wasip1/guest/deps/hashbrown-d03968f63b3a8ee3.umpire-id",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/identity/guest-cache/f0f05f7fda2ab4a76453069c43072797caa0380231b41ee90093e19a9fc03210/wasm32-wasip1/guest/deps/indexmap-e3af5fa5c6133605.umpire-id",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/identity/guest-cache/f0f05f7fda2ab4a76453069c43072797caa0380231b41ee90093e19a9fc03210/wasm32-wasip1/guest/deps/libc-8bcdf4d93a2fcdc7.umpire-id",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/identity/guest-cache/f0f05f7fda2ab4a76453069c43072797caa0380231b41ee90093e19a9fc03210/wasm32-wasip1/guest/deps/memchr-0ab2081f1519fc00.umpire-id",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/identity/guest-cache/f0f05f7fda2ab4a76453069c43072797caa0380231b41ee90093e19a9fc03210/wasm32-wasip1/guest/deps/miniz_oxide-21e596a6bf8f2e58.umpire-id",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/identity/guest-cache/f0f05f7fda2ab4a76453069c43072797caa0380231b41ee90093e19a9fc03210/wasm32-wasip1/guest/deps/object-804fc83b706b6d74.umpire-id",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/identity/guest-cache/f0f05f7fda2ab4a76453069c43072797caa0380231b41ee90093e19a9fc03210/wasm32-wasip1/guest/deps/overflow_control.umpire-id",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/identity/guest-cache/f0f05f7fda2ab4a76453069c43072797caa0380231b41ee90093e19a9fc03210/wasm32-wasip1/guest/deps/panic_abort-7056431d09fb88ab.umpire-id",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/identity/guest-cache/f0f05f7fda2ab4a76453069c43072797caa0380231b41ee90093e19a9fc03210/wasm32-wasip1/guest/deps/panic_unwind-47e5619adda0bdbc.umpire-id",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/identity/guest-cache/f0f05f7fda2ab4a76453069c43072797caa0380231b41ee90093e19a9fc03210/wasm32-wasip1/guest/deps/petgraph-6e633b6a91d6ca32.umpire-id",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/identity/guest-cache/f0f05f7fda2ab4a76453069c43072797caa0380231b41ee90093e19a9fc03210/wasm32-wasip1/guest/deps/proc_macro-0c07ff060e06c015.umpire-id",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/identity/guest-cache/f0f05f7fda2ab4a76453069c43072797caa0380231b41ee90093e19a9fc03210/wasm32-wasip1/guest/deps/prost-56abc82f06ab2a8b.umpire-id",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/identity/guest-cache/f0f05f7fda2ab4a76453069c43072797caa0380231b41ee90093e19a9fc03210/wasm32-wasip1/guest/deps/prost_types-10c907dc5d820385.umpire-id",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/identity/guest-cache/f0f05f7fda2ab4a76453069c43072797caa0380231b41ee90093e19a9fc03210/wasm32-wasip1/guest/deps/rustc_demangle-81b16fae9c94da4d.umpire-id",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/identity/guest-cache/f0f05f7fda2ab4a76453069c43072797caa0380231b41ee90093e19a9fc03210/wasm32-wasip1/guest/deps/rustc_hash-b89a28e22e2ae749.umpire-id",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/identity/guest-cache/f0f05f7fda2ab4a76453069c43072797caa0380231b41ee90093e19a9fc03210/wasm32-wasip1/guest/deps/rustc_literal_escaper-e9fc47435d3c0e1a.umpire-id",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/identity/guest-cache/f0f05f7fda2ab4a76453069c43072797caa0380231b41ee90093e19a9fc03210/wasm32-wasip1/guest/deps/rustc_std_workspace_alloc-c2674c78804632f7.umpire-id",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/identity/guest-cache/f0f05f7fda2ab4a76453069c43072797caa0380231b41ee90093e19a9fc03210/wasm32-wasip1/guest/deps/rustc_std_workspace_core-6f2d9eb9e9811fd4.umpire-id",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/identity/guest-cache/f0f05f7fda2ab4a76453069c43072797caa0380231b41ee90093e19a9fc03210/wasm32-wasip1/guest/deps/smallvec-833d7999866c1279.umpire-id",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/identity/guest-cache/f0f05f7fda2ab4a76453069c43072797caa0380231b41ee90093e19a9fc03210/wasm32-wasip1/guest/deps/stateful_control.umpire-id",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/identity/guest-cache/f0f05f7fda2ab4a76453069c43072797caa0380231b41ee90093e19a9fc03210/wasm32-wasip1/guest/deps/std-76a3c866e1aa0810.umpire-id",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/identity/guest-cache/f0f05f7fda2ab4a76453069c43072797caa0380231b41ee90093e19a9fc03210/wasm32-wasip1/guest/deps/std_detect-73af2212f1f209a7.umpire-id",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/identity/guest-cache/f0f05f7fda2ab4a76453069c43072797caa0380231b41ee90093e19a9fc03210/wasm32-wasip1/guest/deps/thiserror-c6ddba7c2cc3b5e7.umpire-id",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/identity/guest-cache/f0f05f7fda2ab4a76453069c43072797caa0380231b41ee90093e19a9fc03210/wasm32-wasip1/guest/deps/umpire-0558061cc73d6314.umpire-id",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/identity/guest-cache/f0f05f7fda2ab4a76453069c43072797caa0380231b41ee90093e19a9fc03210/wasm32-wasip1/guest/deps/umpire_catalog-d12cb35172fd9ce2.umpire-id",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/identity/guest-cache/f0f05f7fda2ab4a76453069c43072797caa0380231b41ee90093e19a9fc03210/wasm32-wasip1/guest/deps/umpire_checker-273f83604a5ad181.umpire-id",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/identity/guest-cache/f0f05f7fda2ab4a76453069c43072797caa0380231b41ee90093e19a9fc03210/wasm32-wasip1/guest/deps/umpire_checker-b80f2ad934c82c11.umpire-id",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/identity/guest-cache/f0f05f7fda2ab4a76453069c43072797caa0380231b41ee90093e19a9fc03210/wasm32-wasip1/guest/deps/umpire_dsl-577dafa04ada3703.umpire-id",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/identity/guest-cache/f0f05f7fda2ab4a76453069c43072797caa0380231b41ee90093e19a9fc03210/wasm32-wasip1/guest/deps/umpire_dsl-7fd24e574ce2f3c7.umpire-id",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/identity/guest-cache/f0f05f7fda2ab4a76453069c43072797caa0380231b41ee90093e19a9fc03210/wasm32-wasip1/guest/deps/umpire_kettle_guest.umpire-id",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/identity/guest-cache/f0f05f7fda2ab4a76453069c43072797caa0380231b41ee90093e19a9fc03210/wasm32-wasip1/guest/deps/umpire_reference_kettle-6740d5904ab841a0.umpire-id",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/identity/guest-cache/f0f05f7fda2ab4a76453069c43072797caa0380231b41ee90093e19a9fc03210/wasm32-wasip1/guest/deps/umpire_runtime-28db93f8e8738bc3.umpire-id",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/identity/guest-cache/f0f05f7fda2ab4a76453069c43072797caa0380231b41ee90093e19a9fc03210/wasm32-wasip1/guest/deps/umpire_runtime-d8759717eb2ef94e.umpire-id",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/identity/guest-cache/f0f05f7fda2ab4a76453069c43072797caa0380231b41ee90093e19a9fc03210/wasm32-wasip1/guest/deps/umpire_stock_guest.umpire-id",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/identity/guest-cache/f0f05f7fda2ab4a76453069c43072797caa0380231b41ee90093e19a9fc03210/wasm32-wasip1/guest/deps/umpire_suite-4323e1e3b7a942fa.umpire-id",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/identity/guest-cache/f0f05f7fda2ab4a76453069c43072797caa0380231b41ee90093e19a9fc03210/wasm32-wasip1/guest/deps/unwind-d30f0132eb6d0e9e.umpire-id",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/identity/guest-cache/f0f05f7fda2ab4a76453069c43072797caa0380231b41ee90093e19a9fc03210/wasm32-wasip1/guest/deps/wasip1-70660f1f0ab1374e.umpire-id",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified child/identity/guest-wrappers/f0f05f7fda2ab4a76453069c43072797caa0380231b41ee90093e19a9fc03210/guest-rustc",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified toolchain/cargo",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified toolchain/cargo-nextest",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified toolchain/go",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified toolchain/java",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified toolchain/protoc",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified toolchain/rustc",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified archives/stage-authority.tar.gz",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovery object verified archives/source-0547321.tar.gz",
+      "passed": true,
+      "detail": null
+    }
+  ],
+  "result": "pass",
+  "parent_stage_count": 18,
+  "child_stage_count": 17,
+  "source_input_records": 1195,
+  "counts": {
+    "parent": {
+      "test_producers": {
+        "3686870-0": {
+          "discovered": 910,
+          "executed": 908,
+          "ignored": 2,
+          "skipped": 0
+        },
+        "3686870-1675": {
+          "discovered": 5,
+          "executed": 4,
+          "ignored": 1,
+          "skipped": 0
+        }
+      },
+      "aggregate_tests": {
+        "discovered": 915,
+        "executed": 912,
+        "ignored": 3,
+        "skipped": 0
+      },
+      "raw_tlc_attempts": 836,
+      "raw_tlc_completions": 836,
+      "raw_tlc_confirmed_starts": 752,
+      "raw_tlc_attempts_without_completion": [],
+      "tlc_authority_note": "Raw observations retained separately. Published stage TLC counts are null and are not replaced by these derived diagnostic totals."
+    },
+    "child": {
+      "test_producers": {
+        "3761103-0": {
+          "discovered": 910,
+          "executed": 908,
+          "ignored": 2,
+          "skipped": 0
+        },
+        "3761103-1673": {
+          "discovered": 5,
+          "executed": 4,
+          "ignored": 1,
+          "skipped": 0
+        }
+      },
+      "aggregate_tests": {
+        "discovered": 915,
+        "executed": 912,
+        "ignored": 3,
+        "skipped": 0
+      },
+      "raw_tlc_attempts": 836,
+      "raw_tlc_completions": 836,
+      "raw_tlc_confirmed_starts": 752,
+      "raw_tlc_attempts_without_completion": [],
+      "tlc_authority_note": "Raw observations retained separately. Published stage TLC counts are null and are not replaced by these derived diagnostic totals."
+    }
+  },
+  "artifacts_retained": 320,
+  "unique_recovery_objects": 158,
+  "unique_retained_bytes": 294884237,
+  "limitations": [
+    "Dev required-TLC validation only; release workspace tests and paired/local-edit proof are separate evidence.",
+    "Apalache skipped, as recorded by the invoked gate.",
+    "Gate and edited-checker timings exceed existing soft budgets; no performance obligation closed.",
+    "Complete stage receipts prove stage success; original launcher process exit is conductor-reported, without a separate persisted exit-status receipt.",
+    "Shared toolchain executable identity is retained, not a self-contained Rust/Java/Go toolchain installation. No shared toolchain cache cleanup is authorized.",
+    "No cache cleanup is authorized before conductor review/closure and renewed process/lease audit."
+  ]
+}

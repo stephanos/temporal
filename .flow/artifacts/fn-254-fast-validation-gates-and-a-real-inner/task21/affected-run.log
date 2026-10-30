@@ -1,0 +1,123 @@
+   Compiling toml_datetime v1.1.2+spec-1.1.0
+   Compiling winnow v1.0.4
+   Compiling prost-build v0.14.4
+   Compiling umpire-backend-process v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/backends/process)
+   Compiling serde_derive v1.0.229
+   Compiling toml_edit v0.25.17+spec-1.1.0
+   Compiling toml_parser v1.1.5+spec-1.1.0
+   Compiling toml v1.1.8+spec-1.1.0
+   Compiling proc-macro-crate v3.5.0
+   Compiling umpire-tla v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/backends/tla)
+   Compiling umpire-runtime v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/protocol/runtime)
+   Compiling umpire-dsl-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/author/dsl/macros)
+   Compiling umpire-tlc v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/backends/tlc)
+   Compiling trybuild v1.0.122
+   Compiling umpire-dsl v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/author/dsl)
+   Compiling umpire-checker v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/backends/native)
+   Compiling umpire-testing v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/dev/testing)
+   Compiling umpire-suite v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/author/suite)
+   Compiling umpire-catalog-syntax v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/catalog/syntax)
+   Compiling umpire-catalog-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/catalog/macros)
+   Compiling umpire-catalog v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/catalog)
+   Compiling umpire v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/author/umpire)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 7.39s
+────────────
+ Nextest run ID 86742499-25ef-4bab-a0c9-a31d18ba38f4 with nextest profile: default
+    Starting 95 tests across 4 binaries
+        PASS [   0.002s] ( 1/95) umpire-checker::main catalog_admission::an_empty_factor_admits_an_overflowing_partner_and_reports_the_variant
+        PASS [   0.002s] ( 2/95) umpire-checker::main search::epsilon_labels_precede_edges_without_spending_depth
+        PASS [   0.002s] ( 3/95) umpire-runtime::main abi_staging::panicking_publisher_leaves_transaction_uncommitted
+        PASS [   0.002s] ( 4/95) umpire-runtime::main abi_staging::oversized_response_never_publishes_or_commits
+        PASS [   0.002s] ( 5/95) umpire-checker::main catalog_admission::progress_revalidates_the_catalog_under_the_explored_limit
+        PASS [   0.003s] ( 6/95) umpire-runtime::main abi_staging::unpublished_exploration_leaves_stock_guest_unexplored
+        PASS [   0.002s] ( 7/95) umpire-runtime::main constructors::constructors_preserve_actions_choices_paths_and_reply
+        PASS [   0.002s] ( 8/95) umpire-runtime::main catalog::catalog_refusals_map_to_the_budget_code
+        PASS [   0.002s] ( 9/95) umpire-runtime::main core_protocol::explained_zero_steps_is_present_and_distinct_from_unexplained
+        PASS [   0.002s] (10/95) umpire-runtime::main catalog::explore_judge_answer_and_replay_refuse_without_publishing
+        PASS [   0.002s] (11/95) umpire-runtime::main core_protocol::any_admits_only_canonical_urls_and_distinguishes_refusals
+        PASS [   0.003s] (12/95) umpire-runtime::main annotations::typed_probes_and_annotations_share_stateless_routing
+        PASS [   0.002s] (13/95) umpire-runtime::main core_protocol::new_core_messages_match_shared_literal_bytes
+        PASS [   0.003s] (14/95) umpire-runtime::main core_protocol::explanation_outcomes_are_additive_at_tag_two
+        PASS [   0.003s] (15/95) umpire-runtime::main dispatch::empty_assumption_refusal_survives_generated_protocol
+        PASS [   0.003s] (16/95) umpire-runtime::main core_protocol::new_requests_round_trip_opaque_payloads_and_dispatch_honest_refusals
+        PASS [   0.004s] (17/95) umpire-runtime::main dispatch::generated_dispatch_matches_trait_kettle_goldens
+        PASS [   0.003s] (18/95) umpire-runtime::main dispatch::progress_bound_refusal_survives_generated_protocol
+        PASS [   0.004s] (19/95) umpire-runtime::main dispatch::invalid_requests_have_typed_refusals
+        PASS [   0.002s] (20/95) umpire-runtime::main dispatch::scope_action_refusal_survives_generated_protocol
+        PASS [   0.002s] (21/95) umpire-runtime::main dispatch::snapshot_payload::tests::preserves_body_and_refuses_invalid_headers
+        PASS [   0.003s] (22/95) umpire-runtime::main dispatch::progress_query_refusals_survive_generated_protocol
+        PASS [   0.002s] (23/95) umpire-runtime::main prefix::positive_current_revalidates_every_earlier_actual_observation
+        PASS [   0.002s] (24/95) umpire-runtime::main proposal::bootstrap_configuration_admission_and_polling_publish_atomically
+        PASS [   0.003s] (25/95) umpire-runtime::main dispatch::successful_explore_replaces_graph_and_refusal_preserves_it
+        PASS [   0.002s] (26/95) umpire-runtime::main proposal::disabled_proposal_refuses_without_committing_and_quiescent_is_distinct
+        PASS [   0.002s] (27/95) umpire-runtime::main proposal::enabled_internal_action_is_never_a_proposal
+        PASS [   0.002s] (28/95) umpire-runtime::main proposal::proposal_is_transactional_and_pending_until_final_observation
+        PASS [   0.004s] (29/95) umpire-runtime::main prefix::publication_and_prefix_bound_keep_witness_pending_and_prior_reports_for_retry
+        PASS [   0.002s] (30/95) umpire-runtime::main proposal::read_does_not_require_enabled_external_model_action
+        PASS [   0.002s] (31/95) umpire-runtime::main proposal::read_commits_intermediate_progress_without_consuming_the_pending_request
+        PASS [   0.002s] (32/95) umpire-runtime::main proposal::read_remains_pending_until_correlated_final_explanation_publishes
+        PASS [   0.002s] (33/95) umpire-runtime::main proposal::reset_program_and_refusing_defaults_preserve_run_transactions
+        PASS [   0.002s] (34/95) umpire-runtime::main proposal::selected_initial_state_still_requires_declared_bootstrap
+        PASS [   0.002s] (35/95) umpire-runtime::main proposal_wire::proposal_method_kind_and_poll_wire_contract
+        PASS [   0.002s] (36/95) umpire-runtime::main reach::a_short_canonical_match_survives_a_longer_cycle_but_no_match_refuses_at_cut
+        PASS [   0.003s] (37/95) umpire-runtime::main proposal::runtime_owns_quiescence_before_default_proposal_policy
+        PASS [   0.004s] (38/95) umpire-runtime::main proposal::unpublished_bootstrap_and_unexplained_pending_effects_roll_back
+        PASS [   0.018s] (39/95) umpire-checker::main search::caller_labels_keep_same_state_with_distinct_cursors_and_nonclone_emissions
+        PASS [   0.003s] (40/95) umpire-runtime::main reach::canonical_actions_choices_outcomes_and_ordered_facts_are_retained
+        PASS [   0.019s] (41/95) umpire-checker::main catalog_admission::empty_world_domains_stay_visible_including_with_no_starts
+        PASS [   0.019s] (42/95) umpire-checker::main search::work_bound_accounts_labels_and_explicit_evaluations_without_partial_admission
+        PASS [   0.002s] (43/95) umpire-runtime::main reach::evidence_admission_refusals_preserve_pending_prefix_and_retry
+        PASS [   0.002s] (44/95) umpire-runtime::main reach::exact_depth_complete_absence_and_live_depth_or_work_frontiers_differ
+        PASS [   0.003s] (45/95) umpire-runtime::main reach::equal_states_with_different_choices_outcomes_and_consumption_keep_their_continuations
+        PASS [   0.002s] (46/95) umpire-runtime::main reach::partial_filter_matches_distinct_checked_budgets_without_substituting_unknown_absent_or_zero
+        PASS [   0.002s] (47/95) umpire-runtime::main rejecting::invalid_rejections_refuse_explore_replay_expected_actions_and_answer_without_advancing
+        PASS [   0.003s] (48/95) umpire-runtime::main reach::positive_zero_step_model_self_loop_and_declared_stutter_require_separate_evidence
+        PASS [   0.002s] (49/95) umpire-runtime::main stateful::answer_validates_the_response_before_committing_delivery_and_awaits_response_evidence
+        PASS [   0.003s] (50/95) umpire-runtime::main reach::reach_catalog_and_checked_step_failures_refuse_without_advancing_or_freezing
+        PASS [   0.003s] (51/95) umpire-runtime::main selected_start::selected_initial_requires_exact_membership_including_other_fields
+        PASS [   0.004s] (52/95) umpire-runtime::main reach::later_current_revalidates_retained_typed_outcome_fact_and_consumption_cursor
+        PASS [   0.002s] (53/95) umpire-runtime::main stateful::explanations_carry_all_replayed_non_clone_outcomes
+        PASS [   0.001s] (54/95) umpire-runtime::main stateful::explanations_replay_whole_candidate_sequences_and_isolate_instances
+        PASS [   0.003s] (55/95) umpire-runtime::main selected_start::selected_reset_after_freeze_restores_initial_without_restricting_exploration
+        PASS [   0.003s] (56/95) umpire-runtime::main selected_start::selected_publication_failures_preserve_advancement_freeze_and_reset
+        PASS [   0.002s] (57/95) umpire-runtime::main stateful::failed_unexplained_publication_does_not_freeze_the_run
+        PASS [   0.024s] (58/95) umpire-checker::main catalog_admission::fairness_names_one_concrete_input_not_its_variant
+        PASS [   0.024s] (59/95) umpire-checker::main oracle::brute_force_oracle
+        PASS [   0.002s] (60/95) umpire-runtime::main stateful::invalid_candidates_freeze_the_first_enabled_actions_until_reset
+        PASS [   0.003s] (61/95) umpire-runtime::main stateful::failed_response_publication_preserves_judge_answer_reset_and_exploration
+        PASS [   0.002s] (62/95) umpire-runtime::main stateful::runtime_formats_unit_outcomes_with_debug
+        PASS [   0.002s] (63/95) umpire-runtime::main wire::original_wire_bytes_and_values_are_stable
+        PASS [   0.002s] (64/95) umpire-runtime::main stateful::stateful_operations_require_a_unique_initial_state
+        PASS [   0.002s] (65/95) umpire-runtime::main wire::shared_hex_decoder_preserves_literal_bytes_and_refuses_malformed_vectors
+        PASS [   0.003s] (66/95) umpire-runtime::main stateful::judge_replays_model_steps_and_repeated_current_observations_are_positive
+        PASS [   0.003s] (67/95) umpire-runtime::main stateful::malformed_and_unknown_requests_preserve_the_current_run
+        PASS [   0.003s] (68/95) umpire-suite::main alternative_search::along_preserves_skipped_step_refusals_for_structural_and_legacy_paths
+        PASS [   0.002s] (69/95) umpire-suite::main full_patterns::cover_refuses_empty_unwitnessed_and_cut_spaces
+        PASS [   0.003s] (70/95) umpire-suite::main explicit_world::explicit_runs_retain_the_owned_world_after_space_is_dropped
+        PASS [   0.003s] (71/95) umpire-suite::main declared_world::complete_starts_keep_correlation_first_occurrence_and_deduplication
+        PASS [   0.002s] (72/95) umpire-suite::main full_patterns::full_grammar_find_and_along_preserve_state_inference
+        PASS [   0.003s] (73/95) umpire-suite::main explicit_world::explicit_queries_use_selected_constants_and_starts
+        PASS [   0.003s] (74/95) umpire-suite::main explicit_world::cloning_and_formatting_spaces_require_no_world_traits
+        PASS [   0.003s] (75/95) umpire-suite::main alternative_search::skipped_deep_effect_cannot_hide_a_shorter_alternative
+        PASS [   0.003s] (76/95) umpire-suite::main alternative_search::along_keeps_predicate_failure_ahead_of_unrelated_skips
+        PASS [   0.003s] (77/95) umpire-suite::main full_patterns::cases_mismatch_and_alternative_budget_precede_model_search
+        PASS [   0.004s] (78/95) umpire-testing::main declared_values::world_and_state_enums_bind_without_finite
+        PASS [   0.004s] (79/95) umpire-suite::main retained::queries_take_the_state_as_their_one_explicit_generic_argument
+        PASS [   0.004s] (80/95) umpire-suite::main retained::refused_stories_do_not_construct_the_registered_world
+        PASS [   0.005s] (81/95) umpire-suite::main retained::legacy_spaces_preserve_unconstrained_configuration_and_auto_traits
+        PASS [   0.004s] (82/95) umpire-suite::main world_domains::every_suite_route_admits_the_catalog_under_the_space_limit
+        PASS [   0.005s] (83/95) umpire-suite::main full_patterns::model_state_budget_does_not_spend_alternative_capacity
+        PASS [   0.004s] (84/95) umpire-suite::main world_domains::contextual_domains_take_the_selected_world
+        PASS [   0.005s] (85/95) umpire-suite::main retained::cover_and_along_never_replay_effects_or_rebuild_worlds
+        PASS [   0.005s] (86/95) umpire-suite::main full_patterns::sampling_walks_admitted_loops_reproducibly_and_reports_its_bound
+        PASS [   0.002s] (87/95) umpire-testing::main fixture_composition::fixture_refuses_extra_files_that_replace_checker_outputs
+        PASS [   0.003s] (88/95) umpire-testing::main discovery::refuses_incomplete_fixtures
+        PASS [   0.003s] (89/95) umpire-testing::main orphan_control::orphan_control
+        PASS [   0.003s] (90/95) umpire-testing::main fixture_composition::fixture_appends_suite_files_after_retaining_negative_outputs
+        PASS [   0.008s] (91/95) umpire-testing::main empty_control::rejects_fixture_without_owned_outputs
+        PASS [   0.024s] (92/95) umpire-testing::main discovery::compiles_distinct_non_identifier_folder_names
+        PASS [   0.056s] (93/95) umpire-suite::main fixtures::fixtures
+        PASS [   1.542s] (94/95) umpire-suite::main large_space::state_only_find_answers_over_a_large_space_under_the_default_budget
+        PASS [   3.678s] (95/95) umpire-checker::main catalog_admission::over_limit_catalog_is_refused_before_any_step
+────────────
+     Summary [   3.683s] 95 tests run: 95 passed, 0 skipped

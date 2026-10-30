@@ -1,0 +1,38 @@
+{
+  "replacement": {
+    "exit": 101,
+    "counted": {
+      "discovered": 3,
+      "executed": 2,
+      "ignored": 1
+    },
+    "stage_exit": 0,
+    "expected": {
+      "discovered": 5,
+      "executed": 3,
+      "ignored": 2
+    },
+    "log": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25417-controller-admission/replacement-behavior-red.log"
+  },
+  "carrier": {
+    "command": [
+      "mise",
+      "exec",
+      "--",
+      "cargo",
+      "test",
+      "--locked",
+      "-p",
+      "xtask",
+      "--lib",
+      "gate::work_counts::tests::test_carrier_rejection_is_frozen_before_configured_path_can_change",
+      "--",
+      "--exact",
+      "--nocapture"
+    ],
+    "exit": 101,
+    "seconds": 1.7890632089984138,
+    "log": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25417-controller-admission/carrier-behavior-red.log",
+    "sha256": "bb87a0eaeaff24958462e83ec1d2040fe741e3333691be00715b8cfb6db608a5"
+  }
+}

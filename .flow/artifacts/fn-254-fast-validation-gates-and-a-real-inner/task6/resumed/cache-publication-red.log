@@ -1,0 +1,25 @@
+   Compiling umpire-tlc v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/backends/tlc)
+    Finished `test` profile [unoptimized] target(s) in 7.19s
+     Running unittests src/lib.rs (.flow/tmp/fn2546-resumed/target/debug/deps/umpire_tlc-c27645a3e9684dea)
+
+running 1 test
+
+thread 'runner::cache_tests::verified_configuration_publishes_despite_refuted_sibling' (118170) panicked at backends/tlc/src/runner/cache_tests.rs:600:9:
+TLC cache miss M configuration 0 414dac15dbefda2ceda2e7daaada2091633da58ee4404a6c558373a5073c59fb
+TLC execute M record 27fe2c1301d1485ed573a461e3423919f7994b5ec6b858789de6520a33cde065
+TLC execute M record 22e0f5c97191fe0a924818cff3f8fbbecb3a12bf83429835aec4b47af5a6c54e
+TLC cache miss M configuration 1 1e3538a492fdb22a9c25e8c106663dfff8b78f14a403528d177baf55e5d96e83
+TLC execute M record 27fe2c1301d1485ed573a461e3423919f7994b5ec6b858789de6520a33cde065
+TLC execute M record f82a82a3675e8e970eac1a13bf485da03243555d60d76364029c64215d50c81d
+
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+test runner::cache_tests::verified_configuration_publishes_despite_refuted_sibling ... FAILED
+
+failures:
+
+failures:
+    runner::cache_tests::verified_configuration_publishes_despite_refuted_sibling
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 25 filtered out; finished in 0.20s
+
+error: test failed, to rerun pass `-p umpire-tlc --lib`

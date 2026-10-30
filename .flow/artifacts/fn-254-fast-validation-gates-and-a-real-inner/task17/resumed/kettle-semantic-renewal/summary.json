@@ -1,0 +1,174 @@
+{
+  "root_head": "9a4b34f0d484cdc7a301b95703e57343dea7351f",
+  "scope": "F3.2 one public Kettle quick plus Linux native fixture resource/admission proof",
+  "native_resource_receipt": "resources/summary.json",
+  "quick_exit": 0,
+  "quick_wall_seconds": 173.14224591600214,
+  "stages": [
+    [
+      "fmt",
+      "0.189",
+      "0"
+    ],
+    [
+      "clippy",
+      "6.839",
+      "0"
+    ],
+    [
+      "compile",
+      "7.528",
+      "0"
+    ],
+    [
+      "test-inventory",
+      "45.465",
+      "0"
+    ],
+    [
+      "test",
+      "110.616",
+      "0"
+    ],
+    [
+      "doctest",
+      "2.176",
+      "0"
+    ]
+  ],
+  "selection_packages": [
+    "umpire-apalache",
+    "umpire-fixtures",
+    "umpire-kettle-guest",
+    "umpire-reference-kettle",
+    "umpire-suite",
+    "umpire-tla"
+  ],
+  "nextest": {
+    "identities": 280,
+    "passed": 278,
+    "ignored": 2,
+    "actual_current_identity_set_equals_F2": true,
+    "actual_status_receipt": "test-statuses.json"
+  },
+  "doctests": {
+    "packages": [
+      "umpire-apalache",
+      "umpire-reference-kettle",
+      "umpire-suite",
+      "umpire-tla"
+    ],
+    "passed": 1,
+    "ignored": 1,
+    "failed": 0,
+    "meaning": "Cargo output includes a compile-fail doctest with expected compiler diagnostic; phase exit0"
+  },
+  "cache": {
+    "mode": "existing retained cache; no clears, renames or cold/warm campaign",
+    "files_before": 319,
+    "files_after": 319,
+    "all_file_hashes_unchanged": true,
+    "total_hit_labels": 111,
+    "total_miss_labels": 104,
+    "total_execution_labels": 326,
+    "kettle_labels": [
+      "TLC cache hit Kettle configuration 0 4ac29a9500960b40d100aa2ccd69646f70532ac61d8337a9289197262f5f348e",
+      "TLC cache hit Kettle configuration 1 8056b8019b29bce507aab951821c4bce9c7e743639469ed293b5384102b2dd7c",
+      "TLC cache miss Kettle configuration 2 b84a5c5c360eab7780df01a92bd07ce91b99acf247f247963671aa3e552bcb74",
+      "TLC cache hit Kettle configuration 0 4ac29a9500960b40d100aa2ccd69646f70532ac61d8337a9289197262f5f348e",
+      "TLC cache hit Kettle configuration 1 8056b8019b29bce507aab951821c4bce9c7e743639469ed293b5384102b2dd7c",
+      "TLC cache miss Kettle configuration 2 b84a5c5c360eab7780df01a92bd07ce91b99acf247f247963671aa3e552bcb74"
+    ],
+    "kettle_execution_labels": [
+      "TLC execute Kettle record 27fe2c1301d1485ed573a461e3423919f7994b5ec6b858789de6520a33cde065",
+      "TLC execute Kettle record 25dfe13b891e11620e072fdee52a8922c68a0f36bf9ab9eef576f9703b7bdf1e",
+      "TLC execute Kettle record 27fe2c1301d1485ed573a461e3423919f7994b5ec6b858789de6520a33cde065",
+      "TLC execute Kettle record 25dfe13b891e11620e072fdee52a8922c68a0f36bf9ab9eef576f9703b7bdf1e"
+    ],
+    "fresh_negative_configuration_2_misses": 2,
+    "negative_configuration_absent_from_cache": true
+  },
+  "native_interpreter_agreement_log_lines": 277,
+  "kettle_native_interpreter": [
+    "quick native/interpreter agreement fixtures::sample_kettle::kettle::World: 82 states, 2 edges",
+    "quick native/interpreter agreement fixtures::sample_kettle::kettle::World: 283 states, 424 edges",
+    "quick native/interpreter agreement fixtures::sample_kettle::kettle::World: 283 states, 424 edges"
+  ],
+  "jvm_observations": {
+    "sample_period_seconds": 0.2,
+    "sampled_jvm_processes": 354,
+    "sampled_concurrent_jvms": 4,
+    "sampled_concurrent_framework_owners": 2,
+    "overlap_receipt": [
+      {
+        "at": 1793072679.9660878,
+        "owners": [
+          {
+            "pid": 720480,
+            "start_time": "2569495",
+            "case": "action_inputs_tests::actual_tlc_agrees_and_replays_in_both_selected_worlds",
+            "argv0": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/target/debug/deps/fixtures-7cabd0f2f49426e0",
+            "fd9": {
+              "device": 29,
+              "inode": 10669829,
+              "target": "/tmp/umpire-validation-1000/jvm.lock"
+            },
+            "meaning": "direct child of actual nextest run controller; case supplied by same ancestry"
+          },
+          {
+            "pid": 720506,
+            "start_time": "2569506",
+            "case": "action_inputs_tests::exact_payload_fairness_mutations_disagree_with_the_native_verdicts",
+            "argv0": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/target/debug/deps/fixtures-7cabd0f2f49426e0",
+            "fd9": {
+              "device": 29,
+              "inode": 10669829,
+              "target": "/tmp/umpire-validation-1000/jvm.lock"
+            },
+            "meaning": "direct child of actual nextest run controller; case supplied by same ancestry"
+          }
+        ]
+      }
+    ],
+    "sampled_max_individual_jvm_rss_kib": 102224,
+    "sampled_max_summed_jvm_rss_kib": 341328,
+    "meaning": "RSS is sampled observation, not a hard peak or total-memory limit",
+    "discovery_unique": 24,
+    "discovery_heap_cap_observed": "-Xmx512m",
+    "model_and_discovery_heap_cap_observed": "-Xmx512m",
+    "java_host_lease_capability_and_scope_locators_absent_in_all_samples": true,
+    "java_fd9_reuse_note": "Some JVMs reopen numeric slot9 for sockets; no sampled slot9 matches the host lease dev/inode",
+    "owned_fd9_device_inode": [
+      [
+        29,
+        10669829
+      ]
+    ],
+    "theoretical_policy": "required global4 / JVM group2 / per-check recovery2;4heap-capped checker JVMs",
+    "cleanup": {
+      "live": {},
+      "all_observed_owned_pids_absent": true
+    }
+  },
+  "source_binaries_locks_snapshots_unchanged": true,
+  "root_clean": true,
+  "registry_tuples_count": 119,
+  "protected_snapshots": 202,
+  "model_restoration": {
+    "path": "model/umpire/dev/fixtures/fixtures/sample_kettle/model.rs",
+    "original_sha256": "6adf1d33cbd161a956033a234b770af1c4eb22cb81d3a2a24ed6d51603e5c714",
+    "edited_sha256": "5df019379bd8c94ab1f8028f636cd7fe367aa620b84e726bba9c72f5c73adefd",
+    "restored_sha256": "6adf1d33cbd161a956033a234b770af1c4eb22cb81d3a2a24ed6d51603e5c714",
+    "restored": true,
+    "command_exit": 0
+  },
+  "combined_cache_growth_bytes": 1408180899,
+  "free_bytes": 12363014144,
+  "limits": "3GiB combined phase growth /8GiB free guard; compiler1,Go1,incremental0; production quick strips CARGO_PROFILE overrides",
+  "not_run": [
+    "Activity semantic quick",
+    "Production standalone",
+    "Any new historical baseline or cold/warm campaign",
+    "Darwin portable completion proof"
+  ]
+}

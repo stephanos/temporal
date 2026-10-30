@@ -1,0 +1,60 @@
+{
+  "base": "a4e97c8e16e71f5cea515910fe692b738d31a366",
+  "draws": [
+    {
+      "axis": "correctness",
+      "failed": false,
+      "model": "claude-fable-5-1",
+      "session_id": "4a38fda3-db2a-45e1-aaf0-dae699f344df",
+      "verdict": "SHIP"
+    }
+  ],
+  "effort": "high",
+  "findings": {
+    "backend": "claude",
+    "baseSha": "a4e97c8e16e71f5cea515910fe692b738d31a366",
+    "headSha": "c258547ed5cc7d2ddc2247fce956dc5bb8504d32",
+    "items": [
+      {
+        "anchor": {
+          "baseSha": "a4e97c8e16e71f5cea515910fe692b738d31a366",
+          "headSha": "c258547ed5cc7d2ddc2247fce956dc5bb8504d32",
+          "path": ".worktrees/fn2583-consumers/common/testing/testpilot/README.md",
+          "side": "head",
+          "startLine": 5
+        },
+        "body": "Disposition 6 replaced the retired `model/umpire/hosts/go/README.md` pointer with Markdown links to `../../../../umpire/hosts/go/README.md`. Those resolve on disk only under the paired layout and render as broken links on GitHub or in any single-repository view. The CLI comment fix used prose (\"hosts/go/README.md in the sibling Umpire checkout\"), which is the better pattern.",
+        "classification": "introduced",
+        "confidence": 75,
+        "firstSeenReceiptId": "review-c56d2c5d9cc42d717e3242388527b873a5edfbf1f1b69f91a8ef19d260d2bc12",
+        "id": "finding-0503b6669867dce300622333f439ee10",
+        "lastSeenReceiptId": "review-c56d2c5d9cc42d717e3242388527b873a5edfbf1f1b69f91a8ef19d260d2bc12",
+        "ordinal": 1,
+        "rIds": [],
+        "severity": "P3",
+        "status": "open",
+        "suggestion": "Use the same prose wording in both READMEs instead of a filesystem-relative link that escapes the repository. Non-blocking; a task 5 docs pass may own it.",
+        "title": "Disposition 6 replaced the retired `model/umpire/hosts/go/README"
+      }
+    ],
+    "reviewKind": "implementation",
+    "round": 1,
+    "schemaVersion": 1,
+    "sourceReceiptId": "review-c56d2c5d9cc42d717e3242388527b873a5edfbf1f1b69f91a8ef19d260d2bc12"
+  },
+  "focus": "Task3 R4 follow-up review on final consumer3f5f613578f2857b738a7792fad08f12b3ea0a41 versus previously reviewed3658582. One fresh reviewer after initial3-lens allSHIP; actual initial reviews retained consumer/review-initial-365 with six valid residual findings. Inspect actual candidate via consumer/source-adaptation.patch and worktree .worktrees/fn2583-consumers. Changes after365 only Make check/fmt/update preflight, shipping shell guard control, canonical live README/module/sibling-doc paths and final CLI comment. No Rust manifests/locks/runtime/protocol/guest bytes changed. All six dispositions consumer/review-dispositions-3f5f613.json. Current exact clean3f5/054 pair compilation,16unit7integration,Makeguards and automatic parentGo workspace plus three selected module Dirs pass in consumer/current-pair-3f5-054/receipt.json. Current readiness/source now explicitly point at these actual observations, retaining historical ac/365 evidence separately. Independent new thinbundle recovery requires onlyac60; candidate absent before bundle, exact tree+guest and strictfsck0. Rebind unchanged prior host/noRust/native-symbolic proofs by blob identities; Makefile declared API input guestfreshness expires explicitly for task4, not claimed current. MILESTONES current3f, standalone2closed. Review all six fixes and task3 candidate-readiness acceptance. Spec interimownership keeps candidate unmerged/CIinactive; task4 broad currentpaired/release/generation and task5 publication/cutover remain OPEN, not task3 claims. No source-removal/remote publication. Ignore task2 review/proof and uncommitted task5prep/cleanup outside scope.",
+  "id": "fn-258-complete-the-resumed-standalone-umpire.3",
+  "introduced_count": 1,
+  "mode": "claude",
+  "model": "claude-fable-5-1",
+  "pre_existing_count": 0,
+  "review": "## Issue 1\n- **Severity**: P3\n- **Title**: Disposition 6 replaced the retired `model/umpire/hosts/go/README\n- **Confidence**: 75\n- **Classification**: introduced\n- **Problem**: Disposition 6 replaced the retired `model/umpire/hosts/go/README.md` pointer with Markdown links to `../../../../umpire/hosts/go/README.md`. Those resolve on disk only under the paired layout and render as broken links on GitHub or in any single-repository view. The CLI comment fix used prose (\"hosts/go/README.md in the sibling Umpire checkout\"), which is the better pattern.\n- **Suggestion**: Use the same prose wording in both READMEs instead of a filesystem-relative link that escapes the repository. Non-blocking; a task 5 docs pass may own it.\n- **File:Line**: .worktrees/fn2583-consumers/common/testing/testpilot/README.md:5\n\n```json\n{\"classification_counts\": {\"introduced\": 1, \"pre_existing\": 0}, \"unaddressed\": [], \"suppressed_count\": {}}\n```\n\n<verdict>SHIP</verdict>\n",
+  "review_reservation_id": "6d72d1524e6b486c941b57158b7e5a45",
+  "rid": "6d72d1524e6b486c941b57158b7e5a45",
+  "session_id": "4a38fda3-db2a-45e1-aaf0-dae699f344df",
+  "spec": "claude:claude-fable-5-1:high",
+  "timestamp": "2026-10-28T14:17:10.317550Z",
+  "type": "impl_review",
+  "unaddressed": [],
+  "verdict": "SHIP"
+}

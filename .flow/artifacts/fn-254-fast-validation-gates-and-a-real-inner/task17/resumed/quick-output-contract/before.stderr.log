@@ -1,0 +1,8 @@
+   Compiling quick-output-canary v0.0.0 (/tmp/umpire-quick-output-qbwcq94v)
+    Finished `test` profile [unoptimized] target(s) in 0.09s
+    Finished `test` profile [unoptimized] target(s) in 0.00s
+────────────
+ Nextest run ID cf2189be-07d5-4d24-b8e7-0a17f1df254c with nextest profile: required
+    Starting 1 test across 1 binary
+────────────
+     Summary [   0.002s] 1 test run: 1 passed, 0 skipped

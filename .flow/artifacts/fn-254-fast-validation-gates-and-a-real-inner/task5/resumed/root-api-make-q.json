@@ -1,0 +1,16 @@
+{
+  "command": [
+    "make",
+    "-q",
+    "proto/api.binpb"
+  ],
+  "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal",
+  "exit_code": 0,
+  "descriptor_bytes": 241086,
+  "descriptor_sha256": "0f8845ad30e19673abb7b5e7638cd32d4041d9ae7afe32318a673ac62eb4630d",
+  "descriptor_mtime_ns": 1792805333546641154,
+  "make_prerequisite_count": 78,
+  "newer_prerequisites": [],
+  "read_only": true,
+  "checked_utc": "2026-10-26T22:44:43.018768+00:00"
+}

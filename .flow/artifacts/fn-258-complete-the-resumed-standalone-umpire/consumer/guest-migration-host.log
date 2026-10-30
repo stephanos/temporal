@@ -1,0 +1,8 @@
+cwd: /home/agent/.cache/codex-build/tmp/fn258-pair/temporal/model/temporal/hosts/go
+$ mise exec -- go test -p 2 -tags test_dep -count=1 -timeout 8m ./...
+ok  	umpire.local/temporal	90.065s
+ok  	umpire.local/temporal/reference/worker	0.007s
+ok  	umpire.local/temporal/reference/worker/raw	0.309s
+ok  	umpire.local/temporal/reference/worker/sdk	9.580s
+?   	umpire.local/temporal/umpire/temporal/v1	[no test files]
+exit: 0

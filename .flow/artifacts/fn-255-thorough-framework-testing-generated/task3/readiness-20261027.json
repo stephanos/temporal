@@ -1,0 +1,255 @@
+{
+  "schema_version": 1,
+  "task": "fn-255-thorough-framework-testing-generated.3",
+  "date": "2026-10-27",
+  "kind": "read-only-source-readiness-investigation",
+  "review_verdict": null,
+  "main": {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal",
+    "branch": "umpire",
+    "head": "86bf3fe1446b1ebbac8cf154131151b5e9909dd8"
+  },
+  "candidate": {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/prep2553-fuzz",
+    "branch": "work/fn2553-prep-fuzz",
+    "head": "1df6f6b75d47a06642bd30b9bbe0d47b6d040ef8",
+    "merge_base": "1df6f6b75d47a06642bd30b9bbe0d47b6d040ef8",
+    "unique_commits": [],
+    "dirty_tracked": [
+      "model/umpire/backends/tlc/Cargo.toml",
+      "model/umpire/backends/tlc/src/runner.rs",
+      "model/umpire/protocol/runtime/Cargo.toml",
+      "model/umpire/protocol/runtime/src/lib.rs",
+      "model/umpire/protocol/runtime/src/runtime.rs"
+    ],
+    "untracked_root": "model/umpire/fuzz/",
+    "file_sha256": {
+      "model/umpire/fuzz/.gitignore": "0a798e9b33115a78fbfc3ec1ca452026f6332c011fca412a68bbff47c092a6ab",
+      "model/umpire/fuzz/Cargo.toml": "8f14b2a2ff1b89ebc41c71c1cbf348967b091ee97601bb477a2dd85a6255595b",
+      "model/umpire/fuzz/corpus/annotations/empty": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "model/umpire/fuzz/corpus/annotations/truncated": "428f6d7e89a1b345221f88db8af74389653730f048724e0dabece69990d6b7be",
+      "model/umpire/fuzz/corpus/annotations/valid": "a4e56d6f5ad57df17e49140b5af42784ff59f10052ff06493c81c20a9aaee593",
+      "model/umpire/fuzz/corpus/dispatch_prepare/explore": "c2fcf8f42a11595653f823d2319db12df1a89610eb6693e3e97ae3b20d18a7fd",
+      "model/umpire/fuzz/corpus/dispatch_prepare/malformed": "e26c06622896240abc65af5da860362b3c2601ddd9aea6461ad40bff593d7988",
+      "model/umpire/fuzz/corpus/dispatch_prepare/reset": "9d9f290527a6be626a8f5985b26e19b237b44872b03631811df4416fc1713178",
+      "model/umpire/fuzz/corpus/guest_dispatch/explore": "c2fcf8f42a11595653f823d2319db12df1a89610eb6693e3e97ae3b20d18a7fd",
+      "model/umpire/fuzz/corpus/guest_dispatch/reset": "9d9f290527a6be626a8f5985b26e19b237b44872b03631811df4416fc1713178",
+      "model/umpire/fuzz/corpus/guest_dispatch/unknown": "ad95131bc0b799c0b1af477fb14fcf26a6a9f76079e48bf090acb7e8367bfd0e",
+      "model/umpire/fuzz/corpus/runtime_decode/planted_panic": "e34fe2e3ceb623cb508292f8e8629e366fb8ccb9df697991cd773e3032b0d2f5",
+      "model/umpire/fuzz/corpus/runtime_decode/planted_slow": "3cd38665b2f23a085b5acdfde57c63e344bde7c17800e5651665652a82f3aea7",
+      "model/umpire/fuzz/corpus/runtime_decode/reset": "9d9f290527a6be626a8f5985b26e19b237b44872b03631811df4416fc1713178",
+      "model/umpire/fuzz/corpus/tlc_dump/duplicate": "1fb02e36cd98803ef7256e64af459425d8be11cfde3b463100221d5f571abe91",
+      "model/umpire/fuzz/corpus/tlc_dump/state": "d8a09aeed1e7048ece333ab8af251a9b67b816dd7cec9d8c58b5251d2cf5933f",
+      "model/umpire/fuzz/corpus/tlc_messages/finished": "ebd589a3504a30b2263d34257b5665be15ad8f99dc343f1e2938deee41855d10",
+      "model/umpire/fuzz/corpus/tlc_messages/truncated": "c2a3bd00f9ce9d1f338fc4f2b87ae3ecc82e7d92b1f41f9e9264ee4905a68621",
+      "model/umpire/fuzz/corpus/tlc_parse/finished": "ebd589a3504a30b2263d34257b5665be15ad8f99dc343f1e2938deee41855d10",
+      "model/umpire/fuzz/corpus/tlc_parse/fixture_summary": "a6052e950977cbbd2d296fe61b6288599eb009181f8c2a33f737c44cc71eb353",
+      "model/umpire/fuzz/corpus/tlc_parse/nested": "42ca3c8d8356701f75fbc4de8302c2314bb8060f7277db748515cd06f9ecf78d",
+      "model/umpire/fuzz/corpus/tlc_state/state": "b5130fd6a9ed3f5378c6d673a332dfa7c848aac4365dcb76a729a63d0a5bef9b",
+      "model/umpire/fuzz/corpus/tlc_state/wrong_type": "05ca55cb3c7491c6e0b0d112050658c05c555151b1624cb2f63e0b6433a4a1c5",
+      "model/umpire/fuzz/corpus/tlc_trace/backedge": "9ea32637df8dfe3ee335b13d66a08eadbcb9a213ad905ccbc6514f5c463f9d68",
+      "model/umpire/fuzz/corpus/tlc_trace/state": "bd47c88f308339284eccf63359e3f2ce5883a03ace65253296893eb2d420b5bc",
+      "model/umpire/fuzz/fuzz_targets/annotations.rs": "4dc22228efc2fdd269fde2a63aa05f451c14d68ac2915a5bebc52d7a95f6d040",
+      "model/umpire/fuzz/fuzz_targets/dispatch_prepare.rs": "d237818dc338ae4794925136e2e6fbf3bbabf0449b418f9068453b1f80276f8f",
+      "model/umpire/fuzz/fuzz_targets/guest_dispatch.rs": "ece7711161c913e76858e5a314a4ee0246a5f8ad0b1f955152c9d57eb14814d0",
+      "model/umpire/fuzz/fuzz_targets/runtime_decode.rs": "46403bc6f70b4b2709968d3b9b1f6aaee46d78b29c86b87c88c5a6fd8e77ef52",
+      "model/umpire/fuzz/fuzz_targets/tlc_dump.rs": "446c2a2cbe0988e3adcbd237d79aee8d7d8d07ae50eda78bd2477b5a0bab3cf3",
+      "model/umpire/fuzz/fuzz_targets/tlc_messages.rs": "75d22e7a6771b4e8d8159ff30b9ef948da407c4a49df966000e3c931f55237a6",
+      "model/umpire/fuzz/fuzz_targets/tlc_parse.rs": "c1da343916e51f29ce585f546a448ffbd515239f14734bc9eb82d8e90465674d",
+      "model/umpire/fuzz/fuzz_targets/tlc_state.rs": "bff66aa19b20bf162a0864f5a6c140077c01fe62e5e285498a1a4f0956ab6fb6",
+      "model/umpire/fuzz/fuzz_targets/tlc_trace.rs": "264a90595713f85a59d5c2ca1e2f07882181288cf3930ce1c1f43ca559ff59be",
+      "model/umpire/fuzz/manifest.tsv": "ad6b0ebfd59146e40dffa2ffb333a5336c51c3aa883299926b10fcd0e94de7cc",
+      "model/umpire/fuzz/src/lib.rs": "ab6d5bf0aeb30ba9ad97e6e4be4faa0440d7e487f33e0783d7c02858ea187a3d",
+      "model/umpire/fuzz/src/replay.rs": "610b00fbe400ceca2fe6e28be15c59dc4428e8d222e22f5369a2e0465b5c09a5",
+      "model/umpire/fuzz/tests/harness.rs": "4552a0c204f7043d299b1b350c711a98065d9a2ab65e742b20315a2843a39113",
+      "model/umpire/fuzz/tests/replay.rs": "413a668f375945d7cc0e39f426b44020c92727895aaf82a3892cf7cd2a6ed699",
+      "model/umpire/fuzz/tests/timed_controls.rs": "ab1086261050bd98312dc51b1db0cdea82f272fe73f6445bf1156643b3d36d68",
+      "model/umpire/backends/tlc/Cargo.toml": "7770ec5270f91a05b22054d4855d72e1129b1d2ec2ce0b003711337a104f8d58",
+      "model/umpire/backends/tlc/src/runner.rs": "d7a167f8bbe68daceabc0a3a0efcd13cc25fd3517243a6347a1fa8951f6bfe0e",
+      "model/umpire/protocol/runtime/Cargo.toml": "d94345b43d69b7cc9f5b216e79b8ab55acb8e91d133dd8af1a73af9c5741102f",
+      "model/umpire/protocol/runtime/src/lib.rs": "cc0bc3deae7e635b47b851b979047cee580787983ef81dc36d7b2bb5992ee17a",
+      "model/umpire/protocol/runtime/src/runtime.rs": "b556c510d43b308a025fa14739a62c56911ae721b1382ad4af9d01e65c88bad9"
+    }
+  },
+  "frozen_provider": {
+    "branch": "work/fn25416-provider-adapt",
+    "head": "60f1c762a618d32478b58ae4e79c151f4355aeb3",
+    "touched": false
+  },
+  "corpus": {
+    "files": 23,
+    "bytes": 1036,
+    "sorted_unique": true,
+    "all_sha256_match": true,
+    "targets": [
+      "annotations",
+      "dispatch_prepare",
+      "guest_dispatch",
+      "runtime_decode",
+      "tlc_dump",
+      "tlc_messages",
+      "tlc_parse",
+      "tlc_state",
+      "tlc_trace"
+    ],
+    "provenance_manifest": "absent; manifest.tsv contains IDs/digests only"
+  },
+  "acceptance": [
+    {
+      "criterion": "one target per decoder, seeded corpus",
+      "source_status": "substantial candidate present",
+      "evidence": [
+        "fuzz/fuzz_targets/: nine targets covering Dispatch::prepare, Guest::dispatch_to, runtime::decode, AnnotationRuntime::prepare, TLC messages/parse/decode_trace/decode_dump/decode_state",
+        "23 corpus seeds across every target; digests verified by read-only Python"
+      ],
+      "missing": [
+        "Cargo.lock",
+        "dated nightly and cargo-fuzz mise pins",
+        "seed provenance, including actual recorded TLC output rather than normalized fixture summary",
+        "compile/standalone proof on current main"
+      ]
+    },
+    {
+      "criterion": "timed run each target without panic/hang/unbounded allocation",
+      "source_status": "runner present; execution unproven",
+      "evidence": [
+        "fuzz/src/replay.rs --timed uses max_total_time=10, timeout=1, rss_limit_mb=256, malloc_limit_mb=64, max_len=16384, outer=15s; nine target runs implied nominal 90s before Miri/differential share"
+      ],
+      "missing": [
+        "all nine actual bounded run receipts on pinned tools",
+        "aggregate tier admission from fn-254.12; these local constants are not authoritative table registration"
+      ]
+    },
+    {
+      "criterion": "planted panic and slow controls, stage/target/input identity",
+      "source_status": "source present; execution unproven",
+      "evidence": [
+        "runtime.rs cfg fuzzing-panic/fuzzing-slow inject actual decode defects",
+        "runtime_decode corpus contains planted_panic/planted_slow",
+        "replay.rs/timed_controls.rs assert failure, stage/target/input and elapsed upper bound"
+      ],
+      "missing": [
+        "actual feature-separated panic and slow runs for replay and timed targets",
+        "prove timed libFuzzer worker/cancellation cleanup with current main supervision"
+      ]
+    },
+    {
+      "criterion": "native successful dispatch and response publication",
+      "source_status": "production path source present; execution unproven",
+      "evidence": [
+        "fuzz/src/lib.rs guest_dispatch calls real Guest::dispatch_to, requires callback and decodes Response",
+        "tests/harness.rs explore_reaches_native_dispatch_and_publishes_success checks non-refusal for real stock Kettle Runtime"
+      ],
+      "missing": [
+        "run positive control; confirm known typed response/refusal validity beyond outcome.is_some() if tightening oracle",
+        "no native pointer-allocation refusal used as dispatch credit"
+      ]
+    },
+    {
+      "criterion": "per-input time/memory/length/corpus cap and exactly-once replay",
+      "source_status": "substantial source with integration gaps",
+      "evidence": [
+        "16KiB input; manifest <=64KiB; global 128 files/1MiB; sorted unique IDs/digests",
+        "one supervised --one invocation per listed input; tests/replay.rs compares visited list exactly to manifest",
+        "Linux RLIMIT_AS 256MiB; replay outer timeout=2s"
+      ],
+      "missing": [
+        "Darwin path explicitly refuses replay; record platform scope or add admitted equivalent rather than claiming portability",
+        "manifest enumerates listed inputs only: rejects missing/digest mismatch but does not detect additional unlisted files in source corpus",
+        "hard caps not connected to fn-254.12; enforce total stage work/time bounds",
+        "execute over-count/over-byte/slow/duplicate/digest failure controls; existing tests cover visited IDs and oversize harness only"
+      ]
+    }
+  ],
+  "compatibility": {
+    "supervision": {
+      "reusable": "run_process_cancelled, Scratch, Limits and ProcessFailure APIs used by candidate still exist on main and .16; transplant five feature seams, never old process implementation",
+      "gaps": [
+        "run_process_cancelled uses Checker descendant policy. Timed command passes -jobs=1 -workers=1 and therefore requests libFuzzer worker spawning; reconcile with Darwin checker descendant restriction and current orchestration cancellation custody. Source risk, not reproduced failure.",
+        "Limits.heap_mb is Java heap metadata, not generic process RSS enforcement; timed RSS comes from libFuzzer, replay Linux memory cap from RLIMIT_AS.",
+        "Scratch root is fuzz package and relative target/fuzz-* paths. Current boundary inventory excludes only framework-root target/build/.bin: nested fuzz/target generated outputs would enter source inventory/standalone copy. Put scratch and build artifacts under framework-root build/target or admitted external target."
+      ]
+    },
+    "ownership_nextest": {
+      "gaps": [
+        "Isolated fuzz [workspace] correctly keeps nightly binaries out of ordinary framework --workspace tests; it also leaves stable harness/replay tests outside main nextest inventory. Existing scoped test runner rejects packages not in main workspace. Add explicit isolated stable command/inventory admission later rather than assuming coverage.",
+        "Quick selection ownership is from workspace metadata; unrecognized fuzz changes fall back to whole framework workspace (quick/selection.rs). Add deliberate source ownership/exclusion with controls so fn-255 does not degrade model-quick.",
+        "Current public xtask/gate task graph has no fuzz-replay/fuzz registration. Final tier wiring belongs to .7; source tests can run isolated without activating tiers."
+      ]
+    },
+    "provider16": {
+      "assessment": "No direct source collision with new fuzz package. Main and frozen .16 mise.toml both lack nightly/cargo-fuzz pins. .16 changes runner provisioning context but does not remove decoder seams or process APIs.",
+      "constraints": [
+        "Do not edit or advance frozen .16 branch.",
+        "Resolve shared tool pins once through conductor after frozen provider boundary; isolated nightly must not replace stable rust pin or reuse jar-provider mise selectors.",
+        "Apply decoder feature additions as minimal hunks against current runner/runtime; never copy entire stale files."
+      ]
+    }
+  },
+  "old_evidence": {
+    "path": ".flow/tmp/fn2553-prep/report.md",
+    "actual_scope": "Read-only earlier target/provenance map; explicitly reports no installs/builds/tests/fuzz runs. It is useful source research, not runtime evidence. No task done summary/evidence commits/tests are populated."
+  },
+  "smallest_substantive_next_source_unit": {
+    "scope": "Only candidate-owned fuzz/src/replay.rs plus fuzz/tests/replay.rs and timed_controls.rs in a newly admitted isolated branch from current main; no shared decoder/pin/provider edits in this unit.",
+    "changes": [
+      "Refactor artifact/scratch resolution to framework-root build/target or conductor-owned external target so isolated fuzz output never pollutes standalone source inventory.",
+      "Make timed execution use a single libFuzzer process without explicit job/worker fork mode, or deliberately adapt to existing Orchestration ownership with cancellation controls; prefer single process for smallest change.",
+      "Add source controls for corpus membership and cap refusal (extra unlisted file, over-count/bytes, duplicate/digest mismatch) using temporary fixtures; retain existing exactly-once and planted controls."
+    ],
+    "delta_application_strategy": [
+      "Preserve original dirty checkout byte-for-byte; report hashes identify every candidate file. Do not checkout, reset, clean, stash, commit, or merge there.",
+      "After coordinator admits a new lane, start from current integrated umpire head. Copy only selected fuzz files as candidate bytes; capture original tracked diff separately and apply its five feature hunks only in the later decoder-integration unit. There are zero unique candidate commits to cherry-pick.",
+      "Keep source checkpoint unvalidated until minimal decoder seams, isolated tool pins/lockfile and command admission are assembled serially. Do not claim standalone or task completion from source preparation."
+    ],
+    "after_resource_admission_checks": [
+      "Verify locked isolated Cargo metadata/build with admitted stable toolchain; stable harness + replay tests and nextest inventory against isolated manifest.",
+      "Run exactly-once replay and rejection controls, actual successful guest publication, and planted-panic/planted-slow replay variants separately.",
+      "Build pinned nightly cargo-fuzz targets, run each target with recorded caps, run planted-panic and planted-slow timed controls; retain actual target/input diagnostics and cancellation/descendant evidence.",
+      "Run focused main ownership/boundary/standalone controls with fuzz package and generated outputs present; check quick does not execute fuzz stage.",
+      "Renew exact source compatibility on integrated .16 successor before final integration; .7 performs tier wiring and admitted table/aggregate timing."
+    ]
+  },
+  "operations": {
+    "builds": 0,
+    "installs": 0,
+    "source_edits": 0,
+    "flow_state_writes": 0,
+    "cache_mutations": 0,
+    "report_only_write": ".flow/tmp/fn2553-readiness-20261027.json",
+    "limits": "Source observations only; no compilation, runtime acceptance, measured timing, or review verdict."
+  },
+  "read_only_verification": {
+    "command": "python3 stdlib pathlib/hashlib/json/tomllib; executed via heredoc from temporal root",
+    "script_sha256": "fe49797227c360b6d94900371c68749ffc57cc87c983253743f0d5c15ae7e2cd",
+    "script": "rows=[line.split(\"\\t\") for line in (f/\"manifest.tsv\").read_text().splitlines()]\nids=[i for i,h in rows]\ncorpus={str(p.relative_to(f/\"corpus\")) for p in (f/\"corpus\").rglob(\"*\") if p.is_file()}\nbins=tomllib.loads((f/\"Cargo.toml\").read_text())[\"bin\"]\nchecks={\"sorted_unique\":ids==sorted(set(ids)),\"exact_file_membership\":set(ids)==corpus,\"all_digests_match\":all(hashlib.sha256((f/\"corpus\"/i).read_bytes()).hexdigest()==h for i,h in rows),\"count_within_128\":len(rows)<=128,\"bytes_within_1MiB\":sum((f/\"corpus\"/i).stat().st_size for i,h in rows)<=1024*1024,\"each_input_within_16KiB\":all((f/\"corpus\"/i).stat().st_size<=16384 for i,h in rows),\"manifest_within_64KiB\":(f/\"manifest.tsv\").stat().st_size<=65536,\"nine_target_dirs\":{p.name for p in (f/\"corpus\").iterdir() if p.is_dir()}==expected,\"nine_fuzz_bins\":{b[\"name\"] for b in bins if b[\"name\"]!=\"corpus-replay\"}==expected,\"all_fuzz_sources_exist\":all((f/b[\"path\"]).is_file() for b in bins),\"all_fuzz_bins_feature_gated\":all(b.get(\"required-features\")==[\"fuzzing\"] for b in bins if b[\"name\"]!=\"corpus-replay\")}\n",
+    "expected_targets": [
+      "annotations",
+      "dispatch_prepare",
+      "guest_dispatch",
+      "runtime_decode",
+      "tlc_dump",
+      "tlc_messages",
+      "tlc_parse",
+      "tlc_state",
+      "tlc_trace"
+    ],
+    "checks": {
+      "sorted_unique": true,
+      "exact_file_membership": true,
+      "all_digests_match": true,
+      "count_within_128": true,
+      "bytes_within_1MiB": true,
+      "each_input_within_16KiB": true,
+      "manifest_within_64KiB": true,
+      "nine_target_dirs": true,
+      "nine_fuzz_bins": true,
+      "all_fuzz_sources_exist": true,
+      "all_fuzz_bins_feature_gated": true
+    },
+    "result": "all 11 checks passed",
+    "corpus_files": 23,
+    "corpus_bytes": 1036,
+    "manifest_bytes": 1986
+  }
+}

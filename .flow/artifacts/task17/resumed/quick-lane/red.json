@@ -1,0 +1,41 @@
+{
+  "command": [
+    "mise",
+    "exec",
+    "--",
+    "cargo",
+    "test",
+    "--locked",
+    "--manifest-path",
+    "model/umpire/Cargo.toml",
+    "-p",
+    "xtask",
+    "--lib",
+    "workspace_selection_rejects_an_unexpected_zero_test_run"
+  ],
+  "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-quick-resumed",
+  "target": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-selection-review/target",
+  "tmpdir": "/tmp/fn25417quick-os6cq3dg",
+  "initial_target_bytes": 424296448,
+  "final_target_bytes": 424308736,
+  "exit": 101,
+  "guard_breach": null,
+  "samples": [
+    {
+      "seconds": 0.005,
+      "free_bytes": 13854953472,
+      "target_bytes": 424296448
+    },
+    {
+      "seconds": 1.015,
+      "free_bytes": 13856468992,
+      "target_bytes": 418746368
+    },
+    {
+      "seconds": 2.024,
+      "free_bytes": 13810475008,
+      "target_bytes": 424292352
+    }
+  ],
+  "seconds": 3.033
+}

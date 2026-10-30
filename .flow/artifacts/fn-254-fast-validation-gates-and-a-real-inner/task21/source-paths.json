@@ -1,0 +1,15 @@
+[
+  "model/umpire/README.md",
+  "model/umpire/dev/testing/tests/main.rs",
+  "model/umpire/dev/testing/tests/fixture_composition.rs",
+  "model/umpire/dev/testing/tests/main/fixture_composition.rs",
+  "model/umpire/protocol/runtime/tests/main.rs",
+  "model/umpire/protocol/runtime/tests/reach.rs",
+  "model/umpire/protocol/runtime/tests/main/reach.rs",
+  "model/umpire/backends/native/tests/main.rs",
+  "model/umpire/backends/native/tests/catalog_admission.rs",
+  "model/umpire/backends/native/tests/main/catalog_admission.rs",
+  "model/umpire/author/suite/tests/main.rs",
+  "model/umpire/author/suite/tests/retained.rs",
+  "model/umpire/author/suite/tests/main/retained.rs"
+]

@@ -1,0 +1,8 @@
+cwd: /home/agent/.cache/codex-build/tmp/fn258-pair/temporal/model/temporal/hosts/go
+$ /home/agent/.local/share/mise/installs/go/1.27.0/bin/go test -p 2 -tags test_dep -count=1 -run ^TestResetProgramRowsAndScenarioHeader$ ./...
+ok  	umpire.local/temporal	0.453s
+ok  	umpire.local/temporal/reference/worker	0.004s [no tests to run]
+ok  	umpire.local/temporal/reference/worker/raw	0.003s [no tests to run]
+ok  	umpire.local/temporal/reference/worker/sdk	0.003s [no tests to run]
+?   	umpire.local/temporal/umpire/temporal/v1	[no test files]
+exit: 0

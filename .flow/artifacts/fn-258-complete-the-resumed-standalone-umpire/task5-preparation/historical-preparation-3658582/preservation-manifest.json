@@ -1,0 +1,50 @@
+{
+  "status": "exact historical pre3f5 current-overlay/report bytes; do not relabel as current",
+  "preserved_at": "2026-10-28T14:56:12.192761+00:00",
+  "files": [
+    {
+      "file": "disposition-overlay.py",
+      "size": 32877,
+      "sha256": "716e99ca579b6267e8745bf42713d66dbb79c29c830cce0121e3bd6ac78d4224"
+    },
+    {
+      "file": "disposition-overlay.json",
+      "size": 3194387,
+      "sha256": "1abb400dc7a83e39e556df1308752639cdee1867e30f308e6b4fd42a2191b021"
+    },
+    {
+      "file": "disposition-overlay.md",
+      "size": 7752,
+      "sha256": "6e1c50307da4192070df9ab43c6fd05344904775bcc2b9af8790d36308a23c44"
+    },
+    {
+      "file": "disposition-overlay-verification.json",
+      "size": 1750,
+      "sha256": "3c233dc2ae25dc82226f75b701cbabdb7a882723dbe32110b6ebdce0d678f140"
+    },
+    {
+      "file": "disposition-overlay-negative-controls.json",
+      "size": 3258,
+      "sha256": "476eab441aa88f2a9f8df512b739780389946ec3778cc64047bd90ae980158a4"
+    },
+    {
+      "file": "receiving-ref-creation-work.json",
+      "size": 2825095,
+      "sha256": "439c7fa8e264f5026641ffccc53e4637f31cb4b6b077c105531dc3fadb9da9d9"
+    },
+    {
+      "file": "receiving-readiness.json",
+      "size": 46434,
+      "sha256": "4580ea3992694df3ee572093c7dcb63c72820baa6480fdf2323edbed80ad0170"
+    },
+    {
+      "file": "receiving-readiness.md",
+      "size": 5088,
+      "sha256": "609fcb136f8cb0b9c3898065c2cff22dfd394c13e60854683cd61216f2fe1409"
+    }
+  ],
+  "historical_pair": {
+    "temporal": "3658582dac5b54c1f68c2eb54a312957c97e05b6",
+    "umpire": "05473210b48c3db862f22051eb7154ce98258f98"
+  }
+}

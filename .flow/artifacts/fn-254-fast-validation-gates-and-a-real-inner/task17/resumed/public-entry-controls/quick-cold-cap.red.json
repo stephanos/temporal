@@ -1,0 +1,9 @@
+{
+  "command": [
+    "/bin/bash",
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal/model/scripts/test-model-wiring.sh"
+  ],
+  "exit_code": 1,
+  "log_sha256": "b86bb52b0923501b4dc618804a60cead6e9e8ab3c1b3ffcdc8e16474e6378ded",
+  "expected_missing_behavior": "Default quick cold native tool compilation must receive one compiler before CLI admission"
+}

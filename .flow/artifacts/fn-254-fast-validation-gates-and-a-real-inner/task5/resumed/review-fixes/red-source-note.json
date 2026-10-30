@@ -1,0 +1,4 @@
+{
+  "artifact": "red-source-before-quote-correction.json",
+  "scope": "Initial273pathoverlay before test-only shell-quote typo correction in the two test_run policy controls. Not an exact runtime red-source receipt. Red logs confirm the intended lower2->4 policy refusal; no production code had been edited at that point. Final exact source is source-after.json."
+}

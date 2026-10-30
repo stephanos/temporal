@@ -1,0 +1,7 @@
+helper_tests::panic_payloads_preserve_strings_and_share_one_fallback: test
+helper_tests::seeded_stream_refuses_empty_domain: test
+helper_tests::seeded_stream_reproduces_and_indices_stay_in_domain: test
+interpret::exported_values::world_validation_tests::primitive_world_import_refuses_missing_duplicate_extra_kinds_and_ranges: test
+interpret::optional_tests::optional_default_is_eager_and_decodes_zero_payload: test
+interpret::optional_tests::resolver_preserves_scalar_conversions_and_backing_arithmetic: test
+interpret::optional_tests::some_encoding_checks_ordinal_bounds_without_finite_validation: test

@@ -1,0 +1,213 @@
+[
+  {
+    "name": "source-boundary",
+    "command": [
+      "/home/agent/.cache/codex-build/fn25417-work-counts/debug/xtask",
+      "gate",
+      "--stage",
+      "source-boundary"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-work-counts/model/umpire",
+    "env": {},
+    "expected_exit": 0,
+    "exit": 0,
+    "seconds": 1.8187667509992025,
+    "stdout": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25417-work-counts/final/source-boundary.stdout",
+    "stderr": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25417-work-counts/final/source-boundary.stderr",
+    "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "name": "real-tlc-launches",
+    "command": [
+      "mise",
+      "exec",
+      "--",
+      "cargo",
+      "nextest",
+      "run",
+      "--locked",
+      "-p",
+      "umpire-tlc",
+      "--test",
+      "main",
+      "-E",
+      "test(=controls::real_tlc_healthy_batches_use_at_most_two_model_launches)"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-work-counts/model/umpire",
+    "env": {
+      "UMPIRE_BACKENDS": "require",
+      "UMPIRE_GATE_RECEIPTS": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25417-work-counts/final/tlc-receipts-sealed",
+      "UMPIRE_GATE_SCOPE": "framework",
+      "UMPIRE_GATE_STAGE": "tlc-control"
+    },
+    "expected_exit": 0,
+    "exit": 0,
+    "seconds": 6.494545795001613,
+    "stdout": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25417-work-counts/final/real-tlc-launches.stdout",
+    "stderr": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25417-work-counts/final/real-tlc-launches.stderr",
+    "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stderr_sha256": "19504af049923c7d536ded0c207e2d17887b6271c99aa7bdc78ac26633d19f83"
+  },
+  {
+    "name": "count-reader-build",
+    "command": [
+      "mise",
+      "exec",
+      "--",
+      "rustc",
+      "--edition=2024",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25417-work-counts/final/count_reader.rs",
+      "-L",
+      "dependency=/home/agent/.cache/codex-build/fn25417-work-counts/debug/deps",
+      "--extern",
+      "xtask=/home/agent/.cache/codex-build/fn25417-work-counts/debug/deps/libxtask-bbc44e7b78e89feb.rlib",
+      "-o",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25417-work-counts/final/count_reader"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-work-counts/model/umpire",
+    "env": {},
+    "expected_exit": 0,
+    "exit": 0,
+    "seconds": 0.6843494170025224,
+    "stdout": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25417-work-counts/final/count-reader-build.stdout",
+    "stderr": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25417-work-counts/final/count-reader-build.stderr",
+    "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "name": "real-tlc-counts",
+    "command": [
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25417-work-counts/final/count_reader",
+      "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25417-work-counts/final/tlc-receipts-sealed/work/framework/tlc-control"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-work-counts/model/umpire",
+    "env": {},
+    "expected_exit": 0,
+    "exit": 0,
+    "seconds": 0.003938499998184852,
+    "stdout": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25417-work-counts/final/real-tlc-counts.stdout",
+    "stderr": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25417-work-counts/final/real-tlc-counts.stderr",
+    "stdout_sha256": "67594ebdd361f3f803f3a231dca79a827bb903bc20629dd9fd2c9de068bf3ed7",
+    "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "name": "real-native-colored-tests",
+    "command": [
+      "/home/agent/.cache/codex-build/fn25417-work-counts/debug/xtask",
+      "gate",
+      "--scheduled-stage",
+      "tests"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25417-work-counts/final/real-count-fixture",
+    "env": {
+      "UMPIRE_TOOL_ROOT": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25417-work-counts/final/real-count-fixture",
+      "UMPIRE_GATE_EXECUTABLE": "/home/agent/.cache/codex-build/fn25417-work-counts/debug/xtask",
+      "UMPIRE_GATE_SCOPE": "framework",
+      "UMPIRE_GATE_STAGE": "tests",
+      "CARGO_TERM_COLOR": "always",
+      "MISE_TRUSTED_CONFIG_PATHS": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25417-work-counts/final/real-count-fixture",
+      "UMPIRE_GATE_RECEIPTS": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25417-work-counts/final/real-count-fixture/native-receipts-sealed"
+    },
+    "expected_exit": 0,
+    "exit": 0,
+    "seconds": 0.7893932919978397,
+    "stdout": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25417-work-counts/final/real-native-colored-tests.stdout",
+    "stderr": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25417-work-counts/final/real-native-colored-tests.stderr",
+    "stdout_sha256": "63dffabbb1a2886d8678bb54bb447cb86e60c0aec2f164e47033ff60684c47ee",
+    "stderr_sha256": "9c3a38a8f69bfb69a2775ebb57561fa95c368dd59b950b4d52ff97b8f4e66b76"
+  },
+  {
+    "name": "real-selected-tests",
+    "command": [
+      "/home/agent/.cache/codex-build/fn25417-work-counts/debug/deps/xtask-8caf09c57cd2e690",
+      "--exact",
+      "gate::work_counts::tests::observation_child",
+      "--nocapture"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25417-work-counts/model/umpire",
+    "env": {
+      "UMPIRE_GATE_RECEIPTS": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25417-work-counts/final/selected-receipts-sealed",
+      "UMPIRE_GATE_SCOPE": "framework",
+      "UMPIRE_GATE_STAGE": "tests",
+      "WORK_OBSERVATION_CONTROL": "success",
+      "WORK_OBSERVATION_MANIFEST": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25417-work-counts/final/real-count-fixture/Cargo.toml",
+      "CARGO_TERM_COLOR": "always"
+    },
+    "expected_exit": 0,
+    "exit": 0,
+    "seconds": 0.4870446249988163,
+    "stdout": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25417-work-counts/final/real-selected-tests.stdout",
+    "stderr": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25417-work-counts/final/real-selected-tests.stderr",
+    "stdout_sha256": "cfd568968b233bda00ae7ca46f39e303602a81c9297feb12db4a919fca4fc50c",
+    "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "name": "real-stream-nextest",
+    "command": [
+      "/home/agent/.cache/codex-build/fn25417-work-counts/debug/xtask",
+      "gate",
+      "--scheduled-stage",
+      "tests"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25417-work-counts/final/real-count-fixture",
+    "exit": 0,
+    "seconds": 0.7872790420005913,
+    "early": true,
+    "pending_when_observed": true,
+    "human_marker": "Starting",
+    "marker_occurrences": 1,
+    "stdout": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25417-work-counts/final/real-stream-nextest.stdout",
+    "stderr": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25417-work-counts/final/real-stream-nextest.stderr",
+    "stdout_sha256": "f1362c2f74bfbf73907a1f13668962bf91186678f769769c8afa181decab10ca",
+    "stderr_sha256": "85e411b9babc1f87d94f114375bbaad23f31c8b26fbb5dda89beb07df754fa1f",
+    "receipt": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25417-work-counts/final/real-count-fixture/real-stream-nextest-receipts/framework/tests.json"
+  },
+  {
+    "name": "real-stream-doctest",
+    "command": [
+      "/home/agent/.cache/codex-build/fn25417-work-counts/debug/xtask",
+      "gate",
+      "--scheduled-stage",
+      "tests"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25417-work-counts/final/real-count-fixture",
+    "exit": 0,
+    "seconds": 0.5592347510028048,
+    "early": true,
+    "pending_when_observed": true,
+    "human_marker": "running 2 tests",
+    "marker_occurrences": 1,
+    "stdout": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25417-work-counts/final/real-stream-doctest.stdout",
+    "stderr": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25417-work-counts/final/real-stream-doctest.stderr",
+    "stdout_sha256": "ec17b088e5f4e6e9a26daa525744cc9ba85c6eaa28fccf869ae83c96e5fd1fc8",
+    "stderr_sha256": "e20b370d23943bde7bcbf7385c4198a99dc9221b1b7b2fe14bdaa3c051622f5b",
+    "receipt": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25417-work-counts/final/real-count-fixture/real-stream-doctest-receipts/framework/tests.json"
+  },
+  {
+    "name": "real-native-failed-tests",
+    "command": [
+      "/home/agent/.cache/codex-build/fn25417-work-counts/debug/xtask",
+      "gate",
+      "--scheduled-stage",
+      "tests"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25417-work-counts/final/real-count-fixture",
+    "env": {
+      "UMPIRE_TOOL_ROOT": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25417-work-counts/final/real-count-fixture",
+      "UMPIRE_GATE_EXECUTABLE": "/home/agent/.cache/codex-build/fn25417-work-counts/debug/xtask",
+      "UMPIRE_GATE_SCOPE": "framework",
+      "UMPIRE_GATE_STAGE": "tests",
+      "CARGO_TERM_COLOR": "always",
+      "MISE_TRUSTED_CONFIG_PATHS": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25417-work-counts/final/real-count-fixture",
+      "UMPIRE_GATE_RECEIPTS": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25417-work-counts/final/real-count-fixture/failed-receipts-sealed"
+    },
+    "expected_exit": 100,
+    "exit": 100,
+    "seconds": 0.5262602499933564,
+    "stdout": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25417-work-counts/final/real-native-failed-tests.stdout",
+    "stderr": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25417-work-counts/final/real-native-failed-tests.stderr",
+    "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stderr_sha256": "ee9586b3d5fd0cff72ab7f2580eabf57f70f68b9b416ad01be13ee88bb84c995"
+  }
+]

@@ -1,0 +1,81 @@
+{
+  "task": "fn-254.5",
+  "source_commits": [
+    "fdf115db9986e67e20b2d9c5c1fdcb1afb741aa8",
+    "85c0a39f8a"
+  ],
+  "acceptance": [
+    {
+      "acceptance": "24 cases and complete admission;119 dependency tuples separately retained",
+      "result": "met",
+      "evidence": [
+        "fixture-identity-equivalence.json",
+        "framework-fixtures-required-summary.json",
+        "identity-dependency-audit.json",
+        "review-fixes/summary.json"
+      ]
+    },
+    {
+      "acceptance": "Compiler batching/reuse retains all consumer cases with executed counts/timings",
+      "result": "met",
+      "evidence": [
+        "temporal-api-prerequisite-summary.json",
+        "temporal-macros-registry-summary.json",
+        "temporal-supplemental-registry-runtime-summary.json",
+        "activity-and-membership-summary.json"
+      ]
+    },
+    {
+      "acceptance": "Routine Apalache skip and explicit opt-in preserved",
+      "result": "met",
+      "evidence": [
+        "xtask-focused-summary.json",
+        "temporal-xtask-summary.json",
+        "review-fixes/summary.json"
+      ]
+    },
+    {
+      "acceptance": "UI before/after counts/timing and exact original diagnostics/locations",
+      "result": "met",
+      "evidence": [
+        "macro-before-after-comparison.json",
+        "macro-fixtures-summary.json",
+        "review-fixes/macro-fixtures.json"
+      ]
+    },
+    {
+      "acceptance": "Dead Scala-only targets removed without active callers",
+      "result": "met",
+      "evidence": [
+        "../source-integration-inventory-20261026.md",
+        "../../../../../Makefile"
+      ]
+    }
+  ],
+  "reviews": [
+    {
+      "rid": "81b94a664e4b4012aace6c1e0fa7d73a",
+      "verdict": "SHIP",
+      "axes": 3,
+      "followups": 4
+    },
+    {
+      "rid": "6123c05d6b554f9fb57748df542d09d3",
+      "verdict": "SHIP",
+      "axes": 1,
+      "introduced_findings": 0
+    }
+  ],
+  "post_review_identity_check": {
+    "locks": 2,
+    "snapshots": 202,
+    "activity_sources": 17,
+    "unchanged": true
+  },
+  "remaining_obligations": {
+    "fn-254.17": "Cross-invocation JVM lease/DAG/native owned cleanup; read-only probe/design reports are preparation only",
+    "fn-254.12": "Actual counters/budgets consume task5 identities",
+    "fn-254.8": "Owner-deferred joined gates, real standalone final timing and target/miss report"
+  },
+  "checked_at": "2026-10-26T23:48:44.190863+00:00"
+}

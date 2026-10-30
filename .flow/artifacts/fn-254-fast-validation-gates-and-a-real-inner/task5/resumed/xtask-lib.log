@@ -1,0 +1,86 @@
+   Compiling libc v0.2.191
+   Compiling proc-macro2 v1.0.107
+   Compiling serde_core v1.0.229
+   Compiling cfg-if v1.0.5
+   Compiling unicode-ident v1.0.27
+   Compiling quote v1.0.47
+   Compiling typenum v1.20.1
+   Compiling hybrid-array v0.4.15
+   Compiling syn v3.0.9
+   Compiling zmij v1.0.23
+   Compiling getrandom v0.4.3
+   Compiling rustix v1.1.5
+   Compiling block-buffer v0.12.1
+   Compiling crypto-common v0.2.2
+   Compiling winnow v1.0.4
+   Compiling const-oid v0.10.2
+   Compiling serde v1.0.229
+   Compiling serde_json v1.0.154
+   Compiling linux-raw-sys v0.12.1
+   Compiling bitflags v2.13.2
+   Compiling crc32fast v1.5.3
+   Compiling thiserror v2.0.21
+   Compiling digest v0.11.3
+   Compiling toml_parser v1.1.5+spec-1.1.0
+   Compiling thiserror-impl v2.0.21
+   Compiling serde_derive v1.0.229
+   Compiling serde_spanned v1.1.2
+   Compiling toml_datetime v1.1.2+spec-1.1.0
+   Compiling cpufeatures v0.3.1
+   Compiling once_cell v1.21.4
+   Compiling itoa v1.0.18
+   Compiling fastrand v2.5.0
+   Compiling memchr v2.8.3
+   Compiling simd-adler32 v0.3.10
+   Compiling adler2 v2.0.1
+   Compiling miniz_oxide v0.9.1
+   Compiling tempfile v3.27.0
+   Compiling sha2 v0.11.1
+   Compiling toml v1.1.8+spec-1.1.0
+   Compiling filetime v0.2.29
+   Compiling tar v0.4.46
+   Compiling umpire-guest-driver v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/dev/guest-driver)
+   Compiling flate2 v1.1.10
+   Compiling xtask v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/dev/xtask)
+    Finished `test` profile [unoptimized] target(s) in 6.18s
+     Running unittests src/lib.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-selection-review/target/debug/deps/xtask-331939d17f13ae8d)
+
+running 34 tests
+test gate::boundary::tests::character_recognition_requires_a_valid_closed_literal ... ok
+test gate::boundary::tests::declared_unused_dependency_escape_is_refused_before_cargo ... ok
+test gate::boundary::tests::external_target_alias_cannot_hide_source_subtree ... ok
+test gate::boundary::tests::organization_exception_preserves_occurrence_token_boundaries ... ok
+test gate::boundary::tests::source_escape_is_structural_and_contained_deep_paths_work ... ok
+test gate::boundary::tests::target_cannot_hide_sources ... ok
+test gate::boundary::tests::character_literals_and_lifetimes_cannot_hide_source_escapes ... ok
+test gate::standalone::tests::copy_refuses_existing_and_dangling_source_symlinks ... ok
+test gate::standalone::tests::copied_config_trust_is_limited_to_copy_and_owned_scratch ... ok
+test gate::standalone::tests::copy_uses_current_bytes_and_excludes_only_generated_roots ... ok
+test gate::standalone::tests::isolated_child_uses_the_reported_required_profile_and_thread_cap ... ok
+test gate::standalone::tests::report_directory_artifact_hashes_every_generated_file ... ok
+framework stage exit-control failed (exit 37)
+test quick::tests::deleted_source_ownership_does_not_require_the_file_to_exist ... ok
+test gate::tests::real_stage_child_receives_cache_bypass_and_required_mode ... ok
+test quick::tests::external_build_inputs_and_unknown_sources_remain_conservative ... ok
+test quick::tests::global_and_unmapped_inputs_select_whole_workspace_and_reverse_dependents ... ok
+test quick::tests::mapped_external_sources_and_unchanged_invocations_keep_explicit_execution ... ok
+test quick::tests::metadata_named_checkout_ancestors_do_not_hide_external_build_inputs ... ok
+test quick::tests::model_edits_ignore_reported_non_model_metadata_and_docs ... ok
+test quick::tests::options_reject_unknown_flags_and_relative_workspaces ... ok
+test quick::tests::package_filters_only_narrow_unchanged_or_exclusively_mapped_feature_edits ... ok
+test quick::tests::renamed_sources_select_both_owners_with_metadata_changes ... ok
+test quick::tests::reverse_dependencies_merge_workspace_specific_ids_by_manifest ... ok
+test quick::tests::shared_feature_inputs_select_every_direct_consumer_and_reverse_guest ... ok
+test quick::tests::shared_kettle_model_seeds_source_consumers_and_reverse_guest ... ok
+test quick::tests::stage_receipt_reports_elapsed_and_spawn_failure_without_success_status ... ok
+test quick::tests::stage_receipts_label_formatting_and_preserve_success_and_failure_statuses ... ok
+test quick::tests::workspace_documentation_can_supply_executable_test_inputs ... ok
+test test_run::tests::binaries_then_doctests_exactly_once ... ok
+test test_run::tests::binary_failure_stops_before_doctests ... ok
+test test_run::tests::doctest_failure_preserves_status ... ok
+test test_run::tests::missing_runner_fails_without_fallback ... ok
+test test_run::tests::required_backend_policy_caps_inherited_threads_and_preserves_skipped_defaults ... ok
+test quick::tests::git_selection_includes_staged_unstaged_untracked_renamed_and_deleted_paths ... ok
+
+test result: ok. 34 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.07s
+

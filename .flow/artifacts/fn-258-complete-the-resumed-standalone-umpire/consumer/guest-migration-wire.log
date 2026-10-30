@@ -1,0 +1,4 @@
+cwd: /home/agent/.cache/codex-build/tmp/fn258-pair/umpire/hosts/go
+$ mise exec -- go test -p 2 -tags test_dep -count=1 ./host -run ^Test(ProtocolWireCompatibility|CoreProtocolWireCompatibility|ExplanationOutcomeWireCompatibility|SharedObservationRequestWire|ProtocolNamespace)$
+ok  	github.com/temporalio/umpire/hosts/go/host	0.003s
+exit: 0

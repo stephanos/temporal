@@ -1,0 +1,18 @@
+{
+  "command": [
+    ".flow/tmp/fn25417-standalone-renewal/prepared/final-scheduled/activity.py",
+    "--expected-head",
+    "c5189bd35d36e0e404c0980cb986bdc970d4b8af",
+    "--standalone-validation",
+    ".flow/tmp/fn25417-standalone-renewal/final-c5189bd3/standalone/validation.json",
+    "--output",
+    ".flow/tmp/fn25417-standalone-renewal/final-c5189bd3/activity",
+    "--execute"
+  ],
+  "driver_sha256": "1a5ace13c3d7d6727052ac15d3e23cdcba4deceeb32973c795227ea1700bcf2e",
+  "expected_head": "c5189bd35d36e0e404c0980cb986bdc970d4b8af",
+  "free_before_bytes": 57011019776,
+  "free_guard_bytes": 32212254720,
+  "growth_guard_bytes": 32212254720,
+  "macos": "owner-deferred"
+}

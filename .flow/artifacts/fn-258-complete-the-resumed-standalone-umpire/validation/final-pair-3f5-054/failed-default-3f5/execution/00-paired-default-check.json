@@ -1,0 +1,14 @@
+{
+  "argv": [
+    "make",
+    "model-check"
+  ],
+  "cwd": "/home/agent/.cache/codex-build/tmp/fn258-final-pair-3f5-054/temporal",
+  "started_unix": 1793200001.1999102,
+  "ended_unix": 1793200580.1792202,
+  "exit": 2,
+  "log": "/home/agent/.cache/codex-build/tmp/fn258-final-pair-3f5-054/execution-evidence/paired-default-check-1793200001199424573/00-paired-default-check.log",
+  "log_sha256": "77a57d0b95e8b6fe0b7ec141f061da2cd31c0f671420aacca9d474da668eafd7",
+  "free_before": 53956177920,
+  "free_after": 47948263424
+}

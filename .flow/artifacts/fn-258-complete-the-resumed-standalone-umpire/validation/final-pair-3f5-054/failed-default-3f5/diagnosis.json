@@ -1,0 +1,123 @@
+{
+  "status": "DIAGNOSED_NO_SOURCE_FIX_ADMITTED",
+  "pair": {
+    "temporal": "3f5f613578f2857b738a7792fad08f12b3ea0a41",
+    "umpire": "05473210b48c3db862f22051eb7154ce98258f98"
+  },
+  "terminal_gate": {
+    "launcher_exit": 2,
+    "elapsed_seconds": 578.9793100357056,
+    "failed_stage": {
+      "child_count_receipts": [],
+      "count_authority": "exclusive-stage",
+      "count_error": null,
+      "counts": {
+        "discovered": null,
+        "executed": null,
+        "ignored": null,
+        "skipped": null,
+        "tlc_configurations": null,
+        "tlc_launches": null
+      },
+      "error": null,
+      "exit": 1,
+      "reason": null,
+      "scope": "temporal",
+      "seconds": 0.419966625,
+      "stage": "timing-controls",
+      "state": "failed"
+    },
+    "framework_tests_completed": {
+      "discovered": 915,
+      "executed": 912,
+      "ignored": 3,
+      "skipped": 0,
+      "tlc_configurations": null,
+      "tlc_launches": null
+    },
+    "overall_gate": "FAILED; successful native scopes retained without relabeling full gate green"
+  },
+  "cause": {
+    "file": "model/scripts/test-model-wiring.sh",
+    "line": 112,
+    "actual": "model-update fake temporal child log suffix |0|1",
+    "expected": "hard-coded suffix |unset|unset",
+    "origin": "Production full Make/native gate intentionally forces UMPIRE_QUICK_CACHE=0 and UMPIRE_CACHE_DISABLE=1. Disposable wiring fixture inherits them. Ordinary model-update preserves these values, which the fixture incorrectly rejects.",
+    "why_prior_controls_passed": "Earlier focused shipping suites ran outside the full gate with both cache variables absent.",
+    "smallest_red": "Direct shipping test-model-wiring.sh under actual retained gate environment + source admission cache0/1 exits1. Same environment with only the2 cache vars unset exits0. Full timing wrapper replicates orchestration-pass print then exit1.",
+    "trace": "wiring-actual-stage-env.log"
+  },
+  "minimal_proposal": {
+    "source_change": "Only expected model-update log suffix: replace hard-coded unset/unset with formatted ${UMPIRE_QUICK_CACHE-unset} and ${UMPIRE_CACHE_DISABLE-unset}.",
+    "reason": "Assert exact inherited caller cache policy rather than assume no ambient policy. Existing model-check tests still require full-gate0/1 overrides.",
+    "regression_matrix": [
+      "both vars unset",
+      "UMPIRE_QUICK_CACHE=0 UMPIRE_CACHE_DISABLE=1",
+      "UMPIRE_QUICK_CACHE=1 UMPIRE_CACHE_DISABLE=0"
+    ],
+    "current_test_state": "Red reproduced; no patched source or green-after-fix claim.",
+    "not_required": [
+      "Production cache policy change",
+      "Model/fixture/golden edits",
+      "JVM run",
+      "Broad gate rerun for diagnosis"
+    ]
+  },
+  "sources_unchanged": [
+    {
+      "path": "model/scripts/test-time-gate.sh",
+      "sha256": "f30dbef2e590b45ff523431e02efc03018de0629923c75cf9d8996cf55a368fc"
+    },
+    {
+      "path": "model/scripts/test-model-wiring.sh",
+      "sha256": "f2257cdec8005a937520d7d550fe9ae8892ebbc2659147ca752fe394cd1f7597"
+    },
+    {
+      "path": "model/scripts/test-model-validate.sh",
+      "sha256": "c00d952099febfe8cbfcf2890527d95e35783d5a627c518bd02fec2a0c91da6e"
+    },
+    {
+      "path": "model/dev/xtask/src/gate.rs",
+      "sha256": "f7ce7b97de1aba11d123ad232dbc38348139be2391e93361a4c5bca43bfc211d"
+    },
+    {
+      "path": "Makefile",
+      "sha256": "4aece43b9fc591a0527712a81a399e507b8eae746622a3b3efc396e3c74c3954"
+    }
+  ],
+  "clean_status_after_diagnosis": {
+    "temporal": "",
+    "umpire": ""
+  },
+  "retained_native_authority": "native-authority/ complete terminal directory, including admission, stdout/stderr, scoped records and work/event/claim receipts",
+  "retained_execution": "execution/ exact command/env/output/terminal record",
+  "recovery": {
+    "context": "recovery-context/ exact launcher, launch plan and initial state",
+    "native_binaries": [
+      {
+        "path": "/home/agent/.cache/codex-build/fn258-final-pair-3f5-054/debug/temporal-xtask",
+        "size": 33828528,
+        "sha256": "62612490f3713f3f43f1d91194c87d99d1388f007f741378fc125d10686ad9ba",
+        "custody": "Existing live final-pair target protected; binary bytes not duplicated into tracked source. Root must retain immutable recovery before any later target cleanup."
+      },
+      {
+        "path": "/home/agent/.cache/codex-build/fn258-final-pair-3f5-054/xtask-bootstrap/debug/xtask",
+        "size": 36876344,
+        "sha256": "f2d3ad9cfc4d56e1ac2e5d17c2ae46044ef829d2d6f712366a3ab4b0eb4d7ab8",
+        "custody": "Existing live final-pair target protected; binary bytes not duplicated into tracked source. Root must retain immutable recovery before any later target cleanup."
+      },
+      {
+        "path": "/home/agent/.cache/codex-build/fn258-final-pair-3f5-054/xtask-bootstrap/debug/umpire-guest-driver",
+        "size": 19758800,
+        "sha256": "b09a86086ed5e3e021f5e9d56ac9a9e951d9299ead59621553ec5aa3c85d5f00",
+        "custody": "Existing live final-pair target protected; binary bytes not duplicated into tracked source. Root must retain immutable recovery before any later target cleanup."
+      }
+    ],
+    "consumer_source_bundle_reference": {
+      "path": ".flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/consumer/source-preparation-3f5f613.bundle",
+      "sha256": "8e016b8378a39e366aecc5a118de63bf451a5228d8967fbeb717bb9006979c25"
+    },
+    "policy": "All original source clones, successful scopes and final-pair target remain preserved. No deletion/cache release was performed."
+  },
+  "mutations": "Only new files under this failed-default-3f5 evidence folder; no source edits/commits/reviews/Flow state changes."
+}

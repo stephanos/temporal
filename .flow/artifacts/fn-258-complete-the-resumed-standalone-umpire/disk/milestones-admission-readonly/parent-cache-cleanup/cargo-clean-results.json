@@ -1,0 +1,82 @@
+[
+  {
+    "argv": [
+      "mise",
+      "exec",
+      "--",
+      "cargo",
+      "clean",
+      "--manifest-path",
+      "/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout/Cargo.toml",
+      "--target-dir",
+      "/home/agent/.cache/codex-build/fn258-standalone-0547321/guest-cache/186b13d4654e778e366ead2720c5adc65214d536a21b03ddb635fc0cfa7edcb3/wasm32-wasip1"
+    ],
+    "exit": 0,
+    "stdout": "",
+    "stderr": "     Removed 568 files, 213.7MiB total\n"
+  },
+  {
+    "argv": [
+      "mise",
+      "exec",
+      "--",
+      "cargo",
+      "clean",
+      "--manifest-path",
+      "/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout/Cargo.toml",
+      "--target-dir",
+      "/home/agent/.cache/codex-build/fn258-standalone-0547321/tests/runtime-capability-controls/target"
+    ],
+    "exit": 0,
+    "stdout": "",
+    "stderr": "     Removed 661 files, 305.0MiB total\n"
+  },
+  {
+    "argv": [
+      "mise",
+      "exec",
+      "--",
+      "cargo",
+      "clean",
+      "--manifest-path",
+      "/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout/Cargo.toml",
+      "--target-dir",
+      "/home/agent/.cache/codex-build/fn258-standalone-0547321/tests/trybuild/aarch64-unknown-linux-gnu"
+    ],
+    "exit": 0,
+    "stdout": "",
+    "stderr": "     Removed 2438 files, 843.4MiB total\n"
+  },
+  {
+    "argv": [
+      "mise",
+      "exec",
+      "--",
+      "cargo",
+      "clean",
+      "--manifest-path",
+      "/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout/Cargo.toml",
+      "--target-dir",
+      "/home/agent/.cache/codex-build/fn258-standalone-0547321/wasm32-wasip1"
+    ],
+    "exit": 0,
+    "stdout": "",
+    "stderr": "     Removed 205 files, 27.7MiB total\n"
+  },
+  {
+    "argv": [
+      "mise",
+      "exec",
+      "--",
+      "cargo",
+      "clean",
+      "--manifest-path",
+      "/home/agent/.cache/codex-build/tmp/fn258-standalone-0547321/checkout/Cargo.toml",
+      "--target-dir",
+      "/home/agent/.cache/codex-build/fn258-standalone-0547321/xtask-bootstrap"
+    ],
+    "exit": 0,
+    "stdout": "",
+    "stderr": "     Removed 527 files, 435.8MiB total\n"
+  }
+]

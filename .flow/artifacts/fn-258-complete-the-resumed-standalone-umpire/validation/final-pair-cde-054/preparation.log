@@ -1,0 +1,277 @@
+$ git clone --no-local --no-hardlinks --no-checkout --revision=cde1ee67efd266a058193694c2ddb287598b9ea5 /Users/stephan/Workspace/skunkworks/umpire/temporal /home/agent/.cache/codex-build/tmp/fn258-final-pair-cde-054/temporal
+Cloning into '/home/agent/.cache/codex-build/tmp/fn258-final-pair-cde-054/temporal'...
+exit: 0
+$ git -C /home/agent/.cache/codex-build/tmp/fn258-final-pair-cde-054/temporal checkout --detach cde1ee67efd266a058193694c2ddb287598b9ea5
+HEAD is now at cde1ee67e Preserve inherited cache policy in Model wiring controls
+exit: 0
+free bytes after temporal: 48179609600
+$ git clone --no-local --no-hardlinks --no-checkout --revision=05473210b48c3db862f22051eb7154ce98258f98 /Users/stephan/Workspace/skunkworks/umpire/umpire /home/agent/.cache/codex-build/tmp/fn258-final-pair-cde-054/umpire
+Cloning into '/home/agent/.cache/codex-build/tmp/fn258-final-pair-cde-054/umpire'...
+exit: 0
+$ git -C /home/agent/.cache/codex-build/tmp/fn258-final-pair-cde-054/umpire checkout --detach 05473210b48c3db862f22051eb7154ce98258f98
+HEAD is now at 0547321 Provision required TLC before the scheduled tests stage
+exit: 0
+free bytes after umpire: 48164593664
+Fresh parent workspace created only after absence checks; no existing workspace overwritten.
+cwd: /home/agent/.cache/codex-build/tmp/fn258-final-pair-cde-054/temporal
+$ git rev-parse HEAD
+cde1ee67efd266a058193694c2ddb287598b9ea5
+exit: 0
+cwd: /home/agent/.cache/codex-build/tmp/fn258-final-pair-cde-054/temporal
+$ git status --porcelain
+exit: 0
+cwd: /home/agent/.cache/codex-build/tmp/fn258-final-pair-cde-054/temporal
+$ git symbolic-ref -q HEAD
+exit: 1
+cwd: /home/agent/.cache/codex-build/tmp/fn258-final-pair-cde-054/temporal
+$ git rev-parse 'HEAD^{tree}'
+937680c4cc87d81ce4da6b0868863ea1a5fb9fd3
+exit: 0
+cwd: /home/agent/.cache/codex-build/tmp/fn258-final-pair-cde-054/temporal
+$ git rev-parse --is-shallow-repository
+true
+exit: 0
+cwd: /home/agent/.cache/codex-build/tmp/fn258-final-pair-cde-054/umpire
+$ git rev-parse HEAD
+05473210b48c3db862f22051eb7154ce98258f98
+exit: 0
+cwd: /home/agent/.cache/codex-build/tmp/fn258-final-pair-cde-054/umpire
+$ git status --porcelain
+exit: 0
+cwd: /home/agent/.cache/codex-build/tmp/fn258-final-pair-cde-054/umpire
+$ git symbolic-ref -q HEAD
+exit: 1
+cwd: /home/agent/.cache/codex-build/tmp/fn258-final-pair-cde-054/umpire
+$ git rev-parse 'HEAD^{tree}'
+46829511b6d582b40f3fa5095f42bdf980c7d466
+exit: 0
+cwd: /home/agent/.cache/codex-build/tmp/fn258-final-pair-cde-054/umpire
+$ git rev-parse --is-shallow-repository
+false
+exit: 0
+cwd: /home/agent/.cache/codex-build/tmp/fn258-final-pair-cde-054/temporal
+$ mise exec -- rustc --version --verbose
+rustc 1.99.1 (58cf8f9c3 2026-10-13)
+binary: rustc
+commit-hash: 58cf8f9c35b355199727627d07ae34a4e2846d67
+commit-date: 2026-10-13
+host: aarch64-unknown-linux-gnu
+release: 1.99.1
+LLVM version: 23.1.1
+exit: 0
+cwd: /home/agent/.cache/codex-build/tmp/fn258-final-pair-cde-054/temporal
+$ mise exec -- rustup which rustc
+/home/agent/.rustup/toolchains/1.99.1-aarch64-unknown-linux-gnu/bin/rustc
+exit: 0
+cwd: /home/agent/.cache/codex-build/tmp/fn258-final-pair-cde-054/temporal
+$ mise exec -- cargo --version
+cargo 1.99.1 (5f94df478 2026-08-27)
+exit: 0
+cwd: /home/agent/.cache/codex-build/tmp/fn258-final-pair-cde-054/temporal
+$ mise exec -- rustup which cargo
+/home/agent/.rustup/toolchains/1.99.1-aarch64-unknown-linux-gnu/bin/cargo
+exit: 0
+cwd: /home/agent/.cache/codex-build/tmp/fn258-final-pair-cde-054/temporal
+$ mise which go
+/home/agent/.local/share/mise/installs/go/1.27.0/bin/go
+exit: 0
+cwd: /home/agent/.cache/codex-build/tmp/fn258-final-pair-cde-054/temporal
+$ /home/agent/.local/share/mise/installs/go/1.27.0/bin/go version
+go version go1.27.0 linux/arm64
+exit: 0
+cwd: /home/agent/.cache/codex-build/tmp/fn258-final-pair-cde-054/temporal
+$ mise which protoc
+/home/agent/.local/share/mise/installs/protoc/29.5/bin/protoc
+exit: 0
+cwd: /home/agent/.cache/codex-build/tmp/fn258-final-pair-cde-054/temporal
+$ /home/agent/.local/share/mise/installs/protoc/29.5/bin/protoc --version
+libprotoc 29.5
+exit: 0
+cwd: /home/agent/.cache/codex-build/tmp/fn258-final-pair-cde-054/temporal
+$ mise which cargo-nextest
+/home/agent/.local/share/mise/installs/github-nextest-rs-nextest/0.9.149/cargo-nextest
+exit: 0
+cwd: /home/agent/.cache/codex-build/tmp/fn258-final-pair-cde-054/temporal
+$ /home/agent/.local/share/mise/installs/github-nextest-rs-nextest/0.9.149/cargo-nextest --version
+cargo-nextest 0.9.149 (3fe4ef319 2026-10-20)
+release: 0.9.149
+commit-hash: 3fe4ef31972f24e0c94cfe291718eab0fe678260
+commit-date: 2026-10-20
+host: aarch64-unknown-linux-gnu
+exit: 0
+cwd: /home/agent/.cache/codex-build/tmp/fn258-final-pair-cde-054/temporal
+$ mise which java
+/home/agent/.local/share/mise/installs/java/temurin-27.0.0+35/bin/java
+exit: 0
+cwd: /home/agent/.cache/codex-build/tmp/fn258-final-pair-cde-054/temporal
+$ git --version
+git version 2.53.0
+exit: 0
+cwd: /home/agent/.cache/codex-build/tmp/fn258-final-pair-cde-054/temporal
+$ mise --version
+2026.10.11 linux-arm64 (2026-10-15)
+mise WARN  mise version 2026.10.21 available
+mise WARN  To update, run mise self-update
+exit: 0
+cwd: /home/agent/.cache/codex-build/tmp/fn258-final-pair-cde-054/temporal
+$ /home/agent/.local/share/mise/installs/go/1.27.0/bin/go env GOWORK
+/home/agent/.cache/codex-build/tmp/fn258-final-pair-cde-054/go.work
+exit: 0
+cwd: /home/agent/.cache/codex-build/tmp/fn258-final-pair-cde-054/temporal
+$ /home/agent/.local/share/mise/installs/go/1.27.0/bin/go list -m -json github.com/temporalio/umpire/hosts/go github.com/temporalio/umpire/reference/kettle umpire.local/temporal
+{
+	"Path": "github.com/temporalio/umpire/hosts/go",
+	"Main": true,
+	"Dir": "/home/agent/.cache/codex-build/tmp/fn258-final-pair-cde-054/umpire/hosts/go",
+	"GoMod": "/home/agent/.cache/codex-build/tmp/fn258-final-pair-cde-054/umpire/hosts/go/go.mod",
+	"GoVersion": "1.27.0"
+}
+{
+	"Path": "github.com/temporalio/umpire/reference/kettle",
+	"Main": true,
+	"Dir": "/home/agent/.cache/codex-build/tmp/fn258-final-pair-cde-054/umpire/reference/kettle",
+	"GoMod": "/home/agent/.cache/codex-build/tmp/fn258-final-pair-cde-054/umpire/reference/kettle/go.mod",
+	"GoVersion": "1.27.0"
+}
+{
+	"Path": "umpire.local/temporal",
+	"Main": true,
+	"Dir": "/home/agent/.cache/codex-build/tmp/fn258-final-pair-cde-054/temporal/model/temporal/hosts/go",
+	"GoMod": "/home/agent/.cache/codex-build/tmp/fn258-final-pair-cde-054/temporal/model/temporal/hosts/go/go.mod",
+	"GoVersion": "1.27.0"
+}
+exit: 0
+cwd: /home/agent/.cache/codex-build/tmp/fn258-final-pair-cde-054/temporal
+$ /home/agent/.local/share/mise/installs/go/1.27.0/bin/go env -json GOCACHE GOMODCACHE GOPATH GOROOT
+{
+	"GOCACHE": "/home/agent/.cache/go-build",
+	"GOMODCACHE": "/home/agent/go/pkg/mod",
+	"GOPATH": "/home/agent/go",
+	"GOROOT": "/home/agent/.local/share/mise/installs/go/1.27.0"
+}
+exit: 0
+cwd: /home/agent/.cache/codex-build/tmp/fn258-final-pair-cde-054/temporal
+$ python3 /home/agent/.cache/codex-build/tmp/fn258-final-pair-cde-054/launch.py resolution
+{
+  "preflight": {
+    "sources": {
+      "temporal": "cde1ee67efd266a058193694c2ddb287598b9ea5",
+      "umpire": "05473210b48c3db862f22051eb7154ce98258f98"
+    },
+    "target": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054",
+    "target_exists": false,
+    "free_bytes": 55396896768,
+    "additional_reservation_gib": 0,
+    "guest_sha256": "d171b91861dba54e9c73682fb17a5a317180dba4e7c5b6c1b09f46667b337f5d",
+    "workspace_sha256": "5e6ca8f10d627f4d5743ce4f9d2d49e12a67cb0172c3254f021f6c51ce3150db",
+    "step": "resolution"
+  },
+  "planned_commands": [
+    [
+      "mise",
+      "exec",
+      "--",
+      "cargo",
+      "metadata",
+      "--manifest-path",
+      "/home/agent/.cache/codex-build/tmp/fn258-final-pair-cde-054/temporal/model/Cargo.toml",
+      "--locked",
+      "--format-version",
+      "1"
+    ],
+    [
+      "mise",
+      "exec",
+      "--",
+      "cargo",
+      "metadata",
+      "--manifest-path",
+      "/home/agent/.cache/codex-build/tmp/fn258-final-pair-cde-054/temporal/model/design/native-symbolic/Cargo.toml",
+      "--locked",
+      "--format-version",
+      "1"
+    ],
+    [
+      "mise",
+      "exec",
+      "--",
+      "go",
+      "env",
+      "GOWORK"
+    ],
+    [
+      "mise",
+      "exec",
+      "--",
+      "go",
+      "list",
+      "-m",
+      "-json",
+      "github.com/temporalio/umpire/hosts/go",
+      "github.com/temporalio/umpire/reference/kettle",
+      "umpire.local/temporal"
+    ]
+  ],
+  "procedure": [],
+  "execution": "NOT RUN; explicit --execute plus matching FN258_TASK4_ADMIT_STEP required"
+}
+exit: 0
+cwd: /home/agent/.cache/codex-build/tmp/fn258-final-pair-cde-054/temporal
+$ python3 /home/agent/.cache/codex-build/tmp/fn258-final-pair-cde-054/launch.py paired-tlc-setup
+{
+  "preflight": {
+    "sources": {
+      "temporal": "cde1ee67efd266a058193694c2ddb287598b9ea5",
+      "umpire": "05473210b48c3db862f22051eb7154ce98258f98"
+    },
+    "target": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054",
+    "target_exists": false,
+    "free_bytes": 55396896768,
+    "additional_reservation_gib": 1,
+    "guest_sha256": "d171b91861dba54e9c73682fb17a5a317180dba4e7c5b6c1b09f46667b337f5d",
+    "workspace_sha256": "5e6ca8f10d627f4d5743ce4f9d2d49e12a67cb0172c3254f021f6c51ce3150db",
+    "step": "paired-tlc-setup"
+  },
+  "planned_commands": [
+    [
+      "/bin/bash",
+      "model/scripts/fetch-tlc.sh"
+    ]
+  ],
+  "procedure": [],
+  "execution": "NOT RUN; explicit --execute plus matching FN258_TASK4_ADMIT_STEP required"
+}
+exit: 0
+cwd: /home/agent/.cache/codex-build/tmp/fn258-final-pair-cde-054/temporal
+$ python3 /home/agent/.cache/codex-build/tmp/fn258-final-pair-cde-054/launch.py paired-required-validate
+{
+  "preflight": {
+    "sources": {
+      "temporal": "cde1ee67efd266a058193694c2ddb287598b9ea5",
+      "umpire": "05473210b48c3db862f22051eb7154ce98258f98"
+    },
+    "target": "/home/agent/.cache/codex-build/fn258-final-pair-cde-054",
+    "target_exists": false,
+    "free_bytes": 55396896768,
+    "additional_reservation_gib": 16,
+    "guest_sha256": "d171b91861dba54e9c73682fb17a5a317180dba4e7c5b6c1b09f46667b337f5d",
+    "workspace_sha256": "5e6ca8f10d627f4d5743ce4f9d2d49e12a67cb0172c3254f021f6c51ce3150db",
+    "step": "paired-required-validate"
+  },
+  "planned_commands": [
+    [
+      "make",
+      "model-validate"
+    ]
+  ],
+  "procedure": [],
+  "execution": "NOT RUN; explicit --execute plus matching FN258_TASK4_ADMIT_STEP required"
+}
+exit: 0
+cwd: /home/agent/.cache/codex-build/tmp/fn258-final-pair-cde-054/temporal
+$ git status --porcelain
+exit: 0
+cwd: /home/agent/.cache/codex-build/tmp/fn258-final-pair-cde-054/umpire
+$ git status --porcelain
+exit: 0
+FINAL: new target and TLC artifact still absent; both source trees clean; no validation execution.

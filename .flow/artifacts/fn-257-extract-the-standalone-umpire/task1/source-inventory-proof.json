@@ -1,0 +1,11 @@
+{
+  "source_commit": "c88fdc550694020eb1c6a2e09577813d906c9ffe",
+  "framework_tree": "c092eb4e8c70d194de7ac4032e7ffdbba4c7fbb8",
+  "archive_tree": "cb5223b9a4839233876c98cf6158a46dc9d97a19",
+  "manifest_sha256": "41e7917631b3d18ed4a6ef6271267d3e61dc34fae2e483ab19451f594c2ad4cf",
+  "comparison": "git archive tar entries vs every ls-tree/cat-file manifest record",
+  "compared_files": 1178,
+  "framework_files": 1177,
+  "result": "exact bytes, executable modes and symlink targets agree",
+  "builds_or_tests_run": false
+}

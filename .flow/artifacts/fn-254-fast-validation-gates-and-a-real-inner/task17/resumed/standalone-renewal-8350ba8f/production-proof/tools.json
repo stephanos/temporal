@@ -1,0 +1,44 @@
+{
+  "cargo": {
+    "executable": "/home/agent/.rustup/toolchains/1.99.1-aarch64-unknown-linux-gnu/bin/cargo",
+    "executable_sha256": "25b6901ec9ecffaa6a88591a77d3036a63a96ecffd1a45dd622a88385d0956af",
+    "exit": 0,
+    "stderr": "",
+    "stdout": "cargo 1.99.1 (5f94df478 2026-08-27)\n"
+  },
+  "cargo-nextest": {
+    "executable": "/home/agent/.local/share/mise/installs/github-nextest-rs-nextest/0.9.149/cargo-nextest",
+    "executable_sha256": "5b5d894f7770fa61e1061dc6c8338fe9c98ed80de3614035f70fe5bd0e133df7",
+    "exit": 0,
+    "stderr": "",
+    "stdout": "cargo-nextest 0.9.149 (3fe4ef319 2026-10-20)\nrelease: 0.9.149\ncommit-hash: 3fe4ef31972f24e0c94cfe291718eab0fe678260\ncommit-date: 2026-10-20\nhost: aarch64-unknown-linux-gnu\n"
+  },
+  "go": {
+    "executable": "/home/agent/.local/share/mise/installs/go/1.27.0/bin/go",
+    "executable_sha256": "b51e8499a917e56a0b290e2ab3ba96f11715dc47ad9739d307e03708e630343a",
+    "exit": 0,
+    "stderr": "",
+    "stdout": "go version go1.27.0 linux/arm64\n"
+  },
+  "java": {
+    "executable": "/home/agent/.local/share/mise/installs/java/temurin-27.0.0+35/bin/java",
+    "executable_sha256": "9657d6ad64391294d30a9e14d28cddfcc86818b435d9b7bf5ceefff79fefd739",
+    "exit": 0,
+    "stderr": "openjdk version \"27\" 2026-09-15\nOpenJDK Runtime Environment Temurin-27+35 (build 27+35)\nOpenJDK 64-Bit Server VM Temurin-27+35 (build 27+35, mixed mode, sharing)\n",
+    "stdout": ""
+  },
+  "protoc": {
+    "executable": "/home/agent/.local/share/mise/installs/protoc/29.5/bin/protoc",
+    "executable_sha256": "77dc1e969324c70938e294cef8b7320ce01d94665171113bcf60361672d826e0",
+    "exit": 0,
+    "stderr": "",
+    "stdout": "libprotoc 29.5\n"
+  },
+  "rustc": {
+    "executable": "/home/agent/.rustup/toolchains/1.99.1-aarch64-unknown-linux-gnu/bin/rustc",
+    "executable_sha256": "08383c36a0893aa8bb95fd43ee4616b112a5b20a181683192ca4130c3d3d603c",
+    "exit": 0,
+    "stderr": "",
+    "stdout": "rustc 1.99.1 (58cf8f9c3 2026-10-13)\n"
+  }
+}

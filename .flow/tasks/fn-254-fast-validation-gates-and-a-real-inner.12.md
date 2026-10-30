@@ -8,8 +8,10 @@ satisfies: [R8]
 Make the fast-gate goal enforceable for every current and future stage (spec R8): a committed budget table, hard work-count checks, and wall-time budgets with a tolerance. fn-255's stages (and anything added later) must declare entries here.
 
 **Size:** M
-**Files:** budget table (framework side in `model/umpire`, Temporal side beside the root gate; format per fn-254.9), the framework entry point's timing (successor of `model/scripts/time-gate.sh`), `test-time-gate.sh` controls.
-**Touches:** [model/umpire/**, model/scripts/time-gate.sh, model/scripts/test-time-gate.sh, Makefile]
+Run after .15's native timer/control port, which also incorporates .16's provider changes. Enforce budgets against those final stage interfaces.
+
+**Files:** `model/umpire/dev/gate/budgets.toml` and `model/dev/gate/budgets.toml` (the two locations selected by .9), the framework/Temporal native gate timing and receipts from .17/.15, and their Rust controls.
+**Touches:** [model/umpire/dev/gate/budgets.toml, model/dev/gate/budgets.toml, model/umpire/dev/xtask/**, model/dev/xtask/**, model/umpire/backends/process/src/work.rs, model/umpire/backends/process/src/support.rs, model/umpire/backends/process/src/lib.rs, model/umpire/backends/tlc/src/runner.rs, model/umpire/backends/tlc/src/runner/**, model/umpire/README.md, model/README.md, model/umpire/dev/gate/BUDGETS.md, model/dev/gate/BUDGETS.md, .plans/UMPIRE_MODULES.md, Makefile]
 
 ### Approach
 - Use .1's historical timing references as initial estimates, then calibrate against the optimized stages and actual counts produced by .2/.3/.4/.5/.6/.11. Historical host/workload differences remain explicit; no fresh pre-optimization timing campaign is required. Count budgets use actual discovered/executed inventories and launch counts, not historical estimates.
@@ -21,18 +23,83 @@ Make the fast-gate goal enforceable for every current and future stage (spec R8)
 
 ### Investigation targets
 **Required:**
-- `model/scripts/time-gate.sh`, `test-time-gate.sh`
+- `model/umpire/dev/xtask/src/gate.rs`, `model/umpire/dev/xtask/src/gate/**`, `model/dev/xtask/src/gate.rs` and their Rust timing/receipt controls after .15
+- `model/umpire/dev/gate/budgets.toml` and `model/dev/gate/budgets.toml`
 - `model/design/gate-speed.md` (.1 baseline)
 - `model/design/framework-gate.md` (.9 layout)
 
+### Owner validation cadence (2026-10-25)
+
+Keep stage registration/count/timing/retry controls now. Derive actual count bounds and preserve deferred full-gate/final timing obligations for .8. Deferred checks remain final .8 requirements and are never reported green. This owner instruction supersedes earlier broad per-task verification commands.
+
+### Producer ownership decision (2026-10-28)
+
+Keep the existing process supervisor and stage DAG. Add observation instrumentation at the existing process/TLC invocation boundary, and closed typed protocol-fixture provenance using the existing clean spawning path. Legacy unconfirmed starts remain unknown. Preserve all negative controls and Model semantics. The canonical six nullable WorkCounts fields remain owned by the gate collector; explicit applicability evidence distinguishes completed native dispatch branches from missing observers. Only actual producers and verified fixture provenance may support admitted bounds.
+
+
+### Verified count-producer checkpoint (2026-10-28)
+
+The actual public native Go stages pass and report 66 framework-host, 12 Kettle and 92 Temporal-host roots executed, with discovered/executed/ignored/skipped observed independently. Effective GOFLAGS is resolved through the same pinned Go context before inventory and execution.
+
+The scoped mixed-TLC proof executes all batch/cache/fixture parents plus a real checker control: 36 roots discovered, 18 executed, 18 skipped; 85 closed protocol-fixture invocations are positively linked to eleven completed assertion authorities and independently observed parent passes, while six admitted real starts contribute three distinct configurations. No missing/legacy unconfirmed start is promoted to zero. Six numeric/null count fields remain compatible. Native package checks pass (xtask194, Temporal39 with4 ignored helper children, process66, TLC36), both workspace format checks and relevant strict Clippy checks pass.
+
+Evidence: `.flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/task12/count-producers-20261028/summary.json`. This is a producer checkpoint, not task closure or budget admission. Explicit applicability/zero evidence, stage tables/workload profiles, default/direct/quick enforcement, exact-context immediate drained retry, budget controls/docs and final cross-family review remain. The source-grounded execution design is retained with that evidence; standalone's Java-version check is not invented as a TLC class launch.
+### Owner validation cadence (2026-10-25)
+
+Keep stage registration/count/timing/retry controls now. Derive actual count bounds and preserve deferred full-gate/final timing obligations for .8. Deferred checks remain final .8 requirements and are never reported green. This owner instruction supersedes earlier broad per-task verification commands.
+
+### Verified budget and attempt checkpoint (2026-10-28)
+
+Strict budget-table parsing and count/time admission pass seven focused controls. The invocation-local bounded drain/retry coordinator passes ten controls after correcting Rust tempfile fixture permissions; production privacy guards remain unchanged. Native scheduled callbacks now retain immutable per-attempt event manifests, verify an exact disjoint/exhaustive event partition, and recheck final numeric counts against producer events. Selected-attempt collection preserves exact TLC fixture provenance and distinct-configuration unions, and repeated successful parent tests aggregate across producers without weakening per-producer duplicate checks.
+
+The native xtask package passes all 227 tests, with zero skipped; this includes the actual scheduled-stage manifest publication and tamper controls, first/second-attempt accounting and existing native wiring controls. The callback seam accepts FnMut, but currently executes only its original first attempt. Policy/coordinator modules remain preparation until wired; their unused-code warnings are not waived or treated as strict-lint acceptance. No production budget table or budget admission is claimed. Next: compiled observer capabilities plus dynamically frozen source/tool/command context, actual dispatch applicability, tables/profiles and in-place immediate retry. Ordinary source edits before admission remain valid; changed inputs during execution/retry refuse. Whole-source SHA allowlisting is not introduced.
+### Owner validation cadence (2026-10-25)
+
+Keep stage registration/count/timing/retry controls now. Derive actual count bounds and preserve deferred full-gate/final timing obligations for .8. Deferred checks remain final .8 requirements and are never reported green. This owner instruction supersedes earlier broad per-task verification commands.
+
+### Owner-requested wrap and pause (2026-10-28)
+
+The owner requested finishing in-flight work and then stopping. The applicability/input-custody checkpoint is retained for resumption; this task remains in_progress and is not closed or admitted. All helper lanes are finished, their completed worktrees removed and integrated branches retired. No further milestone task is started.
+
+Actual framework and consumer dispatch arms now emit completed applicability contracts, using the canonical NoWorkReason type. Scheduled receipts publish count evidence and exact event authorities, and collection rederives them against retained observations. Tests confirm missing observers remain unknown, successful native exclusions retain null numeric fields, complete matched coverage can prove zero, and coverage never hides unconfirmed TLC starts. The real observer open/close hooks are still not installed, so no production positive-zero or budget-admission claim is made. Explicit native stage scope is frozen without environment mutation, propagated to ordinary child commands, and cannot be rebound. Recording failure preserves a real failed payload status.
+
+Exact source/tool/semantic custody and Linux running-image retention pass seven fixture controls, including copied-root equivalence, source/tool changes, symlink/exclusion refusal and alias replacement. This module is preparation: early main-entry pinning, source/tool factories, observer hooks and retry-context checks remain unwired. There is no source SHA allowlist or per-edit approval gate.
+
+Verification: native xtask244 passed/0 skipped; consumer xtask39 passed/4 intentionally ignored helper children; process backend66 passed/0 skipped; final dispatch5 and coordinator10 focused controls pass; both workspace format checks pass. Consumer source-boundary execution exposed consumer-specific fixture labels in the coordinator tests; neutral fixture scopes fix that standalone-boundary violation without adding a stage registry or changing policy. Strict lint remains open because unused/unreachable-public preparation warnings remain. No full performance/edited-source gate or final cross-family review is claimed.
+
+Resume with real observer coverage + exact-context wiring, then admitted stage/workload tables, automatic default/direct/quick enforcement and immediate drained retry, docs, focused controls and cross-family review. Final broad gates and realistic edited-source timings remain .8. Migration fn258 remains owner-deferred.
 ## Owner validation cadence (2026-10-25)
 
 Keep stage registration/count/timing/retry controls now. Derive actual count bounds and preserve deferred full-gate/final timing obligations for .8. Deferred checks remain final .8 requirements and are never reported green. This owner instruction supersedes earlier broad per-task verification commands.
 
 ## Acceptance
 - [ ] A committed budget table covers every current stage, framework and Temporal.
-- [ ] Work-count overruns and unbudgeted stages fail; wall-time overruns fail only on repeat; all four controls pass.
+- [ ] Work-count overruns and unbudgeted stages fail; wall-time overruns fail only on repeat; all listed registration/count/timing/retry controls pass.
 - [ ] README documents how to add a stage and how to change a budget.
+
+### Final producer graph
+
+Consume .17's authoritative stage DAG, uniform runner identities and invocation-local timing/count receipts after .5/.6/.11 and the .16/.15 provider and native timer/control ports. Budget internal/child costs without double-charging inclusive parent elapsed time. Provider/port changes must preserve or explicitly update these registrations; no second scheduler or budget mechanism belongs here.
+
+### Remaining admission work
+
+The verified Go/TLC producer and budget/attempt checkpoints above supply current count evidence. Explicit applicability and positive-zero coverage, admitted stage/workload tables and automatic exact-context immediate retry remain incomplete. Missing observation is neither zero nor proof that a metric is inapplicable. Preserve all controls, the six numeric/null count fields, invocation ownership, exclusive child authorities and the single mise DAG.
+## Final producer graph
+
+Consume .17's authoritative stage DAG, uniform runner identities and invocation-local timing/count receipts after .5/.6/.11 and the .16/.15 provider and native timer/control ports. Budget internal/child costs without double-charging inclusive parent elapsed time. Provider/port changes must preserve or explicitly update these registrations; no second scheduler or budget mechanism belongs here.
+
+### Remaining count modalities before admission
+
+The .17 producer checkpoint supplies structured stage receipts for actual Rust
+nextest/doctest counts and confirmed TLC launches/configurations. Go-host test
+counts and other unadapted modalities remain explicitly unobserved (`null`).
+Complete their actual producers where a stage has work counts before admitting
+its budget table. A missing observation is neither zero nor proof that the metric
+is inapplicable. The real mixed-control stage also records unconfirmed TLC
+starts from negative controls; its launch/configuration totals remain unknown.
+Resolve that measurement gap before admitting a launch/configuration budget,
+preserving those controls. Preserve current caller/output contracts, invocation ownership,
+child authority and the single stage DAG while adding these adapters.
 
 ## Done summary
 TBD

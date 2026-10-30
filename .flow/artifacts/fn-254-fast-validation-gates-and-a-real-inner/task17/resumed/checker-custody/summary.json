@@ -1,0 +1,123 @@
+{
+  "scope": "A: verified optional inherited JVM lease custody in defaultChecker guardian, no new global acquisition per Checker; target capability stripped",
+  "result": "47nativecontrols+strictscopegreen, Aonly; task17remainsopen",
+  "base_commit": "c1bfdd14cb",
+  "source_manifest": "source-final.json",
+  "api": "JvmLease::inherited_file()->io::Result<Option<File>>; None returns before host root/file work; presentlocator shares admission with inherited_or_acquire. Onlyclose/clone; never explicitly unlock a shared description.",
+  "behavior": {
+    "defaultChecker": "Onlywith presentlocator, validateactualFD9 andretain sameOFD in nativeguardian through killed/reapedtarget. Absent behavior/limits/prevention/status remain unchanged.",
+    "Checker_target": "Receives neitherFD9 norUMPIRE_JVM_LEASE_FD, independently tested; custody and targetdelegation flags separate.",
+    "Orchestration": "ContinuesFD9+locator delegation foradmittednativechild paths; no policy/defaultchanges.",
+    "invalid": "Malformedlocator,closeddescriptor,foreigninode reject before native fake-model target marker; no realJava started.",
+    "canonical_unheld": "A separately opened canonicalprobe mustWouldBlock before actualdescriptor exclusivecheck. Demonstrablyunheld canonical and heldcanonical wrongOFD are rejected; heldsameOFD cloneaccepted.",
+    "race_precision": "A probe on an unheld file may briefly acquire its independentdescription; it rejects and closes it. Anotherholder may exitbetweenblockedprobe andactualreentry, allowing thatfinalcheck to acquireexclusivecustody. Thus acceptedactualhostexclusionisproven, not race-free ownershiphistory. None doesnotprobe/open/create/acquire."
+  },
+  "actual_controls": {
+    "library": 22,
+    "process_integration": 25,
+    "total": 47,
+    "all_old_controls": 42,
+    "new5": [
+      "checker_inheritance_is_optional_and_invalid_present_custody_refuses_before_launch",
+      "default_checker_guardian_retains_inherited_custody_without_delegating_to_target",
+      "support::lease_tests::checker_guardian_holds_last_private_description_while_target_has_no_capability",
+      "support::lease_tests::checker_target_control",
+      "support::lease_tests::inherited_admission_rejects_unheld_canonical_and_held_wrong_description"
+    ],
+    "command_seconds": 4.660195377000491,
+    "strict_clippy_seconds": 0.5440254590030236,
+    "old_source_red": "red-default-checker.log showsmalformedlocatorsuccessfullyreachedtarget andChecker guardianFD9missing",
+    "mutations": [
+      {
+        "name": "mutation-guardian",
+        "source": "model/umpire/backends/process/src/syscall.rs",
+        "green_sha256": "f8bb42d9b017e3658b82af7fefec9ed5120e903494df60badc6804446ff778be",
+        "expected_runtime_failure": "Checker guardian lost inherited lease custody",
+        "red_sha256": "e8f507c481f593228d71b6aea454096a0595e1e08a2fd412577140b9e5294cfc",
+        "exit_code": 101,
+        "green_restored": true
+      },
+      {
+        "name": "mutation-target",
+        "source": "model/umpire/backends/process/src/syscall.rs",
+        "green_sha256": "f8bb42d9b017e3658b82af7fefec9ed5120e903494df60badc6804446ff778be",
+        "expected_runtime_failure": "Checker target received FD9",
+        "red_sha256": "db99491632a8391c59a57cb43b7198bba2ec87a9a9b11db7ab226d0a6646efa4",
+        "exit_code": 101,
+        "green_restored": true
+      },
+      {
+        "name": "mutation-env",
+        "source": "model/umpire/backends/process/src/syscall.rs",
+        "green_sha256": "f8bb42d9b017e3658b82af7fefec9ed5120e903494df60badc6804446ff778be",
+        "expected_runtime_failure": "Checker target received lease locator",
+        "red_sha256": "e8439db5b469f12704b96c5db071c2504818e8952f4b7e56097aa7ec20c779e3",
+        "exit_code": 101,
+        "green_restored": true
+      },
+      {
+        "name": "mutation-unheld",
+        "source": "model/umpire/backends/process/src/support.rs",
+        "green_sha256": "006fbc7f079a4b35b22c64f188ce4a4ba2624ca76a103e5b6722197019f9521c",
+        "expected_runtime_failure": "called `Option::unwrap()` on a `None` value",
+        "red_sha256": "b71bf1efadfa7e6350ebfa25b560a9e95f52cc16a89c5e8ee5ccb9b5ab2db483",
+        "exit_code": 101,
+        "green_restored": true
+      }
+    ],
+    "test_isolation": "Privatecanonical/last-OFD controls usecfg(test) root helpers; defaultCheckerintegrationadopts existinghostallocation and absentcase holdsanotherallocation withoutwaiting. No productionenv-root override.",
+    "fake_target_boundary": "Tests execute nativeRust fixtures, not JVM/TLC/Go. Custodymechanism applies at processboundary; fresh frozenCLI/resource and actualsemanticworkloads remain separate."
+  },
+  "checks": [
+    "cargo test --locked -j1 -p umpire-backend-process --lib --test process -- --test-threads=1 --nocapture",
+    "cargo clippy --locked -j1 -p umpire-backend-process --all-targets --all-features -- -D warnings",
+    "rustfmt --edition2024 --check owned4Rustfiles",
+    "git diff --check"
+  ],
+  "unchanged": {
+    "packages_versions_locks": true,
+    "registry_tuple_union": 119,
+    "Checker_Darwin_prevention_defaultlimits_status": true,
+    "graph_CLI_scheduler_test_runner": true
+  },
+  "resources": {
+    "net_target_growth_bytes": 68681,
+    "admitted_budget_bytes": 805306368,
+    "free_guard_bytes": 8589934592,
+    "free_after_bytes": 11085881344,
+    "owned_build_JVM_Go": [],
+    "compiler_phase_released": true
+  },
+  "remaining": [
+    "CooperativeSIGINT/grace/MISE_TASK_PGID_MANAGED B isproposal-only; noimplementationhere.",
+    "Guardian custody protects host exclusion while targetcleanup runs; it doesnot establish cleanup-before-CLI-return for detached/adoptedDarwindescendants or pausedguardians.",
+    "Rootmust joinA, rebuildfrozenCLI, thenrenewpublicresourceproof+realquick/standalone underexplicitadmission."
+  ],
+  "finished_utc": "2026-10-27T01:20:36.940633+00:00",
+  "evidence_sha256": {
+    "before-source.json": "84d2867998ecfd4acea779fd3e1940e59db104c57f6fb7a2602368e0764ed5a8",
+    "build-baseline.json": "d7842d46436ee91f82c11441cc47b750d8bc2c5ce1bf8d2b09c941b2d8d89cbe",
+    "clippy.json": "8a0bea2b7204c65775d18e6911f7b480be346a1bb38174921fcac7b0b964b84a",
+    "clippy.log": "d7e6f6558a45ec72b89c0b9b7335331833955b54ebf61b2502aac581541406d1",
+    "identities.json": "ddb7e55231f07d075507f34b6d9f88eab9bd9d16ef936279eb2233e34df9824a",
+    "initial-clippy.json": "60ba3e19bf850ba17478da4c43b8ab1a31271247bfa6388573afb6e0ea6c78bb",
+    "initial-clippy.log": "88cb9591c5aa13b5efbef0ae5161229047422cca9ed4e5f70558b09003c34825",
+    "mutation-env.json": "85a338393baba6c0666ac70b22814fb0f27b9c19c6fa211097f554386e4ef536",
+    "mutation-env.log": "864ac66cf249d78e0cdd0c8f22d69ed90323bf28c6b7957d96ed89b9a7725d4b",
+    "mutation-guardian.json": "09ae65c3e98f88bdd146b1b2815837bc547db2acf80227eaadeb43851b6f1063",
+    "mutation-guardian.log": "967b156073bd94822b87545b62c0dad2f80766364f259c3012d8954356cdfaa0",
+    "mutation-target.json": "76647f60af749bd2ad591aaf81afe6379127acb32e6f511637cf273831c49cd1",
+    "mutation-target.log": "5a0b477a1fb08bedf805524a2c968b63cf5ed82244255e2458d8cc0294d8fd27",
+    "mutation-unheld.json": "395173ed9723e99037a20dbf9f1a730b56ccda1136b96b718f968dd31a7f25b1",
+    "mutation-unheld.log": "6d52f897c08e08f41f1abdefaf9ef39db333a3a94f133216dfe29a281a9167f3",
+    "mutations.json": "65a0b9397a1000ce0895ba7918f1a94749f793147ebae7d679a9ddb42f0bd818",
+    "red-default-checker.json": "eec9ff5d21c79542c4b1166b8117f842b5fe0ba87edca179203481ba4d0f0ad9",
+    "red-default-checker.log": "f2af01174f9c7ceb479f9b348e177c9257fa2410b54344cc445209a1f8baf76b",
+    "run-focused.py": "ac687a6d5b9c41c1c316121605774497f5b5c398d9e655182a3f9dcc2d3c82c8",
+    "run-mutations.py": "fc6c5b8fbc7d16de230e0e3de158fd97434dceb17ffcd4c4dcb41abaad676fe3",
+    "source-final.json": "ffa593dcd871f16afe52d80305add0ad6dde4dbd0ecd4a7c210cf6e91420f5f1",
+    "test-prepared.json": "21454d0412f82108f9382abe60ac7b83e58170c441a3328de41389458225a15a",
+    "tests.json": "69cb343b8ef6bef84a876da0512c05970dd208069817d4782cff10ca380b90c2",
+    "tests.log": "02ea959326e3e05d65040fdde160c0600a934baf5be00c56d11df1fec31a5283"
+  }
+}

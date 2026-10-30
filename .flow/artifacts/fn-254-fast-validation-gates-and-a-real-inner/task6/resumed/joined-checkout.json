@@ -1,0 +1,23 @@
+{
+  "command": [
+    "git",
+    "checkout",
+    "--detach",
+    "0c83ab3d1e4b8593e7415d780902789d8bad7c90"
+  ],
+  "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate",
+  "started_utc": "2026-10-26T21:11:13.077129+00:00",
+  "environment": {
+    "CARGO_TARGET_DIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/target",
+    "TMPDIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/tmp",
+    "CARGO_INCREMENTAL": "0",
+    "CARGO_BUILD_JOBS": "2",
+    "RUST_TEST_THREADS": "2",
+    "MISE_TRUSTED_CONFIG_PATHS": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate:/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/target"
+  },
+  "BASH_ENV": "removed",
+  "exit_code": 0,
+  "elapsed_seconds": 0.11807862500018018,
+  "log_sha256": "e866e783759a29346459bbfcb12819ebf25068e678bb2495ba2e2a95884b49e8",
+  "free_bytes": 37466492928
+}

@@ -1,0 +1,56 @@
+{
+  "controls": [
+    {
+      "control": "original",
+      "exit": 1,
+      "diagnostic": "Export refused or failed: The original repository cannot be filtered",
+      "report_directory_created": false
+    },
+    {
+      "control": "registered-worktree",
+      "exit": 1,
+      "diagnostic": "Export refused or failed: Clone is an original registered worktree",
+      "report_directory_created": false
+    },
+    {
+      "control": "exported-file-corruption",
+      "exit": 1,
+      "report": "file-negative.json",
+      "failures": {
+        "count": 1,
+        "samples": [
+          {
+            "category": "export-worktree-bytes-modes-symlinks",
+            "detail": "working files differ from the mapped checkpoint"
+          }
+        ]
+      }
+    },
+    {
+      "control": "omitted-source-commit-map",
+      "exit": 1,
+      "report": "map-negative.json",
+      "failures": {
+        "count": 2,
+        "samples": [
+          {
+            "category": "checkpoint",
+            "detail": "supplied checkpoint is not the source commit's mapped export"
+          },
+          {
+            "category": "pruned-nonneutral-projection",
+            "detail": {
+              "old": "c88fdc550694020eb1c6a2e09577813d906c9ffe",
+              "retained_parent_frontier": [
+                "0dec0d3e81d694eb40cc2c70ceb3956ee1479d98"
+              ]
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "readme_restored_exactly": true,
+  "original_commit_map_changed": false,
+  "builds_or_runtime_tests": false
+}

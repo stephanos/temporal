@@ -1,0 +1,37 @@
+{
+  "status": "prepared_unexecuted",
+  "proof_executed": false,
+  "builds_executed": false,
+  "safe_controls": {
+    "success": true,
+    "tests_run": 4,
+    "failures": 0,
+    "errors": 0,
+    "input_manifest_sha256": "f4e869f0ba33e939c5ccfbf58c224abf9f68ac8bee5f3db269c3a7c8bd6f7ce9",
+    "proof_executed": false,
+    "control_scope": "fake child only; no proof/build/runtime launch"
+  },
+  "input_manifest_sha256": "f4e869f0ba33e939c5ccfbf58c224abf9f68ac8bee5f3db269c3a7c8bd6f7ce9",
+  "static_checks": [
+    "all four Python files AST-parse",
+    "all manifest input hashes match",
+    "all retained original hashes unchanged",
+    "validate_parent and doctests AST identical to retained proof",
+    "observer.py byte-identical to retained observer",
+    "no proof output/watchdog runtime receipt exists"
+  ],
+  "guard_contract": {
+    "initial_source_free_gib": 50,
+    "initial_actual_tmp_free_gib": 50,
+    "runtime_free_gib": 30,
+    "growth_gib": 30,
+    "child_stages": 17
+  },
+  "candidate_head": "required CLI input; root admits later",
+  "target_owner": "fn254.15; explicitly reuses retained task16-named target",
+  "limits": [
+    "No real proof, build, gate, review or Flow operation ran.",
+    "Safe unittest fixtures use fake subprocess children and mocked Git reads.",
+    "Current main may be dirty; watchdog will reject execution until root commits and admits a clean expected HEAD."
+  ]
+}

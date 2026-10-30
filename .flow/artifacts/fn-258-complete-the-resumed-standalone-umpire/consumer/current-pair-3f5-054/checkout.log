@@ -1,0 +1,6 @@
+$ git -C /home/agent/.cache/codex-build/tmp/fn258-pair/temporal fetch /Users/stephan/Workspace/skunkworks/umpire/temporal 3f5f613578f2857b738a7792fad08f12b3ea0a41
+From /Users/stephan/Workspace/skunkworks/umpire/temporal
+ * branch                3f5f613578f2857b738a7792fad08f12b3ea0a41 -> FETCH_HEAD
+$ git -C /home/agent/.cache/codex-build/tmp/fn258-pair/temporal checkout --detach 3f5f613578f2857b738a7792fad08f12b3ea0a41
+Previous HEAD position was 3658582da Keep consumer entry-point controls scoped to their fixture
+HEAD is now at 3f5f61357 Name the sibling host guide in CLI package documentation

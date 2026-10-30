@@ -1,0 +1,314 @@
+{
+  "schema_version": 1,
+  "status": "PREPARED_ONLY_NOT_ADMITTED_FOR_EXECUTION",
+  "observed_unix": 1793197228.0629466,
+  "sources": {
+    "temporal": {
+      "head": "3f5f613578f2857b738a7792fad08f12b3ea0a41",
+      "tree": "9a3e60fa94e0bd6ead87aeb3278c11883a00c685",
+      "status": "",
+      "detached": true,
+      "alternates": false,
+      "all_object_file_link_counts_one": true,
+      "object_file_count": 3,
+      "git_directory": "/home/agent/.cache/codex-build/tmp/fn258-final-pair-3f5-054/temporal/.git",
+      "tracked_index_inventory_sha256": "701e920f9c4eb51d2eb44b9afa02d7645137bdd8a90b9995be8fd6d1bdec4496",
+      "shallow": "true"
+    },
+    "umpire": {
+      "head": "05473210b48c3db862f22051eb7154ce98258f98",
+      "tree": "46829511b6d582b40f3fa5095f42bdf980c7d466",
+      "status": "",
+      "detached": true,
+      "alternates": false,
+      "all_object_file_link_counts_one": true,
+      "object_file_count": 3,
+      "git_directory": "/home/agent/.cache/codex-build/tmp/fn258-final-pair-3f5-054/umpire/.git",
+      "tracked_index_inventory_sha256": "534d87b674a6e2e0a75d5ebe443be10eefc8c56849287423412ff921c2df4d99",
+      "shallow": "false"
+    }
+  },
+  "source_commands": [
+    {
+      "argv": [
+        "git",
+        "clone",
+        "--no-local",
+        "--no-hardlinks",
+        "--no-checkout",
+        "--revision=3f5f613578f2857b738a7792fad08f12b3ea0a41",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal",
+        "/home/agent/.cache/codex-build/tmp/fn258-final-pair-3f5-054/temporal"
+      ],
+      "exit": 0,
+      "seconds": 9.667414297000505
+    },
+    {
+      "argv": [
+        "git",
+        "-C",
+        "/home/agent/.cache/codex-build/tmp/fn258-final-pair-3f5-054/temporal",
+        "checkout",
+        "--detach",
+        "3f5f613578f2857b738a7792fad08f12b3ea0a41"
+      ],
+      "exit": 0,
+      "seconds": 2.0089660419907887
+    },
+    {
+      "argv": [
+        "git",
+        "clone",
+        "--no-local",
+        "--no-hardlinks",
+        "--no-checkout",
+        "--revision=05473210b48c3db862f22051eb7154ce98258f98",
+        "/Users/stephan/Workspace/skunkworks/umpire/umpire",
+        "/home/agent/.cache/codex-build/tmp/fn258-final-pair-3f5-054/umpire"
+      ],
+      "exit": 0,
+      "seconds": 0.6869047509972006
+    },
+    {
+      "argv": [
+        "git",
+        "-C",
+        "/home/agent/.cache/codex-build/tmp/fn258-final-pair-3f5-054/umpire",
+        "checkout",
+        "--detach",
+        "05473210b48c3db862f22051eb7154ce98258f98"
+      ],
+      "exit": 0,
+      "seconds": 0.043946000005234964
+    }
+  ],
+  "source_mode": "Independent --no-local --no-hardlinks --revision clones, detached at exact final commits; no alternates or copied build outputs.",
+  "target": {
+    "path": "/home/agent/.cache/codex-build/fn258-final-pair-3f5-054",
+    "initially_absent": true,
+    "still_absent_after_preparation": true,
+    "planned_go_cache": "/home/agent/.cache/codex-build/fn258-final-pair-3f5-054/go-build",
+    "artifacts_copied": false,
+    "guest_proof_output": "/home/agent/.cache/codex-build/fn258-final-pair-3f5-054/proof/umpire_temporal_guest.wasm"
+  },
+  "workspace": {
+    "path": "/home/agent/.cache/codex-build/tmp/fn258-final-pair-3f5-054/go.work",
+    "contents": "go 1.27.0\n\nuse (\n\t./temporal\n\t./umpire/hosts/go\n\t./umpire/reference/kettle\n\t./temporal/model/temporal/hosts/go\n)\n",
+    "sha256": "5e6ca8f10d627f4d5743ce4f9d2d49e12a67cb0172c3254f021f6c51ce3150db",
+    "go_work_and_sum_absent_before_creation": true,
+    "automatic_discovery": "/home/agent/.cache/codex-build/tmp/fn258-final-pair-3f5-054/go.work",
+    "modules": [
+      {
+        "Path": "github.com/temporalio/umpire/hosts/go",
+        "Main": true,
+        "Dir": "/home/agent/.cache/codex-build/tmp/fn258-final-pair-3f5-054/umpire/hosts/go",
+        "GoMod": "/home/agent/.cache/codex-build/tmp/fn258-final-pair-3f5-054/umpire/hosts/go/go.mod",
+        "GoVersion": "1.27.0"
+      },
+      {
+        "Path": "github.com/temporalio/umpire/reference/kettle",
+        "Main": true,
+        "Dir": "/home/agent/.cache/codex-build/tmp/fn258-final-pair-3f5-054/umpire/reference/kettle",
+        "GoMod": "/home/agent/.cache/codex-build/tmp/fn258-final-pair-3f5-054/umpire/reference/kettle/go.mod",
+        "GoVersion": "1.27.0"
+      },
+      {
+        "Path": "umpire.local/temporal",
+        "Main": true,
+        "Dir": "/home/agent/.cache/codex-build/tmp/fn258-final-pair-3f5-054/temporal/model/temporal/hosts/go",
+        "GoMod": "/home/agent/.cache/codex-build/tmp/fn258-final-pair-3f5-054/temporal/model/temporal/hosts/go/go.mod",
+        "GoVersion": "1.27.0"
+      }
+    ],
+    "module_dirs_verified": true,
+    "unrelated_parent_entries_overwritten": false
+  },
+  "tools": {
+    "rustc": {
+      "actual_planned_invocation": [
+        "mise",
+        "exec",
+        "--",
+        "rustc"
+      ],
+      "effective_binary": "/home/agent/.rustup/toolchains/1.99.1-aarch64-unknown-linux-gnu/bin/rustc",
+      "effective_binary_sha256": "08383c36a0893aa8bb95fd43ee4616b112a5b20a181683192ca4130c3d3d603c",
+      "version_output": "rustc 1.99.1 (58cf8f9c3 2026-10-13)\nbinary: rustc\ncommit-hash: 58cf8f9c35b355199727627d07ae34a4e2846d67\ncommit-date: 2026-10-13\nhost: aarch64-unknown-linux-gnu\nrelease: 1.99.1\nLLVM version: 23.1.1",
+      "outside_mise_direct_probe": {
+        "selected_path": "/home/agent/.cargo/bin/rustc",
+        "resolved_path": "/home/agent/.cargo/bin/rustup",
+        "sha256": "15f6e4ce9f583b929c996c91562bad6d4454f3281de858b02cdfdef615fac433",
+        "version_output": "rustc 1.98.0 (88d9e12ae 2026-08-18)\nbinary: rustc\ncommit-hash: 88d9e12ae178fab0fb5cc050a94da85685d449ea\ncommit-date: 2026-08-18\nhost: aarch64-unknown-linux-gnu\nrelease: 1.98.0\nLLVM version: 22.1.8"
+      },
+      "scope_note": "The earlier direct rustup shim probe used the ambient1.98 toolchain outside mise; planned commands use the recorded effective mise-pinned1.99.1 compiler/Cargo. No install or build occurred."
+    },
+    "cargo": {
+      "actual_planned_invocation": [
+        "mise",
+        "exec",
+        "--",
+        "cargo"
+      ],
+      "effective_binary": "/home/agent/.rustup/toolchains/1.99.1-aarch64-unknown-linux-gnu/bin/cargo",
+      "effective_binary_sha256": "25b6901ec9ecffaa6a88591a77d3036a63a96ecffd1a45dd622a88385d0956af",
+      "version_output": "cargo 1.99.1 (5f94df478 2026-08-27)",
+      "outside_mise_direct_probe": {
+        "selected_path": "/home/agent/.cargo/bin/cargo",
+        "resolved_path": "/home/agent/.cargo/bin/rustup",
+        "sha256": "15f6e4ce9f583b929c996c91562bad6d4454f3281de858b02cdfdef615fac433",
+        "version_output": "cargo 1.98.0 (797e8a9bc 2026-08-05)"
+      },
+      "scope_note": "The earlier direct rustup shim probe used the ambient1.98 toolchain outside mise; planned commands use the recorded effective mise-pinned1.99.1 compiler/Cargo. No install or build occurred."
+    },
+    "go": {
+      "selected_path": "/home/agent/.local/share/mise/installs/go/1.27.0/bin/go",
+      "resolved_path": "/home/agent/.local/share/mise/installs/go/1.27.0/bin/go",
+      "sha256": "b51e8499a917e56a0b290e2ab3ba96f11715dc47ad9739d307e03708e630343a",
+      "version_output": "go version go1.27.0 linux/arm64"
+    },
+    "protoc": {
+      "selected_path": "/home/agent/.local/share/mise/installs/protoc/29.5/bin/protoc",
+      "resolved_path": "/home/agent/.local/share/mise/installs/protoc/29.5/bin/protoc",
+      "sha256": "77dc1e969324c70938e294cef8b7320ce01d94665171113bcf60361672d826e0",
+      "version_output": "libprotoc 29.5"
+    },
+    "cargo-nextest": {
+      "selected_path": "/home/agent/.local/share/mise/installs/github-nextest-rs-nextest/0.9.149/cargo-nextest",
+      "resolved_path": "/home/agent/.local/share/mise/installs/github-nextest-rs-nextest/0.9.149/cargo-nextest",
+      "sha256": "5b5d894f7770fa61e1061dc6c8338fe9c98ed80de3614035f70fe5bd0e133df7",
+      "version_output": "cargo-nextest 0.9.149 (3fe4ef319 2026-10-20)\nrelease: 0.9.149\ncommit-hash: 3fe4ef31972f24e0c94cfe291718eab0fe678260\ncommit-date: 2026-10-20\nhost: aarch64-unknown-linux-gnu"
+    },
+    "java": {
+      "selected_path": "/home/agent/.local/share/mise/installs/java/temurin-27.0.0+35/bin/java",
+      "resolved_path": "/home/agent/.local/share/mise/installs/java/temurin-27.0.0+35/bin/java",
+      "sha256": "9657d6ad64391294d30a9e14d28cddfcc86818b435d9b7bf5ceefff79fefd739",
+      "execution": "NOT EXECUTED: JVM not started; pin and binary identity recorded only."
+    },
+    "mise": {
+      "selected_path": "/home/agent/.local/bin/mise",
+      "resolved_path": "/home/agent/.local/bin/mise",
+      "sha256": "370b4b4cfd740402e9a55aa1a8a01fbb1ac95c50af1207b2db2c5489dd4da0cd",
+      "version_output": "2026.10.11 linux-arm64 (2026-10-15)\nmise WARN  mise version 2026.10.21 available\nmise WARN  To update, run mise self-update"
+    },
+    "git": {
+      "selected_path": "/usr/bin/git",
+      "resolved_path": "/usr/bin/git",
+      "sha256": "89fbabe92d1e190036a9b15e8e30efc16643beb7562329592855e622c59c3e00",
+      "version_output": "git version 2.53.0"
+    }
+  },
+  "normal_existing_go_paths": {
+    "GOCACHE": "/home/agent/.cache/go-build",
+    "GOMODCACHE": "/home/agent/go/pkg/mod",
+    "GOPATH": "/home/agent/go",
+    "GOROOT": "/home/agent/.local/share/mise/installs/go/1.27.0"
+  },
+  "preparation_environment": {
+    "BASH_ENV": null,
+    "GOWORK": null,
+    "CARGO_HOME": "/home/agent/.cargo",
+    "RUSTUP_HOME": null,
+    "TMPDIR": "/home/agent/.cache/codex-build/tmp",
+    "MISE_AUTO_INSTALL": "false",
+    "MISE_EXEC_AUTO_INSTALL": "false",
+    "MISE_NOT_FOUND_AUTO_INSTALL": "false",
+    "GOTOOLCHAIN": "local",
+    "MISE_TRUSTED_CONFIG_PATHS": "/home/agent/.cache/codex-build/tmp/fn258-final-pair-3f5-054/temporal:/home/agent/.cache/codex-build/tmp/fn258-final-pair-3f5-054/umpire"
+  },
+  "planned_environment": {
+    "CARGO_TARGET_DIR": "/home/agent/.cache/codex-build/fn258-final-pair-3f5-054",
+    "CARGO_BUILD_JOBS": "1",
+    "CARGO_INCREMENTAL": "0",
+    "NEXTEST_TEST_THREADS": "4",
+    "RUST_TEST_THREADS": "1",
+    "GOMAXPROCS": "1",
+    "GOFLAGS": "-p=1",
+    "CGO_ENABLED": "0",
+    "MISE_AUTO_INSTALL": "false",
+    "MISE_EXEC_AUTO_INSTALL": "false",
+    "MISE_NOT_FOUND_AUTO_INSTALL": "false",
+    "GOCACHE": "/home/agent/.cache/codex-build/fn258-final-pair-3f5-054/go-build",
+    "GOWORK": "/home/agent/.cache/codex-build/tmp/fn258-final-pair-3f5-054/go.work",
+    "GOTOOLCHAIN": "local",
+    "MISE_TRUSTED_CONFIG_PATHS": "/home/agent/.cache/codex-build/tmp/fn258-final-pair-3f5-054/temporal:/home/agent/.cache/codex-build/tmp/fn258-final-pair-3f5-054/umpire"
+  },
+  "launcher": {
+    "path": "/home/agent/.cache/codex-build/tmp/fn258-final-pair-3f5-054/launch.py",
+    "sha256": "ed1614197e0099daac338d31276d3f5166c2d3ba8dada7a674ad93aa0fdf50e8",
+    "mode": "0o755",
+    "plan": "/home/agent/.cache/codex-build/tmp/fn258-final-pair-3f5-054/launch-plan.json",
+    "plan_sha256": "e11ef7d4eb85f52836e6c319d535a635100348b7368aa721d6348ed4a7617f71",
+    "syntax_compile_only": true,
+    "preflight_resolution_exit": 0,
+    "preflight_required_budget_exit": 0,
+    "preflight_required_budget_output": "{\n  \"preflight\": {\n    \"sources\": {\n      \"temporal\": \"3f5f613578f2857b738a7792fad08f12b3ea0a41\",\n      \"umpire\": \"05473210b48c3db862f22051eb7154ce98258f98\"\n    },\n    \"target\": \"/home/agent/.cache/codex-build/fn258-final-pair-3f5-054\",\n    \"target_exists\": false,\n    \"free_bytes\": 55988256768,\n    \"additional_reservation_gib\": 16,\n    \"guest_sha256\": \"d171b91861dba54e9c73682fb17a5a317180dba4e7c5b6c1b09f46667b337f5d\",\n    \"workspace_sha256\": \"5e6ca8f10d627f4d5743ce4f9d2d49e12a67cb0172c3254f021f6c51ce3150db\",\n    \"step\": \"paired-required-validate\"\n  },\n  \"planned_commands\": [\n    [\n      \"make\",\n      \"model-validate\"\n    ]\n  ],\n  \"procedure\": [],\n  \"execution\": \"NOT RUN; explicit --execute plus matching FN258_TASK4_ADMIT_STEP required\"\n}\n",
+    "execution_command_pattern": "FN258_TASK4_ADMIT_STEP=<step> python3 <launcher> <step> --execute [--reserve-gib ROOT_REVIEWED_ADDITIONAL_RESERVATION]",
+    "root_admission": "Preparation is not authorization. Root must first admit execution after task3 committed closure and disk cleanup; launcher admission environment is operator attestation, not Flow closure evidence.",
+    "all_command_stdout_stderr": "Complete combined output per command; argv,cwd,selected env,sources,start/end/status and before/after filesystem free-space recorded on actual execution.",
+    "planned_step_ids": [
+      "resolution",
+      "pair-prerequisites-and-generators",
+      "framework-generation",
+      "temporal-generation",
+      "current-guest-identity",
+      "paired-default-check",
+      "paired-required-validate",
+      "warm-activity-quick",
+      "final-local-edit-red-green",
+      "final-seals"
+    ],
+    "example_preflight": "python3 /home/agent/.cache/codex-build/tmp/fn258-final-pair-3f5-054/launch.py resolution",
+    "example_execution_after_root_admission": "FN258_TASK4_ADMIT_STEP=resolution python3 /home/agent/.cache/codex-build/tmp/fn258-final-pair-3f5-054/launch.py resolution --execute"
+  },
+  "path_overrides": {
+    "historical_plan_pair": "/home/agent/.cache/codex-build/tmp/fn258-task4-final-3f5-054",
+    "actual_pair": "/home/agent/.cache/codex-build/tmp/fn258-final-pair-3f5-054",
+    "historical_plan_target": "/home/agent/.cache/codex-build/fn258-consumer",
+    "actual_fresh_target": "/home/agent/.cache/codex-build/fn258-final-pair-3f5-054",
+    "guest_proof": "/home/agent/.cache/codex-build/fn258-final-pair-3f5-054/proof/umpire_temporal_guest.wasm",
+    "historical_reused_cache_temperatures": "Overridden: first paired run has an absent fresh target; later phases may reuse only outputs produced by this admitted sequence.",
+    "standalone_release": "Root separately owns HOST .flow/tmp/fn258-standalone-release-0547321; this launcher does not run standalone phases."
+  },
+  "canonical_guest": {
+    "path": "/home/agent/.cache/codex-build/tmp/fn258-final-pair-3f5-054/temporal/model/temporal/hosts/go/umpire_temporal_guest.wasm",
+    "size": 3988382,
+    "sha256": "d171b91861dba54e9c73682fb17a5a317180dba4e7c5b6c1b09f46667b337f5d",
+    "rebuilt": false
+  },
+  "disk": {
+    "private_overlay_free_bytes": 55987830784,
+    "host_free_bytes": 108228739072,
+    "floor_bytes": 32212254720,
+    "paired_high_additional_reservation_gib": 16,
+    "heavy_admission_pending_root_cleanup": false
+  },
+  "not_executed": [
+    "Builds",
+    "Guest generation/freshness",
+    "JVM process/version",
+    "Generators/installers",
+    "Public gates/timing/quick tests",
+    "Release tests",
+    "Review/Flow state changes"
+  ],
+  "limits": "Only preparation.json and preparation.log written in tracking artifacts; external fresh source clones, new parent Go workspace and executable launcher/plan are intentionally retained. No target or target artifact exists.",
+  "log_sha256": "85926623de096577267217872948e593fcf570b7169d0046d56fa7e494663bef",
+  "planned_environment_template": {
+    "CARGO_TARGET_DIR": "absolute lane-specific existing owned target below",
+    "CARGO_BUILD_JOBS": "1",
+    "CARGO_INCREMENTAL": "0",
+    "NEXTEST_TEST_THREADS": "4",
+    "RUST_TEST_THREADS": "1",
+    "GOMAXPROCS": "1",
+    "GOFLAGS": "-p=1",
+    "CGO_ENABLED": "0",
+    "MISE_AUTO_INSTALL": "false",
+    "MISE_EXEC_AUTO_INSTALL": "false",
+    "MISE_NOT_FOUND_AUTO_INSTALL": "false"
+  },
+  "external_source_tree_paths": [
+    "/home/agent/.cache/codex-build/tmp/fn258-final-pair-3f5-054/temporal",
+    "/home/agent/.cache/codex-build/tmp/fn258-final-pair-3f5-054/umpire"
+  ],
+  "effective_mise_rustup_toolchain": "1.99.1"
+}

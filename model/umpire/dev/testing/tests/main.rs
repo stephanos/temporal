@@ -8,5 +8,7 @@ mod declared_values;
 mod discovery;
 #[path = "main/empty_control.rs"]
 mod empty_control;
+#[path = "main/fixture_composition.rs"]
+mod fixture_composition;
 #[path = "main/orphan_control.rs"]
 mod orphan_control;

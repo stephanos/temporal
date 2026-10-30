@@ -1,0 +1,1120 @@
+{
+  "schema_version": 1,
+  "status": "read-only R6 preparation; no disposition accepted or transfers performed",
+  "observed_utc": "2026-10-28T06:37:42.255553+00:00",
+  "inputs": {
+    "renewed_ledger": {
+      "path": ".flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/source/candidate-ledger.json",
+      "sha256": "b1fc7a843b092d1920d4dbf6387f6d6795d212ecfef381e8b7d96c62b3386851"
+    },
+    "original_task6_plan": {
+      "path": ".flow/artifacts/fn-257-extract-the-standalone-umpire/task6/provisional-transfer-plan.json",
+      "sha256": "7ac9edf526afefaa98557e6c4a7181e1609a08fbcd15738a1bc51fa0ddcb4746"
+    }
+  },
+  "coverage": {
+    "ledger_entries": 88,
+    "original_candidates": 81,
+    "original_ownership_counts": {
+      "legacy": 9,
+      "Temporal": 26,
+      "framework": 11,
+      "mixed": 35
+    },
+    "new_preparation_entries": 7,
+    "original_unknown_task_links": 26,
+    "unknown_research_classifications": {
+      "unresolved-product-task-freeze": 6,
+      "source-tracker-maintenance-not-product-owner": 1,
+      "direct-commit-task-trailer": 15,
+      "integrated-upstream-reference-no-candidate-delta": 1,
+      "migration-assembly-source-tracker-corroboration": 1,
+      "descriptor-corroborated-history-with-current-authority-redirect": 1,
+      "descriptor-exact-four-path-corroboration": 1
+    },
+    "original_candidate_transfers_performed": 0,
+    "new_recovery_refs_created": 0
+  },
+  "unknown_owner_research": [
+    {
+      "original_ledger_index": 0,
+      "repository": "temporal",
+      "ref": "refs/heads/agent/attempt-fencing-prototype",
+      "original_head": "bac2d44038362121939b0904e1993e2e8e25f787",
+      "observed_head": "bac2d44038362121939b0904e1993e2e8e25f787",
+      "ledger_ownership": "legacy",
+      "source_delta_path_count": 19,
+      "commit_body_task_evidence": [],
+      "corroborated_task_records": [],
+      "classification": "unresolved-product-task-freeze",
+      "accepted_transfer": false,
+      "original_task_lifecycle_changed": false,
+      "recommended_repository_disposition": "retain source-only historical/server/tracker candidate and original refs; do not copy obsolete module trees into standalone",
+      "freeze": "No direct Task trailer or exact authoritative descriptor establishes product task ownership. Keep original ref/head/source and any dirty/ignored data in place; migration task5 may track this unresolved decision but cannot label it transferred or accepted."
+    },
+    {
+      "original_ledger_index": 1,
+      "repository": "temporal",
+      "ref": "refs/heads/agent/batch2-anchor",
+      "original_head": "b6638e9d2e79d76cd34331d77e42ef5a4ef49bb3",
+      "observed_head": "b6638e9d2e79d76cd34331d77e42ef5a4ef49bb3",
+      "ledger_ownership": "Temporal",
+      "source_delta_path_count": 44,
+      "commit_body_task_evidence": [],
+      "corroborated_task_records": [],
+      "classification": "source-tracker-maintenance-not-product-owner",
+      "accepted_transfer": false,
+      "original_task_lifecycle_changed": false,
+      "recommended_repository_disposition": "retain source-only historical/server/tracker candidate and original refs; do not copy obsolete module trees into standalone",
+      "affected_tracker_records": [
+        ".flow/specs/fn-123-declare-faults-as-the-environments.json",
+        ".flow/specs/fn-123-declare-faults-as-the-environments.md",
+        ".flow/tasks/fn-123-declare-faults-as-the-environments.1.json",
+        ".flow/tasks/fn-123-declare-faults-as-the-environments.1.md",
+        ".flow/tasks/fn-123-declare-faults-as-the-environments.2.json",
+        ".flow/tasks/fn-123-declare-faults-as-the-environments.2.md",
+        ".flow/tasks/fn-123-declare-faults-as-the-environments.3.json",
+        ".flow/tasks/fn-123-declare-faults-as-the-environments.3.md",
+        ".flow/tasks/fn-123-declare-faults-as-the-environments.4.json",
+        ".flow/tasks/fn-123-declare-faults-as-the-environments.4.md",
+        ".flow/tasks/fn-123-declare-faults-as-the-environments.5.json",
+        ".flow/tasks/fn-123-declare-faults-as-the-environments.5.md",
+        ".flow/tasks/fn-123-declare-faults-as-the-environments.6.json",
+        ".flow/tasks/fn-123-declare-faults-as-the-environments.6.md",
+        ".flow/tasks/fn-140-one-sentence-witness-queries-with.1.json",
+        ".flow/tasks/fn-140-one-sentence-witness-queries-with.1.md",
+        ".flow/tasks/fn-140-one-sentence-witness-queries-with.3.json",
+        ".flow/tasks/fn-140-one-sentence-witness-queries-with.3.md",
+        ".flow/tasks/fn-140-one-sentence-witness-queries-with.6.json",
+        ".flow/tasks/fn-140-one-sentence-witness-queries-with.6.md",
+        ".flow/tasks/fn-141-shrink-the-ir-generator-one-description.10.json",
+        ".flow/tasks/fn-141-shrink-the-ir-generator-one-description.10.md",
+        ".flow/tasks/fn-141-shrink-the-ir-generator-one-description.11.json",
+        ".flow/tasks/fn-141-shrink-the-ir-generator-one-description.11.md",
+        ".flow/tasks/fn-141-shrink-the-ir-generator-one-description.12.json",
+        ".flow/tasks/fn-141-shrink-the-ir-generator-one-description.12.md",
+        ".flow/tasks/fn-141-shrink-the-ir-generator-one-description.13.json",
+        ".flow/tasks/fn-141-shrink-the-ir-generator-one-description.13.md",
+        ".flow/tasks/fn-141-shrink-the-ir-generator-one-description.2.json",
+        ".flow/tasks/fn-141-shrink-the-ir-generator-one-description.2.md",
+        ".flow/tasks/fn-141-shrink-the-ir-generator-one-description.3.json",
+        ".flow/tasks/fn-141-shrink-the-ir-generator-one-description.3.md",
+        ".flow/tasks/fn-141-shrink-the-ir-generator-one-description.4.json",
+        ".flow/tasks/fn-141-shrink-the-ir-generator-one-description.4.md",
+        ".flow/tasks/fn-141-shrink-the-ir-generator-one-description.5.json",
+        ".flow/tasks/fn-141-shrink-the-ir-generator-one-description.5.md",
+        ".flow/tasks/fn-141-shrink-the-ir-generator-one-description.6.json",
+        ".flow/tasks/fn-141-shrink-the-ir-generator-one-description.6.md",
+        ".flow/tasks/fn-141-shrink-the-ir-generator-one-description.7.json",
+        ".flow/tasks/fn-141-shrink-the-ir-generator-one-description.7.md",
+        ".flow/tasks/fn-141-shrink-the-ir-generator-one-description.8.json",
+        ".flow/tasks/fn-141-shrink-the-ir-generator-one-description.8.md",
+        ".flow/tasks/fn-141-shrink-the-ir-generator-one-description.9.json",
+        ".flow/tasks/fn-141-shrink-the-ir-generator-one-description.9.md"
+      ],
+      "descriptor_evidence": "All 44 committed delta paths are Flow spec/task records; b6638e9d2e anchors lifter task paths. Retain their actual authoritative records in Temporal; do not assign one product task to the whole tracker edit."
+    },
+    {
+      "original_ledger_index": 2,
+      "repository": "temporal",
+      "ref": "refs/heads/agent/fn1292-source",
+      "original_head": "ee6921caa49982ef71d5d6db7e0e1524355cc624",
+      "observed_head": "ee6921caa49982ef71d5d6db7e0e1524355cc624",
+      "ledger_ownership": "Temporal",
+      "source_delta_path_count": 56,
+      "commit_body_task_evidence": [
+        {
+          "commit": "ee6921caa49982ef71d5d6db7e0e1524355cc624",
+          "subject": "fix(activity): keep by-ID witness payloads optional",
+          "trailer": "Task: fn-129-activity-coverage.2",
+          "resolved_task_id": "fn-129-activity-coverage.2"
+        },
+        {
+          "commit": "e98c94c7a791c884b9d1bc802cf67d0d13bfccb0",
+          "subject": "feat(activity): realize independent by-ID service settlement",
+          "trailer": "Task: fn-129-activity-coverage.2",
+          "resolved_task_id": "fn-129-activity-coverage.2"
+        }
+      ],
+      "corroborated_task_records": [
+        {
+          "id": "fn-129-activity-coverage.2",
+          "repository": "temporal",
+          "record": ".flow/tasks/fn-129-activity-coverage.2.json",
+          "descriptor": ".flow/tasks/fn-129-activity-coverage.2.md",
+          "record_sha256": "f063da7d9610613e1c193f37fd93d571acec7c684080d161a088fd9ec0a0aed7",
+          "descriptor_sha256": "4e8e9b6dcaa03242c6953d2f9b725b1689a44e10142ab055920fc9c6284d0e53",
+          "observed_status": "done",
+          "declared_dependencies": [
+            "fn-129-activity-coverage.1"
+          ],
+          "title": "Respond by ID: a service actor",
+          "scope": "Corroborated historical task association; not exclusive ownership, branch acceptance, migration transfer or renewed completion."
+        }
+      ],
+      "classification": "direct-commit-task-trailer",
+      "accepted_transfer": false,
+      "original_task_lifecycle_changed": false,
+      "recommended_repository_disposition": "retain source-only historical/server/tracker candidate and original refs; do not copy obsolete module trees into standalone"
+    },
+    {
+      "original_ledger_index": 3,
+      "repository": "temporal",
+      "ref": "refs/heads/agent/fn142",
+      "original_head": "5676998ad310442669e7f6a8e5f7735cc718f5bf",
+      "observed_head": "5676998ad310442669e7f6a8e5f7735cc718f5bf",
+      "ledger_ownership": "Temporal",
+      "source_delta_path_count": 65,
+      "commit_body_task_evidence": [
+        {
+          "commit": "5676998ad310442669e7f6a8e5f7735cc718f5bf",
+          "subject": "refactor(model): split foundations and shared actors",
+          "trailer": "Task: fn-142-split-modeltemporalshared-into.1",
+          "resolved_task_id": "fn-142-split-modeltemporalshared-into.1"
+        }
+      ],
+      "corroborated_task_records": [
+        {
+          "id": "fn-142-split-modeltemporalshared-into.1",
+          "repository": "temporal",
+          "record": ".flow/tasks/fn-142-split-modeltemporalshared-into.1.json",
+          "descriptor": ".flow/tasks/fn-142-split-modeltemporalshared-into.1.md",
+          "record_sha256": "ddd1e459441586242b66693d86454bea2139ba5f1e9af2a5008ebd519135f8b9",
+          "descriptor_sha256": "6d0d1f3d5afae3a08aaaf080fb7630fb0f73f06e6985c1184d9a503f6880fe4f",
+          "observed_status": "done",
+          "declared_dependencies": [],
+          "title": "Move shared/ to foundations/ and actors/, Bounds.scala to the root; regenerate; ID-mapping proof; docs",
+          "scope": "Corroborated historical task association; not exclusive ownership, branch acceptance, migration transfer or renewed completion."
+        }
+      ],
+      "classification": "direct-commit-task-trailer",
+      "accepted_transfer": false,
+      "original_task_lifecycle_changed": false,
+      "recommended_repository_disposition": "retain source-only historical/server/tracker candidate and original refs; do not copy obsolete module trees into standalone"
+    },
+    {
+      "original_ledger_index": 7,
+      "repository": "temporal",
+      "ref": "refs/heads/agent/fn1454-current",
+      "original_head": "ac261f72aa2a4d90bfca85b893ad1604bae6015b",
+      "observed_head": "ac261f72aa2a4d90bfca85b893ad1604bae6015b",
+      "ledger_ownership": "Temporal",
+      "source_delta_path_count": 114,
+      "commit_body_task_evidence": [
+        {
+          "commit": "ac261f72aa2a4d90bfca85b893ad1604bae6015b",
+          "subject": "refactor(umpire): seal structural batch artifact identity",
+          "trailer": "Task: fn-145-modularize-the-umpire-ir-schema.4",
+          "resolved_task_id": "fn-145-modularize-the-umpire-ir-schema.4"
+        }
+      ],
+      "corroborated_task_records": [
+        {
+          "id": "fn-145-modularize-the-umpire-ir-schema.4",
+          "repository": "temporal",
+          "record": ".flow/tasks/fn-145-modularize-the-umpire-ir-schema.4.json",
+          "descriptor": ".flow/tasks/fn-145-modularize-the-umpire-ir-schema.4.md",
+          "record_sha256": "d35ff0ad883b58b8c9cde1979919468e3f86cd86a6ac94a576f47a2a33bdb804",
+          "descriptor_sha256": "f85ee095235c5614669c5630b525128dad10cfc2e91b12328eb2722e494bbfed",
+          "observed_status": "done",
+          "declared_dependencies": [
+            "fn-145-modularize-the-umpire-ir-schema.3"
+          ],
+          "title": "Prove artifact identity and document schema ownership",
+          "scope": "Corroborated historical task association; not exclusive ownership, branch acceptance, migration transfer or renewed completion."
+        }
+      ],
+      "classification": "direct-commit-task-trailer",
+      "accepted_transfer": false,
+      "original_task_lifecycle_changed": false,
+      "recommended_repository_disposition": "retain source-only historical/server/tracker candidate and original refs; do not copy obsolete module trees into standalone"
+    },
+    {
+      "original_ledger_index": 8,
+      "repository": "temporal",
+      "ref": "refs/heads/agent/fn146-boundary-review",
+      "original_head": "fcb608ecf4fbd419386a07fa97d392059049781a",
+      "observed_head": "fcb608ecf4fbd419386a07fa97d392059049781a",
+      "ledger_ownership": "Temporal",
+      "source_delta_path_count": 4,
+      "commit_body_task_evidence": [
+        {
+          "commit": "2c41ae37aea03e0d1a15e1da6133064bf48b55b6",
+          "subject": "fix(testpilot): preserve null format admission semantics",
+          "trailer": "Task: fn-146-adopt-cel-for-runtime-predicates-and.1",
+          "resolved_task_id": "fn-146-adopt-cel-for-runtime-predicates-and.1"
+        }
+      ],
+      "corroborated_task_records": [
+        {
+          "id": "fn-146-adopt-cel-for-runtime-predicates-and.1",
+          "repository": "temporal",
+          "record": ".flow/tasks/fn-146-adopt-cel-for-runtime-predicates-and.1.json",
+          "descriptor": ".flow/tasks/fn-146-adopt-cel-for-runtime-predicates-and.1.md",
+          "record_sha256": "d760d9d9e6a06ef261fafe03817b4a2facdbc7efd48ed3e0dbf86378061516f2",
+          "descriptor_sha256": "05ff76b16a5ee47cd002fae0673ca5e02f8b0379b6a78a7491653e80999627cb",
+          "observed_status": "done",
+          "declared_dependencies": [],
+          "title": "Define the breaking CEL format and identity boundary",
+          "scope": "Corroborated historical task association; not exclusive ownership, branch acceptance, migration transfer or renewed completion."
+        }
+      ],
+      "classification": "direct-commit-task-trailer",
+      "accepted_transfer": false,
+      "original_task_lifecycle_changed": false,
+      "recommended_repository_disposition": "retain source-only historical/server/tracker candidate and original refs; do not copy obsolete module trees into standalone"
+    },
+    {
+      "original_ledger_index": 9,
+      "repository": "temporal",
+      "ref": "refs/heads/agent/fn155-task6",
+      "original_head": "2250d1f9ae4ca7c5b64a5641901511978d25819e",
+      "observed_head": "2250d1f9ae4ca7c5b64a5641901511978d25819e",
+      "ledger_ownership": "Temporal",
+      "source_delta_path_count": 4,
+      "commit_body_task_evidence": [
+        {
+          "commit": "2250d1f9ae4ca7c5b64a5641901511978d25819e",
+          "subject": "test(model): refresh Activity fixtures and expected-state seam",
+          "trailer": "Task: fn-155-name-the-standalone-activitys-repeated.6",
+          "resolved_task_id": "fn-155-name-the-standalone-activitys-repeated.6"
+        }
+      ],
+      "corroborated_task_records": [
+        {
+          "id": "fn-155-name-the-standalone-activitys-repeated.6",
+          "repository": "temporal",
+          "record": ".flow/tasks/fn-155-name-the-standalone-activitys-repeated.6.json",
+          "descriptor": ".flow/tasks/fn-155-name-the-standalone-activitys-repeated.6.md",
+          "record_sha256": "e6d99815f1f57e9f507577530eae29591f628c32a2a60f6aefdb587ad0595a1c",
+          "descriptor_sha256": "81b0a306ea99a5a8a7a944078d10393deea10161a726074e250f06ca67cd3c9d",
+          "observed_status": "done",
+          "declared_dependencies": [
+            "fn-155-name-the-standalone-activitys-repeated.2",
+            "fn-155-name-the-standalone-activitys-repeated.3",
+            "fn-155-name-the-standalone-activitys-repeated.4",
+            "fn-155-name-the-standalone-activitys-repeated.5"
+          ],
+          "title": "Regenerate, prove the mapping and close fn-155",
+          "scope": "Corroborated historical task association; not exclusive ownership, branch acceptance, migration transfer or renewed completion."
+        }
+      ],
+      "classification": "direct-commit-task-trailer",
+      "accepted_transfer": false,
+      "original_task_lifecycle_changed": false,
+      "recommended_repository_disposition": "retain source-only historical/server/tracker candidate and original refs; do not copy obsolete module trees into standalone"
+    },
+    {
+      "original_ledger_index": 10,
+      "repository": "temporal",
+      "ref": "refs/heads/checklocks-matcher-data",
+      "original_head": "a325f98d350dff75ff16c82a9b1ab29dd9bda83b",
+      "observed_head": "a325f98d350dff75ff16c82a9b1ab29dd9bda83b",
+      "ledger_ownership": "Temporal",
+      "source_delta_path_count": 5,
+      "commit_body_task_evidence": [],
+      "corroborated_task_records": [],
+      "classification": "unresolved-product-task-freeze",
+      "accepted_transfer": false,
+      "original_task_lifecycle_changed": false,
+      "recommended_repository_disposition": "retain source-only historical/server/tracker candidate and original refs; do not copy obsolete module trees into standalone",
+      "freeze": "No direct Task trailer or exact authoritative descriptor establishes product task ownership. Keep original ref/head/source and any dirty/ignored data in place; migration task5 may track this unresolved decision but cannot label it transferred or accepted."
+    },
+    {
+      "original_ledger_index": 11,
+      "repository": "temporal",
+      "ref": "refs/heads/fn-146-adopt-cel-for-runtime-predicates-and",
+      "original_head": "10be643d3bdd04d93c68523c1a94b97cc598c89a",
+      "observed_head": "10be643d3bdd04d93c68523c1a94b97cc598c89a",
+      "ledger_ownership": "Temporal",
+      "source_delta_path_count": 250,
+      "commit_body_task_evidence": [
+        {
+          "commit": "10be643d3bdd04d93c68523c1a94b97cc598c89a",
+          "subject": "fix(testpilot): bound native input work and align source ownership",
+          "trailer": "Task: fn-146-adopt-cel-for-runtime-predicates-and.2",
+          "resolved_task_id": "fn-146-adopt-cel-for-runtime-predicates-and.2"
+        },
+        {
+          "commit": "fbd44d596d551dc3d2327b1b3f63c5e1d57c8a01",
+          "subject": "fix(testpilot): preserve null format admission semantics",
+          "trailer": "Task: fn-146-adopt-cel-for-runtime-predicates-and.1",
+          "resolved_task_id": "fn-146-adopt-cel-for-runtime-predicates-and.1"
+        },
+        {
+          "commit": "6bbc2601acbe9fcb4171b5a898bec4a013fde7db",
+          "subject": "feat(testpilot): define the staged CEL format and identity boundary",
+          "trailer": "Task: fn-146-adopt-cel-for-runtime-predicates-and.1",
+          "resolved_task_id": "fn-146-adopt-cel-for-runtime-predicates-and.1"
+        }
+      ],
+      "corroborated_task_records": [
+        {
+          "id": "fn-146-adopt-cel-for-runtime-predicates-and.2",
+          "repository": "temporal",
+          "record": ".flow/tasks/fn-146-adopt-cel-for-runtime-predicates-and.2.json",
+          "descriptor": ".flow/tasks/fn-146-adopt-cel-for-runtime-predicates-and.2.md",
+          "record_sha256": "592326637c1541a891144ab28ebcade7ec4305cbaea421edd0003daaebb098c8",
+          "descriptor_sha256": "1f18e515f6c992542310b761785d86663f1b9a16345237d18408685fb22add19",
+          "observed_status": "done",
+          "declared_dependencies": [
+            "fn-146-adopt-cel-for-runtime-predicates-and.1"
+          ],
+          "title": "Admit canonical CEL through one restricted environment",
+          "scope": "Corroborated historical task association; not exclusive ownership, branch acceptance, migration transfer or renewed completion."
+        },
+        {
+          "id": "fn-146-adopt-cel-for-runtime-predicates-and.1",
+          "repository": "temporal",
+          "record": ".flow/tasks/fn-146-adopt-cel-for-runtime-predicates-and.1.json",
+          "descriptor": ".flow/tasks/fn-146-adopt-cel-for-runtime-predicates-and.1.md",
+          "record_sha256": "d760d9d9e6a06ef261fafe03817b4a2facdbc7efd48ed3e0dbf86378061516f2",
+          "descriptor_sha256": "05ff76b16a5ee47cd002fae0673ca5e02f8b0379b6a78a7491653e80999627cb",
+          "observed_status": "done",
+          "declared_dependencies": [],
+          "title": "Define the breaking CEL format and identity boundary",
+          "scope": "Corroborated historical task association; not exclusive ownership, branch acceptance, migration transfer or renewed completion."
+        }
+      ],
+      "classification": "direct-commit-task-trailer",
+      "accepted_transfer": false,
+      "original_task_lifecycle_changed": false,
+      "recommended_repository_disposition": "retain source-only historical/server/tracker candidate and original refs; do not copy obsolete module trees into standalone"
+    },
+    {
+      "original_ledger_index": 12,
+      "repository": "temporal",
+      "ref": "refs/heads/fn-149-safety-and-liveness-groups-for-object",
+      "original_head": "2b449cb7b59c84bcfd51ce7bc92a0fe857a179df",
+      "observed_head": "2b449cb7b59c84bcfd51ce7bc92a0fe857a179df",
+      "ledger_ownership": "Temporal",
+      "source_delta_path_count": 3,
+      "commit_body_task_evidence": [
+        {
+          "commit": "2b449cb7b59c84bcfd51ce7bc92a0fe857a179df",
+          "subject": "feat(umpire): classify claim receipts and expose progress bounds",
+          "trailer": "Task: fn-149-safety-and-liveness-groups-for-object.3",
+          "resolved_task_id": "fn-149-safety-and-liveness-groups-for-object.3"
+        }
+      ],
+      "corroborated_task_records": [
+        {
+          "id": "fn-149-safety-and-liveness-groups-for-object.3",
+          "repository": "temporal",
+          "record": ".flow/tasks/fn-149-safety-and-liveness-groups-for-object.3.json",
+          "descriptor": ".flow/tasks/fn-149-safety-and-liveness-groups-for-object.3.md",
+          "record_sha256": "8ff7d3ed33d0f2c95113c0ad11e89066906afc420716c38d31fd9f4476621cd0",
+          "descriptor_sha256": "01749537692c8da1167e59076da81b0f3f84a62667a55f68751e08b636f917d9",
+          "observed_status": "done",
+          "declared_dependencies": [],
+          "title": "Expose derived claim classification in existing reports",
+          "scope": "Corroborated historical task association; not exclusive ownership, branch acceptance, migration transfer or renewed completion."
+        }
+      ],
+      "classification": "direct-commit-task-trailer",
+      "accepted_transfer": false,
+      "original_task_lifecycle_changed": false,
+      "recommended_repository_disposition": "retain source-only historical/server/tracker candidate and original refs; do not copy obsolete module trees into standalone"
+    },
+    {
+      "original_ledger_index": 13,
+      "repository": "temporal",
+      "ref": "refs/heads/fn-156-let-the-scala-compiler-and-lint-enforce",
+      "original_head": "dc482b82f8383347fb3c212f40c1bd66b8654b2f",
+      "observed_head": "dc482b82f8383347fb3c212f40c1bd66b8654b2f",
+      "ledger_ownership": "Temporal",
+      "source_delta_path_count": 197,
+      "commit_body_task_evidence": [
+        {
+          "commit": "dc482b82f8383347fb3c212f40c1bd66b8654b2f",
+          "subject": "feat(model): prove typed remainder prefixes and record null trial",
+          "trailer": "Task: fn-156-let-the-scala-compiler-and-lint-enforce.3",
+          "resolved_task_id": "fn-156-let-the-scala-compiler-and-lint-enforce.3"
+        },
+        {
+          "commit": "dc482b82f8383347fb3c212f40c1bd66b8654b2f",
+          "subject": "feat(model): prove typed remainder prefixes and record null trial",
+          "trailer": "Task: fn-156-let-the-scala-compiler-and-lint-enforce.6",
+          "resolved_task_id": "fn-156-let-the-scala-compiler-and-lint-enforce.6"
+        },
+        {
+          "commit": "c44f2b6ffcc75766f88275591efb48177d140f3f",
+          "subject": "feat(model): checkpoint compiler enforcement and complete finite laws",
+          "trailer": "Task: fn-156-let-the-scala-compiler-and-lint-enforce.2",
+          "resolved_task_id": "fn-156-let-the-scala-compiler-and-lint-enforce.2"
+        },
+        {
+          "commit": "c44f2b6ffcc75766f88275591efb48177d140f3f",
+          "subject": "feat(model): checkpoint compiler enforcement and complete finite laws",
+          "trailer": "Task: fn-156-let-the-scala-compiler-and-lint-enforce.3",
+          "resolved_task_id": "fn-156-let-the-scala-compiler-and-lint-enforce.3"
+        },
+        {
+          "commit": "c44f2b6ffcc75766f88275591efb48177d140f3f",
+          "subject": "feat(model): checkpoint compiler enforcement and complete finite laws",
+          "trailer": "Task: fn-156-let-the-scala-compiler-and-lint-enforce.4",
+          "resolved_task_id": "fn-156-let-the-scala-compiler-and-lint-enforce.4"
+        },
+        {
+          "commit": "c44f2b6ffcc75766f88275591efb48177d140f3f",
+          "subject": "feat(model): checkpoint compiler enforcement and complete finite laws",
+          "trailer": "Task: fn-156-let-the-scala-compiler-and-lint-enforce.5",
+          "resolved_task_id": "fn-156-let-the-scala-compiler-and-lint-enforce.5"
+        },
+        {
+          "commit": "c44f2b6ffcc75766f88275591efb48177d140f3f",
+          "subject": "feat(model): checkpoint compiler enforcement and complete finite laws",
+          "trailer": "Task: fn-156-let-the-scala-compiler-and-lint-enforce.6",
+          "resolved_task_id": "fn-156-let-the-scala-compiler-and-lint-enforce.6"
+        },
+        {
+          "commit": "18fa4c86108484e728d5dccb577cbccfb59ccd7b",
+          "subject": "feat(model): enforce warning checks and prove finite equality",
+          "trailer": "Task: fn-156-let-the-scala-compiler-and-lint-enforce.1",
+          "resolved_task_id": "fn-156-let-the-scala-compiler-and-lint-enforce.1"
+        }
+      ],
+      "corroborated_task_records": [
+        {
+          "id": "fn-156-let-the-scala-compiler-and-lint-enforce.3",
+          "repository": "temporal",
+          "record": ".flow/tasks/fn-156-let-the-scala-compiler-and-lint-enforce.3.json",
+          "descriptor": ".flow/tasks/fn-156-let-the-scala-compiler-and-lint-enforce.3.md",
+          "record_sha256": "6153c43bb032445c06fa00f23727a42f60378b0b8589906b084f721823a01edd",
+          "descriptor_sha256": "907e54b9ff51a02452d3f7af28662598f3f5704e26a3b39f6e7766f44ebc4c68",
+          "observed_status": "done",
+          "declared_dependencies": [
+            "fn-156-let-the-scala-compiler-and-lint-enforce.2"
+          ],
+          "title": "Enforce Model conventions and Scala import boundaries",
+          "scope": "Corroborated historical task association; not exclusive ownership, branch acceptance, migration transfer or renewed completion."
+        },
+        {
+          "id": "fn-156-let-the-scala-compiler-and-lint-enforce.6",
+          "repository": "temporal",
+          "record": ".flow/tasks/fn-156-let-the-scala-compiler-and-lint-enforce.6.json",
+          "descriptor": ".flow/tasks/fn-156-let-the-scala-compiler-and-lint-enforce.6.md",
+          "record_sha256": "1d426a6e5d619dcce21a94c9089887e57657407189a3293e38da65e6306e080b",
+          "descriptor_sha256": "4fd5e0e2fcdde9095b445f3755a67a8ed6c5f3131a88ede93e66c696b4793194",
+          "observed_status": "done",
+          "declared_dependencies": [
+            "fn-156-let-the-scala-compiler-and-lint-enforce.5"
+          ],
+          "title": "Trial explicit nulls across compiler roots",
+          "scope": "Corroborated historical task association; not exclusive ownership, branch acceptance, migration transfer or renewed completion."
+        },
+        {
+          "id": "fn-156-let-the-scala-compiler-and-lint-enforce.2",
+          "repository": "temporal",
+          "record": ".flow/tasks/fn-156-let-the-scala-compiler-and-lint-enforce.2.json",
+          "descriptor": ".flow/tasks/fn-156-let-the-scala-compiler-and-lint-enforce.2.md",
+          "record_sha256": "750e600b32db432dc51a419b1ad51f4fefb34a72168f02e5687006a1fd5c9fbf",
+          "descriptor_sha256": "d5bc29966b6fd6b3cd2cc1c589a89eb9a06c201909c3752edd69cd9817f0f719",
+          "observed_status": "done",
+          "declared_dependencies": [
+            "fn-156-let-the-scala-compiler-and-lint-enforce.1"
+          ],
+          "title": "Activate strict equality across authoring and lift builds",
+          "scope": "Corroborated historical task association; not exclusive ownership, branch acceptance, migration transfer or renewed completion."
+        },
+        {
+          "id": "fn-156-let-the-scala-compiler-and-lint-enforce.4",
+          "repository": "temporal",
+          "record": ".flow/tasks/fn-156-let-the-scala-compiler-and-lint-enforce.4.json",
+          "descriptor": ".flow/tasks/fn-156-let-the-scala-compiler-and-lint-enforce.4.md",
+          "record_sha256": "40c544f1cabbab20ed2eb9b1f077e99ac8c6c2ad244fde81b2c069decdda1072",
+          "descriptor_sha256": "a99b2ab67ce518678345828b87f7f87080494fa9646ec886d535512e9f7bae70",
+          "observed_status": "done",
+          "declared_dependencies": [
+            "fn-156-let-the-scala-compiler-and-lint-enforce.3"
+          ],
+          "title": "Discover exported machines for generic law checks",
+          "scope": "Corroborated historical task association; not exclusive ownership, branch acceptance, migration transfer or renewed completion."
+        },
+        {
+          "id": "fn-156-let-the-scala-compiler-and-lint-enforce.5",
+          "repository": "temporal",
+          "record": ".flow/tasks/fn-156-let-the-scala-compiler-and-lint-enforce.5.json",
+          "descriptor": ".flow/tasks/fn-156-let-the-scala-compiler-and-lint-enforce.5.md",
+          "record_sha256": "9efc138e0ef80d322b3331937456d7296f086322ac06d72d04bf11c4b295d49a",
+          "descriptor_sha256": "69c05e7b671743098cfe9b46c6d64b0f087bdd1efc42239042139a472e76f030",
+          "observed_status": "done",
+          "declared_dependencies": [
+            "fn-156-let-the-scala-compiler-and-lint-enforce.4"
+          ],
+          "title": "Expand finite-domain checks and every machine table pin",
+          "scope": "Corroborated historical task association; not exclusive ownership, branch acceptance, migration transfer or renewed completion."
+        },
+        {
+          "id": "fn-156-let-the-scala-compiler-and-lint-enforce.1",
+          "repository": "temporal",
+          "record": ".flow/tasks/fn-156-let-the-scala-compiler-and-lint-enforce.1.json",
+          "descriptor": ".flow/tasks/fn-156-let-the-scala-compiler-and-lint-enforce.1.md",
+          "record_sha256": "db1fce95acbeef3afa84a08ebb2b8b7cc55612f44383ccde842e9cc8986a75e1",
+          "descriptor_sha256": "a8258bf6c1e48bf196fc9dddb2b49130445dceb58cd8da3d09763e199a73017e",
+          "observed_status": "done",
+          "declared_dependencies": [],
+          "title": "Enable warning checks and prove finite equality evidence",
+          "scope": "Corroborated historical task association; not exclusive ownership, branch acceptance, migration transfer or renewed completion."
+        }
+      ],
+      "classification": "direct-commit-task-trailer",
+      "accepted_transfer": false,
+      "original_task_lifecycle_changed": false,
+      "recommended_repository_disposition": "retain source-only historical/server/tracker candidate and original refs; do not copy obsolete module trees into standalone"
+    },
+    {
+      "original_ledger_index": 14,
+      "repository": "temporal",
+      "ref": "refs/heads/main",
+      "original_head": "6875191ef7d7ea191549150812c3b7b36507215c",
+      "observed_head": "6875191ef7d7ea191549150812c3b7b36507215c",
+      "ledger_ownership": "Temporal",
+      "source_delta_path_count": 0,
+      "commit_body_task_evidence": [],
+      "corroborated_task_records": [],
+      "classification": "integrated-upstream-reference-no-candidate-delta",
+      "accepted_transfer": false,
+      "original_task_lifecycle_changed": false,
+      "recommended_repository_disposition": "retain source-only historical/server/tracker candidate and original refs; do not copy obsolete module trees into standalone",
+      "descriptor_evidence": "Observed main is an ancestor of frozen ac60 and has zero merge-base delta. Record as retained upstream source reference, not an unowned framework feature."
+    },
+    {
+      "original_ledger_index": 15,
+      "repository": "temporal",
+      "ref": "refs/heads/umpire",
+      "original_head": "c88fdc550694020eb1c6a2e09577813d906c9ffe",
+      "observed_head": "05051b84a18f29e8cafbfa6b5ac57981a2aee72f",
+      "ledger_ownership": "Temporal",
+      "source_delta_path_count": 19,
+      "commit_body_task_evidence": [],
+      "corroborated_task_records": [
+        {
+          "id": "fn-258-complete-the-resumed-standalone-umpire.1",
+          "repository": "temporal",
+          "record": ".flow/tasks/fn-258-complete-the-resumed-standalone-umpire.1.json",
+          "descriptor": ".flow/tasks/fn-258-complete-the-resumed-standalone-umpire.1.md",
+          "record_sha256": "2fffb536f864ed6e7fb26a55a73744296d8b032f10d0f534050d5f7bd35c088e",
+          "descriptor_sha256": "8f3e8a608906c9e0860258425d2874bab4f957db1e8312ed2d8750b8ffad4470",
+          "observed_status": "todo",
+          "declared_dependencies": [],
+          "title": "Freeze renewed source and reconcile candidate ownership",
+          "scope": "Corroborated historical task association; not exclusive ownership, branch acceptance, migration transfer or renewed completion."
+        },
+        {
+          "id": "fn-258-complete-the-resumed-standalone-umpire.5",
+          "repository": "temporal",
+          "record": ".flow/tasks/fn-258-complete-the-resumed-standalone-umpire.5.json",
+          "descriptor": ".flow/tasks/fn-258-complete-the-resumed-standalone-umpire.5.md",
+          "record_sha256": "504282b12bbb908f8d1e01edeced1832defaeb96f9025bc231bf3c0cf961abf3",
+          "descriptor_sha256": "5c96e6dd5d073316ea9d2094373a6310079bfa0d0be5066ffca5ffed743ce8b7",
+          "observed_status": "todo",
+          "declared_dependencies": [
+            "fn-258-complete-the-resumed-standalone-umpire.4"
+          ],
+          "title": "Review cutover and synchronize migration and milestone ownership",
+          "scope": "Corroborated historical task association; not exclusive ownership, branch acceptance, migration transfer or renewed completion."
+        }
+      ],
+      "classification": "migration-assembly-source-tracker-corroboration",
+      "accepted_transfer": false,
+      "original_task_lifecycle_changed": false,
+      "recommended_repository_disposition": "retain source-only historical/server/tracker candidate and original refs; do not copy obsolete module trees into standalone",
+      "descriptor_evidence": "05051b84a1 creates fn-258 inventory/manifest/spec/task records and migration docs; delta from ac60 is metadata/docs. Current branch will drift as the migration progresses; renew live observation in a new overlay, not the immutable R1 capture."
+    },
+    {
+      "original_ledger_index": 16,
+      "repository": "temporal",
+      "ref": "refs/heads/w-1d-core",
+      "original_head": "243f9dd525b16b7ab15b7f1fa5d486e0f7ce822a",
+      "observed_head": "243f9dd525b16b7ab15b7f1fa5d486e0f7ce822a",
+      "ledger_ownership": "legacy",
+      "source_delta_path_count": 2,
+      "commit_body_task_evidence": [],
+      "corroborated_task_records": [],
+      "classification": "unresolved-product-task-freeze",
+      "accepted_transfer": false,
+      "original_task_lifecycle_changed": false,
+      "recommended_repository_disposition": "retain source-only historical/server/tracker candidate and original refs; do not copy obsolete module trees into standalone",
+      "freeze": "No direct Task trailer or exact authoritative descriptor establishes product task ownership. Keep original ref/head/source and any dirty/ignored data in place; migration task5 may track this unresolved decision but cannot label it transferred or accepted."
+    },
+    {
+      "original_ledger_index": 17,
+      "repository": "temporal",
+      "ref": "refs/heads/w-1d-shared",
+      "original_head": "86e4ee2505d9c3f379d820fb1d5bb1a658629287",
+      "observed_head": "86e4ee2505d9c3f379d820fb1d5bb1a658629287",
+      "ledger_ownership": "Temporal",
+      "source_delta_path_count": 1,
+      "commit_body_task_evidence": [],
+      "corroborated_task_records": [],
+      "classification": "unresolved-product-task-freeze",
+      "accepted_transfer": false,
+      "original_task_lifecycle_changed": false,
+      "recommended_repository_disposition": "retain source-only historical/server/tracker candidate and original refs; do not copy obsolete module trees into standalone",
+      "freeze": "No direct Task trailer or exact authoritative descriptor establishes product task ownership. Keep original ref/head/source and any dirty/ignored data in place; migration task5 may track this unresolved decision but cannot label it transferred or accepted."
+    },
+    {
+      "original_ledger_index": 18,
+      "repository": "temporal",
+      "ref": "refs/heads/w-perf",
+      "original_head": "f4fba65eb634f11f547679279597bf48a69fa797",
+      "observed_head": "f4fba65eb634f11f547679279597bf48a69fa797",
+      "ledger_ownership": "Temporal",
+      "source_delta_path_count": 34,
+      "commit_body_task_evidence": [],
+      "corroborated_task_records": [],
+      "classification": "unresolved-product-task-freeze",
+      "accepted_transfer": false,
+      "original_task_lifecycle_changed": false,
+      "recommended_repository_disposition": "retain source-only historical/server/tracker candidate and original refs; do not copy obsolete module trees into standalone",
+      "freeze": "No direct Task trailer or exact authoritative descriptor establishes product task ownership. Keep original ref/head/source and any dirty/ignored data in place; migration task5 may track this unresolved decision but cannot label it transferred or accepted."
+    },
+    {
+      "original_ledger_index": 19,
+      "repository": "temporal",
+      "ref": "refs/heads/w-perf-dev",
+      "original_head": "f4fba65eb634f11f547679279597bf48a69fa797",
+      "observed_head": "f4fba65eb634f11f547679279597bf48a69fa797",
+      "ledger_ownership": "Temporal",
+      "source_delta_path_count": 34,
+      "commit_body_task_evidence": [],
+      "corroborated_task_records": [],
+      "classification": "unresolved-product-task-freeze",
+      "accepted_transfer": false,
+      "original_task_lifecycle_changed": false,
+      "recommended_repository_disposition": "retain source-only historical/server/tracker candidate and original refs; do not copy obsolete module trees into standalone",
+      "freeze": "No direct Task trailer or exact authoritative descriptor establishes product task ownership. Keep original ref/head/source and any dirty/ignored data in place; migration task5 may track this unresolved decision but cannot label it transferred or accepted."
+    },
+    {
+      "original_ledger_index": 21,
+      "repository": "temporal",
+      "ref": "refs/heads/work/fn1742-driver",
+      "original_head": "4b4fa23c1104444de4d7fc0bdb664bff63f0c9f8",
+      "observed_head": "4b4fa23c1104444de4d7fc0bdb664bff63f0c9f8",
+      "ledger_ownership": "legacy",
+      "source_delta_path_count": 10,
+      "commit_body_task_evidence": [
+        {
+          "commit": "4b4fa23c1104444de4d7fc0bdb664bff63f0c9f8",
+          "subject": "feat(model): decode constructed realization facts",
+          "trailer": "Task: fn-174-the-model-constructs-its-own-ir-dsl.2",
+          "resolved_task_id": "fn-174-the-model-constructs-its-own-ir-dsl.2"
+        },
+        {
+          "commit": "be19a834fee28a0ba500c3d8cb8bfae8875063b1",
+          "subject": "refactor(model): construct realization roots in mixed driver",
+          "trailer": "Task: fn-174-the-model-constructs-its-own-ir-dsl.2",
+          "resolved_task_id": "fn-174-the-model-constructs-its-own-ir-dsl.2"
+        }
+      ],
+      "corroborated_task_records": [
+        {
+          "id": "fn-174-the-model-constructs-its-own-ir-dsl.2",
+          "repository": "temporal",
+          "record": ".flow/tasks/fn-174-the-model-constructs-its-own-ir-dsl.2.json",
+          "descriptor": ".flow/tasks/fn-174-the-model-constructs-its-own-ir-dsl.2.md",
+          "record_sha256": "22541a565733b62685ccba803c0990dd5f60ac721955c971508950a40f96b4b4",
+          "descriptor_sha256": "cd0eec771764799bd74349460c0cab84d9a76faa2904b4b4b446991cf4b7ba36",
+          "observed_status": "done",
+          "declared_dependencies": [],
+          "title": "Realizations construct their messages; the driver prints them (size proof)",
+          "scope": "Corroborated historical task association; not exclusive ownership, branch acceptance, migration transfer or renewed completion."
+        }
+      ],
+      "classification": "direct-commit-task-trailer",
+      "accepted_transfer": false,
+      "original_task_lifecycle_changed": false,
+      "recommended_repository_disposition": "retain source-only historical/server/tracker candidate and original refs; do not copy obsolete module trees into standalone"
+    },
+    {
+      "original_ledger_index": 22,
+      "repository": "temporal",
+      "ref": "refs/heads/work/fn1742-temporal",
+      "original_head": "ff5d179061cb35732c2a0846cbf3873d4cca8256",
+      "observed_head": "ff5d179061cb35732c2a0846cbf3873d4cca8256",
+      "ledger_ownership": "legacy",
+      "source_delta_path_count": 16,
+      "commit_body_task_evidence": [
+        {
+          "commit": "ff5d179061cb35732c2a0846cbf3873d4cca8256",
+          "subject": "feat(temporal): construct realization IR",
+          "trailer": "Task: fn-174.2",
+          "resolved_task_id": "fn-174-the-model-constructs-its-own-ir-dsl.2"
+        },
+        {
+          "commit": "06191025c40b0f9d15f669808d4ea1d4f036aa5c",
+          "subject": "feat(model): decode constructed realization facts",
+          "trailer": "Task: fn-174-the-model-constructs-its-own-ir-dsl.2",
+          "resolved_task_id": "fn-174-the-model-constructs-its-own-ir-dsl.2"
+        },
+        {
+          "commit": "c1b1c098f3c2e0aa5021277f91b965d333584f46",
+          "subject": "refactor(model): construct realization roots in mixed driver",
+          "trailer": "Task: fn-174-the-model-constructs-its-own-ir-dsl.2",
+          "resolved_task_id": "fn-174-the-model-constructs-its-own-ir-dsl.2"
+        }
+      ],
+      "corroborated_task_records": [
+        {
+          "id": "fn-174-the-model-constructs-its-own-ir-dsl.2",
+          "repository": "temporal",
+          "record": ".flow/tasks/fn-174-the-model-constructs-its-own-ir-dsl.2.json",
+          "descriptor": ".flow/tasks/fn-174-the-model-constructs-its-own-ir-dsl.2.md",
+          "record_sha256": "22541a565733b62685ccba803c0990dd5f60ac721955c971508950a40f96b4b4",
+          "descriptor_sha256": "cd0eec771764799bd74349460c0cab84d9a76faa2904b4b4b446991cf4b7ba36",
+          "observed_status": "done",
+          "declared_dependencies": [],
+          "title": "Realizations construct their messages; the driver prints them (size proof)",
+          "scope": "Corroborated historical task association; not exclusive ownership, branch acceptance, migration transfer or renewed completion."
+        }
+      ],
+      "classification": "direct-commit-task-trailer",
+      "accepted_transfer": false,
+      "original_task_lifecycle_changed": false,
+      "recommended_repository_disposition": "retain source-only historical/server/tracker candidate and original refs; do not copy obsolete module trees into standalone"
+    },
+    {
+      "original_ledger_index": 23,
+      "repository": "temporal",
+      "ref": "refs/heads/work/fn1742-verification",
+      "original_head": "6936fab02e40acbd8649ae8531871a883f926e5b",
+      "observed_head": "6936fab02e40acbd8649ae8531871a883f926e5b",
+      "ledger_ownership": "legacy",
+      "source_delta_path_count": 2,
+      "commit_body_task_evidence": [
+        {
+          "commit": "6936fab02e40acbd8649ae8531871a883f926e5b",
+          "subject": "test(model): cover constructed realization exports",
+          "trailer": "Task: fn-174.2",
+          "resolved_task_id": "fn-174-the-model-constructs-its-own-ir-dsl.2"
+        }
+      ],
+      "corroborated_task_records": [
+        {
+          "id": "fn-174-the-model-constructs-its-own-ir-dsl.2",
+          "repository": "temporal",
+          "record": ".flow/tasks/fn-174-the-model-constructs-its-own-ir-dsl.2.json",
+          "descriptor": ".flow/tasks/fn-174-the-model-constructs-its-own-ir-dsl.2.md",
+          "record_sha256": "22541a565733b62685ccba803c0990dd5f60ac721955c971508950a40f96b4b4",
+          "descriptor_sha256": "cd0eec771764799bd74349460c0cab84d9a76faa2904b4b4b446991cf4b7ba36",
+          "observed_status": "done",
+          "declared_dependencies": [],
+          "title": "Realizations construct their messages; the driver prints them (size proof)",
+          "scope": "Corroborated historical task association; not exclusive ownership, branch acceptance, migration transfer or renewed completion."
+        }
+      ],
+      "classification": "direct-commit-task-trailer",
+      "accepted_transfer": false,
+      "original_task_lifecycle_changed": false,
+      "recommended_repository_disposition": "retain source-only historical/server/tracker candidate and original refs; do not copy obsolete module trees into standalone"
+    },
+    {
+      "original_ledger_index": 24,
+      "repository": "temporal",
+      "ref": "refs/heads/work/fn19015-runtime",
+      "original_head": "8359d2818bad75c3032aaedae3d592f4a372c6b0",
+      "observed_head": "8359d2818bad75c3032aaedae3d592f4a372c6b0",
+      "ledger_ownership": "Temporal",
+      "source_delta_path_count": 71,
+      "commit_body_task_evidence": [],
+      "corroborated_task_records": [
+        {
+          "id": "fn-190-models-are-plain-scala-state-as-vars.15",
+          "repository": "temporal",
+          "record": ".flow/tasks/fn-190-models-are-plain-scala-state-as-vars.15.json",
+          "descriptor": ".flow/tasks/fn-190-models-are-plain-scala-state-as-vars.15.md",
+          "record_sha256": "d8726b899b1b3e20518035aca4cf5dc09fbaf07f37c9433b5fd32ba2f7f53992",
+          "descriptor_sha256": "24d672497f9fe53ca57846b1df632d90c64f847ad1af5b14c744f38342dc0d75",
+          "observed_status": "done",
+          "declared_dependencies": [],
+          "title": "DSL completion: native runtime moves to the product checker under fn-196.1",
+          "scope": "Corroborated historical task association; not exclusive ownership, branch acceptance, migration transfer or renewed completion."
+        },
+        {
+          "id": "fn-196-the-scala-checker-is-the-oracle.1",
+          "repository": "temporal",
+          "record": ".flow/tasks/fn-196-the-scala-checker-is-the-oracle.1.json",
+          "descriptor": ".flow/tasks/fn-196-the-scala-checker-is-the-oracle.1.md",
+          "record_sha256": "cac5f248a756723d7841dd30d02d2fdd326661ca124b45e8efeb5453776684d5",
+          "descriptor_sha256": "42460abb63c39d700d736c378add578baae12788aaee48f8bf716e8363d20306",
+          "observed_status": "done",
+          "declared_dependencies": [],
+          "title": "DSL completion: the checker module outside framework.dsl, with one Result shape",
+          "scope": "Corroborated historical task association; not exclusive ownership, branch acceptance, migration transfer or renewed completion."
+        }
+      ],
+      "classification": "descriptor-corroborated-history-with-current-authority-redirect",
+      "accepted_transfer": false,
+      "original_task_lifecycle_changed": false,
+      "recommended_repository_disposition": "retain source-only historical/server/tracker candidate and original refs; do not copy obsolete module trees into standalone",
+      "descriptor_evidence": "fn-190.15 explicitly carries native runtime move to product checker under fn-196.1. Actual candidate changes model/framework/dsl runtime and docs. This does not establish exclusive ownership or imply fn-196 measurement/retirement gates satisfied.",
+      "source_evidence": {
+        "commit": "ae673b077c",
+        "subject": "refactor(dsl): run a Machine's var snapshots in the native runtime"
+      }
+    },
+    {
+      "original_ledger_index": 25,
+      "repository": "temporal",
+      "ref": "refs/heads/work/fn19522-conformance",
+      "original_head": "989d17c61b3249cde029a59a161a1e257413bfdf",
+      "observed_head": "989d17c61b3249cde029a59a161a1e257413bfdf",
+      "ledger_ownership": "legacy",
+      "source_delta_path_count": 4,
+      "commit_body_task_evidence": [],
+      "corroborated_task_records": [
+        {
+          "id": "fn-195-modelsuite-a-models-test-file-holds-its.22",
+          "repository": "temporal",
+          "record": ".flow/tasks/fn-195-modelsuite-a-models-test-file-holds-its.22.json",
+          "descriptor": ".flow/tasks/fn-195-modelsuite-a-models-test-file-holds-its.22.md",
+          "record_sha256": "285f252ca4a922f215fda633cd7bb82b2102b373da00803f0023ed8912b5f6ed",
+          "descriptor_sha256": "c18113c2f56f4de1f30bb61d69b991bf1995d54094b0415673f5ec00ad125176",
+          "observed_status": "done",
+          "declared_dependencies": [
+            "fn-195-modelsuite-a-models-test-file-holds-its.2",
+            "fn-195-modelsuite-a-models-test-file-holds-its.17",
+            "fn-195-modelsuite-a-models-test-file-holds-its.18"
+          ],
+          "title": "Native explicit conformance admission: exact binding and complete expectation/monitor validation",
+          "scope": "Corroborated historical task association; not exclusive ownership, branch acceptance, migration transfer or renewed completion."
+        }
+      ],
+      "classification": "descriptor-exact-four-path-corroboration",
+      "accepted_transfer": false,
+      "original_task_lifecycle_changed": false,
+      "recommended_repository_disposition": "retain source-only historical/server/tracker candidate and original refs; do not copy obsolete module trees into standalone",
+      "descriptor_evidence": "fn-195.22 names exactly these four physical files and bounded explicit conformance admission, matching this preserved checkpoint. This is provenance, not branch acceptance.",
+      "exact_paths": [
+        "model/framework/SEMANTICS.md",
+        "model/framework/checker/ConformanceAdmission.scala",
+        "model/framework/checker/ConformanceAdmission.test.scala",
+        "model/framework/dsl/NativeConformance.scala"
+      ]
+    },
+    {
+      "original_ledger_index": 26,
+      "repository": "temporal",
+      "ref": "refs/heads/work/fn2092-graal",
+      "original_head": "13251fe12b4c0eb33ba1690dbc10519ecf5f8b84",
+      "observed_head": "13251fe12b4c0eb33ba1690dbc10519ecf5f8b84",
+      "ledger_ownership": "legacy",
+      "source_delta_path_count": 1,
+      "commit_body_task_evidence": [
+        {
+          "commit": "13251fe12b4c0eb33ba1690dbc10519ecf5f8b84",
+          "subject": "docs(model): record native-image Bank and restore spike",
+          "trailer": "Task: fn-209-spike-the-scala-checker-as-a-native.2",
+          "resolved_task_id": "fn-209-spike-the-scala-checker-as-a-native.2"
+        }
+      ],
+      "corroborated_task_records": [
+        {
+          "id": "fn-209-spike-the-scala-checker-as-a-native.2",
+          "repository": "temporal",
+          "record": ".flow/tasks/fn-209-spike-the-scala-checker-as-a-native.2.json",
+          "descriptor": ".flow/tasks/fn-209-spike-the-scala-checker-as-a-native.2.md",
+          "record_sha256": "aac28aa25b219e009437e7d31c7ba5f7d8a6a79e03214e48acd41bd4eef8c946",
+          "descriptor_sha256": "f9f210546e5633987c0534672f48c87d0892b869e47bdb8510499cf6e8192116",
+          "observed_status": "done",
+          "declared_dependencies": [
+            "fn-209-spike-the-scala-checker-as-a-native.1"
+          ],
+          "title": "GraalVM native-image build of the checker with one sample",
+          "scope": "Corroborated historical task association; not exclusive ownership, branch acceptance, migration transfer or renewed completion."
+        }
+      ],
+      "classification": "direct-commit-task-trailer",
+      "accepted_transfer": false,
+      "original_task_lifecycle_changed": false,
+      "recommended_repository_disposition": "retain source-only historical/server/tracker candidate and original refs; do not copy obsolete module trees into standalone"
+    },
+    {
+      "original_ledger_index": 27,
+      "repository": "temporal",
+      "ref": "refs/heads/work/fn2095-wasm",
+      "original_head": "6ceb466cf13ae0da4539794aa677f3aa2a448991",
+      "observed_head": "6ceb466cf13ae0da4539794aa677f3aa2a448991",
+      "ledger_ownership": "legacy",
+      "source_delta_path_count": 1,
+      "commit_body_task_evidence": [
+        {
+          "commit": "6ceb466cf13ae0da4539794aa677f3aa2a448991",
+          "subject": "docs(model): record standalone checker wasm blockers",
+          "trailer": "Task: fn-209-spike-the-scala-checker-as-a-native.5",
+          "resolved_task_id": "fn-209-spike-the-scala-checker-as-a-native.5"
+        }
+      ],
+      "corroborated_task_records": [
+        {
+          "id": "fn-209-spike-the-scala-checker-as-a-native.5",
+          "repository": "temporal",
+          "record": ".flow/tasks/fn-209-spike-the-scala-checker-as-a-native.5.json",
+          "descriptor": ".flow/tasks/fn-209-spike-the-scala-checker-as-a-native.5.md",
+          "record_sha256": "467cced65478a4d3259ae77fabf90f3e2d79d6b00f97f5a68b1dc854fd615f7a",
+          "descriptor_sha256": "be79f0afec783ff11fc4519f08976095e6927a6786dc4cec9355fcb44d90b1c8",
+          "observed_status": "done",
+          "declared_dependencies": [
+            "fn-209-spike-the-scala-checker-as-a-native.1"
+          ],
+          "title": "WebAssembly build of the checker loaded from a Go host",
+          "scope": "Corroborated historical task association; not exclusive ownership, branch acceptance, migration transfer or renewed completion."
+        }
+      ],
+      "classification": "direct-commit-task-trailer",
+      "accepted_transfer": false,
+      "original_task_lifecycle_changed": false,
+      "recommended_repository_disposition": "retain source-only historical/server/tracker candidate and original refs; do not copy obsolete module trees into standalone"
+    },
+    {
+      "original_ledger_index": 28,
+      "repository": "temporal",
+      "ref": "refs/heads/work/fn2103-fixtures",
+      "original_head": "280fc46eab71e446df59422ff823a45864005b63",
+      "observed_head": "280fc46eab71e446df59422ff823a45864005b63",
+      "ledger_ownership": "framework",
+      "source_delta_path_count": 48,
+      "commit_body_task_evidence": [
+        {
+          "commit": "280fc46eab71e446df59422ff823a45864005b63",
+          "subject": "test(umpire): add bounded progress fixture models",
+          "trailer": "Task: fn-210-rust-prototype-kettle-on-a-trait-engine.3",
+          "resolved_task_id": "fn-210-rust-prototype-kettle-on-a-trait-engine.3"
+        }
+      ],
+      "corroborated_task_records": [
+        {
+          "id": "fn-210-rust-prototype-kettle-on-a-trait-engine.3",
+          "repository": "temporal",
+          "record": ".flow/tasks/fn-210-rust-prototype-kettle-on-a-trait-engine.3.json",
+          "descriptor": ".flow/tasks/fn-210-rust-prototype-kettle-on-a-trait-engine.3.md",
+          "record_sha256": "b9b3858c347b6e1aff2e93c0f37e386a5161e9632ad9d3bd6d126fb4803fa4ab",
+          "descriptor_sha256": "4718c59660228255feb8f2603e545bb70380131350df1200a83271e1aee649a5",
+          "observed_status": "done",
+          "declared_dependencies": [
+            "fn-210-rust-prototype-kettle-on-a-trait-engine.2",
+            "fn-210-rust-prototype-kettle-on-a-trait-engine.10",
+            "fn-210-rust-prototype-kettle-on-a-trait-engine.11",
+            "fn-210-rust-prototype-kettle-on-a-trait-engine.12",
+            "fn-210-rust-prototype-kettle-on-a-trait-engine.13",
+            "fn-210-rust-prototype-kettle-on-a-trait-engine.14"
+          ],
+          "title": "Progress: whenever/eventually within a scope, weak fairness on internal steps, lasso counterexamples",
+          "scope": "Corroborated historical task association; not exclusive ownership, branch acceptance, migration transfer or renewed completion."
+        }
+      ],
+      "classification": "direct-commit-task-trailer",
+      "accepted_transfer": false,
+      "original_task_lifecycle_changed": false,
+      "recommended_repository_disposition": "framework-only receiving recovery required for modern Rust candidate; retain original source history too"
+    },
+    {
+      "original_ledger_index": 29,
+      "repository": "temporal",
+      "ref": "refs/heads/work/fn2103-oracle",
+      "original_head": "62cfa7fcf37355a1fe7d42d2a08f051bc55e9bf3",
+      "observed_head": "62cfa7fcf37355a1fe7d42d2a08f051bc55e9bf3",
+      "ledger_ownership": "framework",
+      "source_delta_path_count": 1,
+      "commit_body_task_evidence": [
+        {
+          "commit": "62cfa7fcf37355a1fe7d42d2a08f051bc55e9bf3",
+          "subject": "test(checker): add independent bounded progress oracle",
+          "trailer": "Task: fn-210-rust-prototype-kettle-on-a-trait-engine.3",
+          "resolved_task_id": "fn-210-rust-prototype-kettle-on-a-trait-engine.3"
+        }
+      ],
+      "corroborated_task_records": [
+        {
+          "id": "fn-210-rust-prototype-kettle-on-a-trait-engine.3",
+          "repository": "temporal",
+          "record": ".flow/tasks/fn-210-rust-prototype-kettle-on-a-trait-engine.3.json",
+          "descriptor": ".flow/tasks/fn-210-rust-prototype-kettle-on-a-trait-engine.3.md",
+          "record_sha256": "b9b3858c347b6e1aff2e93c0f37e386a5161e9632ad9d3bd6d126fb4803fa4ab",
+          "descriptor_sha256": "4718c59660228255feb8f2603e545bb70380131350df1200a83271e1aee649a5",
+          "observed_status": "done",
+          "declared_dependencies": [
+            "fn-210-rust-prototype-kettle-on-a-trait-engine.2",
+            "fn-210-rust-prototype-kettle-on-a-trait-engine.10",
+            "fn-210-rust-prototype-kettle-on-a-trait-engine.11",
+            "fn-210-rust-prototype-kettle-on-a-trait-engine.12",
+            "fn-210-rust-prototype-kettle-on-a-trait-engine.13",
+            "fn-210-rust-prototype-kettle-on-a-trait-engine.14"
+          ],
+          "title": "Progress: whenever/eventually within a scope, weak fairness on internal steps, lasso counterexamples",
+          "scope": "Corroborated historical task association; not exclusive ownership, branch acceptance, migration transfer or renewed completion."
+        }
+      ],
+      "classification": "direct-commit-task-trailer",
+      "accepted_transfer": false,
+      "original_task_lifecycle_changed": false,
+      "recommended_repository_disposition": "framework-only receiving recovery required for modern Rust candidate; retain original source history too"
+    }
+  ],
+  "scope_limits": [
+    "No ref, source, original ledger, task lifecycle, recovery, publication or cutover mutation.",
+    "Task trailers and descriptor matches establish provenance only. Merge-base deltas may include inherited assemblies; no exclusive hunk ownership is inferred.",
+    "Current task statuses/dependencies are read-only observations and can drift; authoritative Flow remains Temporal.",
+    "Dirty/untracked/unique ignored bytes are not backed up by this research.",
+    "Destination SSO/access remains blocked; no destination state/publication inferred."
+  ],
+  "next_executable_ledger_unit": {
+    "name": "Build and independently verify a new candidate-disposition overlay before any receiving ref creation",
+    "inputs": [
+      "immutable R1 88-entry ledger + 81 original index identities",
+      "original fn257 task6 plan and retained source recovery refs",
+      "this commit-body/descriptor evidence",
+      "fresh read-only all-ref/worktree/index/dirty/ignored observations",
+      "current source manifest, history map, standalone pin and exact paired consumer proof receipts when available"
+    ],
+    "outputs": [
+      "task5 candidate-dispositions.json: one row for every original candidate plus every newer preparation ref",
+      "task5 candidate-dispositions-verification.json: exact coverage, object/ref recovery, path/hunk accounting, task/prerequisite validation and negative controls",
+      "separate backup manifest/bundles/archives for dirty/untracked/unique ignored source before any retirement",
+      "reviewed receiving-ref plan; execution remains a later authorized local step"
+    ],
+    "do_not_run": "candidate-ledger.py --capture replaces renewed R1 evidence; preserve original inventory and write a new versioned overlay instead.",
+    "first_implementation_change": "Implement overlay generator/verifier accepting explicit --ledger, --original-plan, --output and frozen inputs. Read full commit bodies, normalize explicit short Task trailers via unique descriptors, carry current lifecycle/dependency observations without modifying them.",
+    "required_controls": [
+      "omit/duplicate original candidate",
+      "claim transfer without an existing receiving ref and verified target object/tree",
+      "source recovery ref missing or pointing to another object",
+      "mixed path/hunk omitted or doubly assigned",
+      "unknown product owner changed from frozen to accepted without review",
+      "stale prerequisite proof/source/receiver pair",
+      "dirty/ignored bytes claimed backed-up without hash/archive recovery verification"
+    ]
+  },
+  "minimal_mechanism": {
+    "all_rows": "Stable candidate_id=(source repository, original ledger index/ref); bind original/head/current observation separately, not branch-name guesses. Preserve all original refs/worktrees and source/evidence history.",
+    "modern_framework_candidates": "For 11 original framework and framework portions of 35 original mixed candidates, inspect/deduplicate actual changed paths/hunks. Reuse existing current-export ancestry only when exact old-to-new/tree/path evidence covers that contribution; otherwise plan an isolated exact normalized framework recovery snapshot or filtered history, and a neutral standalone refs/recovery/fn258/candidate-NNN ref. Do not import whole monorepo commits into standalone or merge candidates into active main merely to preserve them.",
+    "snapshot_qualification": "A normalized snapshot can be recovery-only: record every source/destination path, mode/blob, selected/excluded hunk, source original ref/head, receiver commit/tree/ref and verifier. Full authored source history still remains under original Temporal refs. A snapshot does not claim exported commit-history preservation, feature completion or accepted active code. If authored candidate history itself is required in receiver, use a separate isolated filtered-history proof.",
+    "source_only_candidates": "26 original Temporal/server/tracker and 9 original legacy candidates can receive explicit source-only retained dispositions with exact existing source recovery refs, repository, tracker links and prerequisites. No standalone copy is needed for unrelated server, archived Scala, obsolete Go checker or tracker records. Experimental/unknown ownership decisions remain frozen until explicitly approved.",
+    "tracker_authority": "Keep authoritative historical/current Flow descriptors and statuses in Temporal. Each disposition points to exact existing source task IDs/paths and their hashes plus migration fn258.5 for disposition work; do not copy .flow wholesale into standalone or manufacture historical owners. Existing done tasks remain done observations; carried/open successor obligations remain open.",
+    "unknown_owner_policy": "15 direct trailer candidates can gain corroborated links; two gain descriptor-qualified links; two gain tracker/migration-scope links; one is an upstream reference; six retain unresolved product-task freezes. Creating a migration tracking record for a freeze does not turn it into an accepted transfer.",
+    "dirty_recovery": "Current ledger names dirty root assembly, fn2469 baseline, fn254 source assembly, fn2553 fuzz and standalone preparation. Inventory current tracked/untracked/unique ignored inputs with mode/hash and verified external archives/bundles/index/patches; no branch ref alone covers dirty bytes.",
+    "standalone_boundary": "Keep all metadata and cross-repository tracker links in Temporal artifacts. Neutral standalone ref names only; no system-named files or wholesale tracker/monorepo trees in standalone active source. Any future checked-out recovery candidate must pass normal boundary/adaptation review before activation.",
+    "newer_refs": "Reconcile seven newer preparation entries and any additional live refs in the overlay. Existing standalone baseline/portable refs are real recovery for their own preparation only, not proof all 81 originals transferred.",
+    "prerequisites": "Carry the task6 historical prerequisites as provenance; validation-hold was historical, not a current no-execution gate. Current R5 exact pair, destination access/history/publication permission, CI pin activation, separate source-removal authorization, archive/cache preservation and unresolved fn246/fn253/fn254/fn255/fn256/backends obligations need individual current dispositions."
+  },
+  "completion_rules": {
+    "complete_per_candidate_disposition": [
+      "Explicit reviewed destination category: framework recovery-only, already represented with exact evidence, or source-only retained/frozen experiment approved as a retention decision.",
+      "Actual verified receiving ref for relevant framework work, or actual retained source recovery ref for source-only work; all source snapshots/history and dirty recovery remain reconstructible.",
+      "Exhaustive selected/excluded/mixed path-hunk accounting, with inherited assemblies deduplicated and no guessed semantic integration.",
+      "Authoritative tracker IDs/paths and open successor obligations, actual prerequisite state/proof links, and recorded unresolved product decisions frozen.",
+      "Independent verifier passes coverage/object/tree/hash/backup/tracker/prerequisite checks; reviewer explicitly accepts disposition."
+    ],
+    "not_required_for_migration_disposition": "Implementing every deferred feature or merging experimental candidates into standalone main. Accepted recovery/retention and open obligations can satisfy preservation disposition without product acceptance.",
+    "not_complete": "A proposed ref, empty receiver list, guessed owner, unknown decision silently accepted, snapshot-only preservation mislabeled full history, stale flags, unverified dirty backup or archival of an open obligation without tracker authority.",
+    "overall_R6_still_open": "Even complete local candidate dispositions cannot satisfy destination inspection/publication, fetchable CI pin, authorized consumer integration/source cutover and post-cutover proof while SSO/access/publication remain blocked."
+  },
+  "records_to_update_next": [
+    "New task5 disposition overlay and verifier; leave R1 inventory and fn257 task6 plan unchanged.",
+    "Overlay provenance for 26 unknowns using per-candidate evidence below; six remain frozen.",
+    "Per-candidate receiving_candidate_refs/receiving_tracker_records/prerequisite states/dirty recovery evidence and approved disposition status.",
+    "fn258.5 description/acceptance and current migration/milestone records only through root-owned Flow changes when actual dispositions are reviewed.",
+    "After actual cutover only, both repositories current docs/CI/agent/reference ownership; never predeclare source removal or remote state."
+  ]
+}

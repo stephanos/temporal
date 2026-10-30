@@ -1,0 +1,39 @@
+{
+  "command": [
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/target/xtask-bootstrap/debug/xtask",
+    "gate",
+    "--scheduled-stage",
+    "standalone"
+  ],
+  "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25416-provider-adapt/model/umpire",
+  "started_utc": "2026-10-28T16:44:54.342445+00:00",
+  "source_sha256": "1503e2b7a6667417c5155b94f220e9128e0926b2037dcd29024e9d9cdda0380b",
+  "environment": {
+    "CARGO_TARGET_DIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/target",
+    "CARGO_HOME": "/home/agent/.cargo",
+    "TMPDIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-resume-20261028-watchdog-01/proof-output/tmp",
+    "CARGO_BUILD_JOBS": "1",
+    "CARGO_INCREMENTAL": "0",
+    "GOFLAGS": "-p=1",
+    "GOMAXPROCS": "1",
+    "UMPIRE_BACKENDS": "require",
+    "UMPIRE_APALACHE": "skip",
+    "UMPIRE_QUICK_CACHE": "0",
+    "UMPIRE_CACHE_DISABLE": "1",
+    "MISE_AUTO_INSTALL": "false",
+    "MISE_EXEC_AUTO_INSTALL": "false",
+    "MISE_TRUSTED_CONFIG_PATHS": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25416-provider-adapt:/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/target",
+    "UMPIRE_STANDALONE_OUTPUT": "/tmp/umpire-fn25416-final-60f1c762a618-4090033",
+    "UMPIRE_GATE_RECEIPTS": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-resume-20261028-watchdog-01/proof-output/parent-receipts",
+    "UMPIRE_GATE_SCOPE": "framework",
+    "UMPIRE_GATE_STAGE": "standalone",
+    "UMPIRE_GATE_ORDER": "17",
+    "UMPIRE_GATE_EXECUTABLE": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/target/xtask-bootstrap/debug/xtask",
+    "UMPIRE_GATE_CONTROLLER_EXECUTABLE": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/target/xtask-bootstrap/debug/xtask"
+  },
+  "exit_code": 0,
+  "seconds": 978.9493264670018,
+  "free_after_bytes": 44081782784,
+  "stdout_sha256": "c07e772ac2ca0ed0d6d0f979bc471cc06cd5bb62c82aad258a76093371b01160",
+  "stderr_sha256": "921580f704f85152759d8b089e61e5bbf49796e630255270cddd2fc54447b765"
+}

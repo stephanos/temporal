@@ -15,16 +15,15 @@ Document how a Model declares its countdowns and deadlines, then run the full ga
 ### Approach
 - README: a short authoring example (countdown fields, `arm`/`tick`/`expired`, the laws), next to the closure-law paragraph.
 - DESIGN: the two-layer split and the independence rule for refinement.
-- Run `make model-check`, then `BASH_ENV=/dev/null UMPIRE_BACKENDS=require make model-validate` in the main checkout against the shared target. Run `cargo test --workspace --no-fail-fast` first to surface stale snapshots at once.
+- After .7/.9/.10 resolve and their changes are integrated, run `make model-check` and `make model-validate` against the final combined source through the current fn-254 gate. Reuse its test inventory and required-TLC evidence; do not precede those gates with a duplicate workspace suite. Follow the active fn-254 validation cadence if its final checkpoint is still pending.
+- Confirm that final World schemas, exact parameter contracts and feature/protocol adapters agree after .9's recorded outcome and .10's flag removal. Re-run the affected existing refinement/parameter controls and live cancellation gates against this combined source; preserve independent protocol semantics and record the selected Worlds and actual counts.
 - Write the validation-cost review required by spec close.
 
-### Acceptance
+## Acceptance
 - [ ] README and DESIGN describe the abstraction with an example; the activity README matches the migrated Model.
 - [ ] `make model-check` and the TLC-required `make model-validate` pass; goldens re-accepted after review.
+- [ ] Final combined-source evidence covers .9's adoption or recorded non-adoption, .10's approved compatibility control, exact parameter/adaptor agreement, and affected live cancellation controls.
 - [ ] MILESTONES.md updated.
-
-## Acceptance
-- [ ] TBD
 
 ## Done summary
 TBD

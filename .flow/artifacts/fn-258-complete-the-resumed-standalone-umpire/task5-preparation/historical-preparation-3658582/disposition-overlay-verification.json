@@ -1,0 +1,41 @@
+{
+  "result": "pass",
+  "errors": [],
+  "live_ref_or_task_drift": [
+    {
+      "candidate_id": "temporal:refs/heads/umpire",
+      "recovery_ref": "refs/heads/umpire",
+      "observed": "7c6d9fdcbd896b4903720350ae6706e32d203a5d",
+      "current": "a4e97c8e16e71f5cea515910fe692b738d31a366"
+    }
+  ],
+  "verified_entry_count": 88,
+  "r6_complete": false,
+  "qualification": "Frozen observations can drift while verified recovery remains reachable. No transfer/backup/activation/completion claim.",
+  "overlay_sha256": "1abb400dc7a83e39e556df1308752639cdee1867e30f308e6b4fd42a2191b021",
+  "script_sha256": "716e99ca579b6267e8745bf42713d66dbb79c29c830cce0121e3bd6ac78d4224",
+  "input_bindings": {
+    "r1_ledger": {
+      "path": ".flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/source/candidate-ledger.json",
+      "sha256": "b1fc7a843b092d1920d4dbf6387f6d6795d212ecfef381e8b7d96c62b3386851"
+    },
+    "owner_research": {
+      "path": ".flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/task5-preparation/r6-preparation-research.json",
+      "sha256": "e3cf46da98af099fbabd4ed0e8018b041e39a2e91371e8c38bd365b0ababe70b"
+    },
+    "fn257_task6_plan": {
+      "path": ".flow/artifacts/fn-257-extract-the-standalone-umpire/task6/provisional-transfer-plan.json",
+      "sha256": "7ac9edf526afefaa98557e6c4a7181e1609a08fbcd15738a1bc51fa0ddcb4746"
+    }
+  },
+  "negative_controls_result": "pass",
+  "derived_receiving_work_verified": true,
+  "derived_markdown_verified": true,
+  "verified_original_candidate_count": 81,
+  "verified_source_recovery_entries": 88,
+  "original_candidate_transfers": 0,
+  "r6_completed_dispositions": 0,
+  "fully_preserved_candidates": 0,
+  "planned_receiving_refs": 48,
+  "source_only_freezes": 6
+}

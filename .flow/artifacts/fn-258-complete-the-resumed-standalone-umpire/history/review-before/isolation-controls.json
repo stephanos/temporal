@@ -1,0 +1,14 @@
+[
+  {
+    "control": "source-refused",
+    "exit": 1,
+    "diagnostic": "Export refused or failed: Reports must remain outside the filtered clone\n",
+    "report_created": false
+  },
+  {
+    "control": "registered-worktree-refused",
+    "exit": 1,
+    "diagnostic": "Export refused or failed: Clone is an original registered worktree\n",
+    "report_created": false
+  }
+]

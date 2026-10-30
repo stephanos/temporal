@@ -1,0 +1,35 @@
+{
+  "status": "prepared_only",
+  "collection_executed": false,
+  "cas_written": false,
+  "original_proof_binaries_copied": false,
+  "original_preparation_unchanged": true,
+  "original_preparation_sha256": "cf8af5a758144fd6ece56e0849404d01387b38f5cbf9834b44693022b0ea3228",
+  "derived_preparation_sha256": "9155656eb100d4747c371d878bfef33038e8a2a6c174ef04bb959bd2909f5eef",
+  "tools_manifest_sha256": "50c5b44f10ff99378049d9a35658a5ea8ac9b8d11922aa742519cce599554e1c",
+  "original_members": 4799,
+  "selected_members_with_parent_components": 4801,
+  "safe_controls": {
+    "success": true,
+    "tests_run": 4,
+    "failures": 0,
+    "errors": 0,
+    "inputs_sha256": {
+      "collect.py": "22378629f2c272e26bc6fa6d5e9d790461482e1f82dc73718c3d1f96f10e98e1",
+      "verify.py": "0c5ae955a82dc0efb1d4c129773f9466ec9e36b2567f80e157be56ba03ec6dca",
+      "test_controls.py": "c73ad6278b9ee93d73af0b7568191b4110fb3c157fba3f8dd3fe1750981fd79c"
+    },
+    "scope": "tiny synthetic files only; no private proof read/collection/CAS write",
+    "proof_collection_executed": false,
+    "binaries_copied": false,
+    "cleanup_authorized": false
+  },
+  "static_checks": [
+    "Python AST parsing",
+    "exact original4799 and2parent-only metadata validation",
+    "original proof authority fields preserved",
+    "code/input/control seals match",
+    "original parent2 ELF hashes match recorded native-binaries.json (read only)"
+  ],
+  "scope": "All writes confined retention-tools; only tiny synthetic archives created and cleaned by tests. No proof collection/archive/CAS/production/Flow/Git/build/runtime mutation."
+}

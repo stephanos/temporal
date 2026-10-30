@@ -1,0 +1,8 @@
+controls::real_tlc_batch_evaluation_recovers_original_property_order: test
+controls::real_tlc_evaluation_errors_are_typed_and_located: test
+controls::real_tlc_failed_batches_preserve_independent_traces: test
+controls::real_tlc_healthy_batches_use_at_most_two_model_launches: test
+controls::real_tlc_initial_invariant_has_a_typed_counterexample: test
+controls::real_tlc_keeps_deadlock_checks_and_refuses_tool_errors: test
+controls::real_tlc_maximality_fairness_bounds_and_action_properties: test
+scaling::typed_module_completes_independently_of_a_cut_native_reference: test

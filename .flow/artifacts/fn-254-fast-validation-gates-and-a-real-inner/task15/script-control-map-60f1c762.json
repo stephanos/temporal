@@ -1,0 +1,1996 @@
+{
+  "schema": "fn25415-script-control-readiness-v1",
+  "purpose": "read-only evidence preparation; conductor must curate final acceptance mapping",
+  "frozen_source": "60f1c762a618d32478b58ae4e79c151f4355aeb3",
+  "committed_native_preparation_snapshot": "7cf05d1c5336b89c17c4fb13f6fced57db1ced14",
+  "native_preparation_validated": false,
+  "dependency_advancement": false,
+  "scope": {
+    "active_script_count": 29,
+    "retain_bootstrap_count": 2,
+    "four_retained_control_shells": 4,
+    "excluded": [
+      "model/archived",
+      "model/design",
+      "generated build/cache trees",
+      "historical Flow/spec/review evidence"
+    ]
+  },
+  "global_adaptation_gaps": {
+    "owned": "Preserve final .17 supervisor lease, inherited cancellation/completion descriptors, scheduler::execute(_with_inventory), work_counts observations, stage identities and receipts. Candidate raw status/output/spawn timing/leaf code predates this contract.",
+    "16": "Use final committed .16 fetch CLI/provider unchanged: fetch-tlc/fetch-apalache [framework-root], explicit locked mise installation, admitted path stdout, diagnostics stderr, no auto-install during runtime, path/hash admission. Root must be UTF-8 and representable in the platform path list (Unix colon roots refuse) in frozen60f; guest raw-byte output/target routing remains a separate contract.",
+    "test_run": "Temporal timer must invoke authoritative framework test-run --package, retaining .17 nextest/doctest scheduling, resource/profile controls and status. Prepared timer directly invokes nextest/doctests and is stale.",
+    "cli": "Merge native subcommands into current dispatchers; retain .17 ownership preamble/supervise and .16 fetch commands. Committed preparation has duplicate capability-controls/build-guests arms; do not replace dispatchers wholesale.",
+    "fixture": "Refresh native gate fixtures for final CLI, owned subprocess context, actual directive-array metadata, .17 work receipts and final .16 provider configuration/path/error expectations; preserve current tests.",
+    "wire": "Prepared wiring expects older producer composition/update cargo test. Port final shipping Make recipes, current model-prerequisites ordering and update test-run; retain CI mise minimum-floor and compiler-admission cases.",
+    "warn": "Retain warning defaults/equality/ordering against final shipping renderer. Negative-budget sentinel belongs to current controls; any future strict-budget change requires an explicit replacement test setup, not silent case loss.",
+    "cleanup": "Native temporary capture/check/plugin staging cleanup must be tested through production paths on success/refusal/child failure. Preserve .17 cancellation cleanup; do not retain unowned capture threads.",
+    "registration": "Register every new test module in existing main/lib/bin targets; autotests=false means creating a file does not schedule it.",
+    "retired": "Rust regex syntax intentionally replaces grep -E; preserve planted retired-name/path checks, author-facade exemption, historical exclusions, raw filenames, malformed records, Git/I/O failure. External-grep exit and pipeline-SIGPIPE cases become obsolete only after grep/pipeline removal is explicit.",
+    "bootstrap": "Retain minimal bootstrap(s); exercise guest-flag clearing, caller-relative/physical Cargo paths, two executables, missing mise/no Cargo fallback and failure status. Adapt current bootstrap admission outside already-running host lease.",
+    "deletion": "Delete shell only after all production callers, maintained tests/docs and meaningful cases move. Preserve historical specs/artifacts/archive references."
+  },
+  "shared_vector_sets": {
+    "guest": [
+      "arity/refuse unsupported option before execution",
+      "relative output anchored to original caller; absolute output unchanged; --check preserved",
+      "CARGO_HOME relative/physical symlink; CARGO_TARGET_DIR relative/absolute/default",
+      "five framework package routing versus temporal/custom extension",
+      "spaces and raw Unix output/target bytes",
+      "child status37; stale freshness refuses and preserves existing output"
+    ],
+    "proto": [
+      "selector/arity/--check refusal before protoc",
+      "exact Go v1.36.6 and optional gRPC1.3.0 executable/version admission",
+      "core run.proto closure; kettle probe.proto closure plus gRPC; temporal activity.proto closure without gRPC",
+      "generation then freshness check",
+      "stale extra file and changed bytes; subtree excludes handwritten host",
+      "generated-tree and generator symlink refusal",
+      "child protoc42 and generator37 propagated; private check output cleanup",
+      "mise auto-install disabled and caller Cargo paths retained"
+    ],
+    "proto_tools": [
+      "exact Go install module/version for both plugins",
+      "repeat provisioning does not reinstall admitted pins",
+      "pre-existing lock directory refuses (simulated contention, not a live concurrency test); lock cleanup on success and install42 failure",
+      "generator symlink refusal; .bin symlink refusal",
+      "staged executable/version admission before publication; destination appearance rechecked",
+      "retry after failed install succeeds"
+    ],
+    "build": [
+      "five framework guest artifacts in fixed order then panic/current-contract native reports",
+      "caller home relative/absolute/physical symlink; target default/relative/absolute/physical symlink",
+      "first failing guest37 stops following children; first native-report42 stops final report",
+      "Temporal builds only temporal guest to target wasm32-wasip1/guest path",
+      "spaces/exact raw arguments; scratch cleanup"
+    ],
+    "bootstrap": [
+      "locked dev build of xtask and umpire-guest-driver into target/xtask-bootstrap",
+      "all guest compiler wrappers/flags/target removed before bootstrap",
+      "auto-install false; framework tool root explicit; caller home/target canonicalization",
+      "both executables checked; bootstrap child failure diagnosed; missing executable refuses",
+      "missing mise has no cargo fallback/stdout/artifact publication",
+      "guest/freshness arguments and caller output preserved"
+    ],
+    "capability": [
+      "both author/dsl and native checker reject fs/clock/thread APIs and named types including aliased fs read",
+      "six safe source/build/test roots have forbid(unsafe_code), reject local allow override with E0453",
+      "audited deny + local allowance compiles",
+      "unaudited unsafe declaration under deny refuses",
+      "temporary compiler artifacts cleaned; no restored .14 tool-version preflights"
+    ],
+    "fetch": [
+      "thin wrapper forwards optional framework root and rejects excess arguments through native CLI",
+      "explicit locked mise HTTP provider; default TLC versus explicit Apalache",
+      "admitted absolute jar path stdout and diagnostics stderr; failure1",
+      "checksum/regular-file/contained no-symlink admission; corrupt/partial/missing installation refuses",
+      "provider concurrency/interruption/capture cleanup delegated and checked by .16",
+      "UTF-8 and path-list-representable framework-root admission from frozen60f before creating build; Unix non-UTF8 and colon roots refuse; no second cache/copy layer"
+    ],
+    "retired": [
+      "normal clean0; planted legacy/layout token1 and diagnostic",
+      "author/umpire/tests token exemption only",
+      "historical archive/.flow/framework exclusions and layout-history exclusions",
+      "spaces/non-Unicode filenames, malformed records, Git and local-I/O failures",
+      "external grep failure and SIGPIPE precedence are pipeline-specific obsolete cases after native scan removal"
+    ]
+  },
+  "native_references": {
+    "fetch": {
+      "commit": "60f1c762a618d32478b58ae4e79c151f4355aeb3",
+      "path": "model/umpire/dev/xtask/src/fetch_apalache.rs",
+      "blob": "0ec987c6f5abad238a6addbd5218dabf2c267c93",
+      "entry": "fetch-tlc [framework-root]; install_tlc",
+      "integration_status": "frozen_active_16_candidate_not_closure"
+    },
+    "provider": {
+      "commit": "60f1c762a618d32478b58ae4e79c151f4355aeb3",
+      "path": "model/umpire/backends/process/src/tool_provider.rs",
+      "blob": "42d36130b9aa251b0d28a113429101522c298342",
+      "entry": "command/install/resolve; existing locked HTTP provider",
+      "integration_status": "frozen_active_16_candidate_not_closure"
+    },
+    "proto": {
+      "commit": "7cf05d1c5336b89c17c4fb13f6fced57db1ced14",
+      "path": "model/umpire/dev/xtask/src/proto.rs",
+      "blob": "f6b6e6dbcd1c9c77fc2f5eac2053776c7cc9bcc4",
+      "origin_commits": [
+        "e2c89a40ec"
+      ],
+      "entry": "proto-go core|kettle [--check]; proto-go-spec; proto-tools",
+      "integration_status": "unvalidated_preparation"
+    },
+    "proto_controls": {
+      "commit": "7cf05d1c5336b89c17c4fb13f6fced57db1ced14",
+      "path": "model/umpire/dev/xtask/src/proto_controls.rs",
+      "blob": "7d351559c2c2ae9c1b719e9e56d4f6cf9280d126",
+      "origin_commits": [
+        "e2c89a40ec"
+      ],
+      "entry": "run; tests::native_protobuf_behavior_controls",
+      "integration_status": "unvalidated_preparation"
+    },
+    "temporal_proto": {
+      "commit": "7cf05d1c5336b89c17c4fb13f6fced57db1ced14",
+      "path": "model/dev/xtask/src/proto.rs",
+      "blob": "c0a0298789048d77c802ad7b339dab520a20d81c",
+      "origin_commits": [
+        "9672338c8f"
+      ],
+      "entry": "proto-go temporal [--check]; arguments/run_with tests",
+      "integration_status": "unvalidated_preparation"
+    },
+    "build": {
+      "commit": "7cf05d1c5336b89c17c4fb13f6fced57db1ced14",
+      "path": "model/umpire/dev/xtask/src/build_guests.rs",
+      "blob": "ac2be76336a080b530e4cb7f95210c55258b2968",
+      "origin_commits": [
+        "9672338c8f",
+        "c23d895868"
+      ],
+      "entry": "build-guests; tests::five_artifacts_then_two_reports_keep_spaces_and_child_status",
+      "integration_status": "unvalidated_preparation"
+    },
+    "build_paths": {
+      "commit": "7cf05d1c5336b89c17c4fb13f6fced57db1ced14",
+      "path": "model/umpire/dev/xtask/src/build_guest_path_controls.rs",
+      "blob": "e636c0e55a87b90113c74796d6bb8d997e93ff83",
+      "origin_commits": [
+        "c23d895868"
+      ],
+      "entry": "relative_absolute_default_and_symlink_cargo_paths_preserve_seven_children; guest_and_native_statuses_stop_without_following_children",
+      "integration_status": "unvalidated_preparation"
+    },
+    "capability": {
+      "commit": "7cf05d1c5336b89c17c4fb13f6fced57db1ced14",
+      "path": "model/umpire/dev/xtask/src/capability_controls.rs",
+      "blob": "b732a4d076ee9831faba370785d587c9a760de83",
+      "origin_commits": [
+        "9672338c8f"
+      ],
+      "entry": "capability-controls; run/run_with",
+      "integration_status": "unvalidated_preparation"
+    },
+    "guest": {
+      "commit": "7cf05d1c5336b89c17c4fb13f6fced57db1ced14",
+      "path": "model/dev/xtask/src/guest_routes.rs",
+      "blob": "e0ce096d7ef5b5ff66d9da5214e44e4883c1c59f",
+      "origin_commits": [
+        "c23d895868"
+      ],
+      "entry": "prepare/command; guest and guest-freshness dispatch",
+      "integration_status": "unvalidated_preparation"
+    },
+    "guest_controls": {
+      "commit": "7cf05d1c5336b89c17c4fb13f6fced57db1ced14",
+      "path": "model/dev/xtask/src/guest_route_controls.rs",
+      "blob": "ea5d42577100729b60e90898a9b3b3e6c00db828",
+      "origin_commits": [
+        "c23d895868"
+      ],
+      "entry": "seven_packages_two_entries_preserve_caller_paths_and_exact_arguments; non_unicode_output_and_target_are_lossless",
+      "integration_status": "unvalidated_preparation"
+    },
+    "guest_pipeline": {
+      "commit": "7cf05d1c5336b89c17c4fb13f6fced57db1ced14",
+      "path": "model/umpire/dev/guest-driver/tests/guest_pipeline.rs",
+      "blob": "57417fe31282b48270e9d6282ef098464b5a3d4d",
+      "origin_commits": [
+        "234221b313"
+      ],
+      "entry": "direct native-driver invocation replaces wrapper tests",
+      "integration_status": "unvalidated_preparation"
+    },
+    "guest_fixture": {
+      "commit": "7cf05d1c5336b89c17c4fb13f6fced57db1ced14",
+      "path": "model/umpire/dev/guest-driver/tests/pipeline/support.rs",
+      "blob": "b40d0206b8dc8a143f1965e1c868c5430cb41f4c",
+      "origin_commits": [
+        "234221b313"
+      ],
+      "entry": "Fixture uses native driver and shipping bootstrap",
+      "integration_status": "unvalidated_preparation"
+    },
+    "bootstrap": {
+      "commit": "7cf05d1c5336b89c17c4fb13f6fced57db1ced14",
+      "path": "model/umpire/dev/xtask/tests/bootstrap_paths.rs",
+      "blob": "c22613da80ffea6f0930dce21e9040cd03833930",
+      "origin_commits": [
+        "c23d895868",
+        "8409c8bff6"
+      ],
+      "entry": "bootstrap_sanitizes_guest_flags_and_preserves_physical_caller_paths; bootstrap_refuses_child_failure_and_each_missing_native_binary; missing_mise_never_falls_back_to_cargo_or_publishes_output",
+      "integration_status": "unvalidated_preparation"
+    },
+    "temporal_build": {
+      "commit": "7cf05d1c5336b89c17c4fb13f6fced57db1ced14",
+      "path": "model/dev/xtask/src/build_guests.rs",
+      "blob": "b8c316ad5f029454a30f4175c7ed313b18df6741",
+      "origin_commits": [
+        "9672338c8f",
+        "c23d895868"
+      ],
+      "entry": "build-guests; run",
+      "integration_status": "unvalidated_preparation"
+    },
+    "temporal_build_paths": {
+      "commit": "7cf05d1c5336b89c17c4fb13f6fced57db1ced14",
+      "path": "model/dev/xtask/src/temporal_guest_path_controls.rs",
+      "blob": "9ae18df3f54f054e70c1216932871729011f46ab",
+      "origin_commits": [
+        "c23d895868"
+      ],
+      "entry": "relative_absolute_default_and_symlink_paths_preserve_temporal_guest",
+      "integration_status": "unvalidated_preparation"
+    },
+    "retired": {
+      "commit": "7cf05d1c5336b89c17c4fb13f6fced57db1ced14",
+      "path": "model/umpire/dev/xtask/src/retired_names.rs",
+      "blob": "4459ef9fa51339b08e170f922b54594d26de27af",
+      "origin_commits": [
+        "0f4ab5aec8"
+      ],
+      "entry": "retired-names PATTERN; run/scan with Rust regex",
+      "integration_status": "unvalidated_preparation"
+    },
+    "temporal_retired": {
+      "commit": "7cf05d1c5336b89c17c4fb13f6fced57db1ced14",
+      "path": "model/dev/xtask/src/retired_names.rs",
+      "blob": "d7d42e37acfb42d901f55b6fed927a8f80485e58",
+      "origin_commits": [
+        "0f4ab5aec8",
+        "dde04758b4"
+      ],
+      "entry": "retired-names [--root REPOSITORY_ROOT]; run/check",
+      "integration_status": "unvalidated_preparation"
+    },
+    "timing": {
+      "commit": "7cf05d1c5336b89c17c4fb13f6fced57db1ced14",
+      "path": "model/umpire/dev/xtask/src/gate/timing.rs",
+      "blob": "cf13d9f0d94b8015fcf83d1578e231bf2bb51ad7",
+      "origin_commits": [
+        "ef62e0129d"
+      ],
+      "entry": "execute; prepared raw process implementation MUST be adapted to current .17 ownership",
+      "integration_status": "unvalidated_preparation"
+    },
+    "timing_controls": {
+      "commit": "7cf05d1c5336b89c17c4fb13f6fced57db1ced14",
+      "path": "model/umpire/dev/xtask/src/timing_controls.rs",
+      "blob": "af5b5f7bd88877ec25efab860711de25baec4d91",
+      "origin_commits": [
+        "4bcfeac29c",
+        "c8ec4c76d6",
+        "8409c8bff6"
+      ],
+      "entry": "timing-controls; run(tool)",
+      "integration_status": "unvalidated_preparation"
+    },
+    "timing_test": {
+      "commit": "7cf05d1c5336b89c17c4fb13f6fced57db1ced14",
+      "path": "model/umpire/dev/xtask/tests/native_timing_controls.rs",
+      "blob": "1c5051fb1929044a45a104683d5520450cb24f77",
+      "origin_commits": [
+        "4bcfeac29c",
+        "8409c8bff6"
+      ],
+      "entry": "native_timing_step_preserves_status_diagnostics_cleanup_and_caller_directory",
+      "integration_status": "unvalidated_preparation"
+    },
+    "warning_controls": {
+      "commit": "7cf05d1c5336b89c17c4fb13f6fced57db1ced14",
+      "path": "model/dev/xtask/src/gate/timing_controls.rs",
+      "blob": "15e5585ea0aa44d72a52c5ff2ef5c696b70beca3",
+      "origin_commits": [
+        "4bcfeac29c"
+      ],
+      "entry": "run; exact warning table",
+      "integration_status": "unvalidated_preparation"
+    },
+    "warning_test": {
+      "commit": "7cf05d1c5336b89c17c4fb13f6fced57db1ced14",
+      "path": "model/dev/xtask/tests/native_timing_controls.rs",
+      "blob": "d0350e80c8bfa152c672de4f7e02eedb8172ca91",
+      "origin_commits": [
+        "4bcfeac29c",
+        "5b0d98fc68"
+      ],
+      "entry": "native_budget_warnings_keep_exact_defaults_boundaries_and_order",
+      "integration_status": "unvalidated_preparation"
+    },
+    "validate_controls": {
+      "commit": "7cf05d1c5336b89c17c4fb13f6fced57db1ced14",
+      "path": "model/dev/xtask/src/gate/model_validate_controls.rs",
+      "blob": "baaf97ae69c50c803beff70381d2095d7dba8af4",
+      "origin_commits": [
+        "4bcfeac29c"
+      ],
+      "entry": "validation_forces_required_backends_across_all_make_variable_sources_and_preserves_apalache; ordinary_model_time_preserves_unset_skip_and_required_backends; model_timer_stops_before_benchmark_after_failed_gate_and_preserves_failed_benchmark_status",
+      "integration_status": "unvalidated_preparation"
+    },
+    "wiring_controls": {
+      "commit": "7cf05d1c5336b89c17c4fb13f6fced57db1ced14",
+      "path": "model/dev/xtask/tests/wiring.rs",
+      "blob": "63d9dbd474fe4a98de38c1e6509a28207ea0c9ba",
+      "origin_commits": [
+        "1e63b872b3"
+      ],
+      "entry": "check_dispatches_combined_gate_once_with_cache_bypass_and_no_initial_install; check_preserves_gate_failure_and_stops_after_failed_prerequisite; fmt_and_update_preserve_independent_framework_then_temporal_composition",
+      "integration_status": "unvalidated_preparation"
+    },
+    "native_gate_controls": {
+      "commit": "7cf05d1c5336b89c17c4fb13f6fced57db1ced14",
+      "path": "model/dev/xtask/src/gate/native_controls.rs",
+      "blob": "e06d79cca8ca3ab77fbb2c7f5c49970bede015e7",
+      "origin_commits": [
+        "356d752d12",
+        "7cf05d1c53"
+      ],
+      "entry": "actual_temporal_gate_wiring_and_named_failures; gate_control_child/native_leaf_control_child",
+      "integration_status": "unvalidated_preparation"
+    },
+    "native_framework_fixture": {
+      "commit": "7cf05d1c5336b89c17c4fb13f6fced57db1ced14",
+      "path": "model/umpire/dev/xtask/tests/gate_wiring.rs",
+      "blob": "2ded85504ea06fc44fd24ca3047543864c961bee",
+      "origin_commits": [
+        "356d752d12",
+        "7cf05d1c53"
+      ],
+      "entry": "native tool fixtures; preserve newer .17 and .16 additions",
+      "integration_status": "unvalidated_preparation"
+    },
+    "standalone": {
+      "commit": "7cf05d1c5336b89c17c4fb13f6fced57db1ced14",
+      "path": "model/umpire/dev/xtask/src/gate/standalone.rs",
+      "blob": "5269166dc45852f257c443d448b6b820cfbd92d0",
+      "origin_commits": [
+        "8f6ab7b40b"
+      ],
+      "entry": "direct native fetch-tlc setup; port only shell-caller change",
+      "integration_status": "unvalidated_preparation"
+    },
+    "process_fixture": {
+      "commit": "7cf05d1c5336b89c17c4fb13f6fced57db1ced14",
+      "path": "model/umpire/backends/process/tests/fixtures/process_fixture.rs",
+      "blob": "3d44c4ad024806821740815646c173871094e091",
+      "origin_commits": [
+        "e894f469ca"
+      ],
+      "entry": "restricted-provider-preflight; reconcile .16 current equivalent",
+      "integration_status": "unvalidated_preparation"
+    }
+  },
+  "scripts": [
+    {
+      "path": "model/scripts/fetch-tlc.sh",
+      "source": {
+        "commit": "60f1c762a618d32478b58ae4e79c151f4355aeb3",
+        "path": "model/scripts/fetch-tlc.sh",
+        "blob": "7acda4c2783a92ecf2977c4402983c18a10894c1"
+      },
+      "job": "Temporal forwarding bridge",
+      "public_calls": [
+        "root fetch bridge",
+        "README explicit provisioning",
+        "standalone TLC setup"
+      ],
+      "meaningful_vectors": {
+        "set": "fetch"
+      },
+      "native_refs": [
+        "fetch",
+        "provider",
+        "standalone",
+        "process_fixture"
+      ],
+      "adaptation_gap_ids": [
+        "16",
+        "owned",
+        "deletion"
+      ],
+      "intended_action": "replace_then_delete",
+      "frozen_textual_callers": [
+        {
+          "location": "model/README.md:890"
+        },
+        {
+          "location": "model/umpire/README.md:181"
+        },
+        {
+          "location": "model/umpire/backends/tlc/src/runner.rs:171"
+        },
+        {
+          "location": "model/umpire/dev/xtask/src/gate/standalone.rs:418"
+        },
+        {
+          "location": "model/umpire/mise-tools/README.md:3"
+        },
+        {
+          "location": "model/umpire/mise-tools/README.md:5"
+        }
+      ]
+    },
+    {
+      "path": "model/scripts/guest-freshness.sh",
+      "source": {
+        "commit": "60f1c762a618d32478b58ae4e79c151f4355aeb3",
+        "path": "model/scripts/guest-freshness.sh",
+        "blob": "9b03fe782c6a1c1dadf1ecca67a8014aed8e8a7e"
+      },
+      "job": "Route five framework packages versus Temporal/custom, then forward",
+      "public_calls": [
+        "Make umpire-guest",
+        "gate guest-freshness",
+        "guest build helpers",
+        "guest-driver pipeline and Go host tests"
+      ],
+      "meaningful_vectors": {
+        "set": "guest"
+      },
+      "native_refs": [
+        "guest",
+        "guest_controls",
+        "guest_pipeline",
+        "guest_fixture",
+        "bootstrap"
+      ],
+      "adaptation_gap_ids": [
+        "owned",
+        "cli",
+        "bootstrap",
+        "deletion"
+      ],
+      "intended_action": "replace_then_delete",
+      "frozen_textual_callers": [
+        {
+          "location": "model/umpire/scripts/tests/bootstrap.sh:43"
+        }
+      ]
+    },
+    {
+      "path": "model/scripts/guest.sh",
+      "source": {
+        "commit": "60f1c762a618d32478b58ae4e79c151f4355aeb3",
+        "path": "model/scripts/guest.sh",
+        "blob": "458f97df8628105476563de744c2e469a826e23d"
+      },
+      "job": "Route five framework packages versus Temporal/custom, then forward",
+      "public_calls": [
+        "Make umpire-guest",
+        "gate guest-freshness",
+        "guest build helpers",
+        "guest-driver pipeline and Go host tests"
+      ],
+      "meaningful_vectors": {
+        "set": "guest"
+      },
+      "native_refs": [
+        "guest",
+        "guest_controls",
+        "guest_pipeline",
+        "guest_fixture",
+        "bootstrap"
+      ],
+      "adaptation_gap_ids": [
+        "owned",
+        "cli",
+        "bootstrap",
+        "deletion"
+      ],
+      "intended_action": "replace_then_delete",
+      "frozen_textual_callers": [
+        {
+          "location": "Makefile:467"
+        },
+        {
+          "location": "model/GUEST_BUILDS.md:3"
+        },
+        {
+          "location": "model/GUEST_BUILDS.md:124"
+        },
+        {
+          "location": "model/GUEST_BUILDS.md:210"
+        },
+        {
+          "location": "model/GUEST_BUILDS.md:211"
+        },
+        {
+          "location": "model/GUEST_BUILDS.md:212"
+        },
+        {
+          "location": "model/GUEST_BUILDS.md:213"
+        },
+        {
+          "location": "model/scripts/tests/build-guests.sh:19"
+        },
+        {
+          "location": "model/scripts/tests/guest-roots.sh:29"
+        },
+        {
+          "location": "model/umpire/dev/guest-driver/tests/guest_pipeline.rs:83"
+        },
+        {
+          "location": "model/umpire/reference/kettle/README.md:21"
+        },
+        {
+          "location": "model/umpire/reference/kettle/kettle_test.go:73"
+        },
+        {
+          "location": "model/umpire/scripts/tests/bootstrap.sh:39"
+        },
+        {
+          "location": "model/umpire/scripts/tests/bootstrap.sh:56"
+        },
+        {
+          "location": "model/umpire/scripts/tests/build-guests-controls.sh:8"
+        },
+        {
+          "location": "model/umpire/scripts/tests/build-guests.sh:26"
+        }
+      ]
+    },
+    {
+      "path": "model/scripts/proto-go.sh",
+      "source": {
+        "commit": "60f1c762a618d32478b58ae4e79c151f4355aeb3",
+        "path": "model/scripts/proto-go.sh",
+        "blob": "f482805fae559cedfdd2a9c46caf3d274ab70c7c"
+      },
+      "job": "Generate/check Temporal protobuf subtree",
+      "public_calls": [
+        "protobuf-freshness gate stages",
+        "protobuf controls",
+        "maintained generation docs"
+      ],
+      "meaningful_vectors": {
+        "set": "proto"
+      },
+      "native_refs": [
+        "temporal_proto",
+        "proto",
+        "proto_controls"
+      ],
+      "adaptation_gap_ids": [
+        "owned",
+        "cli",
+        "cleanup",
+        "registration",
+        "deletion"
+      ],
+      "intended_action": "replace_then_delete",
+      "frozen_textual_callers": [
+        {
+          "location": "MIGRATE.md:317"
+        },
+        {
+          "location": "model/DESIGN.md:1066"
+        },
+        {
+          "location": "model/README.md:116"
+        },
+        {
+          "location": "model/README.md:117"
+        },
+        {
+          "location": "model/README.md:118"
+        },
+        {
+          "location": "model/scripts/tests/proto-go.sh:7"
+        },
+        {
+          "location": "model/scripts/tests/proto-go.sh:29"
+        },
+        {
+          "location": "model/umpire/README.md:36"
+        },
+        {
+          "location": "model/umpire/dev/xtask/tests/gate_wiring.rs:213"
+        },
+        {
+          "location": "model/umpire/hosts/go/README.md:69"
+        },
+        {
+          "location": "model/umpire/protocol/proto/README.md:62"
+        },
+        {
+          "location": "model/umpire/protocol/proto/README.md:72"
+        },
+        {
+          "location": "model/umpire/reference/kettle/README.md:27"
+        },
+        {
+          "location": "model/umpire/scripts/tests/proto-go.sh:7"
+        },
+        {
+          "location": "model/umpire/scripts/tests/proto-go.sh:33"
+        }
+      ]
+    },
+    {
+      "path": "model/scripts/retired-names.sh",
+      "source": {
+        "commit": "60f1c762a618d32478b58ae4e79c151f4355aeb3",
+        "path": "model/scripts/retired-names.sh",
+        "blob": "28acf0d3be14c83ed2260a3dbbaf9a5eecbd192e"
+      },
+      "job": "Repository exclusions and pipeline status control",
+      "public_calls": [
+        "retired-names gate stage",
+        "retired-name planted tests"
+      ],
+      "meaningful_vectors": {
+        "set": "retired"
+      },
+      "native_refs": [
+        "temporal_retired",
+        "retired"
+      ],
+      "adaptation_gap_ids": [
+        "retired",
+        "owned",
+        "cli",
+        "deletion"
+      ],
+      "intended_action": "replace_then_delete",
+      "frozen_textual_callers": [
+        {
+          "location": "model/dev/xtask/src/gate.rs:519"
+        },
+        {
+          "location": "model/dev/xtask/tests/retired_names.rs:27"
+        },
+        {
+          "location": "model/dev/xtask/tests/retired_names.rs:43"
+        },
+        {
+          "location": "model/dev/xtask/tests/retired_names.rs:44"
+        },
+        {
+          "location": "model/dev/xtask/tests/retired_names.rs:139"
+        },
+        {
+          "location": "model/dev/xtask/tests/retired_names.rs:140"
+        },
+        {
+          "location": "model/dev/xtask/tests/retired_names.rs:155"
+        },
+        {
+          "location": "model/dev/xtask/tests/retired_names.rs:188"
+        },
+        {
+          "location": "model/dev/xtask/tests/retired_names.rs:189"
+        },
+        {
+          "location": "model/dev/xtask/tests/retired_names.rs:215"
+        }
+      ]
+    },
+    {
+      "path": "model/scripts/test-capabilities.sh",
+      "source": {
+        "commit": "60f1c762a618d32478b58ae4e79c151f4355aeb3",
+        "path": "model/scripts/test-capabilities.sh",
+        "blob": "5b80183738ff5521450e7ad540c720ef86f7d6f7"
+      },
+      "job": "Forward framework capability policy controls",
+      "public_calls": [
+        "capability-controls gate stage",
+        "explicit test helper"
+      ],
+      "meaningful_vectors": {
+        "set": "capability"
+      },
+      "native_refs": [
+        "capability"
+      ],
+      "adaptation_gap_ids": [
+        "owned",
+        "cli",
+        "cleanup",
+        "deletion"
+      ],
+      "intended_action": "replace_then_delete",
+      "frozen_textual_callers": []
+    },
+    {
+      "path": "model/scripts/test-model-validate.sh",
+      "source": {
+        "commit": "60f1c762a618d32478b58ae4e79c151f4355aeb3",
+        "path": "model/scripts/test-model-validate.sh",
+        "blob": "989074a0a88eaf83a7fcaafa5a73d1ccc0b141ba"
+      },
+      "job": "Shipping model-time/model-validate controls with fake gate, bootstrap and test-run",
+      "public_calls": [
+        "Temporal test-time-gate.sh"
+      ],
+      "meaningful_vectors": {
+        "exact_cases": "case_mapping"
+      },
+      "native_refs": [
+        "validate_controls"
+      ],
+      "adaptation_gap_ids": [
+        "owned",
+        "test_run",
+        "warn",
+        "cleanup",
+        "registration",
+        "deletion"
+      ],
+      "intended_action": "replace_then_delete",
+      "case_mapping": [
+        {
+          "id": "validate.backend_precedence",
+          "inputs": {
+            "conflict_sources": [
+              "absent",
+              "environment",
+              "command-line",
+              "MAKEFLAGS",
+              "command-line MAKEFLAGS"
+            ],
+            "UMPIRE_APALACHE": [
+              "skip",
+              "require"
+            ]
+          },
+          "expected": "10 cases; gate then benchmark each see require + preserved Apalache",
+          "native_ref": "validate_controls",
+          "coverage": "prepared_case_present",
+          "adaptation": "Adapt child to final test-run --package; keep all10 combinations."
+        },
+        {
+          "id": "time.backend_preservation",
+          "inputs": {
+            "UMPIRE_BACKENDS": [
+              "unset",
+              "skip",
+              "require"
+            ]
+          },
+          "expected": "3 cases; gate then benchmark preserve mode and absent Apalache",
+          "native_ref": "validate_controls",
+          "coverage": "prepared_case_present",
+          "adaptation": "Keep final shared test-run boundary, not separate direct nextest/doctest expectations."
+        },
+        {
+          "id": "validate.gate_fail",
+          "inputs": {
+            "CONTROL_GATE_STATUS": 37,
+            "entry": "make model-validate"
+          },
+          "expected": "Make2; gate only; both gate diagnostic streams; no budget warnings",
+          "native_ref": "validate_controls",
+          "coverage": "prepared_case_present"
+        },
+        {
+          "id": "validate.benchmark_fail",
+          "inputs": {
+            "CONTROL_BENCHMARK_STATUS": 37,
+            "entry": "make model-validate"
+          },
+          "expected": "Make2; gate then benchmark; both benchmark diagnostics; no warnings",
+          "native_ref": "validate_controls",
+          "coverage": "prepared_case_present"
+        },
+        {
+          "id": "time.raw_benchmark_fail",
+          "inputs": {
+            "CONTROL_BENCHMARK_STATUS": 37,
+            "entry": "public model timer"
+          },
+          "expected": "37; gate then benchmark; no budget warnings",
+          "native_ref": "validate_controls",
+          "coverage": "prepared_case_present",
+          "adaptation": "Candidate subprocess target is old native_timer_control_child; route final timer through same .17 owned context."
+        },
+        {
+          "id": "time.bootstrap_fail",
+          "inputs": {
+            "CONTROL_BOOTSTRAP_STATUS": 37,
+            "entry": "public model timer"
+          },
+          "expected": "37; successful gate only; failed bootstrap prevents benchmark",
+          "native_ref": "validate_controls",
+          "coverage": "uncovered_in_prepared_candidate",
+          "adaptation": "Prepared test lacks bootstrap-failure env/case; add native equivalent."
+        },
+        {
+          "id": "timer.environment",
+          "inputs": {
+            "CARGO_HOME": "relative-home",
+            "CARGO_TARGET_DIR": "relative-target",
+            "UMPIRE_QUICK_CACHE": 1,
+            "UMPIRE_CACHE_DISABLE": 0,
+            "CARGO_BUILD_JOBS": 99
+          },
+          "expected": "benchmark sees original caller Cargo paths, cache0:1, auto-install false; no direct mise test invocation",
+          "native_ref": "validate_controls",
+          "coverage": "stale_prepared_expectation",
+          "adaptation": "Candidate converts Cargo paths to absolute and directly invokes nextest/doctests; assert final intended caller semantics without losing cache/auto-install checks."
+        },
+        {
+          "id": "timer.bootstrap_resources",
+          "inputs": {
+            "required_modes": [
+              "UMPIRE_BACKENDS=require",
+              "UMPIRE_APALACHE=require"
+            ],
+            "initial_jobs": 99
+          },
+          "expected": "required bootstrap jobs1; ordinary mode preserves99",
+          "native_ref": "validate_controls",
+          "coverage": "uncovered_in_prepared_candidate",
+          "adaptation": "Retain .17 bootstrap resource admission, including optional Apalache require."
+        },
+        {
+          "id": "timer.cleanup_and_soft_warnings",
+          "inputs": {
+            "budgets": [
+              -1,
+              -1
+            ],
+            "TMPDIR": "owned output"
+          },
+          "expected": "every call removes captures; success has gate+inner warning; failure has neither",
+          "native_ref": "validate_controls",
+          "coverage": "prepared_case_present",
+          "adaptation": "Use final owned temporary capture and current soft-budget interface."
+        }
+      ],
+      "frozen_textual_callers": [
+        {
+          "location": "model/scripts/test-time-gate.sh:32"
+        }
+      ]
+    },
+    {
+      "path": "model/scripts/test-model-wiring.sh",
+      "source": {
+        "commit": "60f1c762a618d32478b58ae4e79c151f4355aeb3",
+        "path": "model/scripts/test-model-wiring.sh",
+        "blob": "87f3aa1777c0a84e32ab2d0ac0b0496b5099db23"
+      },
+      "job": "Shipping Make composition, producer, CPU bootstrap and CI-floor controls",
+      "public_calls": [
+        "Temporal test-time-gate.sh"
+      ],
+      "meaningful_vectors": {
+        "exact_cases": "case_mapping"
+      },
+      "native_refs": [
+        "wiring_controls"
+      ],
+      "adaptation_gap_ids": [
+        "wire",
+        "registration",
+        "deletion"
+      ],
+      "intended_action": "replace_then_delete",
+      "case_mapping": [
+        {
+          "id": "wiring.ci_minimum",
+          "inputs": {
+            "minimum_configs": [
+              "mise.toml",
+              "model/umpire/mise.toml"
+            ],
+            "workflow": ".github/workflows/umpire.yml"
+          },
+          "expected": "both minima present; each mise-action version present and >= minimum by three numeric components",
+          "native_ref": "wiring_controls",
+          "coverage": "uncovered_in_prepared_candidate",
+          "adaptation": "Port source-based CI-floor check; do not add a runtime mise-version preflight."
+        },
+        {
+          "id": "wiring.combined_gate_once",
+          "inputs": {
+            "UMPIRE_TIME_STEPS": [
+              0,
+              1
+            ],
+            "command_and_env_cache": "1:0"
+          },
+          "expected": "one Temporal cargo-run gate invocation; caller cwd/home/target preserved; cache0:1",
+          "native_ref": "wiring_controls",
+          "coverage": "stale_prepared_expectation",
+          "adaptation": "Candidate expects API prerequisite before gate; use final shipping Make recipe."
+        },
+        {
+          "id": "wiring.backend_mode_once",
+          "inputs": {
+            "UMPIRE_BACKENDS": "require",
+            "alternative_UMPIRE_APALACHE": "require"
+          },
+          "expected": "one combined gate call for each mode",
+          "native_ref": "wiring_controls",
+          "coverage": "uncovered_in_prepared_candidate"
+        },
+        {
+          "id": "wiring.quick_once",
+          "inputs": {
+            "entry": "make model-quick"
+          },
+          "expected": "one Temporal quick invocation",
+          "native_ref": "wiring_controls",
+          "coverage": "uncovered_in_prepared_candidate"
+        },
+        {
+          "id": "wiring.bootstrap_jobs",
+          "inputs": {
+            "entry_modes": [
+              "required TLC gate",
+              "required Apalache gate",
+              "quick"
+            ],
+            "initial_jobs": 99
+          },
+          "expected": "all three bootstrap calls jobs1; ordinary calls preserve99",
+          "native_ref": "wiring_controls",
+          "coverage": "uncovered_in_prepared_candidate"
+        },
+        {
+          "id": "wiring.producer_prerequisites",
+          "inputs": {
+            "entry": "make -j1 model-prerequisites",
+            "cache": "command and env1:0"
+          },
+          "expected": "control-go then control-grpc then control-api; each sees0:1",
+          "native_ref": "wiring_controls",
+          "coverage": "uncovered_in_prepared_candidate"
+        },
+        {
+          "id": "wiring.gate_fail",
+          "inputs": {
+            "CONTROL_TEMPORAL_STATUS": 37
+          },
+          "expected": "Make2; one combined gate invocation",
+          "native_ref": "wiring_controls",
+          "coverage": "prepared_case_present",
+          "adaptation": "Drop candidate-only API pre-call when current model-check no longer has it."
+        },
+        {
+          "id": "wiring.fmt_update_order",
+          "inputs": {
+            "actions": [
+              "fmt",
+              "update"
+            ]
+          },
+          "expected": "framework first then Temporal; update uses Temporal test-run with cache vars unset",
+          "native_ref": "wiring_controls",
+          "coverage": "stale_prepared_expectation",
+          "adaptation": "Prepared update expects direct cargo test; use final test-run entry."
+        },
+        {
+          "id": "wiring.framework_fail_stops",
+          "inputs": {
+            "actions": [
+              "fmt",
+              "update"
+            ],
+            "CONTROL_FRAMEWORK_STATUS": 37
+          },
+          "expected": "Make2; only framework call",
+          "native_ref": "wiring_controls",
+          "coverage": "prepared_case_present"
+        },
+        {
+          "id": "wiring.paths_and_auto_install",
+          "inputs": {
+            "CARGO_HOME": "relative-home",
+            "CARGO_TARGET_DIR": "relative-target",
+            "caller": "root"
+          },
+          "expected": "same caller/cargo path values; mise auto-install false",
+          "native_ref": "wiring_controls",
+          "coverage": "prepared_case_present",
+          "adaptation": "Retain required/quick job assertions separately; candidate does not cover them."
+        }
+      ],
+      "frozen_textual_callers": [
+        {
+          "location": "model/scripts/test-time-gate.sh:34"
+        }
+      ]
+    },
+    {
+      "path": "model/scripts/test-time-gate.sh",
+      "source": {
+        "commit": "60f1c762a618d32478b58ae4e79c151f4355aeb3",
+        "path": "model/scripts/test-time-gate.sh",
+        "blob": "e83b10a975b58c2a977a2fdf416c19f189b3f8cb"
+      },
+      "job": "Warnings then validation and Make wiring controls",
+      "public_calls": [
+        "timing-controls gate stage"
+      ],
+      "meaningful_vectors": {
+        "exact_cases": "case_mapping"
+      },
+      "native_refs": [
+        "warning_controls",
+        "warning_test",
+        "validate_controls",
+        "wiring_controls"
+      ],
+      "adaptation_gap_ids": [
+        "owned",
+        "test_run",
+        "wire",
+        "warn",
+        "cleanup",
+        "registration",
+        "deletion"
+      ],
+      "intended_action": "replace_then_delete",
+      "case_mapping": [
+        {
+          "id": "warnings.default_equal",
+          "inputs": {
+            "inner": 10,
+            "total": 60,
+            "inner_budget": "",
+            "gate_budget": ""
+          },
+          "expected": [],
+          "native_ref": "warning_controls",
+          "coverage": "prepared_case_present"
+        },
+        {
+          "id": "warnings.inner_over",
+          "inputs": {
+            "inner": 10.001,
+            "total": 60,
+            "budgets": "defaults"
+          },
+          "expected": [
+            "inner loop warning"
+          ],
+          "native_ref": "warning_controls",
+          "coverage": "prepared_case_present"
+        },
+        {
+          "id": "warnings.gate_over",
+          "inputs": {
+            "inner": 10,
+            "total": 60.001,
+            "budgets": "defaults"
+          },
+          "expected": [
+            "gate warning"
+          ],
+          "native_ref": "warning_controls",
+          "coverage": "prepared_case_present"
+        },
+        {
+          "id": "warnings.override_equal",
+          "inputs": {
+            "inner": 2,
+            "total": 4,
+            "inner_budget": 2,
+            "gate_budget": 4
+          },
+          "expected": [],
+          "native_ref": "warning_controls",
+          "coverage": "prepared_case_present"
+        },
+        {
+          "id": "warnings.override_both_over",
+          "inputs": {
+            "inner": 3,
+            "total": 5,
+            "inner_budget": 2,
+            "gate_budget": 4
+          },
+          "expected": [
+            "gate warning",
+            "inner loop warning"
+          ],
+          "native_ref": "warning_controls",
+          "coverage": "prepared_case_present"
+        },
+        {
+          "id": "warnings.transitive_controls",
+          "inputs": {
+            "after_warning_table": [
+              "test-model-validate.sh",
+              "test-model-wiring.sh"
+            ]
+          },
+          "expected": "both complete control families execute",
+          "native_ref": "warning_test",
+          "coverage": "registration_adaptation_required",
+          "adaptation": "Register native validation and wiring controls and reach appropriate gate tests; warning-only test is insufficient."
+        }
+      ],
+      "frozen_textual_callers": []
+    },
+    {
+      "path": "model/scripts/tests/build-guests.sh",
+      "source": {
+        "commit": "60f1c762a618d32478b58ae4e79c151f4355aeb3",
+        "path": "model/scripts/tests/build-guests.sh",
+        "blob": "6c3cd6f6d5546da6bb5039acb8874b225c9acba3"
+      },
+      "job": "Build Temporal wasm guest in selected target",
+      "public_calls": [
+        "Temporal wasm-guest stage"
+      ],
+      "meaningful_vectors": {
+        "set": "build"
+      },
+      "native_refs": [
+        "temporal_build",
+        "temporal_build_paths"
+      ],
+      "adaptation_gap_ids": [
+        "owned",
+        "cli",
+        "cleanup",
+        "deletion"
+      ],
+      "intended_action": "replace_then_delete",
+      "frozen_textual_callers": [
+        {
+          "location": "model/GUEST_BUILDS.md:124"
+        },
+        {
+          "location": "model/GUEST_BUILDS.md:125"
+        },
+        {
+          "location": "model/umpire/README.md:34"
+        },
+        {
+          "location": "model/umpire/hosts/go/README.md:14"
+        },
+        {
+          "location": "model/umpire/hosts/go/runner/fake_test.go:37"
+        },
+        {
+          "location": "model/umpire/scripts/tests/build-guests-controls.sh:7"
+        },
+        {
+          "location": "model/umpire/scripts/tests/build-guests-controls.sh:29"
+        },
+        {
+          "location": "model/umpire/scripts/tests/build-guests-controls.sh:43"
+        },
+        {
+          "location": "model/umpire/scripts/tests/build-guests-controls.sh:47"
+        }
+      ]
+    },
+    {
+      "path": "model/scripts/tests/guest-roots.sh",
+      "source": {
+        "commit": "60f1c762a618d32478b58ae4e79c151f4355aeb3",
+        "path": "model/scripts/tests/guest-roots.sh",
+        "blob": "abc7ff0e6655aee2efc61aad0818d5cf7704279f"
+      },
+      "job": "Seven-package/two-entry routing and raw caller-path controls",
+      "public_calls": [
+        "explicit routing controls",
+        "guest wrapper maintenance"
+      ],
+      "meaningful_vectors": {
+        "set": "guest",
+        "exact_shell_matrix": {
+          "packages": [
+            "umpire-stock-guest",
+            "umpire-kettle-guest",
+            "umpire-control-guest",
+            "umpire-caught-panic-guest",
+            "umpire-overflow-guest",
+            "umpire-temporal-guest",
+            "custom-extension"
+          ],
+          "entries": [
+            "guest",
+            "guest-freshness"
+          ],
+          "child_failure": 37
+        }
+      },
+      "native_refs": [
+        "guest_controls"
+      ],
+      "adaptation_gap_ids": [
+        "owned",
+        "registration",
+        "deletion"
+      ],
+      "intended_action": "replace_then_delete",
+      "frozen_textual_callers": []
+    },
+    {
+      "path": "model/scripts/tests/proto-go.sh",
+      "source": {
+        "commit": "60f1c762a618d32478b58ae4e79c151f4355aeb3",
+        "path": "model/scripts/tests/proto-go.sh",
+        "blob": "2dcd7085dabe7245fbe5e353f6f434ac1e96c2f9"
+      },
+      "job": "Temporal selector/subtree/freshness/symlink controls",
+      "public_calls": [
+        "Temporal protobuf-controls stage"
+      ],
+      "meaningful_vectors": {
+        "set": "proto",
+        "specific": [
+          "temporal input activity.proto; no gRPC",
+          "handwritten host.go unchanged",
+          "stale subtree file refused",
+          "subtree link refused",
+          "core/kettle/bogus/surplus refused before protoc"
+        ]
+      },
+      "native_refs": [
+        "temporal_proto",
+        "proto_controls"
+      ],
+      "adaptation_gap_ids": [
+        "owned",
+        "fixture",
+        "registration",
+        "deletion"
+      ],
+      "intended_action": "replace_then_delete",
+      "frozen_textual_callers": []
+    },
+    {
+      "path": "model/scripts/time-gate.sh",
+      "source": {
+        "commit": "60f1c762a618d32478b58ae4e79c151f4355aeb3",
+        "path": "model/scripts/time-gate.sh",
+        "blob": "6028931ab49401a884c0b309cb12c141e6d7f133"
+      },
+      "job": "Whole Model gate then edited-package test-run benchmark; also step helper",
+      "public_calls": [
+        "Make model-time/model-validate",
+        "Temporal timed-stage wrapper",
+        "timing controls"
+      ],
+      "meaningful_vectors": {
+        "step": "framework step cases",
+        "model": "validation case mapping"
+      },
+      "native_refs": [
+        "timing",
+        "timing_controls",
+        "validate_controls"
+      ],
+      "adaptation_gap_ids": [
+        "owned",
+        "test_run",
+        "warn",
+        "cleanup",
+        "cli",
+        "deletion"
+      ],
+      "intended_action": "replace_then_delete",
+      "frozen_textual_callers": [
+        {
+          "location": "MIGRATE.md:318"
+        },
+        {
+          "location": "Makefile:1288"
+        },
+        {
+          "location": "model/dev/xtask/src/gate.rs:70"
+        },
+        {
+          "location": "model/dev/xtask/src/gate.rs:459"
+        },
+        {
+          "location": "model/dev/xtask/src/gate.rs:460"
+        },
+        {
+          "location": "model/scripts/test-model-validate.sh:9"
+        },
+        {
+          "location": "model/scripts/test-model-validate.sh:116"
+        },
+        {
+          "location": "model/scripts/test-model-validate.sh:117"
+        },
+        {
+          "location": "model/scripts/test-time-gate.sh:5"
+        },
+        {
+          "location": "model/scripts/test-time-gate.sh:6"
+        },
+        {
+          "location": "model/umpire/scripts/test-time-gate.sh:6"
+        },
+        {
+          "location": "model/umpire/scripts/test-time-gate.sh:61"
+        },
+        {
+          "location": "model/umpire/scripts/test-time-gate.sh:63"
+        }
+      ]
+    },
+    {
+      "path": "model/scripts/xtask.sh",
+      "source": {
+        "commit": "60f1c762a618d32478b58ae4e79c151f4355aeb3",
+        "path": "model/scripts/xtask.sh",
+        "blob": "4a97bc6093b3e965883c1602b7695bdf6be9a72d"
+      },
+      "job": "Thin framework bootstrap forwarding bridge",
+      "public_calls": [
+        "Make framework commands",
+        "Temporal native bridge",
+        "guest wrappers and bootstrap controls"
+      ],
+      "meaningful_vectors": {
+        "set": "bootstrap"
+      },
+      "native_refs": [
+        "bootstrap",
+        "guest_fixture"
+      ],
+      "adaptation_gap_ids": [
+        "bootstrap",
+        "registration"
+      ],
+      "intended_action": "retain_minimal_shell",
+      "frozen_textual_callers": [
+        {
+          "location": "Makefile:1262"
+        },
+        {
+          "location": "model/dev/xtask/src/gate.rs:181"
+        },
+        {
+          "location": "model/dev/xtask/src/gate.rs:463"
+        },
+        {
+          "location": "model/dev/xtask/src/gate.rs:511"
+        },
+        {
+          "location": "model/dev/xtask/src/main.rs:94"
+        },
+        {
+          "location": "model/dev/xtask/tests/main.rs:23"
+        },
+        {
+          "location": "model/scripts/retired-names.sh:7"
+        },
+        {
+          "location": "model/scripts/test-model-validate.sh:25"
+        },
+        {
+          "location": "model/scripts/test-model-wiring.sh:38"
+        },
+        {
+          "location": "model/scripts/time-gate.sh:50"
+        },
+        {
+          "location": "model/scripts/time-gate.sh:55"
+        },
+        {
+          "location": "model/scripts/time-gate.sh:57"
+        },
+        {
+          "location": "model/umpire/dev/guest-driver/README.md:11"
+        },
+        {
+          "location": "model/umpire/dev/xtask/README.md:3"
+        },
+        {
+          "location": "model/umpire/dev/xtask/README.md:28"
+        }
+      ]
+    },
+    {
+      "path": "model/umpire/scripts/fetch-tlc.sh",
+      "source": {
+        "commit": "60f1c762a618d32478b58ae4e79c151f4355aeb3",
+        "path": "model/umpire/scripts/fetch-tlc.sh",
+        "blob": "5ae13d4c3a58592f000c344682cad73bc9c4a5f8"
+      },
+      "job": "Bootstrap then exec native .16 TLC provider",
+      "public_calls": [
+        "root fetch bridge",
+        "README explicit provisioning",
+        "standalone TLC setup"
+      ],
+      "meaningful_vectors": {
+        "set": "fetch"
+      },
+      "native_refs": [
+        "fetch",
+        "provider",
+        "standalone",
+        "process_fixture"
+      ],
+      "adaptation_gap_ids": [
+        "16",
+        "owned",
+        "deletion"
+      ],
+      "intended_action": "replace_then_delete",
+      "frozen_textual_callers": [
+        {
+          "location": "model/scripts/fetch-tlc.sh:3"
+        }
+      ]
+    },
+    {
+      "path": "model/umpire/scripts/guest-freshness.sh",
+      "source": {
+        "commit": "60f1c762a618d32478b58ae4e79c151f4355aeb3",
+        "path": "model/umpire/scripts/guest-freshness.sh",
+        "blob": "ee269889077c7444f2bd4058559e13f17c2f3e92"
+      },
+      "job": "Admit arguments; anchor output/home; bootstrap then native guest route",
+      "public_calls": [
+        "Make umpire-guest",
+        "gate guest-freshness",
+        "guest build helpers",
+        "guest-driver pipeline and Go host tests"
+      ],
+      "meaningful_vectors": {
+        "set": "guest"
+      },
+      "native_refs": [
+        "guest",
+        "guest_controls",
+        "guest_pipeline",
+        "guest_fixture",
+        "bootstrap"
+      ],
+      "adaptation_gap_ids": [
+        "owned",
+        "cli",
+        "bootstrap",
+        "deletion"
+      ],
+      "intended_action": "replace_then_delete",
+      "frozen_textual_callers": [
+        {
+          "location": "model/scripts/guest-freshness.sh:25"
+        }
+      ]
+    },
+    {
+      "path": "model/umpire/scripts/guest.sh",
+      "source": {
+        "commit": "60f1c762a618d32478b58ae4e79c151f4355aeb3",
+        "path": "model/umpire/scripts/guest.sh",
+        "blob": "244a0616908fc642243d80d835bc7c52ec5c2ce6"
+      },
+      "job": "Admit arguments; anchor output/home; bootstrap then native guest route",
+      "public_calls": [
+        "Make umpire-guest",
+        "gate guest-freshness",
+        "guest build helpers",
+        "guest-driver pipeline and Go host tests"
+      ],
+      "meaningful_vectors": {
+        "set": "guest"
+      },
+      "native_refs": [
+        "guest",
+        "guest_controls",
+        "guest_pipeline",
+        "guest_fixture",
+        "bootstrap"
+      ],
+      "adaptation_gap_ids": [
+        "owned",
+        "cli",
+        "bootstrap",
+        "deletion"
+      ],
+      "intended_action": "replace_then_delete",
+      "frozen_textual_callers": [
+        {
+          "location": "model/scripts/guest.sh:25"
+        }
+      ]
+    },
+    {
+      "path": "model/umpire/scripts/proto-go.sh",
+      "source": {
+        "commit": "60f1c762a618d32478b58ae4e79c151f4355aeb3",
+        "path": "model/umpire/scripts/proto-go.sh",
+        "blob": "37733dffd41a6f9e4dfd62a065594a1efea2db8a"
+      },
+      "job": "Generate/check core or kettle protobuf subtree",
+      "public_calls": [
+        "protobuf-freshness gate stages",
+        "protobuf controls",
+        "maintained generation docs"
+      ],
+      "meaningful_vectors": {
+        "set": "proto"
+      },
+      "native_refs": [
+        "proto",
+        "proto_controls"
+      ],
+      "adaptation_gap_ids": [
+        "owned",
+        "cli",
+        "cleanup",
+        "registration",
+        "deletion"
+      ],
+      "intended_action": "replace_then_delete",
+      "frozen_textual_callers": []
+    },
+    {
+      "path": "model/umpire/scripts/proto-tools.sh",
+      "source": {
+        "commit": "60f1c762a618d32478b58ae4e79c151f4355aeb3",
+        "path": "model/umpire/scripts/proto-tools.sh",
+        "blob": "c93321190368487b9963835a6ea16d31e8c7f4c6"
+      },
+      "job": "Provision two Go generator pins with private lock/staging",
+      "public_calls": [
+        "framework proto-tools stage",
+        "generation prerequisites docs"
+      ],
+      "meaningful_vectors": {
+        "set": "proto_tools"
+      },
+      "native_refs": [
+        "proto",
+        "proto_controls"
+      ],
+      "adaptation_gap_ids": [
+        "owned",
+        "cleanup",
+        "cli",
+        "deletion"
+      ],
+      "intended_action": "replace_then_delete",
+      "frozen_textual_callers": []
+    },
+    {
+      "path": "model/umpire/scripts/retired-names.sh",
+      "source": {
+        "commit": "60f1c762a618d32478b58ae4e79c151f4355aeb3",
+        "path": "model/umpire/scripts/retired-names.sh",
+        "blob": "5f1a6e6e2f7b87c7fc6aa6369237879bd18f55ba"
+      },
+      "job": "Bootstrap/filter forwarding wrapper",
+      "public_calls": [
+        "retired-names gate stage",
+        "retired-name planted tests"
+      ],
+      "meaningful_vectors": {
+        "set": "retired"
+      },
+      "native_refs": [
+        "temporal_retired",
+        "retired"
+      ],
+      "adaptation_gap_ids": [
+        "retired",
+        "owned",
+        "cli",
+        "deletion"
+      ],
+      "intended_action": "replace_then_delete",
+      "frozen_textual_callers": []
+    },
+    {
+      "path": "model/umpire/scripts/test-capabilities.sh",
+      "source": {
+        "commit": "60f1c762a618d32478b58ae4e79c151f4355aeb3",
+        "path": "model/umpire/scripts/test-capabilities.sh",
+        "blob": "411ea647c0196d8cbcafdf96ad0a550258b8a089"
+      },
+      "job": "Compile forbidden API and unsafe-policy controls",
+      "public_calls": [
+        "capability-controls gate stage",
+        "explicit test helper"
+      ],
+      "meaningful_vectors": {
+        "set": "capability"
+      },
+      "native_refs": [
+        "capability"
+      ],
+      "adaptation_gap_ids": [
+        "owned",
+        "cli",
+        "cleanup",
+        "deletion"
+      ],
+      "intended_action": "replace_then_delete",
+      "frozen_textual_callers": [
+        {
+          "location": "model/scripts/test-capabilities.sh:3"
+        }
+      ]
+    },
+    {
+      "path": "model/umpire/scripts/test-time-gate.sh",
+      "source": {
+        "commit": "60f1c762a618d32478b58ae4e79c151f4355aeb3",
+        "path": "model/umpire/scripts/test-time-gate.sh",
+        "blob": "a1544c2184df4dff4a428202d1aeba344916755d"
+      },
+      "job": "Time-step status/diagnostic/cwd/cleanup controls",
+      "public_calls": [
+        "timing-controls gate stage"
+      ],
+      "meaningful_vectors": {
+        "exact_cases": "case_mapping"
+      },
+      "native_refs": [
+        "timing_controls",
+        "timing_test"
+      ],
+      "adaptation_gap_ids": [
+        "owned",
+        "cleanup",
+        "registration",
+        "deletion"
+      ],
+      "intended_action": "replace_then_delete",
+      "case_mapping": [
+        {
+          "id": "step.status",
+          "inputs": [
+            [
+              "true",
+              0
+            ],
+            [
+              "false",
+              1
+            ],
+            [
+              "exit 37",
+              37
+            ]
+          ],
+          "expected": "same child exit status",
+          "native_ref": "timing_controls",
+          "coverage": "prepared_case_present",
+          "adaptation": "Run final owned step executor, not prepared raw spawn."
+        },
+        {
+          "id": "step.diagnostics.success",
+          "inputs": {
+            "child": "stdout diagnostic; stderr diagnostic; exit0"
+          },
+          "expected": "child diagnostics suppressed; timing label visible; capture removed",
+          "native_ref": "timing_controls",
+          "coverage": "prepared_case_present"
+        },
+        {
+          "id": "step.diagnostics.failure",
+          "inputs": {
+            "child": "stdout diagnostic; stderr diagnostic; exit37"
+          },
+          "expected": "status37; stdout then stderr diagnostic replayed; capture removed",
+          "native_ref": "timing_controls",
+          "coverage": "prepared_case_present",
+          "adaptation": "Preserve observed diagnostic semantics through .17 scheduler; do not replace ownership to preserve historical stream ordering."
+        },
+        {
+          "id": "step.cwd",
+          "inputs": {
+            "cwd": "different scratch directory",
+            "child": "test PWD equals caller"
+          },
+          "expected": "success and original caller cwd",
+          "native_ref": "timing_controls",
+          "coverage": "prepared_case_present"
+        },
+        {
+          "id": "step.frontdoor37",
+          "inputs": {
+            "entry": "--step child-status",
+            "child": "exit37"
+          },
+          "expected": "37 through public step front door",
+          "native_ref": "timing_controls",
+          "coverage": "prepared_case_present",
+          "adaptation": "Native time --step registration must retain current lease/controller rules."
+        },
+        {
+          "id": "step.shell_substitution",
+          "inputs": {
+            "legacy": "out=$(step ...)"
+          },
+          "expected": "failure propagates through wrapper command substitution",
+          "native_ref": "timing_controls",
+          "coverage": "obsolete_shell_mechanism_after_native_port",
+          "adaptation": "Retain child/public-command status cases; Bash substitution itself disappears."
+        }
+      ],
+      "frozen_textual_callers": []
+    },
+    {
+      "path": "model/umpire/scripts/tests/bootstrap.sh",
+      "source": {
+        "commit": "60f1c762a618d32478b58ae4e79c151f4355aeb3",
+        "path": "model/umpire/scripts/tests/bootstrap.sh",
+        "blob": "4eebe9ae32e4f2e32357ef417632530a54b1c424"
+      },
+      "job": "Wrapper-to-bootstrap integration and missing-mise controls",
+      "public_calls": [
+        "explicit bootstrap controls"
+      ],
+      "meaningful_vectors": {
+        "set": "bootstrap",
+        "specific": [
+          "guest example relative.wasm --check exact args",
+          "guest-freshness example relative.wasm exact args",
+          "missing mise no fallback/no stdout/no target/no output"
+        ]
+      },
+      "native_refs": [
+        "bootstrap",
+        "guest_pipeline",
+        "guest_fixture"
+      ],
+      "adaptation_gap_ids": [
+        "bootstrap",
+        "owned",
+        "registration",
+        "deletion"
+      ],
+      "intended_action": "replace_then_delete",
+      "frozen_textual_callers": []
+    },
+    {
+      "path": "model/umpire/scripts/tests/build-guests-controls.sh",
+      "source": {
+        "commit": "60f1c762a618d32478b58ae4e79c151f4355aeb3",
+        "path": "model/umpire/scripts/tests/build-guests-controls.sh",
+        "blob": "9c575fc863e3b02af90f61d15ceba8d19cac4b5b"
+      },
+      "job": "Five guest plus two report control matrix",
+      "public_calls": [
+        "framework timing-controls stage"
+      ],
+      "meaningful_vectors": {
+        "set": "build",
+        "exact_failure_points": [
+          {
+            "guest": "umpire-control-guest",
+            "status": 37,
+            "calls": 3
+          },
+          {
+            "report": "umpire-caught-panic-guest",
+            "status": 42,
+            "calls": 6
+          }
+        ]
+      },
+      "native_refs": [
+        "build",
+        "build_paths"
+      ],
+      "adaptation_gap_ids": [
+        "owned",
+        "registration",
+        "deletion"
+      ],
+      "intended_action": "replace_then_delete",
+      "frozen_textual_callers": []
+    },
+    {
+      "path": "model/umpire/scripts/tests/build-guests.sh",
+      "source": {
+        "commit": "60f1c762a618d32478b58ae4e79c151f4355aeb3",
+        "path": "model/umpire/scripts/tests/build-guests.sh",
+        "blob": "9c9ca926bd20551449cbd1a98ea168ba0944e95c"
+      },
+      "job": "Produce five framework wasm guests and two native report directories",
+      "public_calls": [
+        "framework wasm-guest stage",
+        "Go-host gate artifact prerequisites"
+      ],
+      "meaningful_vectors": {
+        "set": "build"
+      },
+      "native_refs": [
+        "build",
+        "build_paths"
+      ],
+      "adaptation_gap_ids": [
+        "owned",
+        "cli",
+        "deletion"
+      ],
+      "intended_action": "replace_then_delete",
+      "frozen_textual_callers": []
+    },
+    {
+      "path": "model/umpire/scripts/tests/proto-go.sh",
+      "source": {
+        "commit": "60f1c762a618d32478b58ae4e79c151f4355aeb3",
+        "path": "model/umpire/scripts/tests/proto-go.sh",
+        "blob": "74bfdcb0e9636dff9d1b905ba8c2b14e19662d18"
+      },
+      "job": "Core/kettle generation, pins, freshness, refusal/status/cleanup controls",
+      "public_calls": [
+        "framework protobuf-controls stage"
+      ],
+      "meaningful_vectors": {
+        "set": "proto",
+        "specific": [
+          "both core/kettle success/check",
+          "stale file refused; symlink refused; fresh retry",
+          "no args/unknown/bogus/surplus before protoc",
+          "wrong Go/gRPC versions",
+          "missing gRPC still permits core; refuses kettle",
+          "missing Go refuses core",
+          "protoc42 and empty tmp tree"
+        ]
+      },
+      "native_refs": [
+        "proto_controls"
+      ],
+      "adaptation_gap_ids": [
+        "owned",
+        "cleanup",
+        "registration",
+        "deletion"
+      ],
+      "intended_action": "replace_then_delete",
+      "frozen_textual_callers": []
+    },
+    {
+      "path": "model/umpire/scripts/tests/proto-tools.sh",
+      "source": {
+        "commit": "60f1c762a618d32478b58ae4e79c151f4355aeb3",
+        "path": "model/umpire/scripts/tests/proto-tools.sh",
+        "blob": "ee663ffbf144e80b07f7603a76075487ed4145d0"
+      },
+      "job": "Pinned plugin provision/repeat/lock/refusal/failure recovery controls",
+      "public_calls": [
+        "framework proto-tools behavioral controls"
+      ],
+      "meaningful_vectors": {
+        "set": "proto_tools"
+      },
+      "native_refs": [
+        "proto_controls"
+      ],
+      "adaptation_gap_ids": [
+        "owned",
+        "cleanup",
+        "registration",
+        "deletion"
+      ],
+      "intended_action": "replace_then_delete",
+      "frozen_textual_callers": []
+    },
+    {
+      "path": "model/umpire/scripts/time-gate.sh",
+      "source": {
+        "commit": "60f1c762a618d32478b58ae4e79c151f4355aeb3",
+        "path": "model/umpire/scripts/time-gate.sh",
+        "blob": "2b045e54c65149cdb38965276a2d21eaf1014088"
+      },
+      "job": "Step-only timing/status/output helper",
+      "public_calls": [
+        "Make model-time/model-validate",
+        "Temporal timed-stage wrapper",
+        "timing controls"
+      ],
+      "meaningful_vectors": {
+        "step": "framework step cases",
+        "model": null
+      },
+      "native_refs": [
+        "timing",
+        "timing_controls"
+      ],
+      "adaptation_gap_ids": [
+        "owned",
+        "test_run",
+        "warn",
+        "cleanup",
+        "cli",
+        "deletion"
+      ],
+      "intended_action": "replace_then_delete",
+      "frozen_textual_callers": [
+        {
+          "location": "model/dev/xtask/src/gate.rs:70"
+        },
+        {
+          "location": "model/dev/xtask/src/gate.rs:459"
+        },
+        {
+          "location": "model/dev/xtask/src/gate.rs:460"
+        }
+      ]
+    },
+    {
+      "path": "model/umpire/scripts/xtask.sh",
+      "source": {
+        "commit": "60f1c762a618d32478b58ae4e79c151f4355aeb3",
+        "path": "model/umpire/scripts/xtask.sh",
+        "blob": "2672d49ff3f1200b7c079381c55cbde3241ae060"
+      },
+      "job": "Minimal two-native-binary host bootstrap",
+      "public_calls": [
+        "Make framework commands",
+        "Temporal native bridge",
+        "guest wrappers and bootstrap controls"
+      ],
+      "meaningful_vectors": {
+        "set": "bootstrap"
+      },
+      "native_refs": [
+        "bootstrap",
+        "guest_fixture"
+      ],
+      "adaptation_gap_ids": [
+        "bootstrap",
+        "registration"
+      ],
+      "intended_action": "retain_minimal_shell",
+      "frozen_textual_callers": [
+        {
+          "location": "Makefile:1262"
+        },
+        {
+          "location": "model/scripts/test-model-validate.sh:25"
+        },
+        {
+          "location": "model/scripts/test-model-wiring.sh:38"
+        },
+        {
+          "location": "model/scripts/time-gate.sh:50"
+        },
+        {
+          "location": "model/scripts/time-gate.sh:55"
+        },
+        {
+          "location": "model/scripts/time-gate.sh:57"
+        },
+        {
+          "location": "model/scripts/xtask.sh:3"
+        }
+      ]
+    }
+  ],
+  "focused_verification_order": [
+    "After committed16 closure refresh script and caller inventory on final integrated tip",
+    "Compile changed native tooling then run registered proto/guest/bootstrap/retired/timing/Make/model-validation controls",
+    "Run framework and Temporal native-leaf gate fixtures with unchanged17 graph/custody/counts and final16 provider",
+    "Run affected guest-driver/TLC/process callers; maintained docs/reference and shell inventory scans",
+    "Changed-workspace fmt/clippy and changed-input framework standalone proof; final full gate per task scope"
+  ],
+  "limits": [
+    "No tests/builds/JVM/installs/reviews were run by this scout.",
+    "Candidate references identify source preparation, never proof of correct integration or task completion.",
+    "Four exact case mappings describe source-observed shell assertions, not passing results.",
+    "All source reads used frozen Git objects; dirty source assembly was untouched."
+  ]
+}

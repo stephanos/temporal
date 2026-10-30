@@ -1,0 +1,34 @@
+{
+  "status": "complete",
+  "target_removed": "/tmp/umpire-fn25416-final-60f1c762a618-2011190/proof-4hkKIW/target",
+  "worker_release": "Explicit RELEASE received from /root/provisioning_adapt: ONLY failed child target /tmp/umpire-fn25416-final-60f1c762a618-2011190/proof-4hkKIW/target. Worker preservation complete and hash-verified: 3404 files / 91526404 bytes in root .flow/tmp/fn25416-provider-validation/failed-proof-60f-preserved/manifest.json. No process or agent needs this failed target. Child framework/source and sibling/root logs and all other .16 targets remain protected.\n",
+  "archive": "/Users/stephan/Workspace/skunkworks/umpire/.recovery/fn25416-failed60f-20261027T200600Z/retained-proof-output.tar.gz",
+  "archive_sha256": "73de2cc7ed9be1140714680ff5f66211676ca7a8c6f23015c6d3d7204df68322",
+  "manifest_sha256": "c0c52dc0e7f3a7a21a1c84cbf26f1c3bf4c372d70cbe633dcd48d64036f77635",
+  "archive_members_verified_against_originals": 13034,
+  "source_and_raw_seals_verified_before_and_after": 1213,
+  "cache_allocated_bytes_removed": 6738702336,
+  "preserved_archive_bytes": 792198534,
+  "net_reclaimed_estimate_bytes": 5940690534,
+  "free_before_clean_bytes": 42023481344,
+  "free_after_bytes": 48821047296,
+  "cargo_exit": 101,
+  "cargo_output": "error: cannot clean `/tmp/umpire-fn25416-final-60f1c762a618-2011190/proof-4hkKIW/target`: missing or invalid `CACHEDIR.TAG` file\n  |\n  = note: cleaning has been aborted to prevent accidental deletion of unrelated files\n",
+  "exact_directory_fallback": true,
+  "live_check_immediately_before_clean": {
+    "matching_processes": [],
+    "unreadable_system_pids": [
+      10,
+      542,
+      557
+    ]
+  },
+  "protected_paths_present": [
+    "/tmp/umpire-fn25416-final-60f1c762a618-2011190/proof-4hkKIW/framework",
+    "/tmp/umpire-fn25416-final-60f1c762a618-2011190/proof-4hkKIW/inputs.json",
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn25416-provider-validation/target",
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25416-provider-adapt",
+    "/home/agent/.cache/codex-build/tmp"
+  ],
+  "free_after_immediate_bytes": 42023301120
+}

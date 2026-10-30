@@ -1,0 +1,516 @@
+{
+  "observations": [
+    {
+      "path": "target/debug/deps/admission-7cd263c8d9654e4c",
+      "exit": 0,
+      "stdout": "\tlinux-vdso.so.1 (0x0000ffff8db9c000)\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffff8d850000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffff8d670000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffff8dba0000)\n",
+      "stderr": ""
+    },
+    {
+      "path": "target/debug/deps/capabilities-bc1e70e36c28704c",
+      "exit": 0,
+      "stdout": "\tlinux-vdso.so.1 (0x0000ffff9997c000)\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffff99820000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffff99640000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffff99980000)\n",
+      "stderr": ""
+    },
+    {
+      "path": "target/debug/deps/catalog_admission-f419854439ae0b1d",
+      "exit": 0,
+      "stdout": "\tlinux-vdso.so.1 (0x0000ffffab6cc000)\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffffab410000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffffab230000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffffab6d0000)\n",
+      "stderr": ""
+    },
+    {
+      "path": "target/debug/deps/caught_panic_control-82d26dd8162fe1ef",
+      "exit": 0,
+      "stdout": "\tlinux-vdso.so.1 (0x0000ffff8c8ac000)\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffff8c780000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffff8c5a0000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffff8c8b0000)\n",
+      "stderr": ""
+    },
+    {
+      "path": "target/debug/deps/consumers-805d01807f98c63f",
+      "exit": 0,
+      "stdout": "\tlinux-vdso.so.1 (0x0000ffff7f65c000)\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffff7f370000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffff7f190000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffff7f660000)\n",
+      "stderr": ""
+    },
+    {
+      "path": "target/debug/deps/current_contract_reports-1bf235b2b86ef69f",
+      "exit": 0,
+      "stdout": "\tlinux-vdso.so.1 (0x0000ffffab24c000)\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffffab080000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffffaaea0000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffffab250000)\n",
+      "stderr": ""
+    },
+    {
+      "path": "target/debug/deps/derive_catalog-3d0681ccef287c7a",
+      "exit": 0,
+      "stdout": "\tlinux-vdso.so.1 (0x0000ffffb40dc000)\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffffb3e70000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffffb3c90000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffffb40e0000)\n",
+      "stderr": ""
+    },
+    {
+      "path": "target/debug/deps/exhaustiveness-042654869f8ed08f",
+      "exit": 0,
+      "stdout": "\tlinux-vdso.so.1 (0x0000ffffb148c000)\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffffb1140000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffffb0f60000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffffb1490000)\n",
+      "stderr": ""
+    },
+    {
+      "path": "target/debug/deps/external_consumers-7f709c1777d3b719",
+      "exit": 0,
+      "stdout": "\tlinux-vdso.so.1 (0x0000ffff9250c000)\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffff92240000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffff92060000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffff92510000)\n",
+      "stderr": ""
+    },
+    {
+      "path": "target/debug/deps/fixture_composition-712a6015d204f206",
+      "exit": 0,
+      "stdout": "\tlinux-vdso.so.1 (0x0000ffff9225c000)\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffff920c0000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffff91ee0000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffff92260000)\n",
+      "stderr": ""
+    },
+    {
+      "path": "target/debug/deps/fixtures-44f965ac6157b4af",
+      "exit": 0,
+      "stdout": "\tlinux-vdso.so.1 (0x0000ffff9058c000)\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffff8e200000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffff8e020000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffff90590000)\n",
+      "stderr": ""
+    },
+    {
+      "path": "target/debug/deps/fixtures-d5860158c884b7a7",
+      "exit": 0,
+      "stdout": "\tlinux-vdso.so.1 (0x0000ffffbf0ac000)\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffffbe860000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffffbe680000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffffbf0b0000)\n",
+      "stderr": ""
+    },
+    {
+      "path": "target/debug/deps/fixtures-d5a9fc898c63d182",
+      "exit": 0,
+      "stdout": "\tlinux-vdso.so.1 (0x0000fffface1c000)\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffffac720000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffffac540000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000fffface20000)\n",
+      "stderr": ""
+    },
+    {
+      "path": "target/debug/deps/fixtures-ff681349ef08c70b",
+      "exit": 0,
+      "stdout": "\tlinux-vdso.so.1 (0x0000ffffaa07c000)\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffffa9d40000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffffa9b60000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffffaa080000)\n",
+      "stderr": ""
+    },
+    {
+      "path": "target/debug/deps/identity_compiler_fixture-6bf5602144e11f20",
+      "exit": 0,
+      "stdout": "\tlinux-vdso.so.1 (0x0000ffffb563c000)\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffffb5540000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffffb5360000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffffb5640000)\n",
+      "stderr": ""
+    },
+    {
+      "path": "target/debug/deps/live_snapshots-5f544b3ca649029b",
+      "exit": 0,
+      "stdout": "\tlinux-vdso.so.1 (0x0000ffff9651c000)\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffff962b0000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffff960d0000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffff96520000)\n",
+      "stderr": ""
+    },
+    {
+      "path": "target/debug/deps/main-0a99fd5c84697ddd",
+      "exit": 0,
+      "stdout": "\tlinux-vdso.so.1 (0x0000ffff8766c000)\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffff872d0000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffff870f0000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffff87670000)\n",
+      "stderr": ""
+    },
+    {
+      "path": "target/debug/deps/main-0f7e6d5d62e6cfac",
+      "exit": 0,
+      "stdout": "\tlinux-vdso.so.1 (0x0000ffffb4acc000)\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffffb4700000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffffb4520000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffffb4ad0000)\n",
+      "stderr": ""
+    },
+    {
+      "path": "target/debug/deps/main-206b5dca0e7d6e78",
+      "exit": 0,
+      "stdout": "\tlinux-vdso.so.1 (0x0000ffff9d03c000)\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffff9cd10000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffff9cb30000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffff9d040000)\n",
+      "stderr": ""
+    },
+    {
+      "path": "target/debug/deps/main-2ef020155d672454",
+      "exit": 0,
+      "stdout": "\tlinux-vdso.so.1 (0x0000ffff954cc000)\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffff94cd0000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffff94af0000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffff954d0000)\n",
+      "stderr": ""
+    },
+    {
+      "path": "target/debug/deps/main-3383a17d8f74545f",
+      "exit": 0,
+      "stdout": "\tlinux-vdso.so.1 (0x0000ffff82d2c000)\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffff827f0000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffff82610000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffff82d30000)\n",
+      "stderr": ""
+    },
+    {
+      "path": "target/debug/deps/main-3809754083362b89",
+      "exit": 0,
+      "stdout": "\tlinux-vdso.so.1 (0x0000ffffaa5ac000)\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffffa9b90000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffffa99b0000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffffaa5b0000)\n",
+      "stderr": ""
+    },
+    {
+      "path": "target/debug/deps/main-3996ad80830c90de",
+      "exit": 0,
+      "stdout": "\tlinux-vdso.so.1 (0x0000ffff93bac000)\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffff93360000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffff93180000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffff93bb0000)\n",
+      "stderr": ""
+    },
+    {
+      "path": "target/debug/deps/main-3eae2014f8f31357",
+      "exit": 0,
+      "stdout": "\tlinux-vdso.so.1 (0x0000ffffabbac000)\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffffab3f0000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffffab210000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffffabbb0000)\n",
+      "stderr": ""
+    },
+    {
+      "path": "target/debug/deps/main-4f94b492e18e908e",
+      "exit": 0,
+      "stdout": "\tlinux-vdso.so.1 (0x0000ffffa130c000)\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffffa0e60000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffffa0c80000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffffa1310000)\n",
+      "stderr": ""
+    },
+    {
+      "path": "target/debug/deps/main-57db16537a74d3dc",
+      "exit": 0,
+      "stdout": "\tlinux-vdso.so.1 (0x0000ffffb00bc000)\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffffafa60000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffffaf880000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffffb00c0000)\n",
+      "stderr": ""
+    },
+    {
+      "path": "target/debug/deps/main-7170dff3e230a4e1",
+      "exit": 0,
+      "stdout": "\tlinux-vdso.so.1 (0x0000ffffb3f3c000)\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffffb3cd0000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffffb3af0000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffffb3f40000)\n",
+      "stderr": ""
+    },
+    {
+      "path": "target/debug/deps/main-c4c123f0fb53ca3c",
+      "exit": 0,
+      "stdout": "\tlinux-vdso.so.1 (0x0000ffff9e58c000)\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffff9dd50000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffff9db70000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffff9e590000)\n",
+      "stderr": ""
+    },
+    {
+      "path": "target/debug/deps/main-dae21feb6857b356",
+      "exit": 0,
+      "stdout": "\tlinux-vdso.so.1 (0x0000ffff9c8ec000)\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffff9be90000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffff9bcb0000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffff9c8f0000)\n",
+      "stderr": ""
+    },
+    {
+      "path": "target/debug/deps/main-eba09f2446d430a3",
+      "exit": 0,
+      "stdout": "\tlinux-vdso.so.1 (0x0000ffff9888c000)\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffff98480000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffff982a0000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffff98890000)\n",
+      "stderr": ""
+    },
+    {
+      "path": "target/debug/deps/main-fefc815897a7b894",
+      "exit": 0,
+      "stdout": "\tlinux-vdso.so.1 (0x0000ffff8807c000)\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffff87d40000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffff87b60000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffff88080000)\n",
+      "stderr": ""
+    },
+    {
+      "path": "target/debug/deps/message_map-8af8c2c87571a80f",
+      "exit": 0,
+      "stdout": "\tlinux-vdso.so.1 (0x0000ffffa59ec000)\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffffa5820000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffffa5640000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffffa59f0000)\n",
+      "stderr": ""
+    },
+    {
+      "path": "target/debug/deps/native_backend-a5e878449100ca05",
+      "exit": 0,
+      "stdout": "\tlinux-vdso.so.1 (0x0000ffff8f72c000)\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffff8f140000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffff8ef60000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffff8f730000)\n",
+      "stderr": ""
+    },
+    {
+      "path": "target/debug/deps/overflow_control-185486efef3d18ec",
+      "exit": 0,
+      "stdout": "\tlinux-vdso.so.1 (0x0000ffffabdcc000)\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffffabca0000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffffabac0000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffffabdd0000)\n",
+      "stderr": ""
+    },
+    {
+      "path": "target/debug/deps/panic_control_reports-477b6f66f8c6ac74",
+      "exit": 0,
+      "stdout": "\tlinux-vdso.so.1 (0x0000ffff8fd6c000)\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffff8fc40000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffff8fa60000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffff8fd70000)\n",
+      "stderr": ""
+    },
+    {
+      "path": "target/debug/deps/process-6961920de2d14ae0",
+      "exit": 0,
+      "stdout": "\tlinux-vdso.so.1 (0x0000ffff89adc000)\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffff89900000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffff89720000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffff89ae0000)\n",
+      "stderr": ""
+    },
+    {
+      "path": "target/debug/deps/reach-ea6f724e5fd785ce",
+      "exit": 0,
+      "stdout": "\tlinux-vdso.so.1 (0x0000ffff9d2dc000)\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffff9d0c0000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffff9cee0000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffff9d2e0000)\n",
+      "stderr": ""
+    },
+    {
+      "path": "target/debug/deps/response_checks-6fd829d8c1caeafb",
+      "exit": 0,
+      "stdout": "\tlinux-vdso.so.1 (0x0000ffff8886c000)\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffff886f0000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffff88510000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffff88870000)\n",
+      "stderr": ""
+    },
+    {
+      "path": "target/debug/deps/retained-cf35f5b4ef2a2268",
+      "exit": 0,
+      "stdout": "\tlinux-vdso.so.1 (0x0000ffffbc97c000)\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffffbc780000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffffbc5a0000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffffbc980000)\n",
+      "stderr": ""
+    },
+    {
+      "path": "target/debug/deps/stateful_control-5ab6167a4350d205",
+      "exit": 0,
+      "stdout": "\tlinux-vdso.so.1 (0x0000ffff8459c000)\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffff84470000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffff84290000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffff845a0000)\n",
+      "stderr": ""
+    },
+    {
+      "path": "target/debug/deps/suite_consumers-f113e861c4cc0f8c",
+      "exit": 0,
+      "stdout": "\tlinux-vdso.so.1 (0x0000ffff9d81c000)\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffff9d540000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffff9d360000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffff9d820000)\n",
+      "stderr": ""
+    },
+    {
+      "path": "target/debug/deps/temporal_xtask-3eb3e5564131d13d",
+      "exit": 0,
+      "stdout": "\tlinux-vdso.so.1 (0x0000ffff908ec000)\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffff90670000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffff90490000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffff908f0000)\n",
+      "stderr": ""
+    },
+    {
+      "path": "target/debug/deps/ui-7e0133bb41d56c4b",
+      "exit": 0,
+      "stdout": "\tlinux-vdso.so.1 (0x0000ffffb99bc000)\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffffb9670000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffffb9490000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffffb99c0000)\n",
+      "stderr": ""
+    },
+    {
+      "path": "target/debug/deps/ui-821b8ce02808ab16",
+      "exit": 0,
+      "stdout": "\tlinux-vdso.so.1 (0x0000ffffb4d7c000)\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffffb4a30000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffffb4850000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffffb4d80000)\n",
+      "stderr": ""
+    },
+    {
+      "path": "target/debug/deps/umpire-7f54012299569924",
+      "exit": 0,
+      "stdout": "\tlinux-vdso.so.1 (0x0000ffff9496c000)\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffff94840000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffff94660000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffff94970000)\n",
+      "stderr": ""
+    },
+    {
+      "path": "target/debug/deps/umpire_apalache-0e26e6205bf75b4b",
+      "exit": 0,
+      "stdout": "\tlinux-vdso.so.1 (0x0000ffffb97dc000)\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffffb9240000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffffb9060000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffffb97e0000)\n",
+      "stderr": ""
+    },
+    {
+      "path": "target/debug/deps/umpire_author_consumer-7c2c00fb7daad10d",
+      "exit": 0,
+      "stdout": "\tlinux-vdso.so.1 (0x0000ffffa03ac000)\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffffa00c0000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffff9fee0000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffffa03b0000)\n",
+      "stderr": ""
+    },
+    {
+      "path": "target/debug/deps/umpire_backend_process-9e2342a44bfb2598",
+      "exit": 0,
+      "stdout": "\tlinux-vdso.so.1 (0x0000ffff856cc000)\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffff85510000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffff85330000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffff856d0000)\n",
+      "stderr": ""
+    },
+    {
+      "path": "target/debug/deps/umpire_catalog-61f794d7791d43a1",
+      "exit": 0,
+      "stdout": "\tlinux-vdso.so.1 (0x0000ffff95a6c000)\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffff95940000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffff95760000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffff95a70000)\n",
+      "stderr": ""
+    },
+    {
+      "path": "target/debug/deps/umpire_catalog_build-7ccdc0a93cfd7eda",
+      "exit": 0,
+      "stdout": "\tlinux-vdso.so.1 (0x0000ffff88bdc000)\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffff88ab0000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffff888d0000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffff88be0000)\n",
+      "stderr": ""
+    },
+    {
+      "path": "target/debug/deps/umpire_catalog_macros-742082419ca9a1fb",
+      "exit": 0,
+      "stdout": "\tlinux-vdso.so.1 (0x0000ffff8bf5c000)\n\tlibstd-f9f1a1f02cfcb825.so => not found\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffff8bda0000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffff8bbc0000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffff8bf60000)\n",
+      "stderr": ""
+    },
+    {
+      "path": "target/debug/deps/umpire_catalog_syntax-1b48638f0c0a98dc",
+      "exit": 0,
+      "stdout": "\tlinux-vdso.so.1 (0x0000ffffaea5c000)\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffffae680000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffffae4a0000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffffaea60000)\n",
+      "stderr": ""
+    },
+    {
+      "path": "target/debug/deps/umpire_checker-733b41a2808a3799",
+      "exit": 0,
+      "stdout": "\tlinux-vdso.so.1 (0x0000ffffa69dc000)\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffffa6860000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffffa6680000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffffa69e0000)\n",
+      "stderr": ""
+    },
+    {
+      "path": "target/debug/deps/umpire_dsl-3f6e6192c8401db5",
+      "exit": 0,
+      "stdout": "\tlinux-vdso.so.1 (0x0000ffffa397c000)\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffffa3850000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffffa3670000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffffa3980000)\n",
+      "stderr": ""
+    },
+    {
+      "path": "target/debug/deps/umpire_dsl_macros-2fc9f6db1ce82f35",
+      "exit": 0,
+      "stdout": "\tlinux-vdso.so.1 (0x0000ffffab1bc000)\n\tlibstd-f9f1a1f02cfcb825.so => not found\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffffaaeb0000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffffaacd0000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffffab1c0000)\n",
+      "stderr": ""
+    },
+    {
+      "path": "target/debug/deps/umpire_front-ec97b00f1d959545",
+      "exit": 0,
+      "stdout": "\tlinux-vdso.so.1 (0x0000ffff8e54c000)\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffff8e0d0000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffff8def0000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffff8e550000)\n",
+      "stderr": ""
+    },
+    {
+      "path": "target/debug/deps/umpire_guest_driver-8f1df955433dc5e3",
+      "exit": 0,
+      "stdout": "\tlinux-vdso.so.1 (0x0000ffff83d7c000)\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffff83bf0000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffff83a10000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffff83d80000)\n",
+      "stderr": ""
+    },
+    {
+      "path": "target/debug/deps/umpire_guest_driver-b249d25c116fa284",
+      "exit": 0,
+      "stdout": "\tlinux-vdso.so.1 (0x0000ffff8b2ac000)\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffff8b050000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffff8ae70000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffff8b2b0000)\n",
+      "stderr": ""
+    },
+    {
+      "path": "target/debug/deps/umpire_guest_driver-fa7bf01040b01d28",
+      "exit": 0,
+      "stdout": "\tlinux-vdso.so.1 (0x0000ffff890cc000)\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffff88fa0000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffff88dc0000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffff890d0000)\n",
+      "stderr": ""
+    },
+    {
+      "path": "target/debug/deps/umpire_ir-a2fa5ef4cc815d82",
+      "exit": 0,
+      "stdout": "\tlinux-vdso.so.1 (0x0000ffff847bc000)\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffff84630000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffff84450000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffff847c0000)\n",
+      "stderr": ""
+    },
+    {
+      "path": "target/debug/deps/umpire_ir_derive-6b821cf80e7b1d92",
+      "exit": 0,
+      "stdout": "\tlinux-vdso.so.1 (0x0000ffffadd2c000)\n\tlibstd-f9f1a1f02cfcb825.so => not found\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffffadc60000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffffada80000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffffadd30000)\n",
+      "stderr": ""
+    },
+    {
+      "path": "target/debug/deps/umpire_kettle_guest-a144341fd1873bd8",
+      "exit": 0,
+      "stdout": "\tlinux-vdso.so.1 (0x0000ffff80d9c000)\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffff80c70000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffff80a90000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffff80da0000)\n",
+      "stderr": ""
+    },
+    {
+      "path": "target/debug/deps/umpire_process_fixture-55e948a420770a07",
+      "exit": 0,
+      "stdout": "\tlinux-vdso.so.1 (0x0000ffffb135c000)\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffffb1220000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffffb1040000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffffb1360000)\n",
+      "stderr": ""
+    },
+    {
+      "path": "target/debug/deps/umpire_reference_kettle-63377ab99bc3bc1c",
+      "exit": 0,
+      "stdout": "\tlinux-vdso.so.1 (0x0000ffffba8ec000)\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffffba7c0000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffffba5e0000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffffba8f0000)\n",
+      "stderr": ""
+    },
+    {
+      "path": "target/debug/deps/umpire_runtime-2d080777616a25c4",
+      "exit": 0,
+      "stdout": "\tlinux-vdso.so.1 (0x0000ffff8b4ac000)\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffff8b380000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffff8b1a0000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffff8b4b0000)\n",
+      "stderr": ""
+    },
+    {
+      "path": "target/debug/deps/umpire_stock_guest-87e489b2c478799c",
+      "exit": 0,
+      "stdout": "\tlinux-vdso.so.1 (0x0000ffff837bc000)\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffff83690000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffff834b0000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffff837c0000)\n",
+      "stderr": ""
+    },
+    {
+      "path": "target/debug/deps/umpire_suite-41ff16a7a56049e8",
+      "exit": 0,
+      "stdout": "\tlinux-vdso.so.1 (0x0000ffff8807c000)\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffff87eb0000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffff87cd0000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffff88080000)\n",
+      "stderr": ""
+    },
+    {
+      "path": "target/debug/deps/umpire_testing-0268d9f9986c0b2b",
+      "exit": 0,
+      "stdout": "\tlinux-vdso.so.1 (0x0000ffff9f2bc000)\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffff9ebd0000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffff9e9f0000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffff9f2c0000)\n",
+      "stderr": ""
+    },
+    {
+      "path": "target/debug/deps/umpire_tla-b38a7229e22864e2",
+      "exit": 0,
+      "stdout": "\tlinux-vdso.so.1 (0x0000ffff8e6fc000)\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffff8e570000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffff8e390000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffff8e700000)\n",
+      "stderr": ""
+    },
+    {
+      "path": "target/debug/deps/umpire_tlc-fc64ef9396eea910",
+      "exit": 0,
+      "stdout": "\tlinux-vdso.so.1 (0x0000ffffbdd7c000)\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffffbd730000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffffbd550000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffffbdd80000)\n",
+      "stderr": ""
+    },
+    {
+      "path": "target/debug/deps/world_fairness-d1ea6d281be7e04c",
+      "exit": 0,
+      "stdout": "\tlinux-vdso.so.1 (0x0000ffff962ac000)\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffff95e30000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffff95c50000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffff962b0000)\n",
+      "stderr": ""
+    },
+    {
+      "path": "target/debug/deps/xtask-1f9b9534f13a5c57",
+      "exit": 0,
+      "stdout": "\tlinux-vdso.so.1 (0x0000ffffa154c000)\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffffa10b0000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffffa0ed0000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffffa1550000)\n",
+      "stderr": ""
+    },
+    {
+      "path": "target/debug/deps/xtask-a345360fb5084b40",
+      "exit": 0,
+      "stdout": "\tlinux-vdso.so.1 (0x0000ffff8d94c000)\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffff8d560000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffff8d380000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffff8d950000)\n",
+      "stderr": ""
+    },
+    {
+      "path": "target/debug/deps/xtask-f82e6f25a9193705",
+      "exit": 0,
+      "stdout": "\tlinux-vdso.so.1 (0x0000ffff8af0c000)\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffff8ade0000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffff8ac00000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffff8af10000)\n",
+      "stderr": ""
+    },
+    {
+      "path": "target/debug/identity-compiler-fixture",
+      "exit": 0,
+      "stdout": "\tlinux-vdso.so.1 (0x0000ffffa33ec000)\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffffa32f0000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffffa3110000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffffa33f0000)\n",
+      "stderr": ""
+    },
+    {
+      "path": "target/debug/temporal-xtask",
+      "exit": 0,
+      "stdout": "\tlinux-vdso.so.1 (0x0000ffffa340c000)\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffffa3190000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffffa2fb0000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffffa3410000)\n",
+      "stderr": ""
+    },
+    {
+      "path": "target/debug/umpire-guest-driver",
+      "exit": 0,
+      "stdout": "\tlinux-vdso.so.1 (0x0000ffffbdf3c000)\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffffbdce0000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffffbdb00000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffffbdf40000)\n",
+      "stderr": ""
+    },
+    {
+      "path": "target/debug/umpire-process-fixture",
+      "exit": 0,
+      "stdout": "\tlinux-vdso.so.1 (0x0000ffff99f4c000)\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffff99e10000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffff99c30000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffff99f50000)\n",
+      "stderr": ""
+    },
+    {
+      "path": "target/debug/xtask",
+      "exit": 0,
+      "stdout": "\tlinux-vdso.so.1 (0x0000ffffb53ec000)\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffffb5000000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffffb4e20000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffffb53f0000)\n",
+      "stderr": ""
+    },
+    {
+      "path": "target/guest/current-contract-reports",
+      "exit": 0,
+      "stdout": "\tlinux-vdso.so.1 (0x0000ffff9741c000)\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffff97350000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffff97170000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffff97420000)\n",
+      "stderr": ""
+    },
+    {
+      "path": "target/guest/panic-control-reports",
+      "exit": 0,
+      "stdout": "\tlinux-vdso.so.1 (0x0000ffffa1ccc000)\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffffa1c00000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffffa1a20000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffffa1cd0000)\n",
+      "stderr": ""
+    },
+    {
+      "path": "target/guest-wrappers/e1ead22e14dcff68c22a6ed0eec052fae1397d9ec505e90ff55a3d32cb415285/guest-rustc",
+      "exit": 0,
+      "stdout": "\tlinux-vdso.so.1 (0x0000ffffb884c000)\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffffb85c0000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffffb83e0000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffffb8850000)\n",
+      "stderr": ""
+    },
+    {
+      "path": "target/guest-wrappers/e96d1995f4bcaabaf51f0cffc9b84d150cd82adf11eef99d311150d5a6754a15/guest-rustc",
+      "exit": 0,
+      "stdout": "\tlinux-vdso.so.1 (0x0000ffffa890c000)\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffffa8680000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffffa84a0000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffffa8910000)\n",
+      "stderr": ""
+    },
+    {
+      "path": "target/xtask-bootstrap/debug/umpire-guest-driver",
+      "exit": 0,
+      "stdout": "\tlinux-vdso.so.1 (0x0000ffff965fc000)\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffff96370000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffff96190000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffff96600000)\n",
+      "stderr": ""
+    },
+    {
+      "path": "target/xtask-bootstrap/debug/xtask",
+      "exit": 0,
+      "stdout": "\tlinux-vdso.so.1 (0x0000ffffba72c000)\n\tlibgcc_s.so.1 => /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffffba2f0000)\n\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffffba110000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffffba730000)\n",
+      "stderr": ""
+    }
+  ],
+  "target_local_dependencies": [],
+  "meaning": "System libraries observed, not copied; no target-local shared library requirement omitted."
+}

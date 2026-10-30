@@ -36,6 +36,7 @@
   },
   "review": {
     "backend": "claude:claude-fable-5-1:high",
+    "fanoutExecution": "concurrent",
     "maxIterations": 8
   },
   "scouts": {

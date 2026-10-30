@@ -1,0 +1,13 @@
+{
+  "source_base": "ac60daaf47d2513b41eeff612f0e2758d33e186d",
+  "candidate": "4035bb70fdf4c7ef074a8f05a02b19fb458c0b1d",
+  "branch": "refs/heads/work/fn2583-consumers",
+  "bundle": "source-preparation.bundle",
+  "bundle_sha256": "61971f635d23ba3360e423045b6a56dd73e10bc125ebabb6bfc96df9657388df",
+  "bundle_bytes": 256855,
+  "required_prerequisite": "Original Temporal ac60 commit and ancestry, retained in umpire history",
+  "publication": "not attempted",
+  "source_integration": "candidate remains unmerged until destination access/publication and final proof",
+  "standalone_pair": "ac79114a9ad43a9d9fc2a022d07406d217878760",
+  "canonical_guest_sha256": "d171b91861dba54e9c73682fb17a5a317180dba4e7c5b6c1b09f46667b337f5d"
+}

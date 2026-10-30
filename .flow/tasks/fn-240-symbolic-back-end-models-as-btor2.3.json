@@ -12,6 +12,6 @@
   "spec": "fn-240-symbolic-back-end-models-as-btor2",
   "spec_path": ".flow/tasks/fn-240-symbolic-back-end-models-as-btor2.3.md",
   "status": "todo",
-  "title": "Witness decoding and native replay: typed frames by declaration index, checked_step replay, claim re-judged, shared Replay types with umpire-apalache, mutation controls",
-  "updated_at": "2026-10-24T22:13:00.093553Z"
+  "title": "Witness decoding and native replay: typed frames by declaration index, checked_step replay, claim re-judged, existing fn-250.3 shared replay core, mutation controls",
+  "updated_at": "2026-10-26T05:37:50.780430Z"
 }

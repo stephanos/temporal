@@ -1,0 +1,7 @@
+foundation::tests::conditional_retry_setter_produces_a_real_invalid_coefficient: test
+foundation::tests::shared_factories_admit_and_preserve_private_payload_roles: test
+foundation::tests::worker_failure_presence_probe_mutates_the_actual_oneof: test
+probes::tests::concurrent_initialization_publishes_one_complete_inventory: test
+probes::tests::failed_or_panicked_initialization_publishes_nothing: test
+probes::tests::generated_findings_preserve_contextual_intents_and_recursive_checks: test
+probes::tests::validated_inventories_are_reused: test

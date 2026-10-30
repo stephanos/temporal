@@ -1,0 +1,24 @@
+   Compiling xtask v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/umpire/dev/xtask)
+    Finished `test` profile [unoptimized] target(s) in 1.40s
+     Running tests/main.rs (/home/agent/.cache/codex-build/fn258-framework/debug/deps/main-399733285a0719a5)
+
+running 1 test
+test gate_wiring::required_tests_provision_tlc_before_running_and_preserve_setup_failure ... FAILED
+
+failures:
+
+---- gate_wiring::required_tests_provision_tlc_before_running_and_preserve_setup_failure stdout ----
+
+thread 'gate_wiring::required_tests_provision_tlc_before_running_and_preserve_setup_failure' (3634669) panicked at dev/xtask/tests/gate_wiring.rs:1310:17:
+assertion `left == right` failed
+  left: ["tests", "doctests"]
+ right: ["tlc-tool", "tests", "doctests"]
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    gate_wiring::required_tests_provision_tlc_before_running_and_preserve_setup_failure
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 51 filtered out; finished in 0.15s
+
+error: test failed, to rerun pass `-p xtask --test main`

@@ -1,0 +1,45 @@
+{
+  "command": [
+    "mise",
+    "exec",
+    "--",
+    "cargo",
+    "test",
+    "--locked",
+    "-j1",
+    "-p",
+    "xtask",
+    "--test",
+    "main",
+    "standalone::",
+    "--",
+    "--test-threads=1",
+    "--nocapture"
+  ],
+  "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/candidate/model/umpire",
+  "started_utc": "2026-10-26T23:41:31.044639+00:00",
+  "phase_baseline_bytes": {
+    "rust": 6786422657,
+    "go": 244873430
+  },
+  "phase_budget_bytes": 1610612736,
+  "environment": {
+    "CARGO_TARGET_DIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2546-resumed/target",
+    "TMPDIR": "/tmp/umpire-fn2545-review-fixes",
+    "CARGO_BUILD_JOBS": "1",
+    "CARGO_INCREMENTAL": "0",
+    "CARGO_PROFILE_DEV_DEBUG": "0",
+    "CARGO_PROFILE_TEST_DEBUG": "0",
+    "GOCACHE": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2545-temporal-api/go-cache",
+    "GOFLAGS": "-p=1",
+    "GOMAXPROCS": "1"
+  },
+  "BASH_ENV": "removed",
+  "execution_scope": "actual focused test bodies executed; exact selection is recorded in command",
+  "exit_code": 0,
+  "elapsed_seconds": 0.06676224999864644,
+  "rust_phase_growth_bytes": 17449843,
+  "go_phase_growth_bytes": 0,
+  "free_after_bytes": 23277199360,
+  "log_sha256": "d1513e39eda29588c6eb8409b931d5c2ba16fb8df756fa6331355dc17c9f9dcb"
+}

@@ -1,0 +1,13 @@
+{
+  "first": "/home/agent/.cache/codex-build/tmp/fn258-pair/temporal/model/temporal/hosts/go/umpire_temporal_guest.wasm",
+  "second": "/home/agent/.cache/codex-build/tmp/fn258-guest-repro/temporal/model/temporal/hosts/go/umpire_temporal_guest.wasm",
+  "identical": true,
+  "size": 3988382,
+  "sha256": "d171b91861dba54e9c73682fb17a5a317180dba4e7c5b6c1b09f46667b337f5d",
+  "second_sha256": "d171b91861dba54e9c73682fb17a5a317180dba4e7c5b6c1b09f46667b337f5d",
+  "framework": "ac79114a9ad43a9d9fc2a022d07406d217878760",
+  "consumer": "7e655da80b3810807cbd02a3ea29c26ceb9804e4",
+  "first_target": "/home/agent/.cache/codex-build/fn258-consumer",
+  "second_target": "/home/agent/.cache/codex-build/fn258-consumer-repro",
+  "second_source": "clean Git archives of exact pair; no copied guest/build products"
+}

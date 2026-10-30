@@ -1,0 +1,104 @@
+{
+  "schema": 1,
+  "task": "fn-254-fast-validation-gates-and-a-real-inner.19",
+  "reviewed_at": "2026-10-29",
+  "scope": "Read-only source and official upstream investigation; no builds, implementation changes, acceptance changes, or task-state changes performed by this researcher.",
+  "pinned_version": "sccache 0.19.0",
+  "disposition": "No supported configuration-only solution found for safe local workspace Rust artifact reuse across physical checkouts with separate Cargo targets. Preserve acceptance; record blocked pending a supported semantics-preserving solution.",
+  "sources": [
+    {
+      "url": "https://github.com/mozilla/sccache/releases/tag/v0.19.0",
+      "reviewed": "Official release page identifies v0.19.0 as latest, released 2026-10-24; Rust improvements include locally generated dep-info, not cross-checkout Rust key normalization."
+    },
+    {
+      "url": "https://github.com/mozilla/sccache/blob/v0.19.0/src/compiler/rust.rs#L1789-L1880",
+      "local_review_copy": ".flow/tmp/fn-254.19/sccache-rust.rs",
+      "reviewed_lines": [
+        1789,
+        1880
+      ],
+      "findings": [
+        "Full compiler arguments are hashed; comment acknowledges full paths and missing normalization (1789-1791).",
+        "CARGO_* environment values are hashed with specific unrelated exclusions (1833-1877).",
+        "Physical compile cwd is hashed because it appears in the rlib (1878-1879).",
+        "Rust backend does not consume SCCACHE_BASEDIRS. Output-directory arguments are excluded, which does not remove source/cwd/environment differences."
+      ]
+    },
+    {
+      "url": "https://github.com/mozilla/sccache/pull/2813",
+      "status_at_review": "open, unmerged",
+      "reviewed": "Proposed Rust SCCACHE_BASEDIRS support normalizes source/remap/environment/cwd key inputs; explicitly warns artifacts using env!(CARGO_MANIFEST_DIR) may retain the original checkout path. Not part of pinned official release, and key-only normalization does not establish semantic portability."
+    },
+    {
+      "url": "https://github.com/mozilla/sccache/pull/2814",
+      "status_at_review": "open, unmerged",
+      "reviewed": "Proposed per-request basedirs; currently daemon captures basedirs at startup. Depends on #2813."
+    },
+    {
+      "url": "https://github.com/mozilla/sccache/pull/2882",
+      "status_at_review": "open, unmerged",
+      "reviewed": "Separate macOS proc-macro dylib hashing obstacle: full dylibs contain output paths; proposed metadata-section hashing is not in released support."
+    },
+    {
+      "url": "https://github.com/mozilla/sccache/blob/v0.19.0/docs/Rust.md",
+      "reviewed_lines": [
+        1,
+        12
+      ],
+      "reviewed": "Incremental must be disabled; linker-invoking bin/dylib/cdylib/proc-macro crates cannot be cached; env! tracked since Rust 1.46; filesystem-reading proc macros have caveats."
+    }
+  ],
+  "repository_evidence": [
+    {
+      "path": "model/umpire/dev/guest-driver/src/context.rs",
+      "lines": [
+        18,
+        24
+      ],
+      "finding": "ToolRoot::local embeds env!(CARGO_MANIFEST_DIR) at line21 as its default framework-root authority. Reusing A artifact in B after hashing away the real macro-value difference can silently select A framework pins and sources."
+    },
+    {
+      "path": "model/umpire/dev/guest-driver/src/context.rs",
+      "lines": [
+        129,
+        192
+      ],
+      "finding": "Existing longest-root context mapping supplies portable guest identity and rustc remap flags. Remap flags retain their physical FROM path in actual compiler argv; they do not change physical cwd or Cargo manifest environment values."
+    },
+    {
+      "path": "model/umpire/dev/guest-driver/src/compiler.rs",
+      "lines": [
+        262,
+        353
+      ],
+      "finding": "Guest preparation adjusts WASI metadata and portable sidecar identity; ordinary host compilation passes through. Sidecar identity is not sccache artifact identity."
+    },
+    {
+      "path": "model/umpire/dev/guest-driver/src/compiler.rs",
+      "lines": [
+        355,
+        377
+      ],
+      "finding": "Previous wrapper is explicitly composed; child inherits actual cwd, Cargo environment and prepared physical arguments. No existing virtual filesystem or compile-root staging mechanism was found."
+    }
+  ],
+  "rejected_workarounds": [
+    {
+      "approach": "Set SCCACHE_BASEDIRS and rustc --remap-path-prefix alone",
+      "reason": "Pinned Rust hasher still hashes physical cwd, argument paths and Cargo environment; equivalent outputs alone do not imply equivalent cache keys."
+    },
+    {
+      "approach": "Normalize or discard hashed cwd/CARGO_MANIFEST_DIR only",
+      "reason": "Can return a cached artifact with A-specific runtime paths in checkout B; concrete tool-root authority example above. Reduces compilation identity rather than proving portability."
+    },
+    {
+      "approach": "Fake common compiler cwd and Cargo manifest environment",
+      "reason": "Changes compile/runtime path semantics and include/proc-macro behavior; no admitted stable physical namespace exists. Requires a separately designed and validated execution model, not current remap configuration."
+    },
+    {
+      "approach": "Dependency-only hit proof or same-checkout target sharing",
+      "reason": "Does not satisfy required real local workspace reuse between distinct source paths and empty independent targets."
+    }
+  ],
+  "next_requirement": "A supported released implementation and end-to-end portability/admission design must retain actual source/compiler/lock/profile/target identity and runtime tool-root behavior, then pass the task measurement and negative controls. No task acceptance was weakened."
+}

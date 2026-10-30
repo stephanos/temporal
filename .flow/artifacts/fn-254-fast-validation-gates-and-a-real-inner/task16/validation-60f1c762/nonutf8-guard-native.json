@@ -1,0 +1,102 @@
+{
+  "source_head": "3368481d75b40dd49aea5a5dc7b54467e3779052",
+  "binary_sha256": "1813ad808ab80bc62dc52e37826e87b10aedf82ccd9984213585c42e61dd856d",
+  "cases": [
+    {
+      "label": "guard-raw-tlc",
+      "command_os_hex": [
+        "2f55736572732f7374657068616e2f576f726b73706163652f736b756e6b776f726b732f756d706972652f74656d706f72616c2f2e666c6f772f746d702f666e32353431362d70726f76696465722d76616c69646174696f6e2f7461726765742f64656275672f787461736b",
+        "66657463682d746c63",
+        "2f746d702f756d706972652d666e32353431362d67756172642d313935393538362f6672616d65776f726b2dff"
+      ],
+      "cwd_os_hex": "2f746d702f756d706972652d666e32353431362d67756172642d313935393538362f6672616d65776f726b2dff",
+      "root_path_hex": "2f746d702f756d706972652d666e32353431362d67756172642d313935393538362f6672616d65776f726b2dff",
+      "supplied_path_repr": "'/tmp/umpire-fn25416-guard-1959586/framework-\\udcff'",
+      "exit": 1,
+      "stdout_hex": "",
+      "stderr_utf8": "xtask: mise jar provider requires a UTF-8 framework root\n",
+      "mise_invoked": false,
+      "data_or_capture_created": false
+    },
+    {
+      "label": "guard-raw-apalache",
+      "command_os_hex": [
+        "2f55736572732f7374657068616e2f576f726b73706163652f736b756e6b776f726b732f756d706972652f74656d706f72616c2f2e666c6f772f746d702f666e32353431362d70726f76696465722d76616c69646174696f6e2f7461726765742f64656275672f787461736b",
+        "66657463682d6170616c61636865",
+        "2f746d702f756d706972652d666e32353431362d67756172642d313935393538362f6672616d65776f726b2dff"
+      ],
+      "cwd_os_hex": "2f746d702f756d706972652d666e32353431362d67756172642d313935393538362f6672616d65776f726b2dff",
+      "root_path_hex": "2f746d702f756d706972652d666e32353431362d67756172642d313935393538362f6672616d65776f726b2dff",
+      "supplied_path_repr": "'/tmp/umpire-fn25416-guard-1959586/framework-\\udcff'",
+      "exit": 1,
+      "stdout_hex": "",
+      "stderr_utf8": "xtask: mise jar provider requires a UTF-8 framework root\n",
+      "mise_invoked": false,
+      "data_or_capture_created": false
+    },
+    {
+      "label": "guard-alias-tlc",
+      "command_os_hex": [
+        "2f55736572732f7374657068616e2f576f726b73706163652f736b756e6b776f726b732f756d706972652f74656d706f72616c2f2e666c6f772f746d702f666e32353431362d70726f76696465722d76616c69646174696f6e2f7461726765742f64656275672f787461736b",
+        "66657463682d746c63",
+        "2f746d702f756d706972652d666e32353431362d67756172642d313935393538362f61736369692d616c696173"
+      ],
+      "cwd_os_hex": "2f746d702f756d706972652d666e32353431362d67756172642d313935393538362f6672616d65776f726b2dff",
+      "root_path_hex": "2f746d702f756d706972652d666e32353431362d67756172642d313935393538362f6672616d65776f726b2dff",
+      "supplied_path_repr": "'/tmp/umpire-fn25416-guard-1959586/ascii-alias'",
+      "exit": 1,
+      "stdout_hex": "",
+      "stderr_utf8": "xtask: mise jar provider requires a UTF-8 framework root\n",
+      "mise_invoked": false,
+      "data_or_capture_created": false
+    },
+    {
+      "label": "guard-alias-apalache",
+      "command_os_hex": [
+        "2f55736572732f7374657068616e2f576f726b73706163652f736b756e6b776f726b732f756d706972652f74656d706f72616c2f2e666c6f772f746d702f666e32353431362d70726f76696465722d76616c69646174696f6e2f7461726765742f64656275672f787461736b",
+        "66657463682d6170616c61636865",
+        "2f746d702f756d706972652d666e32353431362d67756172642d313935393538362f61736369692d616c696173"
+      ],
+      "cwd_os_hex": "2f746d702f756d706972652d666e32353431362d67756172642d313935393538362f6672616d65776f726b2dff",
+      "root_path_hex": "2f746d702f756d706972652d666e32353431362d67756172642d313935393538362f6672616d65776f726b2dff",
+      "supplied_path_repr": "'/tmp/umpire-fn25416-guard-1959586/ascii-alias'",
+      "exit": 1,
+      "stdout_hex": "",
+      "stderr_utf8": "xtask: mise jar provider requires a UTF-8 framework root\n",
+      "mise_invoked": false,
+      "data_or_capture_created": false
+    },
+    {
+      "label": "guard-relative-dot-tlc",
+      "command_os_hex": [
+        "2f55736572732f7374657068616e2f576f726b73706163652f736b756e6b776f726b732f756d706972652f74656d706f72616c2f2e666c6f772f746d702f666e32353431362d70726f76696465722d76616c69646174696f6e2f7461726765742f64656275672f787461736b",
+        "66657463682d746c63",
+        "2e"
+      ],
+      "cwd_os_hex": "2f746d702f756d706972652d666e32353431362d67756172642d313935393538362f6672616d65776f726b2dff",
+      "root_path_hex": "2f746d702f756d706972652d666e32353431362d67756172642d313935393538362f6672616d65776f726b2dff",
+      "supplied_path_repr": "'.'",
+      "exit": 1,
+      "stdout_hex": "",
+      "stderr_utf8": "xtask: mise jar provider requires a UTF-8 framework root\n",
+      "mise_invoked": false,
+      "data_or_capture_created": false
+    },
+    {
+      "label": "guard-relative-dot-apalache",
+      "command_os_hex": [
+        "2f55736572732f7374657068616e2f576f726b73706163652f736b756e6b776f726b732f756d706972652f74656d706f72616c2f2e666c6f772f746d702f666e32353431362d70726f76696465722d76616c69646174696f6e2f7461726765742f64656275672f787461736b",
+        "66657463682d6170616c61636865",
+        "2e"
+      ],
+      "cwd_os_hex": "2f746d702f756d706972652d666e32353431362d67756172642d313935393538362f6672616d65776f726b2dff",
+      "root_path_hex": "2f746d702f756d706972652d666e32353431362d67756172642d313935393538362f6672616d65776f726b2dff",
+      "supplied_path_repr": "'.'",
+      "exit": 1,
+      "stdout_hex": "",
+      "stderr_utf8": "xtask: mise jar provider requires a UTF-8 framework root\n",
+      "mise_invoked": false,
+      "data_or_capture_created": false
+    }
+  ]
+}
