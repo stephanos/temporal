@@ -1,0 +1,11 @@
+{
+  "guest_bytes": 3988325,
+  "committed_guest_sha256": "8b9ea3c0b29ab0b0f727cf083027c9ad9a6886634d8ce8be25a84115e315be50",
+  "scratch_reproduction_sha256": "8b9ea3c0b29ab0b0f727cf083027c9ad9a6886634d8ce8be25a84115e315be50",
+  "exact_byte_equality": true,
+  "policy_modelHash": "8b9ea3c0b29ab0b0f727cf083027c9ad9a6886634d8ce8be25a84115e315be50",
+  "policy_sha256": "0bfdbb37bd9e490e973596d9bf91d46965715f917ae813ca7121aba25c7dc0fe",
+  "retained_9_tip": "eac683e6033c5861910fc0f0ed61f41b5e02946f",
+  "retained_9_guest_sha256": "c83e883a38647cdc988ace1b32efbccd546a4a1f2acbe10d53485e7d8438c4cc",
+  "compatibility_scope": "Read-only source inspection: retained .9 adds recording-format2 and strict WHOLE_PREFIX_V1 replay admission; current runtime ResetResponse::new already emits WholePrefixV1. No .9 integration, full live umbrella or replay proof claimed."
+}

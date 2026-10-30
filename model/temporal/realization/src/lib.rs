@@ -71,3 +71,6 @@ mod activity_realization;
 
 pub use activity_realization::{Realization, SCENARIO_HEADER, activity, runtime};
 pub use annotations::{AnnotationRuntime, annotation_runtime};
+
+#[path = "../../shared/protocol/activity/mod.rs"]
+pub mod activity_protocol;

@@ -1,0 +1,17 @@
+---
+source: umpire/dev/testing/src/runner.rs
+---
+0: Model { lifecycle: Queued, attempt: 1, cancellation_pending: false, terminal_outcome: None, retained_failure: None, queued_budget: None, attempt_budget: None, execution_budget: Some(Remaining { ticks: 3 }), heartbeat_budget: None }
+1: Model { lifecycle: Closed, attempt: 1, cancellation_pending: false, terminal_outcome: Canceled, retained_failure: None, queued_budget: None, attempt_budget: None, execution_budget: None, heartbeat_budget: None }
+2: Model { lifecycle: Executing, attempt: 1, cancellation_pending: false, terminal_outcome: None, retained_failure: None, queued_budget: None, attempt_budget: None, execution_budget: Some(Remaining { ticks: 3 }), heartbeat_budget: None }
+3: Model { lifecycle: Queued, attempt: 1, cancellation_pending: false, terminal_outcome: None, retained_failure: None, queued_budget: None, attempt_budget: None, execution_budget: Some(Remaining { ticks: 2 }), heartbeat_budget: None }
+4: Model { lifecycle: Executing, attempt: 1, cancellation_pending: true, terminal_outcome: None, retained_failure: None, queued_budget: None, attempt_budget: None, execution_budget: Some(Remaining { ticks: 3 }), heartbeat_budget: None }
+5: Model { lifecycle: Closed, attempt: 1, cancellation_pending: false, terminal_outcome: Completed, retained_failure: None, queued_budget: None, attempt_budget: None, execution_budget: None, heartbeat_budget: None }
+6: Model { lifecycle: Closed, attempt: 1, cancellation_pending: false, terminal_outcome: Failed, retained_failure: PermanentWorker, queued_budget: None, attempt_budget: None, execution_budget: None, heartbeat_budget: None }
+7: Model { lifecycle: Closed, attempt: 1, cancellation_pending: false, terminal_outcome: Failed, retained_failure: RetryableWorker, queued_budget: None, attempt_budget: None, execution_budget: None, heartbeat_budget: None }
+8: Model { lifecycle: Executing, attempt: 1, cancellation_pending: false, terminal_outcome: None, retained_failure: None, queued_budget: None, attempt_budget: None, execution_budget: Some(Remaining { ticks: 2 }), heartbeat_budget: None }
+9: Model { lifecycle: Queued, attempt: 1, cancellation_pending: false, terminal_outcome: None, retained_failure: None, queued_budget: None, attempt_budget: None, execution_budget: Some(Remaining { ticks: 1 }), heartbeat_budget: None }
+10: Model { lifecycle: Executing, attempt: 1, cancellation_pending: true, terminal_outcome: None, retained_failure: None, queued_budget: None, attempt_budget: None, execution_budget: Some(Remaining { ticks: 2 }), heartbeat_budget: None }
+11: Model { lifecycle: Executing, attempt: 1, cancellation_pending: false, terminal_outcome: None, retained_failure: None, queued_budget: None, attempt_budget: None, execution_budget: Some(Remaining { ticks: 1 }), heartbeat_budget: None }
+12: Model { lifecycle: Closed, attempt: 1, cancellation_pending: false, terminal_outcome: TimedOut, retained_failure: ScheduleToClose, queued_budget: None, attempt_budget: None, execution_budget: None, heartbeat_budget: None }
+13: Model { lifecycle: Executing, attempt: 1, cancellation_pending: true, terminal_outcome: None, retained_failure: None, queued_budget: None, attempt_budget: None, execution_budget: Some(Remaining { ticks: 1 }), heartbeat_budget: None }

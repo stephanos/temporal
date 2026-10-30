@@ -1,0 +1,65 @@
+diff --git a/model/temporal/shared/protocol/activity/README.md b/model/temporal/shared/protocol/activity/README.md
+index 24f740a52f..ebba04dfb1 100644
+--- a/model/temporal/shared/protocol/activity/README.md
++++ b/model/temporal/shared/protocol/activity/README.md
+@@ -148,8 +148,8 @@ compatibility cancellation is separately labelled. The default cooperative
+ maximum-two fixture has 23 states and 80 edges; the largest selected World has
+ 90 states and 750 edges. All twelve native/interpreted graphs are complete.
+ 
+-The required protocol test run passed 22 tests in 45.96 seconds (66.566 seconds
+-including recompilation). Real TLC checked each selected World's own laws and
++The [renewed required protocol run](../../../../../.flow/artifacts/fn-246-realization-as-a-checked-refinement-a/task13/resume-20261030/protocol-required-renewed.log)
++passed 22 tests. Real TLC checked each selected World's own laws and
+ complete state-set agreement. A refuted timeout-absence claim replays against the
+ healthy Model, and a changed expiry fact refuses that replay. Twenty source-only
+ timer/reset/priority/outcome/fact defects disagree with the native graph; schema,
+diff --git a/model/temporal/shared/protocol/activity/parameters_tests.rs b/model/temporal/shared/protocol/activity/parameters_tests.rs
+index 192381abf7..650d206ca3 100644
+--- a/model/temporal/shared/protocol/activity/parameters_tests.rs
++++ b/model/temporal/shared/protocol/activity/parameters_tests.rs
+@@ -1,6 +1,8 @@
+-use super::parameters::{Parameters, RawStart, validate_effective_world};
+ use crate::activity::activity::{Ticks, World};
+ use umpire_dsl::{__lifted::Lifts, Value, Values};
++use umpire_temporal::activity_protocol::parameters::{
++    Parameters, RawStart, validate_effective_world,
++};
+ 
+ fn selected() -> Parameters {
+     Parameters::new(3, [Some(1), Some(2), Some(3), None], true)
+diff --git a/model/temporal/shared/protocol/activity/tests.rs b/model/temporal/shared/protocol/activity/tests.rs
+index f009fbd397..3335e42f1a 100644
+--- a/model/temporal/shared/protocol/activity/tests.rs
++++ b/model/temporal/shared/protocol/activity/tests.rs
+@@ -3,6 +3,7 @@ use super::activity::protocol::{
+     World,
+ };
+ use umpire_dsl::{Machine, Outcome, Rejection};
++use umpire_temporal::activity_protocol::parameters;
+ 
+ type TestResult = umpire_testing::TestResult;
+ const BUDGET: usize = 4096;
+@@ -180,9 +181,6 @@ fn erased_budgets_and_present_zero_are_observable_to_full_state_laws() -> TestRe
+     Ok(())
+ }
+ 
+-#[allow(unreachable_pub)]
+-#[path = "parameters.rs"]
+-mod parameters;
+ #[path = "parameters_tests.rs"]
+ mod parameters_tests;
+ 
+diff --git a/model/temporal/shared/protocol/activity/view.rs b/model/temporal/shared/protocol/activity/view.rs
+index ba76741eb7..d0e6bf19e3 100644
+--- a/model/temporal/shared/protocol/activity/view.rs
++++ b/model/temporal/shared/protocol/activity/view.rs
+@@ -30,7 +30,8 @@ pub enum Status {
+     Completed,
+     /// Failure ended execution.
+     Failed,
+-    /// Cancellation was acknowledged or closed a queued execution.
++    /// Cancellation was acknowledged, closed a queued execution, or closed an
++    /// atomic-compatibility running attempt.
+     Canceled,
+     /// A deadline ended execution.
+     TimedOut,

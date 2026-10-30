@@ -1,0 +1,1426 @@
+warning: constant `MAX_ENTRIES` is never used
+  --> umpire/dev/xtask/src/gate/budget_context.rs:14:7
+   |
+14 | const MAX_ENTRIES: usize = 1_000_000;
+   |       ^^^^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: constant `MAX_FILE_BYTES` is never used
+  --> umpire/dev/xtask/src/gate/budget_context.rs:15:7
+   |
+15 | const MAX_FILE_BYTES: u64 = 2 * 1024 * 1024 * 1024;
+   |       ^^^^^^^^^^^^^^
+
+warning: constant `MAX_TOTAL_BYTES` is never used
+  --> umpire/dev/xtask/src/gate/budget_context.rs:16:7
+   |
+16 | const MAX_TOTAL_BYTES: u64 = 64 * 1024 * 1024 * 1024;
+   |       ^^^^^^^^^^^^^^^
+
+warning: constant `DEFAULT_EXCLUDED` is never used
+  --> umpire/dev/xtask/src/gate/budget_context.rs:17:7
+   |
+17 | const DEFAULT_EXCLUDED: [&str; 4] = [".git", "target", "build", ".bin"];
+   |       ^^^^^^^^^^^^^^^^
+
+warning: struct `SourceRoot` is never constructed
+  --> umpire/dev/xtask/src/gate/budget_context.rs:20:19
+   |
+20 | pub(super) struct SourceRoot {
+   |                   ^^^^^^^^^^
+
+warning: struct `FileInput` is never constructed
+  --> umpire/dev/xtask/src/gate/budget_context.rs:26:19
+   |
+26 | pub(super) struct FileInput {
+   |                   ^^^^^^^^^
+
+warning: struct `SourceInput` is never constructed
+  --> umpire/dev/xtask/src/gate/budget_context.rs:32:19
+   |
+32 | pub(super) struct SourceInput {
+   |                   ^^^^^^^^^^^
+
+warning: struct `Authority` is never constructed
+  --> umpire/dev/xtask/src/gate/budget_context.rs:38:19
+   |
+38 | pub(super) struct Authority {
+   |                   ^^^^^^^^^
+
+warning: struct `Identity` is never constructed
+  --> umpire/dev/xtask/src/gate/budget_context.rs:45:8
+   |
+45 | struct Identity {
+   |        ^^^^^^^^
+
+warning: associated function `of` is never used
+  --> umpire/dev/xtask/src/gate/budget_context.rs:54:8
+   |
+53 | impl Identity {
+   | ------------- associated function in this implementation
+54 |     fn of(metadata: &Metadata) -> Self {
+   |        ^^
+
+warning: struct `Guard` is never constructed
+  --> umpire/dev/xtask/src/gate/budget_context.rs:66:8
+   |
+66 | struct Guard {
+   |        ^^^^^
+
+warning: struct `Tool` is never constructed
+  --> umpire/dev/xtask/src/gate/budget_context.rs:70:8
+   |
+70 | struct Tool {
+   |        ^^^^
+
+warning: struct `Inputs` is never constructed
+  --> umpire/dev/xtask/src/gate/budget_context.rs:75:19
+   |
+75 | pub(super) struct Inputs {
+   |                   ^^^^^^
+
+warning: function `invalid` is never used
+  --> umpire/dev/xtask/src/gate/budget_context.rs:82:4
+   |
+82 | fn invalid(message: impl Into<String>) -> io::Error {
+   |    ^^^^^^^
+
+warning: function `serialized` is never used
+  --> umpire/dev/xtask/src/gate/budget_context.rs:85:4
+   |
+85 | fn serialized(value: &impl Serialize) -> io::Result<Vec<u8>> {
+   |    ^^^^^^^^^^
+
+warning: function `invalid_json` is never used
+  --> umpire/dev/xtask/src/gate/budget_context.rs:88:4
+   |
+88 | fn invalid_json(error: serde_json::Error) -> io::Error {
+   |    ^^^^^^^^^^^^
+
+warning: function `hex` is never used
+  --> umpire/dev/xtask/src/gate/budget_context.rs:91:4
+   |
+91 | fn hex(bytes: &[u8]) -> String {
+   |    ^^^
+
+warning: function `hex_digest` is never used
+   --> umpire/dev/xtask/src/gate/budget_context.rs:100:4
+    |
+100 | fn hex_digest(bytes: &[u8]) -> String {
+    |    ^^^^^^^^^^
+
+warning: function `normal_relative` is never used
+   --> umpire/dev/xtask/src/gate/budget_context.rs:103:4
+    |
+103 | fn normal_relative(path: &Path) -> bool {
+    |    ^^^^^^^^^^^^^^^
+
+warning: function `canonical` is never used
+   --> umpire/dev/xtask/src/gate/budget_context.rs:110:4
+    |
+110 | fn canonical(path: &Path) -> io::Result<()> {
+    |    ^^^^^^^^^
+
+warning: function `plain_path` is never used
+   --> umpire/dev/xtask/src/gate/budget_context.rs:118:4
+    |
+118 | fn plain_path(root: &Path, relative: &Path) -> io::Result<()> {
+    |    ^^^^^^^^^^
+
+warning: function `exclusions` is never used
+   --> umpire/dev/xtask/src/gate/budget_context.rs:133:4
+    |
+133 | fn exclusions(source: &SourceRoot) -> io::Result<Vec<PathBuf>> {
+    |    ^^^^^^^^^^
+
+warning: function `label_valid` is never used
+   --> umpire/dev/xtask/src/gate/budget_context.rs:152:4
+    |
+152 | fn label_valid(label: &str) -> bool {
+    |    ^^^^^^^^^^^
+
+warning: function `hash_file` is never used
+   --> umpire/dev/xtask/src/gate/budget_context.rs:160:4
+    |
+160 | fn hash_file(file: &File) -> io::Result<(String, Identity)> {
+    |    ^^^^^^^^^
+
+warning: function `open_input` is never used
+   --> umpire/dev/xtask/src/gate/budget_context.rs:185:4
+    |
+185 | fn open_input(path: &Path) -> io::Result<(File, String, Identity)> {
+    |    ^^^^^^^^^^
+
+warning: struct `Inventory` is never constructed
+   --> umpire/dev/xtask/src/gate/budget_context.rs:202:8
+    |
+202 | struct Inventory {
+    |        ^^^^^^^^^
+
+warning: method `walk` is never used
+   --> umpire/dev/xtask/src/gate/budget_context.rs:208:8
+    |
+207 | impl Inventory {
+    | -------------- method in this implementation
+208 |     fn walk(
+    |        ^^^^
+
+warning: function `snapshot` is never used
+   --> umpire/dev/xtask/src/gate/budget_context.rs:277:4
+    |
+277 | fn snapshot(roots: &[SourceRoot]) -> io::Result<(Vec<SourceInput>, Vec<Guard>)> {
+    |    ^^^^^^^^
+
+warning: associated items `capture`, `verify_unchanged`, `digest`, and `authority` are never used
+   --> umpire/dev/xtask/src/gate/budget_context.rs:300:12
+    |
+299 | impl Inputs {
+    | ----------- associated items in this implementation
+300 |     pub fn capture(
+    |            ^^^^^^^
+...
+324 |     pub fn verify_unchanged(&self) -> io::Result<()> {
+    |            ^^^^^^^^^^^^^^^^
+...
+342 |     pub fn digest(&self) -> &str {
+    |            ^^^^^^
+...
+345 |     pub fn authority(&self) -> &Authority {
+    |            ^^^^^^^^^
+
+warning: struct `PinnedImage` is never constructed
+   --> umpire/dev/xtask/src/gate/budget_context.rs:350:19
+    |
+350 | pub(super) struct PinnedImage {
+    |                   ^^^^^^^^^^^
+
+warning: associated items `from_file`, `digest`, `verify_unchanged`, and `copy_to` are never used
+   --> umpire/dev/xtask/src/gate/budget_context.rs:356:8
+    |
+355 | impl PinnedImage {
+    | ---------------- associated items in this implementation
+356 |     fn from_file(file: File) -> io::Result<Self> {
+    |        ^^^^^^^^^
+...
+360 |     pub fn digest(&self) -> &str {
+    |            ^^^^^^
+...
+363 |     pub fn verify_unchanged(&self) -> io::Result<()> {
+    |            ^^^^^^^^^^^^^^^^
+...
+375 |     pub fn copy_to(&self, destination: &Path) -> io::Result<()> {
+    |            ^^^^^^^
+
+warning: function `pin_current_image` is never used
+   --> umpire/dev/xtask/src/gate/budget_context.rs:404:15
+    |
+404 | pub(super) fn pin_current_image() -> io::Result<PinnedImage> {
+    |               ^^^^^^^^^^^^^^^^^
+
+warning: constant `MAX_STAGES` is never used
+  --> umpire/dev/xtask/src/gate/budget_coordinator.rs:15:7
+   |
+15 | const MAX_STAGES: usize = 256;
+   |       ^^^^^^^^^^
+
+warning: constant `MAX_BYTES` is never used
+  --> umpire/dev/xtask/src/gate/budget_coordinator.rs:16:7
+   |
+16 | const MAX_BYTES: u64 = 262_144;
+   |       ^^^^^^^^^
+
+warning: constant `POLL` is never used
+  --> umpire/dev/xtask/src/gate/budget_coordinator.rs:17:7
+   |
+17 | const POLL: Duration = Duration::from_millis(5);
+   |       ^^^^
+
+warning: static `NEXT` is never used
+  --> umpire/dev/xtask/src/gate/budget_coordinator.rs:18:8
+   |
+18 | static NEXT: AtomicU64 = AtomicU64::new(0);
+   |        ^^^^
+
+warning: struct `StageId` is never constructed
+  --> umpire/dev/xtask/src/gate/budget_coordinator.rs:22:19
+   |
+22 | pub(super) struct StageId(String);
+   |                   ^^^^^^^
+
+warning: associated items `new` and `as_str` are never used
+  --> umpire/dev/xtask/src/gate/budget_coordinator.rs:25:19
+   |
+24 | impl StageId {
+   | ------------ associated items in this implementation
+25 |     pub(super) fn new(value: &str) -> io::Result<Self> {
+   |                   ^^^
+...
+39 |     pub(super) fn as_str(&self) -> &str {
+   |                   ^^^^^^
+
+warning: struct `FailureCause` is never constructed
+  --> umpire/dev/xtask/src/gate/budget_coordinator.rs:46:19
+   |
+46 | pub(super) struct FailureCause {
+   |                   ^^^^^^^^^^^^
+
+warning: enum `Error` is never used
+  --> umpire/dev/xtask/src/gate/budget_coordinator.rs:53:17
+   |
+53 | pub(super) enum Error {
+   |                 ^^^^^
+
+warning: method `original_failure` is never used
+  --> umpire/dev/xtask/src/gate/budget_coordinator.rs:59:19
+   |
+58 | impl Error {
+   | ---------- method in this implementation
+59 |     pub(super) fn original_failure(&self) -> Option<&FailureCause> {
+   |                   ^^^^^^^^^^^^^^^^
+
+warning: struct `Context` is never constructed
+  --> umpire/dev/xtask/src/gate/budget_coordinator.rs:88:8
+   |
+88 | struct Context {
+   |        ^^^^^^^
+
+warning: associated items `new`, `contains`, and `drain` are never used
+   --> umpire/dev/xtask/src/gate/budget_coordinator.rs:95:8
+    |
+ 94 | impl Context {
+    | ------------ associated items in this implementation
+ 95 |     fn new(invocation: &str, stages: &[StageId], drain: Duration) -> io::Result<Self> {
+    |        ^^^
+...
+117 |     fn contains(&self, stage: &StageId) -> bool {
+    |        ^^^^^^^^
+...
+120 |     fn drain(&self) -> Duration {
+    |        ^^^^^
+
+warning: struct `Identity` is never constructed
+   --> umpire/dev/xtask/src/gate/budget_coordinator.rs:127:8
+    |
+127 | struct Identity {
+    |        ^^^^^^^^
+
+warning: associated function `of` is never used
+   --> umpire/dev/xtask/src/gate/budget_coordinator.rs:132:8
+    |
+131 | impl Identity {
+    | ------------- associated function in this implementation
+132 |     fn of(metadata: &fs::Metadata) -> Self {
+    |        ^^
+
+warning: struct `Manifest` is never constructed
+   --> umpire/dev/xtask/src/gate/budget_coordinator.rs:139:8
+    |
+139 | struct Manifest {
+    |        ^^^^^^^^
+
+warning: enum `Kind` is never used
+   --> umpire/dev/xtask/src/gate/budget_coordinator.rs:148:6
+    |
+148 | enum Kind {
+    |      ^^^^
+
+warning: struct `Entry` is never constructed
+   --> umpire/dev/xtask/src/gate/budget_coordinator.rs:156:8
+    |
+156 | struct Entry {
+    |        ^^^^^
+
+warning: enum `AbortOrigin` is never used
+   --> umpire/dev/xtask/src/gate/budget_coordinator.rs:164:6
+    |
+164 | enum AbortOrigin {
+    |      ^^^^^^^^^^^
+
+warning: struct `Abort` is never constructed
+   --> umpire/dev/xtask/src/gate/budget_coordinator.rs:171:8
+    |
+171 | struct Abort {
+    |        ^^^^^
+
+warning: struct `State` is never constructed
+   --> umpire/dev/xtask/src/gate/budget_coordinator.rs:178:8
+    |
+178 | struct State {
+    |        ^^^^^
+
+warning: methods `validate`, `aborted`, `eligible`, `remove_active`, and `abort` are never used
+   --> umpire/dev/xtask/src/gate/budget_coordinator.rs:190:8
+    |
+189 | impl State {
+    | ---------- methods in this implementation
+190 |     fn validate(&self, coordinator: &Coordinator) -> io::Result<()> {
+    |        ^^^^^^^^
+...
+233 |     fn aborted(&self) -> Result<(), Error> {
+    |        ^^^^^^^
+...
+236 |     fn eligible(&self, entry: &Entry) -> bool {
+    |        ^^^^^^^^
+...
+257 |     fn remove_active(&mut self, entry: &Entry) -> io::Result<()> {
+    |        ^^^^^^^^^^^^^
+...
+266 |     fn abort(&mut self, cause: FailureCause, origin: AbortOrigin) {
+    |        ^^^^^
+
+warning: struct `Coordinator` is never constructed
+   --> umpire/dev/xtask/src/gate/budget_coordinator.rs:276:19
+    |
+276 | pub(super) struct Coordinator {
+    |                   ^^^^^^^^^^^
+
+warning: multiple associated items are never used
+   --> umpire/dev/xtask/src/gate/budget_coordinator.rs:283:19
+    |
+282 | impl Coordinator {
+    | ---------------- associated items in this implementation
+283 |     pub(super) fn create(
+    |                   ^^^^^^
+...
+334 |     pub(super) fn open(
+    |                   ^^^^
+...
+358 |     pub(super) fn admit_shared(&self, stage: &StageId) -> Result<Permit, Error> {
+    |                   ^^^^^^^^^^^^
+...
+361 |     pub(super) fn admit_exclusive_first(&self, stage: &StageId) -> Result<Permit, Error> {
+    |                   ^^^^^^^^^^^^^^^^^^^^^
+...
+365 |     fn admit(&self, stage: &StageId, kind: Kind) -> Result<Permit, Error> {
+    |        ^^^^^
+...
+382 |     pub(super) fn failure(&self) -> Result<Option<FailureCause>, Error> {
+    |                   ^^^^^^^
+...
+386 |     pub(super) fn abort(&self, cause: FailureCause) -> Result<(), Error> {
+    |                   ^^^^^
+...
+394 |     fn abort_incomplete(&self, cause: FailureCause) -> Result<(), Error> {
+    |        ^^^^^^^^^^^^^^^^
+...
+402 |     fn wait(&self, entry: &Entry) -> Result<Permit, Error> {
+    |        ^^^^
+...
+441 |     fn update<T>(&self, body: impl FnOnce(&mut State) -> Result<T, Error>) -> Result<T, Error> {
+    |        ^^^^^^
+...
+445 |     fn update_until<T>(
+    |        ^^^^^^^^^^^^
+...
+464 |     fn lock(&self, deadline: Instant) -> io::Result<File> {
+    |        ^^^^
+...
+494 |     fn verify_files(&self) -> io::Result<()> {
+    |        ^^^^^^^^^^^^
+...
+510 |     fn publish(&self, state: &State) -> io::Result<()> {
+    |        ^^^^^^^
+
+warning: struct `Permit` is never constructed
+   --> umpire/dev/xtask/src/gate/budget_coordinator.rs:525:19
+    |
+525 | pub(super) struct Permit {
+    |                   ^^^^^^
+
+warning: methods `finish_fast`, `finish_slow`, and `abort` are never used
+   --> umpire/dev/xtask/src/gate/budget_coordinator.rs:531:19
+    |
+530 | impl Permit {
+    | ----------- methods in this implementation
+531 |     pub(super) fn finish_fast(mut self) -> Result<(), Error> {
+    |                   ^^^^^^^^^^^
+...
+541 |     pub(super) fn finish_slow(mut self) -> Result<RetryToken, Error> {
+    |                   ^^^^^^^^^^^
+...
+566 |     pub(super) fn abort(mut self, cause: FailureCause) -> Result<(), Error> {
+    |                   ^^^^^
+
+warning: struct `RetryToken` is never constructed
+   --> umpire/dev/xtask/src/gate/budget_coordinator.rs:594:19
+    |
+594 | pub(super) struct RetryToken {
+    |                   ^^^^^^^^^^
+
+warning: method `wait` is never used
+   --> umpire/dev/xtask/src/gate/budget_coordinator.rs:600:19
+    |
+599 | impl RetryToken {
+    | --------------- method in this implementation
+600 |     pub(super) fn wait(mut self) -> Result<Permit, Error> {
+    |                   ^^^^
+
+warning: function `invalid` is never used
+   --> umpire/dev/xtask/src/gate/budget_coordinator.rs:618:4
+    |
+618 | fn invalid(message: &str) -> io::Error {
+    |    ^^^^^^^
+
+warning: function `valid_owner` is never used
+   --> umpire/dev/xtask/src/gate/budget_coordinator.rs:621:4
+    |
+621 | fn valid_owner(owner: &str) -> bool {
+    |    ^^^^^^^^^^^
+
+warning: function `new_owner` is never used
+   --> umpire/dev/xtask/src/gate/budget_coordinator.rs:626:4
+    |
+626 | fn new_owner() -> io::Result<String> {
+    |    ^^^^^^^^^
+
+warning: function `validate_cause` is never used
+   --> umpire/dev/xtask/src/gate/budget_coordinator.rs:630:4
+    |
+630 | fn validate_cause(context: &Context, cause: &FailureCause) -> io::Result<()> {
+    |    ^^^^^^^^^^^^^^
+
+warning: function `directory_identity` is never used
+   --> umpire/dev/xtask/src/gate/budget_coordinator.rs:640:4
+    |
+640 | fn directory_identity(path: &Path) -> io::Result<Identity> {
+    |    ^^^^^^^^^^^^^^^^^^
+
+warning: function `open_record` is never used
+   --> umpire/dev/xtask/src/gate/budget_coordinator.rs:662:4
+    |
+662 | fn open_record(path: &Path) -> io::Result<File> {
+    |    ^^^^^^^^^^^
+
+warning: function `read_record` is never used
+   --> umpire/dev/xtask/src/gate/budget_coordinator.rs:678:4
+    |
+678 | fn read_record(path: &Path) -> io::Result<Vec<u8>> {
+    |    ^^^^^^^^^^^
+
+warning: function `create_record` is never used
+   --> umpire/dev/xtask/src/gate/budget_coordinator.rs:687:4
+    |
+687 | fn create_record(path: &Path, bytes: &[u8]) -> io::Result<()> {
+    |    ^^^^^^^^^^^^^
+
+warning: enum `Limit` is never used
+  --> umpire/dev/xtask/src/gate/budgets.rs:10:6
+   |
+10 | enum Limit {
+   |      ^^^^^
+
+warning: struct `StageSpec` is never constructed
+  --> umpire/dev/xtask/src/gate/budgets.rs:35:8
+   |
+35 | struct StageSpec {
+   |        ^^^^^^^^^
+
+warning: method `limits` is never used
+  --> umpire/dev/xtask/src/gate/budgets.rs:47:8
+   |
+46 | impl StageSpec {
+   | -------------- method in this implementation
+47 |     fn limits(&self) -> [Limit; 6] {
+   |        ^^^^^^
+
+warning: struct `TableSpec` is never constructed
+  --> umpire/dev/xtask/src/gate/budgets.rs:61:8
+   |
+61 | struct TableSpec {
+   |        ^^^^^^^^^
+
+warning: struct `Table` is never constructed
+  --> umpire/dev/xtask/src/gate/budgets.rs:69:19
+   |
+69 | pub(crate) struct Table {
+   |                   ^^^^^
+
+warning: struct `StageBudget` is never constructed
+  --> umpire/dev/xtask/src/gate/budgets.rs:75:19
+   |
+75 | pub(crate) struct StageBudget {
+   |                   ^^^^^^^^^^^
+
+warning: enum `TimeDecision` is never used
+  --> umpire/dev/xtask/src/gate/budgets.rs:80:17
+   |
+80 | pub(crate) enum TimeDecision {
+   |                 ^^^^^^^^^^^^
+
+warning: function `refusal` is never used
+  --> umpire/dev/xtask/src/gate/budgets.rs:85:4
+   |
+85 | fn refusal(stage: &str, reason: &str) -> io::Error {
+   |    ^^^^^^^
+
+warning: function `stage_identity` is never used
+  --> umpire/dev/xtask/src/gate/budgets.rs:89:4
+   |
+89 | fn stage_identity(name: &str) -> io::Result<()> {
+   |    ^^^^^^^^^^^^^^
+
+warning: associated items `parse`, `validate_inventory`, `budget`, and `drain_seconds` are never used
+   --> umpire/dev/xtask/src/gate/budgets.rs:107:19
+    |
+106 | impl Table {
+    | ---------- associated items in this implementation
+107 |     pub(crate) fn parse(source: &str) -> io::Result<Self> {
+    |                   ^^^^^
+...
+142 |     pub(crate) fn validate_inventory(
+    |                   ^^^^^^^^^^^^^^^^^^
+...
+169 |     pub(crate) fn budget(&self, stage: &str) -> io::Result<&StageBudget> {
+    |                   ^^^^^^
+...
+176 |     pub(crate) fn drain_seconds(&self) -> f64 {
+    |                   ^^^^^^^^^^^^^
+
+warning: methods `check_counts` and `check_time` are never used
+   --> umpire/dev/xtask/src/gate/budgets.rs:182:19
+    |
+181 | impl StageBudget {
+    | ---------------- methods in this implementation
+182 |     pub(crate) fn check_counts(
+    |                   ^^^^^^^^^^^^
+...
+234 |     pub(crate) fn check_time(&self, seconds: f64, attempt: u8) -> io::Result<TimeDecision> {
+    |                   ^^^^^^^^^^
+
+warning: unreachable `pub` item
+   --> umpire/dev/xtask/src/gate/budget_context.rs:300:5
+    |
+300 |       pub fn capture(
+    |       ^--
+    |       |
+    |  _____help: consider restricting its visibility: `pub(super)`
+    | |
+301 | |         roots: &[SourceRoot],
+302 | |         tools: &[PathBuf],
+303 | |         semantic: &impl Serialize,
+304 | |     ) -> io::Result<Self> {
+    | |_________________________^
+    |
+    = note: requested on the command line with `-W unreachable-pub`
+
+warning: unreachable `pub` item
+   --> umpire/dev/xtask/src/gate/budget_context.rs:324:5
+    |
+324 |     pub fn verify_unchanged(&self) -> io::Result<()> {
+    |     ---^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |     |
+    |     help: consider restricting its visibility: `pub(super)`
+
+warning: unreachable `pub` item
+   --> umpire/dev/xtask/src/gate/budget_context.rs:342:5
+    |
+342 |     pub fn digest(&self) -> &str {
+    |     ---^^^^^^^^^^^^^^^^^^^^^^^^^
+    |     |
+    |     help: consider restricting its visibility: `pub(super)`
+
+warning: unreachable `pub` item
+   --> umpire/dev/xtask/src/gate/budget_context.rs:345:5
+    |
+345 |     pub fn authority(&self) -> &Authority {
+    |     ---^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |     |
+    |     help: consider restricting its visibility: `pub(super)`
+
+warning: unreachable `pub` item
+   --> umpire/dev/xtask/src/gate/budget_context.rs:360:5
+    |
+360 |     pub fn digest(&self) -> &str {
+    |     ---^^^^^^^^^^^^^^^^^^^^^^^^^
+    |     |
+    |     help: consider restricting its visibility: `pub(super)`
+
+warning: unreachable `pub` item
+   --> umpire/dev/xtask/src/gate/budget_context.rs:363:5
+    |
+363 |     pub fn verify_unchanged(&self) -> io::Result<()> {
+    |     ---^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |     |
+    |     help: consider restricting its visibility: `pub(super)`
+
+warning: unreachable `pub` item
+   --> umpire/dev/xtask/src/gate/budget_context.rs:375:5
+    |
+375 |     pub fn copy_to(&self, destination: &Path) -> io::Result<()> {
+    |     ---^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |     |
+    |     help: consider restricting its visibility: `pub(super)`
+
+warning: `xtask` (lib) generated 84 warnings (run `cargo fix --lib -p xtask` to apply 7 suggestions)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.06s
+     Running `/home/agent/.cache/codex-build/fn24613-proof-20261030/debug/temporal-xtask guest umpire-temporal-guest /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24613-protocol/.flow/tmp/fn24613-resume-20261030/umpire_temporal_guest.wasm`
+warning: constant `MAX_ENTRIES` is never used
+  --> dev/xtask/src/gate/budget_context.rs:14:7
+   |
+14 | const MAX_ENTRIES: usize = 1_000_000;
+   |       ^^^^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: constant `MAX_FILE_BYTES` is never used
+  --> dev/xtask/src/gate/budget_context.rs:15:7
+   |
+15 | const MAX_FILE_BYTES: u64 = 2 * 1024 * 1024 * 1024;
+   |       ^^^^^^^^^^^^^^
+
+warning: constant `MAX_TOTAL_BYTES` is never used
+  --> dev/xtask/src/gate/budget_context.rs:16:7
+   |
+16 | const MAX_TOTAL_BYTES: u64 = 64 * 1024 * 1024 * 1024;
+   |       ^^^^^^^^^^^^^^^
+
+warning: constant `DEFAULT_EXCLUDED` is never used
+  --> dev/xtask/src/gate/budget_context.rs:17:7
+   |
+17 | const DEFAULT_EXCLUDED: [&str; 4] = [".git", "target", "build", ".bin"];
+   |       ^^^^^^^^^^^^^^^^
+
+warning: struct `SourceRoot` is never constructed
+  --> dev/xtask/src/gate/budget_context.rs:20:19
+   |
+20 | pub(super) struct SourceRoot {
+   |                   ^^^^^^^^^^
+
+warning: struct `FileInput` is never constructed
+  --> dev/xtask/src/gate/budget_context.rs:26:19
+   |
+26 | pub(super) struct FileInput {
+   |                   ^^^^^^^^^
+
+warning: struct `SourceInput` is never constructed
+  --> dev/xtask/src/gate/budget_context.rs:32:19
+   |
+32 | pub(super) struct SourceInput {
+   |                   ^^^^^^^^^^^
+
+warning: struct `Authority` is never constructed
+  --> dev/xtask/src/gate/budget_context.rs:38:19
+   |
+38 | pub(super) struct Authority {
+   |                   ^^^^^^^^^
+
+warning: struct `Identity` is never constructed
+  --> dev/xtask/src/gate/budget_context.rs:45:8
+   |
+45 | struct Identity {
+   |        ^^^^^^^^
+
+warning: associated function `of` is never used
+  --> dev/xtask/src/gate/budget_context.rs:54:8
+   |
+53 | impl Identity {
+   | ------------- associated function in this implementation
+54 |     fn of(metadata: &Metadata) -> Self {
+   |        ^^
+
+warning: struct `Guard` is never constructed
+  --> dev/xtask/src/gate/budget_context.rs:66:8
+   |
+66 | struct Guard {
+   |        ^^^^^
+
+warning: struct `Tool` is never constructed
+  --> dev/xtask/src/gate/budget_context.rs:70:8
+   |
+70 | struct Tool {
+   |        ^^^^
+
+warning: struct `Inputs` is never constructed
+  --> dev/xtask/src/gate/budget_context.rs:75:19
+   |
+75 | pub(super) struct Inputs {
+   |                   ^^^^^^
+
+warning: function `invalid` is never used
+  --> dev/xtask/src/gate/budget_context.rs:82:4
+   |
+82 | fn invalid(message: impl Into<String>) -> io::Error {
+   |    ^^^^^^^
+
+warning: function `serialized` is never used
+  --> dev/xtask/src/gate/budget_context.rs:85:4
+   |
+85 | fn serialized(value: &impl Serialize) -> io::Result<Vec<u8>> {
+   |    ^^^^^^^^^^
+
+warning: function `invalid_json` is never used
+  --> dev/xtask/src/gate/budget_context.rs:88:4
+   |
+88 | fn invalid_json(error: serde_json::Error) -> io::Error {
+   |    ^^^^^^^^^^^^
+
+warning: function `hex` is never used
+  --> dev/xtask/src/gate/budget_context.rs:91:4
+   |
+91 | fn hex(bytes: &[u8]) -> String {
+   |    ^^^
+
+warning: function `hex_digest` is never used
+   --> dev/xtask/src/gate/budget_context.rs:100:4
+    |
+100 | fn hex_digest(bytes: &[u8]) -> String {
+    |    ^^^^^^^^^^
+
+warning: function `normal_relative` is never used
+   --> dev/xtask/src/gate/budget_context.rs:103:4
+    |
+103 | fn normal_relative(path: &Path) -> bool {
+    |    ^^^^^^^^^^^^^^^
+
+warning: function `canonical` is never used
+   --> dev/xtask/src/gate/budget_context.rs:110:4
+    |
+110 | fn canonical(path: &Path) -> io::Result<()> {
+    |    ^^^^^^^^^
+
+warning: function `plain_path` is never used
+   --> dev/xtask/src/gate/budget_context.rs:118:4
+    |
+118 | fn plain_path(root: &Path, relative: &Path) -> io::Result<()> {
+    |    ^^^^^^^^^^
+
+warning: function `exclusions` is never used
+   --> dev/xtask/src/gate/budget_context.rs:133:4
+    |
+133 | fn exclusions(source: &SourceRoot) -> io::Result<Vec<PathBuf>> {
+    |    ^^^^^^^^^^
+
+warning: function `label_valid` is never used
+   --> dev/xtask/src/gate/budget_context.rs:152:4
+    |
+152 | fn label_valid(label: &str) -> bool {
+    |    ^^^^^^^^^^^
+
+warning: function `hash_file` is never used
+   --> dev/xtask/src/gate/budget_context.rs:160:4
+    |
+160 | fn hash_file(file: &File) -> io::Result<(String, Identity)> {
+    |    ^^^^^^^^^
+
+warning: function `open_input` is never used
+   --> dev/xtask/src/gate/budget_context.rs:185:4
+    |
+185 | fn open_input(path: &Path) -> io::Result<(File, String, Identity)> {
+    |    ^^^^^^^^^^
+
+warning: struct `Inventory` is never constructed
+   --> dev/xtask/src/gate/budget_context.rs:202:8
+    |
+202 | struct Inventory {
+    |        ^^^^^^^^^
+
+warning: method `walk` is never used
+   --> dev/xtask/src/gate/budget_context.rs:208:8
+    |
+207 | impl Inventory {
+    | -------------- method in this implementation
+208 |     fn walk(
+    |        ^^^^
+
+warning: function `snapshot` is never used
+   --> dev/xtask/src/gate/budget_context.rs:277:4
+    |
+277 | fn snapshot(roots: &[SourceRoot]) -> io::Result<(Vec<SourceInput>, Vec<Guard>)> {
+    |    ^^^^^^^^
+
+warning: associated items `capture`, `verify_unchanged`, `digest`, and `authority` are never used
+   --> dev/xtask/src/gate/budget_context.rs:300:12
+    |
+299 | impl Inputs {
+    | ----------- associated items in this implementation
+300 |     pub fn capture(
+    |            ^^^^^^^
+...
+324 |     pub fn verify_unchanged(&self) -> io::Result<()> {
+    |            ^^^^^^^^^^^^^^^^
+...
+342 |     pub fn digest(&self) -> &str {
+    |            ^^^^^^
+...
+345 |     pub fn authority(&self) -> &Authority {
+    |            ^^^^^^^^^
+
+warning: struct `PinnedImage` is never constructed
+   --> dev/xtask/src/gate/budget_context.rs:350:19
+    |
+350 | pub(super) struct PinnedImage {
+    |                   ^^^^^^^^^^^
+
+warning: associated items `from_file`, `digest`, `verify_unchanged`, and `copy_to` are never used
+   --> dev/xtask/src/gate/budget_context.rs:356:8
+    |
+355 | impl PinnedImage {
+    | ---------------- associated items in this implementation
+356 |     fn from_file(file: File) -> io::Result<Self> {
+    |        ^^^^^^^^^
+...
+360 |     pub fn digest(&self) -> &str {
+    |            ^^^^^^
+...
+363 |     pub fn verify_unchanged(&self) -> io::Result<()> {
+    |            ^^^^^^^^^^^^^^^^
+...
+375 |     pub fn copy_to(&self, destination: &Path) -> io::Result<()> {
+    |            ^^^^^^^
+
+warning: function `pin_current_image` is never used
+   --> dev/xtask/src/gate/budget_context.rs:404:15
+    |
+404 | pub(super) fn pin_current_image() -> io::Result<PinnedImage> {
+    |               ^^^^^^^^^^^^^^^^^
+
+warning: constant `MAX_STAGES` is never used
+  --> dev/xtask/src/gate/budget_coordinator.rs:15:7
+   |
+15 | const MAX_STAGES: usize = 256;
+   |       ^^^^^^^^^^
+
+warning: constant `MAX_BYTES` is never used
+  --> dev/xtask/src/gate/budget_coordinator.rs:16:7
+   |
+16 | const MAX_BYTES: u64 = 262_144;
+   |       ^^^^^^^^^
+
+warning: constant `POLL` is never used
+  --> dev/xtask/src/gate/budget_coordinator.rs:17:7
+   |
+17 | const POLL: Duration = Duration::from_millis(5);
+   |       ^^^^
+
+warning: static `NEXT` is never used
+  --> dev/xtask/src/gate/budget_coordinator.rs:18:8
+   |
+18 | static NEXT: AtomicU64 = AtomicU64::new(0);
+   |        ^^^^
+
+warning: struct `StageId` is never constructed
+  --> dev/xtask/src/gate/budget_coordinator.rs:22:19
+   |
+22 | pub(super) struct StageId(String);
+   |                   ^^^^^^^
+
+warning: associated items `new` and `as_str` are never used
+  --> dev/xtask/src/gate/budget_coordinator.rs:25:19
+   |
+24 | impl StageId {
+   | ------------ associated items in this implementation
+25 |     pub(super) fn new(value: &str) -> io::Result<Self> {
+   |                   ^^^
+...
+39 |     pub(super) fn as_str(&self) -> &str {
+   |                   ^^^^^^
+
+warning: struct `FailureCause` is never constructed
+  --> dev/xtask/src/gate/budget_coordinator.rs:46:19
+   |
+46 | pub(super) struct FailureCause {
+   |                   ^^^^^^^^^^^^
+
+warning: enum `Error` is never used
+  --> dev/xtask/src/gate/budget_coordinator.rs:53:17
+   |
+53 | pub(super) enum Error {
+   |                 ^^^^^
+
+warning: method `original_failure` is never used
+  --> dev/xtask/src/gate/budget_coordinator.rs:59:19
+   |
+58 | impl Error {
+   | ---------- method in this implementation
+59 |     pub(super) fn original_failure(&self) -> Option<&FailureCause> {
+   |                   ^^^^^^^^^^^^^^^^
+
+warning: struct `Context` is never constructed
+  --> dev/xtask/src/gate/budget_coordinator.rs:88:8
+   |
+88 | struct Context {
+   |        ^^^^^^^
+
+warning: associated items `new`, `contains`, and `drain` are never used
+   --> dev/xtask/src/gate/budget_coordinator.rs:95:8
+    |
+ 94 | impl Context {
+    | ------------ associated items in this implementation
+ 95 |     fn new(invocation: &str, stages: &[StageId], drain: Duration) -> io::Result<Self> {
+    |        ^^^
+...
+117 |     fn contains(&self, stage: &StageId) -> bool {
+    |        ^^^^^^^^
+...
+120 |     fn drain(&self) -> Duration {
+    |        ^^^^^
+
+warning: struct `Identity` is never constructed
+   --> dev/xtask/src/gate/budget_coordinator.rs:127:8
+    |
+127 | struct Identity {
+    |        ^^^^^^^^
+
+warning: associated function `of` is never used
+   --> dev/xtask/src/gate/budget_coordinator.rs:132:8
+    |
+131 | impl Identity {
+    | ------------- associated function in this implementation
+132 |     fn of(metadata: &fs::Metadata) -> Self {
+    |        ^^
+
+warning: struct `Manifest` is never constructed
+   --> dev/xtask/src/gate/budget_coordinator.rs:139:8
+    |
+139 | struct Manifest {
+    |        ^^^^^^^^
+
+warning: enum `Kind` is never used
+   --> dev/xtask/src/gate/budget_coordinator.rs:148:6
+    |
+148 | enum Kind {
+    |      ^^^^
+
+warning: struct `Entry` is never constructed
+   --> dev/xtask/src/gate/budget_coordinator.rs:156:8
+    |
+156 | struct Entry {
+    |        ^^^^^
+
+warning: enum `AbortOrigin` is never used
+   --> dev/xtask/src/gate/budget_coordinator.rs:164:6
+    |
+164 | enum AbortOrigin {
+    |      ^^^^^^^^^^^
+
+warning: struct `Abort` is never constructed
+   --> dev/xtask/src/gate/budget_coordinator.rs:171:8
+    |
+171 | struct Abort {
+    |        ^^^^^
+
+warning: struct `State` is never constructed
+   --> dev/xtask/src/gate/budget_coordinator.rs:178:8
+    |
+178 | struct State {
+    |        ^^^^^
+
+warning: methods `validate`, `aborted`, `eligible`, `remove_active`, and `abort` are never used
+   --> dev/xtask/src/gate/budget_coordinator.rs:190:8
+    |
+189 | impl State {
+    | ---------- methods in this implementation
+190 |     fn validate(&self, coordinator: &Coordinator) -> io::Result<()> {
+    |        ^^^^^^^^
+...
+233 |     fn aborted(&self) -> Result<(), Error> {
+    |        ^^^^^^^
+...
+236 |     fn eligible(&self, entry: &Entry) -> bool {
+    |        ^^^^^^^^
+...
+257 |     fn remove_active(&mut self, entry: &Entry) -> io::Result<()> {
+    |        ^^^^^^^^^^^^^
+...
+266 |     fn abort(&mut self, cause: FailureCause, origin: AbortOrigin) {
+    |        ^^^^^
+
+warning: struct `Coordinator` is never constructed
+   --> dev/xtask/src/gate/budget_coordinator.rs:276:19
+    |
+276 | pub(super) struct Coordinator {
+    |                   ^^^^^^^^^^^
+
+warning: multiple associated items are never used
+   --> dev/xtask/src/gate/budget_coordinator.rs:283:19
+    |
+282 | impl Coordinator {
+    | ---------------- associated items in this implementation
+283 |     pub(super) fn create(
+    |                   ^^^^^^
+...
+334 |     pub(super) fn open(
+    |                   ^^^^
+...
+358 |     pub(super) fn admit_shared(&self, stage: &StageId) -> Result<Permit, Error> {
+    |                   ^^^^^^^^^^^^
+...
+361 |     pub(super) fn admit_exclusive_first(&self, stage: &StageId) -> Result<Permit, Error> {
+    |                   ^^^^^^^^^^^^^^^^^^^^^
+...
+365 |     fn admit(&self, stage: &StageId, kind: Kind) -> Result<Permit, Error> {
+    |        ^^^^^
+...
+382 |     pub(super) fn failure(&self) -> Result<Option<FailureCause>, Error> {
+    |                   ^^^^^^^
+...
+386 |     pub(super) fn abort(&self, cause: FailureCause) -> Result<(), Error> {
+    |                   ^^^^^
+...
+394 |     fn abort_incomplete(&self, cause: FailureCause) -> Result<(), Error> {
+    |        ^^^^^^^^^^^^^^^^
+...
+402 |     fn wait(&self, entry: &Entry) -> Result<Permit, Error> {
+    |        ^^^^
+...
+441 |     fn update<T>(&self, body: impl FnOnce(&mut State) -> Result<T, Error>) -> Result<T, Error> {
+    |        ^^^^^^
+...
+445 |     fn update_until<T>(
+    |        ^^^^^^^^^^^^
+...
+464 |     fn lock(&self, deadline: Instant) -> io::Result<File> {
+    |        ^^^^
+...
+494 |     fn verify_files(&self) -> io::Result<()> {
+    |        ^^^^^^^^^^^^
+...
+510 |     fn publish(&self, state: &State) -> io::Result<()> {
+    |        ^^^^^^^
+
+warning: struct `Permit` is never constructed
+   --> dev/xtask/src/gate/budget_coordinator.rs:525:19
+    |
+525 | pub(super) struct Permit {
+    |                   ^^^^^^
+
+warning: methods `finish_fast`, `finish_slow`, and `abort` are never used
+   --> dev/xtask/src/gate/budget_coordinator.rs:531:19
+    |
+530 | impl Permit {
+    | ----------- methods in this implementation
+531 |     pub(super) fn finish_fast(mut self) -> Result<(), Error> {
+    |                   ^^^^^^^^^^^
+...
+541 |     pub(super) fn finish_slow(mut self) -> Result<RetryToken, Error> {
+    |                   ^^^^^^^^^^^
+...
+566 |     pub(super) fn abort(mut self, cause: FailureCause) -> Result<(), Error> {
+    |                   ^^^^^
+
+warning: struct `RetryToken` is never constructed
+   --> dev/xtask/src/gate/budget_coordinator.rs:594:19
+    |
+594 | pub(super) struct RetryToken {
+    |                   ^^^^^^^^^^
+
+warning: method `wait` is never used
+   --> dev/xtask/src/gate/budget_coordinator.rs:600:19
+    |
+599 | impl RetryToken {
+    | --------------- method in this implementation
+600 |     pub(super) fn wait(mut self) -> Result<Permit, Error> {
+    |                   ^^^^
+
+warning: function `invalid` is never used
+   --> dev/xtask/src/gate/budget_coordinator.rs:618:4
+    |
+618 | fn invalid(message: &str) -> io::Error {
+    |    ^^^^^^^
+
+warning: function `valid_owner` is never used
+   --> dev/xtask/src/gate/budget_coordinator.rs:621:4
+    |
+621 | fn valid_owner(owner: &str) -> bool {
+    |    ^^^^^^^^^^^
+
+warning: function `new_owner` is never used
+   --> dev/xtask/src/gate/budget_coordinator.rs:626:4
+    |
+626 | fn new_owner() -> io::Result<String> {
+    |    ^^^^^^^^^
+
+warning: function `validate_cause` is never used
+   --> dev/xtask/src/gate/budget_coordinator.rs:630:4
+    |
+630 | fn validate_cause(context: &Context, cause: &FailureCause) -> io::Result<()> {
+    |    ^^^^^^^^^^^^^^
+
+warning: function `directory_identity` is never used
+   --> dev/xtask/src/gate/budget_coordinator.rs:640:4
+    |
+640 | fn directory_identity(path: &Path) -> io::Result<Identity> {
+    |    ^^^^^^^^^^^^^^^^^^
+
+warning: function `open_record` is never used
+   --> dev/xtask/src/gate/budget_coordinator.rs:662:4
+    |
+662 | fn open_record(path: &Path) -> io::Result<File> {
+    |    ^^^^^^^^^^^
+
+warning: function `read_record` is never used
+   --> dev/xtask/src/gate/budget_coordinator.rs:678:4
+    |
+678 | fn read_record(path: &Path) -> io::Result<Vec<u8>> {
+    |    ^^^^^^^^^^^
+
+warning: function `create_record` is never used
+   --> dev/xtask/src/gate/budget_coordinator.rs:687:4
+    |
+687 | fn create_record(path: &Path, bytes: &[u8]) -> io::Result<()> {
+    |    ^^^^^^^^^^^^^
+
+warning: enum `Limit` is never used
+  --> dev/xtask/src/gate/budgets.rs:10:6
+   |
+10 | enum Limit {
+   |      ^^^^^
+
+warning: struct `StageSpec` is never constructed
+  --> dev/xtask/src/gate/budgets.rs:35:8
+   |
+35 | struct StageSpec {
+   |        ^^^^^^^^^
+
+warning: method `limits` is never used
+  --> dev/xtask/src/gate/budgets.rs:47:8
+   |
+46 | impl StageSpec {
+   | -------------- method in this implementation
+47 |     fn limits(&self) -> [Limit; 6] {
+   |        ^^^^^^
+
+warning: struct `TableSpec` is never constructed
+  --> dev/xtask/src/gate/budgets.rs:61:8
+   |
+61 | struct TableSpec {
+   |        ^^^^^^^^^
+
+warning: struct `Table` is never constructed
+  --> dev/xtask/src/gate/budgets.rs:69:19
+   |
+69 | pub(crate) struct Table {
+   |                   ^^^^^
+
+warning: struct `StageBudget` is never constructed
+  --> dev/xtask/src/gate/budgets.rs:75:19
+   |
+75 | pub(crate) struct StageBudget {
+   |                   ^^^^^^^^^^^
+
+warning: enum `TimeDecision` is never used
+  --> dev/xtask/src/gate/budgets.rs:80:17
+   |
+80 | pub(crate) enum TimeDecision {
+   |                 ^^^^^^^^^^^^
+
+warning: function `refusal` is never used
+  --> dev/xtask/src/gate/budgets.rs:85:4
+   |
+85 | fn refusal(stage: &str, reason: &str) -> io::Error {
+   |    ^^^^^^^
+
+warning: function `stage_identity` is never used
+  --> dev/xtask/src/gate/budgets.rs:89:4
+   |
+89 | fn stage_identity(name: &str) -> io::Result<()> {
+   |    ^^^^^^^^^^^^^^
+
+warning: associated items `parse`, `validate_inventory`, `budget`, and `drain_seconds` are never used
+   --> dev/xtask/src/gate/budgets.rs:107:19
+    |
+106 | impl Table {
+    | ---------- associated items in this implementation
+107 |     pub(crate) fn parse(source: &str) -> io::Result<Self> {
+    |                   ^^^^^
+...
+142 |     pub(crate) fn validate_inventory(
+    |                   ^^^^^^^^^^^^^^^^^^
+...
+169 |     pub(crate) fn budget(&self, stage: &str) -> io::Result<&StageBudget> {
+    |                   ^^^^^^
+...
+176 |     pub(crate) fn drain_seconds(&self) -> f64 {
+    |                   ^^^^^^^^^^^^^
+
+warning: methods `check_counts` and `check_time` are never used
+   --> dev/xtask/src/gate/budgets.rs:182:19
+    |
+181 | impl StageBudget {
+    | ---------------- methods in this implementation
+182 |     pub(crate) fn check_counts(
+    |                   ^^^^^^^^^^^^
+...
+234 |     pub(crate) fn check_time(&self, seconds: f64, attempt: u8) -> io::Result<TimeDecision> {
+    |                   ^^^^^^^^^^
+
+warning: unreachable `pub` item
+   --> dev/xtask/src/gate/budget_context.rs:300:5
+    |
+300 |       pub fn capture(
+    |       ^--
+    |       |
+    |  _____help: consider restricting its visibility: `pub(super)`
+    | |
+301 | |         roots: &[SourceRoot],
+302 | |         tools: &[PathBuf],
+303 | |         semantic: &impl Serialize,
+304 | |     ) -> io::Result<Self> {
+    | |_________________________^
+    |
+    = note: requested on the command line with `-W unreachable-pub`
+
+warning: unreachable `pub` item
+   --> dev/xtask/src/gate/budget_context.rs:324:5
+    |
+324 |     pub fn verify_unchanged(&self) -> io::Result<()> {
+    |     ---^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |     |
+    |     help: consider restricting its visibility: `pub(super)`
+
+warning: unreachable `pub` item
+   --> dev/xtask/src/gate/budget_context.rs:342:5
+    |
+342 |     pub fn digest(&self) -> &str {
+    |     ---^^^^^^^^^^^^^^^^^^^^^^^^^
+    |     |
+    |     help: consider restricting its visibility: `pub(super)`
+
+warning: unreachable `pub` item
+   --> dev/xtask/src/gate/budget_context.rs:345:5
+    |
+345 |     pub fn authority(&self) -> &Authority {
+    |     ---^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |     |
+    |     help: consider restricting its visibility: `pub(super)`
+
+warning: unreachable `pub` item
+   --> dev/xtask/src/gate/budget_context.rs:360:5
+    |
+360 |     pub fn digest(&self) -> &str {
+    |     ---^^^^^^^^^^^^^^^^^^^^^^^^^
+    |     |
+    |     help: consider restricting its visibility: `pub(super)`
+
+warning: unreachable `pub` item
+   --> dev/xtask/src/gate/budget_context.rs:363:5
+    |
+363 |     pub fn verify_unchanged(&self) -> io::Result<()> {
+    |     ---^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |     |
+    |     help: consider restricting its visibility: `pub(super)`
+
+warning: unreachable `pub` item
+   --> dev/xtask/src/gate/budget_context.rs:375:5
+    |
+375 |     pub fn copy_to(&self, destination: &Path) -> io::Result<()> {
+    |     ---^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |     |
+    |     help: consider restricting its visibility: `pub(super)`
+
+warning: `xtask` (lib) generated 84 warnings (run `cargo fix --lib -p xtask` to apply 7 suggestions)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.03s
+   Compiling rustix v1.1.5
+   Compiling linux-raw-sys v0.12.1
+   Compiling tempfile v3.27.0
+   Compiling umpire-guest-driver v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24613-protocol/model/umpire/dev/guest-driver)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 1.59s
+   Compiling compiler_builtins v0.1.160 (/home/agent/.rustup/toolchains/1.99.1-aarch64-unknown-linux-gnu/lib/rustlib/src/rust/library/compiler-builtins/compiler-builtins)
+   Compiling proc-macro2 v1.0.107
+   Compiling quote v1.0.47
+   Compiling unicode-ident v1.0.27
+   Compiling core v0.0.0 (/home/agent/.rustup/toolchains/1.99.1-aarch64-unknown-linux-gnu/lib/rustlib/src/rust/library/core)
+   Compiling syn v3.0.9
+   Compiling equivalent v1.0.3
+   Compiling hashbrown v0.17.1
+   Compiling indexmap v2.14.2
+   Compiling libc v0.2.189
+   Compiling anyhow v1.0.104
+   Compiling syn v2.0.119
+   Compiling heck v0.5.0
+   Compiling either v1.19.0
+   Compiling rustc-std-workspace-core v1.99.0 (/home/agent/.rustup/toolchains/1.99.1-aarch64-unknown-linux-gnu/lib/rustlib/src/rust/library/rustc-std-workspace-core)
+   Compiling alloc v0.0.0 (/home/agent/.rustup/toolchains/1.99.1-aarch64-unknown-linux-gnu/lib/rustlib/src/rust/library/alloc)
+   Compiling itertools v0.14.0
+   Compiling object v0.39.1
+   Compiling prost-derive v0.14.4
+   Compiling rustc-std-workspace-alloc v1.99.0 (/home/agent/.rustup/toolchains/1.99.1-aarch64-unknown-linux-gnu/lib/rustlib/src/rust/library/rustc-std-workspace-alloc)
+   Compiling gimli v0.34.0
+   Compiling unwind v0.0.0 (/home/agent/.rustup/toolchains/1.99.1-aarch64-unknown-linux-gnu/lib/rustlib/src/rust/library/unwind)
+   Compiling adler2 v2.0.1
+   Compiling memchr v2.8.3
+   Compiling prettyplease v0.3.0
+   Compiling winnow v1.0.4
+   Compiling smallvec v1.16.3
+   Compiling std v0.0.0 (/home/agent/.rustup/toolchains/1.99.1-aarch64-unknown-linux-gnu/lib/rustlib/src/rust/library/std)
+   Compiling thiserror v2.0.21
+   Compiling addr2line v0.27.1
+   Compiling proc-macro-utils v0.10.0
+   Compiling toml_parser v1.1.5+spec-1.1.0
+   Compiling miniz_oxide v0.9.1
+   Compiling panic_unwind v0.0.0 (/home/agent/.rustup/toolchains/1.99.1-aarch64-unknown-linux-gnu/lib/rustlib/src/rust/library/panic_unwind)
+   Compiling std_detect v0.1.5 (/home/agent/.rustup/toolchains/1.99.1-aarch64-unknown-linux-gnu/lib/rustlib/src/rust/library/std_detect)
+   Compiling wasip1 v1.0.0
+   Compiling rustc-demangle v0.1.28
+   Compiling panic_abort v0.0.0 (/home/agent/.rustup/toolchains/1.99.1-aarch64-unknown-linux-gnu/lib/rustlib/src/rust/library/panic_abort)
+   Compiling cfg-if v1.0.4
+   Compiling umpire-ir-derive v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24613-protocol/model/umpire/ir/derive)
+   Compiling toml_datetime v1.1.2+spec-1.1.0
+   Compiling foldhash v0.1.5
+   Compiling rustix v1.1.5
+   Compiling hashbrown v0.15.5
+   Compiling toml_edit v0.25.17+spec-1.1.0
+   Compiling umpire-ir v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24613-protocol/model/umpire/ir)
+   Compiling manyhow-macros v0.14.1
+   Compiling rustc-literal-escaper v0.0.8
+   Compiling thiserror-impl v2.0.21
+   Compiling prettyplease v0.2.37
+   Compiling bytes v1.12.1
+   Compiling umpire-dsl-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24613-protocol/model/umpire/author/dsl/macros)
+   Compiling bitflags v2.13.2
+   Compiling umpire-dsl v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24613-protocol/model/umpire/author/dsl)
+   Compiling regex-syntax v0.8.11
+   Compiling linux-raw-sys v0.12.1
+   Compiling fixedbitset v0.5.7
+   Compiling petgraph v0.8.3
+   Compiling regex-automata v0.4.18
+   Compiling prost v0.14.4
+   Compiling proc_macro v0.0.0 (/home/agent/.rustup/toolchains/1.99.1-aarch64-unknown-linux-gnu/lib/rustlib/src/rust/library/proc_macro)
+   Compiling manyhow v0.14.1
+   Compiling umpire-front v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24613-protocol/model/umpire/front)
+   Compiling proc-macro-crate v3.5.0
+   Compiling once_cell v1.21.4
+   Compiling fastrand v2.5.0
+   Compiling tempfile v3.27.0
+   Compiling prost-types v0.14.4
+   Compiling regex v1.13.1
+   Compiling multimap v0.10.1
+   Compiling log v0.4.34
+   Compiling umpire-checker v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24613-protocol/model/umpire/backends/native)
+   Compiling bytemuck v1.25.2
+   Compiling safe_arch v0.7.4
+   Compiling prost-build v0.14.4
+   Compiling rand_core v0.9.5
+   Compiling rand_xoshiro v0.7.0
+   Compiling wide v0.7.33
+   Compiling umpire-runtime v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24613-protocol/model/umpire/protocol/runtime)
+   Compiling imbl-sized-chunks v0.2.0
+   Compiling archery v1.2.3
+   Compiling ident_case v1.0.1
+   Compiling darling_core v0.24.1
+   Compiling imbl v7.0.2
+   Compiling rustc-hash v2.1.3
+   Compiling darling_macro v0.24.1
+   Compiling darling v0.24.1
+   Compiling umpire-catalog-syntax v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24613-protocol/model/umpire/catalog/syntax)
+   Compiling umpire-catalog-build v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24613-protocol/model/umpire/catalog/build)
+warning: unstable feature specified for `-Ctarget-feature`: `exception-handling`
+  |
+  = note: this feature is not stably supported; its behavior can change in the future
+
+warning: `umpire-dsl` (lib) generated 1 warning
+   Compiling umpire-temporal-annotate-syntax v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24613-protocol/model/temporal/annotate/syntax)
+   Compiling umpire-temporal-realization-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24613-protocol/model/temporal/realization/macros)
+warning: `umpire-checker` (lib) generated 1 warning (1 duplicate)
+   Compiling umpire-temporal-api v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24613-protocol/model/temporal/api)
+   Compiling umpire-catalog-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24613-protocol/model/umpire/catalog/macros)
+warning: `umpire-runtime` (lib) generated 1 warning (1 duplicate)
+   Compiling umpire-catalog v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24613-protocol/model/umpire/catalog)
+warning: `umpire-catalog` (lib) generated 1 warning (1 duplicate)
+   Compiling umpire-temporal v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24613-protocol/model/temporal/realization)
+warning: `umpire-temporal-api` (lib) generated 1 warning (1 duplicate)
+warning: `umpire-temporal` (lib) generated 1 warning (1 duplicate)
+   Compiling umpire-temporal-guest v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24613-protocol/model/temporal/guest)
+warning: `umpire-temporal-guest` (lib) generated 1 warning (1 duplicate)
+    Finished `guest` profile [optimized] target(s) in 3m 37s

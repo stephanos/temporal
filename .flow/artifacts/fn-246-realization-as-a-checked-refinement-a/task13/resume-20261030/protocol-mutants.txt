@@ -1,0 +1,200 @@
+frozen-queued_budget: rejected; interpreted exploration disagrees with compiled: only the interpreted exploration writes paths/every_live_budget_descends.txt
+report.txt line 2:
+  compiled:    reached: 85
+  interpreted: reached: 79
+rows.txt line 7:
+  compiled:    0: Timer::Tick choice=0 outcome=Accepted facts=[] -> Model { lifecycle: Queued, attempt: 1, cancellation_pending: false, terminal_outcome: None, retained_failure: None, queued_budget: Some(Remaining { ticks: 2 }), attempt_budget: None, execution_budget: Some(Remaining { ticks: 2 }), heartbeat_budget: None }
+  interpreted: 0: Timer::Tick choice=0 outcome=Accepted facts=[] -> Model { lifecycle: Queued, attempt: 1, cancellation_pending: false, terminal_outcome: None, retained_failure: None, queued_budget: Some(Remaining { ticks: 3 }), attempt_budget: None, execution_budget: Some(Remaining { ticks: 2 }), heartbeat_budget: None }
+states.txt line 4:
+  compiled:    3: Model { lifecycle: Queued, attempt: 1, cancellation_pending: false, terminal_outcome: None, retained_failure: None, queued_budget: Some(Remaining { ticks: 2 }), attempt_budget: None, execution_budget: Some(Remaining { ticks: 2 }), heartbeat_budget: None }
+  interpreted: 3: Model { lifecycle: Queued, attempt: 1, cancellation_pending: false, terminal_outcome: None, retained_failure: None, queued_budget: Some(Remaining { ticks: 3 }), attempt_budget: None, execution_budget: Some(Remaining { ticks: 2 }), heartbeat_budget: None }
+uncleared-queued_budget: rejected; interpreted exploration disagrees with compiled: only the interpreted exploration writes paths/exact_budget_arming.txt
+report.txt line 8:
+  compiled:    outcome: Verified
+  interpreted: outcome: Refuted
+rows.txt line 1:
+  compiled:    0: Client::RequestCancel choice=0 outcome=Accepted facts=[] -> Model { lifecycle: Closed, attempt: 1, cancellation_pending: false, terminal_outcome: Canceled, retained_failure: None, queued_budget: None, attempt_budget: None, execution_budget: None, heartbeat_budget: None }
+  interpreted: 0: Client::RequestCancel choice=0 outcome=Accepted facts=[] -> Model { lifecycle: Closed, attempt: 1, cancellation_pending: false, terminal_outcome: Canceled, retained_failure: None, queued_budget: Some(Remaining { ticks: 1 }), attempt_budget: None, execution_budget: None, heartbeat_budget: None }
+states.txt line 2:
+  compiled:    1: Model { lifecycle: Closed, attempt: 1, cancellation_pending: false, terminal_outcome: Canceled, retained_failure: None, queued_budget: None, attempt_budget: None, execution_budget: None, heartbeat_budget: None }
+  interpreted: 1: Model { lifecycle: Closed, attempt: 1, cancellation_pending: false, terminal_outcome: Canceled, retained_failure: None, queued_budget: Some(Remaining { ticks: 1 }), attempt_budget: None, execution_budget: None, heartbeat_budget: None }
+frozen-attempt_budget: rejected; interpreted exploration disagrees with compiled: only the interpreted exploration writes paths/every_live_budget_descends.txt
+report.txt line 2:
+  compiled:    reached: 85
+  interpreted: reached: 73
+rows.txt line 18:
+  compiled:    2: Timer::Tick choice=0 outcome=Accepted facts=[] -> Model { lifecycle: Executing, attempt: 1, cancellation_pending: false, terminal_outcome: None, retained_failure: None, queued_budget: None, attempt_budget: Some(Remaining { ticks: 1 }), execution_budget: Some(Remaining { ticks: 2 }), heartbeat_budget: Some(Remaining { ticks: 1 }) }
+  interpreted: 2: Timer::Tick choice=0 outcome=Accepted facts=[] -> Model { lifecycle: Executing, attempt: 1, cancellation_pending: false, terminal_outcome: None, retained_failure: None, queued_budget: None, attempt_budget: Some(Remaining { ticks: 2 }), execution_budget: Some(Remaining { ticks: 2 }), heartbeat_budget: Some(Remaining { ticks: 1 }) }
+states.txt line 9:
+  compiled:    8: Model { lifecycle: Executing, attempt: 1, cancellation_pending: false, terminal_outcome: None, retained_failure: None, queued_budget: None, attempt_budget: Some(Remaining { ticks: 1 }), execution_budget: Some(Remaining { ticks: 2 }), heartbeat_budget: Some(Remaining { ticks: 1 }) }
+  interpreted: 8: Model { lifecycle: Executing, attempt: 1, cancellation_pending: false, terminal_outcome: None, retained_failure: None, queued_budget: None, attempt_budget: Some(Remaining { ticks: 2 }), execution_budget: Some(Remaining { ticks: 2 }), heartbeat_budget: Some(Remaining { ticks: 1 }) }
+uncleared-attempt_budget: rejected; interpreted exploration disagrees with compiled: only the interpreted exploration writes paths/exact_budget_arming.txt
+report.txt line 8:
+  compiled:    outcome: Verified
+  interpreted: outcome: Refuted
+rows.txt line 1:
+  compiled:    0: Client::RequestCancel choice=0 outcome=Accepted facts=[] -> Model { lifecycle: Closed, attempt: 1, cancellation_pending: false, terminal_outcome: Canceled, retained_failure: None, queued_budget: None, attempt_budget: None, execution_budget: None, heartbeat_budget: None }
+  interpreted: 0: Client::RequestCancel choice=0 outcome=Accepted facts=[] -> Model { lifecycle: Closed, attempt: 1, cancellation_pending: false, terminal_outcome: Canceled, retained_failure: None, queued_budget: None, attempt_budget: Some(Remaining { ticks: 1 }), execution_budget: None, heartbeat_budget: None }
+states.txt line 2:
+  compiled:    1: Model { lifecycle: Closed, attempt: 1, cancellation_pending: false, terminal_outcome: Canceled, retained_failure: None, queued_budget: None, attempt_budget: None, execution_budget: None, heartbeat_budget: None }
+  interpreted: 1: Model { lifecycle: Closed, attempt: 1, cancellation_pending: false, terminal_outcome: Canceled, retained_failure: None, queued_budget: None, attempt_budget: Some(Remaining { ticks: 1 }), execution_budget: None, heartbeat_budget: None }
+frozen-execution_budget: rejected; interpreted exploration disagrees with compiled: only the interpreted exploration writes paths/every_live_budget_descends.txt
+report.txt line 2:
+  compiled:    reached: 85
+  interpreted: reached: 67
+rows.txt line 7:
+  compiled:    0: Timer::Tick choice=0 outcome=Accepted facts=[] -> Model { lifecycle: Queued, attempt: 1, cancellation_pending: false, terminal_outcome: None, retained_failure: None, queued_budget: Some(Remaining { ticks: 2 }), attempt_budget: None, execution_budget: Some(Remaining { ticks: 2 }), heartbeat_budget: None }
+  interpreted: 0: Timer::Tick choice=0 outcome=Accepted facts=[] -> Model { lifecycle: Queued, attempt: 1, cancellation_pending: false, terminal_outcome: None, retained_failure: None, queued_budget: Some(Remaining { ticks: 2 }), attempt_budget: None, execution_budget: Some(Remaining { ticks: 3 }), heartbeat_budget: None }
+states.txt line 4:
+  compiled:    3: Model { lifecycle: Queued, attempt: 1, cancellation_pending: false, terminal_outcome: None, retained_failure: None, queued_budget: Some(Remaining { ticks: 2 }), attempt_budget: None, execution_budget: Some(Remaining { ticks: 2 }), heartbeat_budget: None }
+  interpreted: 3: Model { lifecycle: Queued, attempt: 1, cancellation_pending: false, terminal_outcome: None, retained_failure: None, queued_budget: Some(Remaining { ticks: 2 }), attempt_budget: None, execution_budget: Some(Remaining { ticks: 3 }), heartbeat_budget: None }
+uncleared-execution_budget: rejected; interpreted exploration disagrees with compiled: only the interpreted exploration writes paths/exact_budget_arming.txt
+report.txt line 8:
+  compiled:    outcome: Verified
+  interpreted: outcome: Refuted
+rows.txt line 1:
+  compiled:    0: Client::RequestCancel choice=0 outcome=Accepted facts=[] -> Model { lifecycle: Closed, attempt: 1, cancellation_pending: false, terminal_outcome: Canceled, retained_failure: None, queued_budget: None, attempt_budget: None, execution_budget: None, heartbeat_budget: None }
+  interpreted: 0: Client::RequestCancel choice=0 outcome=Accepted facts=[] -> Model { lifecycle: Closed, attempt: 1, cancellation_pending: false, terminal_outcome: Canceled, retained_failure: None, queued_budget: None, attempt_budget: None, execution_budget: Some(Remaining { ticks: 1 }), heartbeat_budget: None }
+states.txt line 2:
+  compiled:    1: Model { lifecycle: Closed, attempt: 1, cancellation_pending: false, terminal_outcome: Canceled, retained_failure: None, queued_budget: None, attempt_budget: None, execution_budget: None, heartbeat_budget: None }
+  interpreted: 1: Model { lifecycle: Closed, attempt: 1, cancellation_pending: false, terminal_outcome: Canceled, retained_failure: None, queued_budget: None, attempt_budget: None, execution_budget: Some(Remaining { ticks: 1 }), heartbeat_budget: None }
+frozen-heartbeat_budget: rejected; interpreted exploration disagrees with compiled: only the interpreted exploration writes paths/every_live_budget_descends.txt
+report.txt line 2:
+  compiled:    reached: 85
+  interpreted: reached: 73
+rows.txt line 18:
+  compiled:    2: Timer::Tick choice=0 outcome=Accepted facts=[] -> Model { lifecycle: Executing, attempt: 1, cancellation_pending: false, terminal_outcome: None, retained_failure: None, queued_budget: None, attempt_budget: Some(Remaining { ticks: 1 }), execution_budget: Some(Remaining { ticks: 2 }), heartbeat_budget: Some(Remaining { ticks: 1 }) }
+  interpreted: 2: Timer::Tick choice=0 outcome=Accepted facts=[] -> Model { lifecycle: Executing, attempt: 1, cancellation_pending: false, terminal_outcome: None, retained_failure: None, queued_budget: None, attempt_budget: Some(Remaining { ticks: 1 }), execution_budget: Some(Remaining { ticks: 2 }), heartbeat_budget: Some(Remaining { ticks: 2 }) }
+states.txt line 9:
+  compiled:    8: Model { lifecycle: Executing, attempt: 1, cancellation_pending: false, terminal_outcome: None, retained_failure: None, queued_budget: None, attempt_budget: Some(Remaining { ticks: 1 }), execution_budget: Some(Remaining { ticks: 2 }), heartbeat_budget: Some(Remaining { ticks: 1 }) }
+  interpreted: 8: Model { lifecycle: Executing, attempt: 1, cancellation_pending: false, terminal_outcome: None, retained_failure: None, queued_budget: None, attempt_budget: Some(Remaining { ticks: 1 }), execution_budget: Some(Remaining { ticks: 2 }), heartbeat_budget: Some(Remaining { ticks: 2 }) }
+uncleared-heartbeat_budget: rejected; interpreted exploration disagrees with compiled: only the interpreted exploration writes paths/exact_budget_arming.txt
+report.txt line 8:
+  compiled:    outcome: Verified
+  interpreted: outcome: Refuted
+rows.txt line 1:
+  compiled:    0: Client::RequestCancel choice=0 outcome=Accepted facts=[] -> Model { lifecycle: Closed, attempt: 1, cancellation_pending: false, terminal_outcome: Canceled, retained_failure: None, queued_budget: None, attempt_budget: None, execution_budget: None, heartbeat_budget: None }
+  interpreted: 0: Client::RequestCancel choice=0 outcome=Accepted facts=[] -> Model { lifecycle: Closed, attempt: 1, cancellation_pending: false, terminal_outcome: Canceled, retained_failure: None, queued_budget: None, attempt_budget: None, execution_budget: None, heartbeat_budget: Some(Remaining { ticks: 1 }) }
+states.txt line 2:
+  compiled:    1: Model { lifecycle: Closed, attempt: 1, cancellation_pending: false, terminal_outcome: Canceled, retained_failure: None, queued_budget: None, attempt_budget: None, execution_budget: None, heartbeat_budget: None }
+  interpreted: 1: Model { lifecycle: Closed, attempt: 1, cancellation_pending: false, terminal_outcome: Canceled, retained_failure: None, queued_budget: None, attempt_budget: None, execution_budget: None, heartbeat_budget: Some(Remaining { ticks: 1 }) }
+erased-queued-budget: rejected; interpreted exploration disagrees with compiled: only the interpreted exploration writes paths/exact_budget_arming.txt
+only the interpreted exploration writes paths/retry_rearms_queue_preserves_execution.txt
+report.txt line 2:
+  compiled:    reached: 85
+  interpreted: reached: 79
+rows.txt line 14:
+  compiled:    2: Worker::Fail { retryable: true } choice=0 outcome=Accepted facts=[] -> Model { lifecycle: Queued, attempt: 2, cancellation_pending: false, terminal_outcome: None, retained_failure: RetryableWorker, queued_budget: Some(Remaining { ticks: 3 }), attempt_budget: None, execution_budget: Some(Remaining { ticks: 3 }), heartbeat_budget: None }
+  interpreted: 2: Worker::Fail { retryable: true } choice=0 outcome=Accepted facts=[] -> Model { lifecycle: Queued, attempt: 2, cancellation_pending: false, terminal_outcome: None, retained_failure: RetryableWorker, queued_budget: None, attempt_budget: None, execution_budget: Some(Remaining { ticks: 3 }), heartbeat_budget: None }
+states.txt line 8:
+  compiled:    7: Model { lifecycle: Queued, attempt: 2, cancellation_pending: false, terminal_outcome: None, retained_failure: RetryableWorker, queued_budget: Some(Remaining { ticks: 3 }), attempt_budget: None, execution_budget: Some(Remaining { ticks: 3 }), heartbeat_budget: None }
+  interpreted: 7: Model { lifecycle: Queued, attempt: 2, cancellation_pending: false, terminal_outcome: None, retained_failure: RetryableWorker, queued_budget: None, attempt_budget: None, execution_budget: Some(Remaining { ticks: 3 }), heartbeat_budget: None }
+erased-execution-budget: rejected; interpreted exploration disagrees with compiled: only the interpreted exploration writes paths/exact_budget_arming.txt
+only the interpreted exploration writes paths/heartbeat_resets_only_its_interval.txt
+report.txt line 2:
+  compiled:    reached: 85
+  interpreted: reached: 117
+rows.txt line 15:
+  compiled:    2: Worker::Heartbeat choice=0 outcome=Accepted facts=[] -> Model { lifecycle: Executing, attempt: 1, cancellation_pending: false, terminal_outcome: None, retained_failure: None, queued_budget: None, attempt_budget: Some(Remaining { ticks: 2 }), execution_budget: Some(Remaining { ticks: 3 }), heartbeat_budget: Some(Remaining { ticks: 2 }) }
+  interpreted: 2: Worker::Heartbeat choice=0 outcome=Accepted facts=[] -> Model { lifecycle: Executing, attempt: 1, cancellation_pending: false, terminal_outcome: None, retained_failure: None, queued_budget: None, attempt_budget: Some(Remaining { ticks: 2 }), execution_budget: None, heartbeat_budget: Some(Remaining { ticks: 2 }) }
+states.txt line 9:
+  compiled:    8: Model { lifecycle: Executing, attempt: 1, cancellation_pending: false, terminal_outcome: None, retained_failure: None, queued_budget: None, attempt_budget: Some(Remaining { ticks: 1 }), execution_budget: Some(Remaining { ticks: 2 }), heartbeat_budget: Some(Remaining { ticks: 1 }) }
+  interpreted: 8: Model { lifecycle: Executing, attempt: 1, cancellation_pending: false, terminal_outcome: None, retained_failure: None, queued_budget: None, attempt_budget: Some(Remaining { ticks: 2 }), execution_budget: None, heartbeat_budget: Some(Remaining { ticks: 2 }) }
+erased-attempt-budget: rejected; interpreted exploration disagrees with compiled: only the interpreted exploration writes paths/exact_budget_arming.txt
+report.txt line 2:
+  compiled:    reached: 85
+  interpreted: reached: 73
+rows.txt line 2:
+  compiled:    0: Worker::Deliver(1) choice=0 outcome=Accepted facts=[] -> Model { lifecycle: Executing, attempt: 1, cancellation_pending: false, terminal_outcome: None, retained_failure: None, queued_budget: None, attempt_budget: Some(Remaining { ticks: 2 }), execution_budget: Some(Remaining { ticks: 3 }), heartbeat_budget: Some(Remaining { ticks: 2 }) }
+  interpreted: 0: Worker::Deliver(1) choice=0 outcome=Accepted facts=[] -> Model { lifecycle: Executing, attempt: 1, cancellation_pending: false, terminal_outcome: None, retained_failure: None, queued_budget: None, attempt_budget: None, execution_budget: Some(Remaining { ticks: 3 }), heartbeat_budget: Some(Remaining { ticks: 2 }) }
+states.txt line 3:
+  compiled:    2: Model { lifecycle: Executing, attempt: 1, cancellation_pending: false, terminal_outcome: None, retained_failure: None, queued_budget: None, attempt_budget: Some(Remaining { ticks: 2 }), execution_budget: Some(Remaining { ticks: 3 }), heartbeat_budget: Some(Remaining { ticks: 2 }) }
+  interpreted: 2: Model { lifecycle: Executing, attempt: 1, cancellation_pending: false, terminal_outcome: None, retained_failure: None, queued_budget: None, attempt_budget: None, execution_budget: Some(Remaining { ticks: 3 }), heartbeat_budget: Some(Remaining { ticks: 2 }) }
+erased-heartbeat-budget: rejected; interpreted exploration disagrees with compiled: only the interpreted exploration writes paths/exact_budget_arming.txt
+report.txt line 2:
+  compiled:    reached: 85
+  interpreted: reached: 119
+rows.txt line 2:
+  compiled:    0: Worker::Deliver(1) choice=0 outcome=Accepted facts=[] -> Model { lifecycle: Executing, attempt: 1, cancellation_pending: false, terminal_outcome: None, retained_failure: None, queued_budget: None, attempt_budget: Some(Remaining { ticks: 2 }), execution_budget: Some(Remaining { ticks: 3 }), heartbeat_budget: Some(Remaining { ticks: 2 }) }
+  interpreted: 0: Worker::Deliver(1) choice=0 outcome=Accepted facts=[] -> Model { lifecycle: Executing, attempt: 1, cancellation_pending: false, terminal_outcome: None, retained_failure: None, queued_budget: None, attempt_budget: Some(Remaining { ticks: 2 }), execution_budget: Some(Remaining { ticks: 3 }), heartbeat_budget: None }
+states.txt line 3:
+  compiled:    2: Model { lifecycle: Executing, attempt: 1, cancellation_pending: false, terminal_outcome: None, retained_failure: None, queued_budget: None, attempt_budget: Some(Remaining { ticks: 2 }), execution_budget: Some(Remaining { ticks: 3 }), heartbeat_budget: Some(Remaining { ticks: 2 }) }
+  interpreted: 2: Model { lifecycle: Executing, attempt: 1, cancellation_pending: false, terminal_outcome: None, retained_failure: None, queued_budget: None, attempt_budget: Some(Remaining { ticks: 2 }), execution_budget: Some(Remaining { ticks: 3 }), heartbeat_budget: None }
+wrong-retry-waiting-reset: rejected; interpreted exploration disagrees with compiled: only the interpreted exploration writes paths/retry_rearms_queue_preserves_execution.txt
+report.txt line 2:
+  compiled:    reached: 85
+  interpreted: reached: 81
+rows.txt line 14:
+  compiled:    2: Worker::Fail { retryable: true } choice=0 outcome=Accepted facts=[] -> Model { lifecycle: Queued, attempt: 2, cancellation_pending: false, terminal_outcome: None, retained_failure: RetryableWorker, queued_budget: Some(Remaining { ticks: 3 }), attempt_budget: None, execution_budget: Some(Remaining { ticks: 3 }), heartbeat_budget: None }
+  interpreted: 2: Worker::Fail { retryable: true } choice=0 outcome=Accepted facts=[] -> Model { lifecycle: Queued, attempt: 2, cancellation_pending: false, terminal_outcome: None, retained_failure: RetryableWorker, queued_budget: Some(Remaining { ticks: 1 }), attempt_budget: None, execution_budget: Some(Remaining { ticks: 3 }), heartbeat_budget: None }
+states.txt line 8:
+  compiled:    7: Model { lifecycle: Queued, attempt: 2, cancellation_pending: false, terminal_outcome: None, retained_failure: RetryableWorker, queued_budget: Some(Remaining { ticks: 3 }), attempt_budget: None, execution_budget: Some(Remaining { ticks: 3 }), heartbeat_budget: None }
+  interpreted: 7: Model { lifecycle: Queued, attempt: 2, cancellation_pending: false, terminal_outcome: None, retained_failure: RetryableWorker, queued_budget: Some(Remaining { ticks: 1 }), attempt_budget: None, execution_budget: Some(Remaining { ticks: 3 }), heartbeat_budget: None }
+replenished-spanning-budget: rejected; interpreted exploration disagrees with compiled: only the interpreted exploration writes paths/every_live_budget_descends.txt
+only the interpreted exploration writes paths/spanning_budget_never_increases.txt
+report.txt line 2:
+  compiled:    reached: 85
+  interpreted: reached: 107
+rows.txt line 51:
+  compiled:    8: Worker::Fail { retryable: true } choice=0 outcome=Accepted facts=[] -> Model { lifecycle: Queued, attempt: 2, cancellation_pending: false, terminal_outcome: None, retained_failure: RetryableWorker, queued_budget: Some(Remaining { ticks: 3 }), attempt_budget: None, execution_budget: Some(Remaining { ticks: 2 }), heartbeat_budget: None }
+  interpreted: 8: Worker::Fail { retryable: true } choice=0 outcome=Accepted facts=[] -> Model { lifecycle: Queued, attempt: 2, cancellation_pending: false, terminal_outcome: None, retained_failure: RetryableWorker, queued_budget: Some(Remaining { ticks: 3 }), attempt_budget: None, execution_budget: Some(Remaining { ticks: 3 }), heartbeat_budget: None }
+states.txt line 17:
+  compiled:    16: Model { lifecycle: Queued, attempt: 2, cancellation_pending: false, terminal_outcome: None, retained_failure: RetryableWorker, queued_budget: Some(Remaining { ticks: 3 }), attempt_budget: None, execution_budget: Some(Remaining { ticks: 2 }), heartbeat_budget: None }
+  interpreted: 16: Model { lifecycle: Executing, attempt: 1, cancellation_pending: false, terminal_outcome: None, retained_failure: None, queued_budget: None, attempt_budget: Some(Remaining { ticks: 1 }), execution_budget: Some(Remaining { ticks: 2 }), heartbeat_budget: Some(Remaining { ticks: 2 }) }
+wrong-heartbeat-reset: rejected; interpreted exploration disagrees with compiled: only the interpreted exploration writes paths/heartbeat_resets_only_its_interval.txt
+report.txt line 2:
+  compiled:    reached: 85
+  interpreted: reached: 128
+rows.txt line 15:
+  compiled:    2: Worker::Heartbeat choice=0 outcome=Accepted facts=[] -> Model { lifecycle: Executing, attempt: 1, cancellation_pending: false, terminal_outcome: None, retained_failure: None, queued_budget: None, attempt_budget: Some(Remaining { ticks: 2 }), execution_budget: Some(Remaining { ticks: 3 }), heartbeat_budget: Some(Remaining { ticks: 2 }) }
+  interpreted: 2: Worker::Heartbeat choice=0 outcome=Accepted facts=[] -> Model { lifecycle: Executing, attempt: 1, cancellation_pending: false, terminal_outcome: None, retained_failure: None, queued_budget: None, attempt_budget: Some(Remaining { ticks: 2 }), execution_budget: Some(Remaining { ticks: 3 }), heartbeat_budget: Some(Remaining { ticks: 1 }) }
+states.txt line 9:
+  compiled:    8: Model { lifecycle: Executing, attempt: 1, cancellation_pending: false, terminal_outcome: None, retained_failure: None, queued_budget: None, attempt_budget: Some(Remaining { ticks: 1 }), execution_budget: Some(Remaining { ticks: 2 }), heartbeat_budget: Some(Remaining { ticks: 1 }) }
+  interpreted: 8: Model { lifecycle: Executing, attempt: 1, cancellation_pending: false, terminal_outcome: None, retained_failure: None, queued_budget: None, attempt_budget: Some(Remaining { ticks: 2 }), execution_budget: Some(Remaining { ticks: 3 }), heartbeat_budget: Some(Remaining { ticks: 1 }) }
+wrong-global-priority: rejected; interpreted exploration disagrees with compiled: only the interpreted exploration writes paths/every_live_budget_descends.txt
+only the interpreted exploration writes paths/execution_expiry_dominates.txt
+only the interpreted exploration writes paths/positive_bounded_budgets.txt
+report.txt line 2:
+  compiled:    reached: 85
+  interpreted: reached: 125
+rows.txt line 72:
+  compiled:    10: Timer::Tick choice=0 outcome=Accepted facts=[ScheduleToClose] -> Model { lifecycle: Closed, attempt: 1, cancellation_pending: false, terminal_outcome: TimedOut, retained_failure: ScheduleToClose, queued_budget: None, attempt_budget: None, execution_budget: None, heartbeat_budget: None }
+  interpreted: 10: Timer::Tick choice=0 outcome=Accepted facts=[ScheduleToStart] -> Model { lifecycle: Closed, attempt: 1, cancellation_pending: false, terminal_outcome: TimedOut, retained_failure: ScheduleToStart, queued_budget: None, attempt_budget: None, execution_budget: None, heartbeat_budget: None }
+states.txt line 23:
+  compiled:    22: Model { lifecycle: Closed, attempt: 1, cancellation_pending: false, terminal_outcome: TimedOut, retained_failure: ScheduleToClose, queued_budget: None, attempt_budget: None, execution_budget: None, heartbeat_budget: None }
+  interpreted: 22: Model { lifecycle: Closed, attempt: 1, cancellation_pending: false, terminal_outcome: TimedOut, retained_failure: ScheduleToStart, queued_budget: None, attempt_budget: None, execution_budget: None, heartbeat_budget: None }
+wrong-local-priority: rejected; interpreted exploration disagrees with compiled: only the interpreted exploration writes paths/local_expiry_priority_retains_its_cause.txt
+only the interpreted exploration writes paths/positive_bounded_budgets.txt
+report.txt line 2:
+  compiled:    reached: 85
+  interpreted: reached: 97
+rows.txt line 55:
+  compiled:    8: Timer::Tick choice=0 outcome=Accepted facts=[StartToClose] -> Model { lifecycle: Queued, attempt: 2, cancellation_pending: false, terminal_outcome: None, retained_failure: StartToClose, queued_budget: Some(Remaining { ticks: 3 }), attempt_budget: None, execution_budget: Some(Remaining { ticks: 1 }), heartbeat_budget: None }
+  interpreted: 8: Timer::Tick choice=0 outcome=Accepted facts=[Heartbeat] -> Model { lifecycle: Queued, attempt: 2, cancellation_pending: false, terminal_outcome: None, retained_failure: Heartbeat, queued_budget: Some(Remaining { ticks: 3 }), attempt_budget: None, execution_budget: Some(Remaining { ticks: 1 }), heartbeat_budget: None }
+states.txt line 19:
+  compiled:    18: Model { lifecycle: Queued, attempt: 2, cancellation_pending: false, terminal_outcome: None, retained_failure: StartToClose, queued_budget: Some(Remaining { ticks: 3 }), attempt_budget: None, execution_budget: Some(Remaining { ticks: 1 }), heartbeat_budget: None }
+  interpreted: 18: Model { lifecycle: Queued, attempt: 2, cancellation_pending: false, terminal_outcome: None, retained_failure: Heartbeat, queued_budget: Some(Remaining { ticks: 3 }), attempt_budget: None, execution_budget: Some(Remaining { ticks: 1 }), heartbeat_budget: None }
+wrong-expiry-fact: rejected; interpreted exploration disagrees with compiled: rows.txt line 55:
+  compiled:    8: Timer::Tick choice=0 outcome=Accepted facts=[StartToClose] -> Model { lifecycle: Queued, attempt: 2, cancellation_pending: false, terminal_outcome: None, retained_failure: StartToClose, queued_budget: Some(Remaining { ticks: 3 }), attempt_budget: None, execution_budget: Some(Remaining { ticks: 1 }), heartbeat_budget: None }
+  interpreted: 8: Timer::Tick choice=0 outcome=Accepted facts=[Heartbeat] -> Model { lifecycle: Queued, attempt: 2, cancellation_pending: false, terminal_outcome: None, retained_failure: StartToClose, queued_budget: Some(Remaining { ticks: 3 }), attempt_budget: None, execution_budget: Some(Remaining { ticks: 1 }), heartbeat_budget: None }
+wrong-pending-timeout-outcome: rejected; interpreted exploration disagrees with compiled: only the interpreted exploration writes paths/pending_expiry_is_not_acknowledgement.txt
+only the interpreted exploration writes paths/pending_failure_is_not_acknowledgement.txt
+report.txt line 2:
+  compiled:    reached: 85
+  interpreted: reached: 83
+rows.txt line 84:
+  compiled:    12: Timer::Tick choice=0 outcome=Accepted facts=[StartToClose] -> Model { lifecycle: Closed, attempt: 1, cancellation_pending: false, terminal_outcome: TimedOut, retained_failure: StartToClose, queued_budget: None, attempt_budget: None, execution_budget: None, heartbeat_budget: None }
+  interpreted: 12: Timer::Tick choice=0 outcome=Accepted facts=[StartToClose] -> Model { lifecycle: Closed, attempt: 1, cancellation_pending: false, terminal_outcome: Canceled, retained_failure: StartToClose, queued_budget: None, attempt_budget: None, execution_budget: None, heartbeat_budget: None }
+states.txt line 25:
+  compiled:    24: Model { lifecycle: Closed, attempt: 1, cancellation_pending: false, terminal_outcome: TimedOut, retained_failure: StartToClose, queued_budget: None, attempt_budget: None, execution_budget: None, heartbeat_budget: None }
+  interpreted: 24: Model { lifecycle: Closed, attempt: 1, cancellation_pending: false, terminal_outcome: Canceled, retained_failure: StartToClose, queued_budget: None, attempt_budget: None, execution_budget: None, heartbeat_budget: None }
+wrong-pending-failure-outcome: rejected; interpreted exploration disagrees with compiled: only the interpreted exploration writes paths/pending_failure_is_not_acknowledgement.txt
+report.txt line 2:
+  compiled:    reached: 85
+  interpreted: reached: 83
+rows.txt line 13:
+  compiled:    2: Worker::Fail { retryable: false } choice=0 outcome=Accepted facts=[] -> Model { lifecycle: Closed, attempt: 1, cancellation_pending: false, terminal_outcome: Failed, retained_failure: PermanentWorker, queued_budget: None, attempt_budget: None, execution_budget: None, heartbeat_budget: None }
+  interpreted: 2: Worker::Fail { retryable: false } choice=0 outcome=Accepted facts=[] -> Model { lifecycle: Closed, attempt: 1, cancellation_pending: false, terminal_outcome: Canceled, retained_failure: PermanentWorker, queued_budget: None, attempt_budget: None, execution_budget: None, heartbeat_budget: None }
+states.txt line 7:
+  compiled:    6: Model { lifecycle: Closed, attempt: 1, cancellation_pending: false, terminal_outcome: Failed, retained_failure: PermanentWorker, queued_budget: None, attempt_budget: None, execution_budget: None, heartbeat_budget: None }
+  interpreted: 6: Model { lifecycle: Closed, attempt: 1, cancellation_pending: false, terminal_outcome: Canceled, retained_failure: PermanentWorker, queued_budget: None, attempt_budget: None, execution_budget: None, heartbeat_budget: None }

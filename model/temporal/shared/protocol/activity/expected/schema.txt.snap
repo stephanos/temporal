@@ -1,0 +1,273 @@
+---
+source: umpire/dev/testing/src/runner.rs
+---
+source: shared/protocol/activity/model.rs
+World fields: [
+    WorldField {
+        name: "maximum_attempts",
+        ty: Int {
+            min: 0,
+            max: 255,
+        },
+        location: Diagnostic {
+            line: 25,
+            column: 9,
+            message: "",
+        },
+    },
+    WorldField {
+        name: "schedule_to_start",
+        ty: Optional(
+            Bounded {
+                name: "Ticks",
+                field: None,
+                backing: "u8",
+                min: 0,
+                max: 255,
+                low: 1,
+                high: 3,
+            },
+        ),
+        location: Diagnostic {
+            line: 27,
+            column: 9,
+            message: "",
+        },
+    },
+    WorldField {
+        name: "start_to_close",
+        ty: Optional(
+            Bounded {
+                name: "Ticks",
+                field: None,
+                backing: "u8",
+                min: 0,
+                max: 255,
+                low: 1,
+                high: 3,
+            },
+        ),
+        location: Diagnostic {
+            line: 29,
+            column: 9,
+            message: "",
+        },
+    },
+    WorldField {
+        name: "schedule_to_close",
+        ty: Optional(
+            Bounded {
+                name: "Ticks",
+                field: None,
+                backing: "u8",
+                min: 0,
+                max: 255,
+                low: 1,
+                high: 3,
+            },
+        ),
+        location: Diagnostic {
+            line: 31,
+            column: 9,
+            message: "",
+        },
+    },
+    WorldField {
+        name: "heartbeat_timeout",
+        ty: Optional(
+            Bounded {
+                name: "Ticks",
+                field: None,
+                backing: "u8",
+                min: 0,
+                max: 255,
+                low: 1,
+                high: 3,
+            },
+        ),
+        location: Diagnostic {
+            line: 33,
+            column: 9,
+            message: "",
+        },
+    },
+    WorldField {
+        name: "asynchronous_cancel",
+        ty: Bool,
+        location: Diagnostic {
+            line: 35,
+            column: 9,
+            message: "",
+        },
+    },
+]
+Full-state fields: [
+    FieldDef {
+        name: "lifecycle",
+        ty: Enum {
+            name: "Lifecycle",
+            variants: [
+                "Lifecycle::Queued",
+                "Lifecycle::Executing",
+                "Lifecycle::Closed",
+            ],
+        },
+        start: Computed,
+        location: Diagnostic {
+            line: 141,
+            column: 9,
+            message: "",
+        },
+    },
+    FieldDef {
+        name: "attempt",
+        ty: Int {
+            min: 0,
+            max: 255,
+        },
+        start: Computed,
+        location: Diagnostic {
+            line: 143,
+            column: 9,
+            message: "",
+        },
+    },
+    FieldDef {
+        name: "cancellation_pending",
+        ty: Bool,
+        start: Computed,
+        location: Diagnostic {
+            line: 145,
+            column: 9,
+            message: "",
+        },
+    },
+    FieldDef {
+        name: "terminal_outcome",
+        ty: Enum {
+            name: "Terminal",
+            variants: [
+                "Terminal::None",
+                "Terminal::Completed",
+                "Terminal::Failed",
+                "Terminal::Canceled",
+                "Terminal::TimedOut",
+            ],
+        },
+        start: Computed,
+        location: Diagnostic {
+            line: 147,
+            column: 9,
+            message: "",
+        },
+    },
+    FieldDef {
+        name: "retained_failure",
+        ty: Enum {
+            name: "Failure",
+            variants: [
+                "Failure::None",
+                "Failure::RetryableWorker",
+                "Failure::PermanentWorker",
+                "Failure::ScheduleToStart",
+                "Failure::StartToClose",
+                "Failure::ScheduleToClose",
+                "Failure::Heartbeat",
+            ],
+        },
+        start: Computed,
+        location: Diagnostic {
+            line: 149,
+            column: 9,
+            message: "",
+        },
+    },
+    FieldDef {
+        name: "queued_budget",
+        ty: Optional(
+            Bounded {
+                name: "Remaining",
+                field: Some(
+                    "ticks",
+                ),
+                backing: "u8",
+                min: 0,
+                max: 255,
+                low: 0,
+                high: 3,
+            },
+        ),
+        start: Computed,
+        location: Diagnostic {
+            line: 151,
+            column: 9,
+            message: "",
+        },
+    },
+    FieldDef {
+        name: "attempt_budget",
+        ty: Optional(
+            Bounded {
+                name: "Remaining",
+                field: Some(
+                    "ticks",
+                ),
+                backing: "u8",
+                min: 0,
+                max: 255,
+                low: 0,
+                high: 3,
+            },
+        ),
+        start: Computed,
+        location: Diagnostic {
+            line: 153,
+            column: 9,
+            message: "",
+        },
+    },
+    FieldDef {
+        name: "execution_budget",
+        ty: Optional(
+            Bounded {
+                name: "Remaining",
+                field: Some(
+                    "ticks",
+                ),
+                backing: "u8",
+                min: 0,
+                max: 255,
+                low: 0,
+                high: 3,
+            },
+        ),
+        start: Computed,
+        location: Diagnostic {
+            line: 155,
+            column: 9,
+            message: "",
+        },
+    },
+    FieldDef {
+        name: "heartbeat_budget",
+        ty: Optional(
+            Bounded {
+                name: "Remaining",
+                field: Some(
+                    "ticks",
+                ),
+                backing: "u8",
+                min: 0,
+                max: 255,
+                low: 0,
+                high: 3,
+            },
+        ),
+        start: Computed,
+        location: Diagnostic {
+            line: 157,
+            column: 9,
+            message: "",
+        },
+    },
+]
