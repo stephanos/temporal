@@ -3,13 +3,13 @@ satisfies: [R3]
 ---
 # fn-253-reusable-deadline-countdowns-for-models.6 Temporal deadline semantics as a named pattern
 
-Touches: [model/temporal/capabilities/system/**, model/temporal/realization/src/lib.rs, model/umpire/front/src/library.rs]
+Touches: [model/temporal/feature/activity/README.md]
 
 ## Description
 Store the Temporal deadline semantics (spec Architecture layer 2) once, in the form .2 chose: a shared module the front end reads, or a documented authoring pattern with named effects and laws. Name it, and cite its authority.
 
 **Size:** M
-**Files:** pattern form uses `model/temporal/capabilities/system/README.md` and named effects in the consuming Model; no unused `deadline.rs` is added. Shared-module form uses `deadline.rs`, its real Temporal owning crate/module declaration, README and generic front-end project-library registration. .2's verdict must name that compiled owner and registration path before implementation.
+**Files:** task .2 selected the documented pattern at `model/temporal/feature/activity/README.md`, with named consuming effects demonstrated by .7. This reanchors the provisional capabilities/system path to the committed spike verdict. No unused `deadline.rs`, project-library registration or framework edit is added.
 **Touches:** [model/temporal/capabilities/system/**, model/temporal/realization/src/lib.rs, model/umpire/front/src/library.rs]
 
 ### Approach
