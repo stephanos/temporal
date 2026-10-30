@@ -116,6 +116,22 @@ impl<P, E> Traversal<P, E> {
         self.labels.is_empty()
     }
 
+    /// Copies queued positions in their exact visitation order without copying emissions.
+    ///
+    /// # Errors
+    /// Refuses allocation or a caller's fallible position copy.
+    pub fn pending<T, X>(&self, mut copy: impl FnMut(&P) -> Result<T, X>) -> Result<Vec<T>, X>
+    where
+        X: From<SearchLimit>,
+    {
+        let mut positions = Vec::new();
+        positions.try_reserve(self.queue.len()).map_err(|_| SearchLimit::Allocation)?;
+        for id in &self.queue {
+            positions.push(copy(&self.labels[*id].position)?);
+        }
+        Ok(positions)
+    }
+
     fn check_work(&self) -> Result<(), SearchLimit> {
         if self.work >= self.max_work {
             Err(SearchLimit::Work { limit: self.max_work })

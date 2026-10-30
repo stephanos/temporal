@@ -61,3 +61,22 @@ fn work_bound_accounts_labels_and_explicit_evaluations_without_partial_admission
     assert_eq!(search.next(), None);
     Ok(())
 }
+
+#[test]
+fn queued_positions_copy_in_visitation_order_without_consuming_work() -> Result<(), SearchLimit> {
+    struct Emission;
+    let mut search = Traversal::<_, Emission>::new(1, 4);
+    let root = search.root(0)?;
+    assert_eq!(search.next(), Some(root));
+    let edge = search.push(root, 1, Some(Emission))?;
+    let epsilon = search.push(root, 2, None)?;
+    assert_eq!(search.pending(|position| Ok(*position))?, [2, 1]);
+    assert_eq!(
+        search.pending(|_| Err::<u8, _>(SearchLimit::Allocation)),
+        Err(SearchLimit::Allocation)
+    );
+    assert_eq!(search.next(), Some(epsilon));
+    assert_eq!(search.next(), Some(edge));
+    assert_eq!(search.next(), None);
+    Ok(())
+}

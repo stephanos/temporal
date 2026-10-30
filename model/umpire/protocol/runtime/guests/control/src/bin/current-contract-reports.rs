@@ -38,6 +38,9 @@ fn call(
 fn transcript(name: &str) -> Vec<Record> {
     use protocol::{Method, response::Outcome};
 
+    if name == "frontier" {
+        return frontier_transcript();
+    }
     let mut guest = Guest::new(control::control());
     let mut records = Vec::new();
     let configured = name == "configured";
@@ -81,6 +84,56 @@ fn transcript(name: &str) -> Vec<Record> {
     records
 }
 
+fn frontier_transcript() -> Vec<Record> {
+    use protocol::{Method, response::Outcome};
+    let mut guest = Guest::new(control::control());
+    let mut records = Vec::new();
+    for (terminal, steps, outcomes) in [
+        (
+            support::frontier::GLOBAL,
+            vec!["Tick", "Renew", "Tick", "Tick"],
+            vec!["Advanced", "Renewed", "Advanced", "GlobalClosed"],
+        ),
+        (
+            support::frontier::LOCAL,
+            vec!["Renew", "Tick", "Tick"],
+            vec!["Renewed", "Advanced", "PendingClosed"],
+        ),
+    ] {
+        let reset = call(
+            &mut guest,
+            &mut records,
+            Method::Reset,
+            &protocol::ResetRequest { configuration: Some(support::any(support::frontier::RENEW)) },
+        );
+        assert!(matches!(reset, Outcome::Reset(_)));
+        let proposal =
+            call(&mut guest, &mut records, Method::Propose, &protocol::ProposeRequest { seed: 0 });
+        assert!(matches!(proposal, Outcome::Propose(_)));
+        for (value, expected_steps, expected_outcomes) in [
+            (support::frontier::RENEW, vec!["Renew"], vec!["Renewed"]),
+            (terminal, steps, outcomes),
+        ] {
+            let response = call(
+                &mut guest,
+                &mut records,
+                Method::Judge,
+                &protocol::JudgeRequest { observation: Some(support::any(value)) },
+            );
+            let Outcome::Judge(response) = response else { panic!("frontier Judge refused") };
+            let Some(protocol::judge_response::Judgment::Explained(explanation)) =
+                response.judgment
+            else {
+                panic!("frontier Judge not explained")
+            };
+            assert_eq!(explanation.steps, expected_steps);
+            assert_eq!(explanation.outcomes, expected_outcomes);
+            assert_eq!(response.continue_polling, value == support::frontier::RENEW);
+        }
+    }
+    records
+}
+
 fn judge(
     guest: &mut Guest<control::Control>,
     records: &mut Vec<Record>,
@@ -108,7 +161,7 @@ fn judge(
 fn main() -> Result<(), Box<dyn Error>> {
     let output = PathBuf::from(std::env::args_os().nth(1).ok_or("missing output directory")?);
     fs::create_dir_all(&output)?;
-    for name in ["ordinary", "callback", "configured"] {
+    for name in ["ordinary", "callback", "configured", "frontier"] {
         let records = transcript(name);
         let mut methods = String::new();
         for (index, record) in records.into_iter().enumerate() {
@@ -123,7 +176,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn native_current_contract_carries_whole_prefixes() {
-    for name in ["ordinary", "callback", "configured"] {
+    for name in ["ordinary", "callback", "configured", "frontier"] {
         assert!(!transcript(name).is_empty());
     }
 }

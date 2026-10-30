@@ -22,7 +22,7 @@ func TestCurrentContractNativeWasmPublishedResponsesAgree(t *testing.T) {
 		}
 		directory = filepath.Join(target, "current-contract-native")
 	}
-	for _, name := range []string{"ordinary", "callback", "configured"} {
+	for _, name := range []string{"ordinary", "callback", "configured", "frontier"} {
 		t.Run(name, func(t *testing.T) {
 			host := statefulHost(t)
 			methods, err := os.ReadFile(filepath.Join(directory, name+".methods"))
