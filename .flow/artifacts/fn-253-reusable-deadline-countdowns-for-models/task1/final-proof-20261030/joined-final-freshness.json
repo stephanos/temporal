@@ -1,0 +1,66 @@
+{
+  "source_head": "843923f445a8662089980fe03c5e7c5ebbc5c7d7",
+  "tracked_worktree_clean": true,
+  "source_inputs": "joined-source-inputs.json",
+  "source_inputs_count": 925,
+  "source_inputs_file_sha256": "488e79f255ef10cb1a6d200d9ca4f532eade6439b642b960061d7b2c95a3184f",
+  "changed_from_prior925_manifest": [
+    {
+      "path": "Makefile",
+      "before": "929c28b149b904052e5c79b0097eda90b2bc8eb909e4f6d1a82f8826be98b140",
+      "after": "be1293053bb42dbbde3f3c9c1ee062ed24d2f1a78e3a8f6b945a0ec06e6dab52"
+    }
+  ],
+  "changed_input_explanation": {
+    "Makefile": [
+      "Remove retired umpire-check-backends from .PHONY.",
+      "Remove retired umpire-install-backends and umpire-check-backends recipes.",
+      "Use if [ -d ... ] in lint-code-fast package-directory filter so a removed directory does not terminate lint discovery."
+    ],
+    "api_generation_rules_changed": false,
+    "all_model_framework_source_code_bytes_unchanged": true
+  },
+  "driver": {
+    "path": "/home/agent/.cache/codex-build/cargo-target/xtask-bootstrap/debug/umpire-guest-driver",
+    "sha256_before_and_after": "b151d665cef9cbf675e9123b5de4a1847f8c77ff99a0728ec3178af566166a1c",
+    "bootstrap_rebuilt": false
+  },
+  "command": [
+    "/home/agent/.cache/codex-build/cargo-target/xtask-bootstrap/debug/umpire-guest-driver",
+    "guest",
+    "umpire-temporal-guest",
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2531-deadline-clarity/model/temporal/hosts/go/umpire_temporal_guest.wasm",
+    "--check"
+  ],
+  "environment": {
+    "CARGO_TARGET_DIR": "/home/agent/.cache/codex-build/cargo-target",
+    "CARGO_BUILD_JOBS": "2"
+  },
+  "command_cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2531-deadline-clarity/model",
+  "exit": 0,
+  "compiler_reported_duration": "2m 01s",
+  "log": "guest-joined-final-check.log",
+  "log_sha256": "506f8c2a4ff947b8e9031ae60d9612c4488e400e915b1efea5d02532149069c7",
+  "guest": {
+    "path": "model/temporal/hosts/go/umpire_temporal_guest.wasm",
+    "sha256": "4df13deb3b312f66874934760012fd4e6698d21148f2f4e07bd086c01c62236d",
+    "bytes": 3989794
+  },
+  "canary": {
+    "path": "tools/canary/policy/production-canary.json",
+    "sha256": "bb30855ea05b02787beeb30467a84a7ba73ecab83bb2406ea49b21b8485b67ea",
+    "modelHash": "4df13deb3b312f66874934760012fd4e6698d21148f2f4e07bd086c01c62236d"
+  },
+  "reviewed_model_states_rows_and_other_snapshots_unchanged": true,
+  "intentional_separate_owner_join": {
+    "path": "model/temporal/feature/activity/expected/gaps.txt.snap",
+    "before_sha256": "b1c78e93bbd919fe10e1a4c5e21ad4dfbe51f59ec3b7dabe93635ac15da35e60",
+    "joined_sha256": "f53b68c9fae6d9486f90b439270fefec9ffcf47c5e94963d9fdaa088c861ab12",
+    "source_commit": "442e068641bfee4ced2b6545f1a061d9fb0bfc09",
+    "integrated_main": "78801d1feb",
+    "owner": "Reviewed tooling-retirement lane, not activity Model refactor.",
+    "interpretation": "Intentional inherited gap-golden renewal; not an activity semantic regression or a worker-authored golden fit."
+  },
+  "no_host_tlc_repeat": "No changed Model/framework code; retained exact62-ID required fixture proof and native/Go parity remain applicable.",
+  "supersedes_final_freshness_deferral": "guest-final-proof.json: owner_deferred_final_freshness is fulfilled by this joined-source check."
+}

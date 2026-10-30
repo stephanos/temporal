@@ -1,0 +1,10 @@
+{
+  "verified_archive_members": 57,
+  "archive_sha256": "0d564ab6f8a0b1a17575256243cb67ce72809ecfdd989427ee5d4151a94c850d",
+  "all_frozen_model_expected_hashes_match_except_separate_retirement_gaps": true,
+  "retirement_gaps_sha256": "f53b68c9fae6d9486f90b439270fefec9ffcf47c5e94963d9fdaa088c861ab12",
+  "guest_canary_match": true,
+  "single_green_full_required_run_claimed": false,
+  "required_active_identity_coverage": 62,
+  "inherited_ignores": 2
+}

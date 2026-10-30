@@ -1,0 +1,205 @@
+{
+  "bounds_clauses_preserved": 10,
+  "claims_before": [
+    [
+      "invariant",
+      "state_bounds"
+    ],
+    [
+      "invariant",
+      "deadline_arming"
+    ],
+    [
+      "invariant",
+      "pending_is_cooperative"
+    ],
+    [
+      "postcondition",
+      "terminal_remains"
+    ],
+    [
+      "postcondition",
+      "closed_rejects"
+    ],
+    [
+      "postcondition",
+      "global_never_replenished"
+    ],
+    [
+      "postcondition",
+      "tick_descends_and_expires"
+    ],
+    [
+      "postcondition",
+      "countdowns_decrement"
+    ],
+    [
+      "postcondition",
+      "heartbeat_preserves_attempt_and_global"
+    ],
+    [
+      "postcondition",
+      "attempt_changes_only_on_retry"
+    ],
+    [
+      "postcondition",
+      "tick_priority"
+    ],
+    [
+      "progress",
+      "eventually_closed"
+    ],
+    [
+      "progress",
+      "pending_retryable_failure_fails"
+    ],
+    [
+      "progress",
+      "pending_nonretryable_failure_fails"
+    ],
+    [
+      "progress",
+      "ordinary_retry_rearms"
+    ],
+    [
+      "progress",
+      "ordinary_retry_at_cap_fails"
+    ],
+    [
+      "progress",
+      "ordinary_nonretryable_failure_fails"
+    ]
+  ],
+  "claims_after": [
+    [
+      "invariant",
+      "policy_in_range"
+    ],
+    [
+      "invariant",
+      "attempt_within_policy"
+    ],
+    [
+      "invariant",
+      "countdowns_within_budget"
+    ],
+    [
+      "invariant",
+      "deadline_arming"
+    ],
+    [
+      "invariant",
+      "pending_is_cooperative"
+    ],
+    [
+      "postcondition",
+      "terminal_remains"
+    ],
+    [
+      "postcondition",
+      "closed_rejects"
+    ],
+    [
+      "postcondition",
+      "global_never_replenished"
+    ],
+    [
+      "postcondition",
+      "tick_descends_and_expires"
+    ],
+    [
+      "postcondition",
+      "countdowns_decrement"
+    ],
+    [
+      "postcondition",
+      "heartbeat_preserves_attempt_and_global"
+    ],
+    [
+      "postcondition",
+      "attempt_changes_only_on_retry"
+    ],
+    [
+      "postcondition",
+      "tick_priority"
+    ],
+    [
+      "progress",
+      "eventually_closed"
+    ],
+    [
+      "progress",
+      "pending_retryable_failure_fails"
+    ],
+    [
+      "progress",
+      "pending_nonretryable_failure_fails"
+    ],
+    [
+      "progress",
+      "ordinary_retry_rearms"
+    ],
+    [
+      "progress",
+      "ordinary_retry_at_cap_fails"
+    ],
+    [
+      "progress",
+      "ordinary_nonretryable_failure_fails"
+    ]
+  ],
+  "unchanged_transition_claims": [
+    "tick_descends_and_expires",
+    "countdowns_decrement",
+    "heartbeat_preserves_attempt_and_global",
+    "tick_priority"
+  ],
+  "removed_claims": [
+    "state_bounds"
+  ],
+  "replacement_claims": [
+    "policy_in_range",
+    "attempt_within_policy",
+    "countdowns_within_budget"
+  ],
+  "no_tick_or_heartbeat_claims_removed": true,
+  "boundary_owners": {
+    "present_zero_and_out_of_range_all_four_fields": "forged_countdowns_refute_bounds_and_armed_zero_expires + countdowns_within_budget",
+    "zero_and_one_expiry_priority": "tick_priority <=1 retained unchanged; tick_descends_and_expires ==1 retained unchanged",
+    "tick_descent": "countdowns_decrement + tick_descends_and_expires both retained",
+    "heartbeat_arming": "heartbeat_preserves_attempt_and_global + deadline_arming both retained",
+    "pending_failures": "pending_retryable_failure_fails + pending_nonretryable_failure_fails",
+    "pending_local_expiry_and_retry_caps": "tick_priority + attempt_changes_only_on_retry + exact-edge policy/retry mutant controls"
+  },
+  "tick_priority_option_equality": "Corrected baseline already uses <=1 rather than ==1; retain all <=1 comparisons for forged-zero coverage. No ==1 is_some/unwrap_or pair exists to rewrite.",
+  "progress_helpers": "path! admits pending_cancel(world) preserving all three conjuncts and running_without_cancel() preserving phase and pending condition",
+  "hashes_after": {
+    "model/temporal/feature/activity/expected/Activity.cfg.snap": "f9b407e3182278aac2019e8e63f2f1b8850cf00f8937b53f69afa9c447cf03b0",
+    "model/temporal/feature/activity/expected/Activity.tla.snap": "ff20dcb394cfa8c95b79c82ce211cf1f1d781898a11845d768339c108c63a243",
+    "model/temporal/feature/activity/expected/coverage.txt.snap": "343cda550a3737b7adc3c5522ecf09cf35538bfb38042a3b846bc0e205cdecfc",
+    "model/temporal/feature/activity/expected/gaps.txt.snap": "b1c78e93bbd919fe10e1a4c5e21ad4dfbe51f59ec3b7dabe93635ac15da35e60",
+    "model/temporal/feature/activity/expected/lift.txt.snap": "daa500e6d747cd5ed479626aef0e0c35bcdf3abbb37050b34e6e77203bca9434",
+    "model/temporal/feature/activity/expected/realization.txt.snap": "0da6db0eb7ee111248187b864ac78e88999e349cd20bf3952800f129e5c1f0e6",
+    "model/temporal/feature/activity/expected/report.txt.snap": "00e6b92e993e91b41b3dc0f139729dc940b06b534eae82f13d3257c544899168",
+    "model/temporal/feature/activity/expected/rows.txt.snap": "3ca9a7465d411a68561eea9a4feab9463137880d04f960b82c0be0c4349d1e86",
+    "model/temporal/feature/activity/expected/states.txt.snap": "03ab217aa9e8fe23df09861108232e49936b43d7d0fd947a896b8c2143f3c7a8",
+    "model/temporal/feature/activity/expected/tlc.txt.snap": "88aa6e00ca9b737eadaa18530b7d4a71ce44edbd06be8620757cfcf71792426d"
+  },
+  "changed_snapshot_paths": [
+    "model/temporal/feature/activity/expected/Activity.cfg.snap",
+    "model/temporal/feature/activity/expected/Activity.tla.snap",
+    "model/temporal/feature/activity/expected/coverage.txt.snap",
+    "model/temporal/feature/activity/expected/report.txt.snap",
+    "model/temporal/feature/activity/expected/tlc.txt.snap"
+  ],
+  "snapshot_review": {
+    "Activity.cfg.snap": "Replace the single state_bounds invariant registration with three exact clause owners.",
+    "Activity.tla.snap": "Deadline Option equality rendering and the three exact invariant clause partitions; helper expansion leaves progress expressions unchanged.",
+    "coverage.txt.snap": "Replace one invariant with three and shift later invariant ordinals; all evaluation counts and transition coverage unchanged.",
+    "report.txt.snap": "Replace one verified invariant with its three verified clause owners.",
+    "tlc.txt.snap": "Replace one verified/agreed invariant with its three verified/agreed clause owners, sorted lexically; 18-state agreement unchanged.",
+    "lift.txt.snap": "Unchanged successful admission.",
+    "states.txt.snap": "Byte-identical to corrected committed baseline.",
+    "rows.txt.snap": "Byte-identical to corrected committed baseline."
+  }
+}

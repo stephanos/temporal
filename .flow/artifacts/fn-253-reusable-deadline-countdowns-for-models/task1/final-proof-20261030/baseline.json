@@ -1,0 +1,85 @@
+{
+  "head": "902d2d20c171657f21e7d33578913affd0a6e4d5",
+  "claims": [
+    [
+      "invariant",
+      "state_bounds"
+    ],
+    [
+      "invariant",
+      "deadline_arming"
+    ],
+    [
+      "invariant",
+      "pending_is_cooperative"
+    ],
+    [
+      "postcondition",
+      "terminal_remains"
+    ],
+    [
+      "postcondition",
+      "closed_rejects"
+    ],
+    [
+      "postcondition",
+      "global_never_replenished"
+    ],
+    [
+      "postcondition",
+      "tick_descends_and_expires"
+    ],
+    [
+      "postcondition",
+      "countdowns_decrement"
+    ],
+    [
+      "postcondition",
+      "heartbeat_preserves_attempt_and_global"
+    ],
+    [
+      "postcondition",
+      "attempt_changes_only_on_retry"
+    ],
+    [
+      "postcondition",
+      "tick_priority"
+    ],
+    [
+      "progress",
+      "eventually_closed"
+    ],
+    [
+      "progress",
+      "pending_retryable_failure_fails"
+    ],
+    [
+      "progress",
+      "pending_nonretryable_failure_fails"
+    ],
+    [
+      "progress",
+      "ordinary_retry_rearms"
+    ],
+    [
+      "progress",
+      "ordinary_retry_at_cap_fails"
+    ],
+    [
+      "progress",
+      "ordinary_nonretryable_failure_fails"
+    ]
+  ],
+  "hashes": {
+    "model/temporal/feature/activity/expected/Activity.cfg.snap": "aca190c669fcf7b24fe973bb1eeaae7f420dec1ab7c664a14cae986c1ac997d7",
+    "model/temporal/feature/activity/expected/Activity.tla.snap": "4bc2940f7e47a89416fd911d1f20c89bda42898399808c612bff40a317b9a650",
+    "model/temporal/feature/activity/expected/coverage.txt.snap": "b287caddb15a9da4d17db90eee8c28c4d610a77374af77163cc1a62f91b59461",
+    "model/temporal/feature/activity/expected/gaps.txt.snap": "b1c78e93bbd919fe10e1a4c5e21ad4dfbe51f59ec3b7dabe93635ac15da35e60",
+    "model/temporal/feature/activity/expected/lift.txt.snap": "daa500e6d747cd5ed479626aef0e0c35bcdf3abbb37050b34e6e77203bca9434",
+    "model/temporal/feature/activity/expected/realization.txt.snap": "0da6db0eb7ee111248187b864ac78e88999e349cd20bf3952800f129e5c1f0e6",
+    "model/temporal/feature/activity/expected/report.txt.snap": "c44bd6ecce2166fa1c6d924d81a0b8bc39677365e9498139163652e1c64c4552",
+    "model/temporal/feature/activity/expected/rows.txt.snap": "3ca9a7465d411a68561eea9a4feab9463137880d04f960b82c0be0c4349d1e86",
+    "model/temporal/feature/activity/expected/states.txt.snap": "03ab217aa9e8fe23df09861108232e49936b43d7d0fd947a896b8c2143f3c7a8",
+    "model/temporal/feature/activity/expected/tlc.txt.snap": "1900ad9ac69d73b56454900c44d0b7b86c4cb933332acafc4d36657e8f42c477"
+  }
+}
