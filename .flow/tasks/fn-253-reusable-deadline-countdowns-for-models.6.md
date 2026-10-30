@@ -10,7 +10,7 @@ Store the Temporal deadline semantics (spec Architecture layer 2) once, in the f
 
 **Size:** M
 **Files:** task .2 selected the documented pattern at `model/temporal/feature/activity/README.md`, with named consuming effects demonstrated by .7. This reanchors the provisional capabilities/system path to the committed spike verdict. No unused `deadline.rs`, project-library registration or framework edit is added.
-**Touches:** [model/temporal/capabilities/system/**, model/temporal/realization/src/lib.rs, model/umpire/front/src/library.rs]
+**Touches:** [model/temporal/feature/activity/README.md]
 
 ### Approach
 - Cover the timeout names, arming per phase, expiry priority, retry re-arm, heartbeat reset, fn-246.13's API-aligned pending-cancellation failure/expiry outcomes, and a global countdown that is never replenished.
