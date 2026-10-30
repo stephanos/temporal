@@ -148,8 +148,8 @@ compatibility cancellation is separately labelled. The default cooperative
 maximum-two fixture has 23 states and 80 edges; the largest selected World has
 90 states and 750 edges. All twelve native/interpreted graphs are complete.
 
-The required protocol test run passed 22 tests in 45.96 seconds (66.566 seconds
-including recompilation). Real TLC checked each selected World's own laws and
+The [renewed required protocol run](../../../../../.flow/artifacts/fn-246-realization-as-a-checked-refinement-a/task13/review-correction-20261030/protocol-required.log)
+passed 22 tests. Real TLC checked each selected World's own laws and
 complete state-set agreement. A refuted timeout-absence claim replays against the
 healthy Model, and a changed expiry fact refuses that replay. Twenty source-only
 timer/reset/priority/outcome/fact defects disagree with the native graph; schema,

@@ -1,0 +1,327 @@
+{
+  "evidence_kind": "local cached pinned API authority; no external retrieval success claimed",
+  "external_fetch_status": "Parent reports web-tool cache-miss for three pinned GitHub URLs; this is not evidence of HTTP404 or successful retrieval. No network fetch performed for this record.",
+  "module": "go.temporal.io/api",
+  "version": "v1.63.6-0.20260909222256-20151aa90480",
+  "local_module_root": "/home/agent/go/pkg/mod/go.temporal.io/api@v1.63.6-0.20260909222256-20151aa90480",
+  "go_mod_pin": [
+    {
+      "line": 76,
+      "text": "\tgo.temporal.io/api v1.63.6-0.20260909222256-20151aa90480"
+    }
+  ],
+  "go_sum_entries": [
+    {
+      "line": 497,
+      "text": "go.temporal.io/api v1.63.6-0.20260909222256-20151aa90480 h1:1w2xEZFpL7R9NagEQeWTh7oZmZU3YUJGogusn9/LfCg="
+    },
+    {
+      "line": 498,
+      "text": "go.temporal.io/api v1.63.6-0.20260909222256-20151aa90480/go.mod h1:acM0I9WPuYg8W3Pd9jOZvEgi7mRUttUQ4+e7fowKVnM="
+    }
+  ],
+  "cached_origin": {
+    "Version": "v1.63.6-0.20260909222256-20151aa90480",
+    "Time": "2026-09-09T22:22:56Z",
+    "Origin": {
+      "VCS": "git",
+      "URL": "https://github.com/temporalio/api-go",
+      "Hash": "20151aa90480bb7b61036f476d59691fcd5b4a44"
+    }
+  },
+  "cache_metadata": {
+    "info_path": "/home/agent/go/pkg/mod/cache/download/go.temporal.io/api/@v/v1.63.6-0.20260909222256-20151aa90480.info",
+    "info_sha256": "96cf74e36299ac059deabcf9c0e11c3d690b1703752beb800cffe6843c6527fa",
+    "mod_path": "/home/agent/go/pkg/mod/cache/download/go.temporal.io/api/@v/v1.63.6-0.20260909222256-20151aa90480.mod",
+    "mod_sha256": "f60e955e6b37eee5e7fb38264361dc69ac4502e841b67157db7b23d6f3952de9",
+    "ziphash_path": "/home/agent/go/pkg/mod/cache/download/go.temporal.io/api/@v/v1.63.6-0.20260909222256-20151aa90480.ziphash",
+    "module_ziphash": "h1:1w2xEZFpL7R9NagEQeWTh7oZmZU3YUJGogusn9/LfCg=",
+    "ziphash_matches_go_sum": true,
+    "archive_path": "/home/agent/go/pkg/mod/cache/download/go.temporal.io/api/@v/v1.63.6-0.20260909222256-20151aa90480.zip",
+    "archive_sha256": "e18e831b0935e61f35a2ffcad5777e95c6e5007bc6fcdaf4f78524c97bc86e44",
+    "checksum_database_verification_rerun": false
+  },
+  "files": [
+    {
+      "relative_path": "workflowservice/v1/request_response.pb.go",
+      "local_path": "/home/agent/go/pkg/mod/go.temporal.io/api@v1.63.6-0.20260909222256-20151aa90480/workflowservice/v1/request_response.pb.go",
+      "sha256": "0eb85ead3957e2c4547763c9fc52a2f086187af4d40dfac268ba238b1b4761c8",
+      "archive_member": "go.temporal.io/api@v1.63.6-0.20260909222256-20151aa90480/workflowservice/v1/request_response.pb.go",
+      "matches_cached_archive_member": true,
+      "linked_line_range": {
+        "first": 16585,
+        "last": 16611
+      },
+      "numbered_excerpt": [
+        {
+          "line": 16585,
+          "text": "\t// Indicates how long the caller is willing to wait for an activity completion. Limits how long"
+        },
+        {
+          "line": 16586,
+          "text": "\t// retries will be attempted. Either this or `start_to_close_timeout` must be specified."
+        },
+        {
+          "line": 16587,
+          "text": "\t//"
+        },
+        {
+          "line": 16588,
+          "text": "\t// (-- api-linter: core::0140::prepositions=disabled"
+        },
+        {
+          "line": 16589,
+          "text": "\t//"
+        },
+        {
+          "line": 16590,
+          "text": "\t//\taip.dev/not-precedent: \"to\" is used to indicate interval. --)"
+        },
+        {
+          "line": 16591,
+          "text": "\tScheduleToCloseTimeout *durationpb.Duration `protobuf:\"bytes,7,opt,name=schedule_to_close_timeout,json=scheduleToCloseTimeout,proto3\" json:\"schedule_to_close_timeout,omitempty\"`"
+        },
+        {
+          "line": 16592,
+          "text": "\t// Limits time an activity task can stay in a task queue before a worker picks it up. This"
+        },
+        {
+          "line": 16593,
+          "text": "\t// timeout is always non retryable, as all a retry would achieve is to put it back into the same"
+        },
+        {
+          "line": 16594,
+          "text": "\t// queue. Defaults to `schedule_to_close_timeout` if not specified."
+        },
+        {
+          "line": 16595,
+          "text": "\t//"
+        },
+        {
+          "line": 16596,
+          "text": "\t// (-- api-linter: core::0140::prepositions=disabled"
+        },
+        {
+          "line": 16597,
+          "text": "\t//"
+        },
+        {
+          "line": 16598,
+          "text": "\t//\taip.dev/not-precedent: \"to\" is used to indicate interval. --)"
+        },
+        {
+          "line": 16599,
+          "text": "\tScheduleToStartTimeout *durationpb.Duration `protobuf:\"bytes,8,opt,name=schedule_to_start_timeout,json=scheduleToStartTimeout,proto3\" json:\"schedule_to_start_timeout,omitempty\"`"
+        },
+        {
+          "line": 16600,
+          "text": "\t// Maximum time an activity is allowed to execute after being picked up by a worker. This"
+        },
+        {
+          "line": 16601,
+          "text": "\t// timeout is always retryable. Either this or `schedule_to_close_timeout` must be"
+        },
+        {
+          "line": 16602,
+          "text": "\t// specified."
+        },
+        {
+          "line": 16603,
+          "text": "\t//"
+        },
+        {
+          "line": 16604,
+          "text": "\t// (-- api-linter: core::0140::prepositions=disabled"
+        },
+        {
+          "line": 16605,
+          "text": "\t//"
+        },
+        {
+          "line": 16606,
+          "text": "\t//\taip.dev/not-precedent: \"to\" is used to indicate interval. --)"
+        },
+        {
+          "line": 16607,
+          "text": "\tStartToCloseTimeout *durationpb.Duration `protobuf:\"bytes,9,opt,name=start_to_close_timeout,json=startToCloseTimeout,proto3\" json:\"start_to_close_timeout,omitempty\"`"
+        },
+        {
+          "line": 16608,
+          "text": "\t// Maximum permitted time between successful worker heartbeats."
+        },
+        {
+          "line": 16609,
+          "text": "\tHeartbeatTimeout *durationpb.Duration `protobuf:\"bytes,10,opt,name=heartbeat_timeout,json=heartbeatTimeout,proto3\" json:\"heartbeat_timeout,omitempty\"`"
+        },
+        {
+          "line": 16610,
+          "text": "\t// The retry policy for the activity. Will never exceed `schedule_to_close_timeout`."
+        },
+        {
+          "line": 16611,
+          "text": "\tRetryPolicy *v14.RetryPolicy `protobuf:\"bytes,11,opt,name=retry_policy,json=retryPolicy,proto3\" json:\"retry_policy,omitempty\"`"
+        }
+      ],
+      "generated_file_header": [
+        "// Code generated by protoc-gen-go. DO NOT EDIT.",
+        "// plugins:",
+        "// \tprotoc-gen-go",
+        "// \tprotoc",
+        "// source: temporal/api/workflowservice/v1/request_response.proto",
+        "",
+        "package workflowservice",
+        "",
+        "import (",
+        "\treflect \"reflect\"",
+        "\tsync \"sync\"",
+        "\tunsafe \"unsafe\""
+      ],
+      "pinned_github_url": "https://github.com/temporalio/api-go/blob/20151aa90480/workflowservice/v1/request_response.pb.go#L16585-L16611"
+    },
+    {
+      "relative_path": "workflowservice/v1/service_grpc.pb.go",
+      "local_path": "/home/agent/go/pkg/mod/go.temporal.io/api@v1.63.6-0.20260909222256-20151aa90480/workflowservice/v1/service_grpc.pb.go",
+      "sha256": "7fec19fca4343e1d93b88ca59ddf290e9927e5aab2e472bb517625d962ac4bc6",
+      "archive_member": "go.temporal.io/api@v1.63.6-0.20260909222256-20151aa90480/workflowservice/v1/service_grpc.pb.go",
+      "matches_cached_archive_member": true,
+      "linked_line_range": {
+        "first": 2771,
+        "last": 2777
+      },
+      "numbered_excerpt": [
+        {
+          "line": 2771,
+          "text": "\t// RequestCancelActivityExecution requests cancellation of an activity execution."
+        },
+        {
+          "line": 2772,
+          "text": "\t//"
+        },
+        {
+          "line": 2773,
+          "text": "\t// Cancellation is cooperative: this call records the request, but the activity must detect and"
+        },
+        {
+          "line": 2774,
+          "text": "\t// acknowledge it for the activity to reach CANCELED status. The cancellation signal is"
+        },
+        {
+          "line": 2775,
+          "text": "\t// delivered via `cancel_requested` in the heartbeat response; SDKs surface this via"
+        },
+        {
+          "line": 2776,
+          "text": "\t// language-idiomatic mechanisms (context cancellation, exceptions, abort signals)."
+        },
+        {
+          "line": 2777,
+          "text": "\tRequestCancelActivityExecution(context.Context, *RequestCancelActivityExecutionRequest) (*RequestCancelActivityExecutionResponse, error)"
+        }
+      ],
+      "generated_file_header": [
+        "// Code generated by protoc-gen-go-grpc. DO NOT EDIT.",
+        "// plugins:",
+        "// - protoc-gen-go-grpc",
+        "// - protoc",
+        "// source: temporal/api/workflowservice/v1/service.proto",
+        "",
+        "package workflowservice",
+        "",
+        "import (",
+        "\tcontext \"context\"",
+        "",
+        "\tgrpc \"google.golang.org/grpc\""
+      ],
+      "pinned_github_url": "https://github.com/temporalio/api-go/blob/20151aa90480/workflowservice/v1/service_grpc.pb.go#L2771-L2777"
+    },
+    {
+      "relative_path": "enums/v1/activity.pb.go",
+      "local_path": "/home/agent/go/pkg/mod/go.temporal.io/api@v1.63.6-0.20260909222256-20151aa90480/enums/v1/activity.pb.go",
+      "sha256": "fb5bceaeb0852f49b14da7b30dd062b1900dc3e20bfbeb5890a23f2f5f7df9d6",
+      "archive_member": "go.temporal.io/api@v1.63.6-0.20260909222256-20151aa90480/enums/v1/activity.pb.go",
+      "matches_cached_archive_member": true,
+      "linked_line_range": {
+        "first": 100,
+        "last": 114
+      },
+      "numbered_excerpt": [
+        {
+          "line": 100,
+          "text": "\tswitch x {"
+        },
+        {
+          "line": 101,
+          "text": "\tcase ACTIVITY_EXECUTION_STATUS_UNSPECIFIED:"
+        },
+        {
+          "line": 102,
+          "text": "\t\treturn \"Unspecified\""
+        },
+        {
+          "line": 103,
+          "text": "\tcase ACTIVITY_EXECUTION_STATUS_RUNNING:"
+        },
+        {
+          "line": 104,
+          "text": "\t\treturn \"Running\""
+        },
+        {
+          "line": 105,
+          "text": "\tcase ACTIVITY_EXECUTION_STATUS_COMPLETED:"
+        },
+        {
+          "line": 106,
+          "text": "\t\treturn \"Completed\""
+        },
+        {
+          "line": 107,
+          "text": "\tcase ACTIVITY_EXECUTION_STATUS_FAILED:"
+        },
+        {
+          "line": 108,
+          "text": "\t\treturn \"Failed\""
+        },
+        {
+          "line": 109,
+          "text": "\tcase ACTIVITY_EXECUTION_STATUS_CANCELED:"
+        },
+        {
+          "line": 110,
+          "text": "\t\treturn \"Canceled\""
+        },
+        {
+          "line": 111,
+          "text": "\tcase ACTIVITY_EXECUTION_STATUS_TERMINATED:"
+        },
+        {
+          "line": 112,
+          "text": "\t\treturn \"Terminated\""
+        },
+        {
+          "line": 113,
+          "text": "\tcase ACTIVITY_EXECUTION_STATUS_TIMED_OUT:"
+        },
+        {
+          "line": 114,
+          "text": "\t\treturn \"TimedOut\""
+        }
+      ],
+      "generated_file_header": [
+        "// Code generated by protoc-gen-go. DO NOT EDIT.",
+        "// plugins:",
+        "// \tprotoc-gen-go",
+        "// \tprotoc",
+        "// source: temporal/api/enums/v1/activity.proto",
+        "",
+        "package enums",
+        "",
+        "import (",
+        "\treflect \"reflect\"",
+        "\t\"strconv\"",
+        "\tsync \"sync\""
+      ],
+      "pinned_github_url": "https://github.com/temporalio/api-go/blob/20151aa90480/enums/v1/activity.pb.go#L100-L114"
+    }
+  ],
+  "scope": "These local cached comments and status declarations substantiate the existing pinned API citations. They do not independently prescribe the full abstract expiry-priority ordering, feature retry scheduling, or unapproved default changes."
+}

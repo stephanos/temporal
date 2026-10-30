@@ -1,0 +1,13 @@
+{
+  "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24613-protocol/model",
+  "evidence": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24613-protocol/.flow/tmp/fn24613-review-correction-20261030",
+  "commands": {
+    "fixtures-native.log": "CARGO_TARGET_DIR=/home/agent/.cache/codex-build/fn24613-proof-20261030 CARGO_BUILD_JOBS=2 INSTA_UPDATE=no mise exec -- cargo test -p umpire-temporal-tests --test fixtures -- --test-threads=1",
+    "fixtures-native-final.log": "CARGO_TARGET_DIR=/home/agent/.cache/codex-build/fn24613-proof-20261030 CARGO_BUILD_JOBS=2 INSTA_UPDATE=no mise exec -- cargo test -p umpire-temporal-tests --test fixtures -- --test-threads=1",
+    "protocol-required.log": "CARGO_TARGET_DIR=/home/agent/.cache/codex-build/fn24613-proof-20261030 CARGO_BUILD_JOBS=2 INSTA_UPDATE=no UMPIRE_BACKENDS=require UMPIRE_PROTOCOL_SCOPE_REPORT=<evidence>/protocol-scopes.txt UMPIRE_PROTOCOL_MUTANT_REPORT=<evidence>/protocol-mutants.txt mise exec -- cargo test -p umpire-temporal-tests --test fixtures protocol -- --test-threads=1",
+    "clippy.log": "CARGO_TARGET_DIR=/home/agent/.cache/codex-build/fn24613-proof-20261030 CARGO_BUILD_JOBS=2 INSTA_UPDATE=no mise exec -- cargo clippy -p umpire-temporal -p umpire-temporal-tests --all-targets -- -D warnings",
+    "fmt-focused.log": "mise exec -- rustfmt --edition 2024 --check temporal/shared/protocol/activity/tests.rs temporal/shared/protocol/activity/parameters_tests.rs temporal/shared/protocol/activity/view.rs",
+    "fmt-focused-renewed.log": "mise exec -- rustfmt --edition 2024 --check temporal/shared/protocol/activity/tests.rs temporal/shared/protocol/activity/parameters_tests.rs temporal/shared/protocol/activity/view.rs",
+    "guest-freshness.log": "CARGO_TARGET_DIR=/home/agent/.cache/codex-build/fn24613-proof-20261030 CARGO_BUILD_JOBS=2 INSTA_UPDATE=no mise exec -- cargo xtask guest umpire-temporal-guest temporal/hosts/go/umpire_temporal_guest.wasm --check"
+  }
+}

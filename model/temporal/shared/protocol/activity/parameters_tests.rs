@@ -1,6 +1,8 @@
-use super::parameters::{Parameters, RawStart, validate_effective_world};
 use crate::activity::activity::{Ticks, World};
 use umpire_dsl::{__lifted::Lifts, Value, Values};
+use umpire_temporal::activity_protocol::parameters::{
+    Parameters, RawStart, validate_effective_world,
+};
 
 fn selected() -> Parameters {
     Parameters::new(3, [Some(1), Some(2), Some(3), None], true)
