@@ -1,0 +1,126 @@
+{
+  "clippy.log": {
+    "bytes": 5542,
+    "sha256": "9b890b49261e3c429551dbd2622751a6a5b5625570f1f66287d13718e73a49d8"
+  },
+  "commands-initial.json": {
+    "bytes": 3622,
+    "sha256": "17b3652ccaa2c0682fdbaa57a483699e2f96dde61e05b078a45cb8647c58872a"
+  },
+  "commands.json": {
+    "bytes": 4471,
+    "sha256": "9e83fba80b47179e0f1cef70bf0e0443ee82a8652445a5bb441091bdf61325c8"
+  },
+  "default-fixture-required.log": {
+    "bytes": 95807,
+    "sha256": "2e531922fef16ccdd1ec384d557b80f498564b8a50f7f3207d590a9d30594f27"
+  },
+  "evidence-sha256-initial.json": {
+    "bytes": 3181,
+    "sha256": "884cdc44480999bd2e46e92ce5da3c9825aaac66850c5f88030b7a4caa29abd2"
+  },
+  "feature-policy-required.log": {
+    "bytes": 1803502,
+    "sha256": "46a66446ce42a2879c3a9efb10feb3e85bb4dd98f5fd3d7bca6add58fb1287b7"
+  },
+  "feature-policy-summary.json": {
+    "bytes": 8198,
+    "sha256": "b96bc692a6746b1f16e03a16f9ce4984f23a10edc648d028d9f2335f07e6a9cd"
+  },
+  "fetch-tlc.log": {
+    "bytes": 44444,
+    "sha256": "4c0cf1545f8e5ca3a70a04ba10b382d2c52f89eed9f175fb33c48d8e7a86fc0f"
+  },
+  "fixture-mode-coverage.json": {
+    "bytes": 45100,
+    "sha256": "0e3b0d6f56c1a03cd1e1ebcd55b0c9b5356fa3dcfb06c28aeb29b80aa1ba35a1"
+  },
+  "fixtures-native.log": {
+    "bytes": 7526,
+    "sha256": "6747ec3a57a9bd189123db4e988bf349cfe88990e13da99832318274461f7af1"
+  },
+  "fmt-focused.log": {
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "fmt.log": {
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "guest-freshness.log": {
+    "bytes": 42384,
+    "sha256": "8cd8335cf4568c5d53219a11bb3b803d463f5afc69bd62f24c4b4ae0a8c98c91"
+  },
+  "guest-publication.json": {
+    "bytes": 859,
+    "sha256": "7047a498cb7867e74583517460d031940a6226af691c356ccadf648ad6d67e0c"
+  },
+  "guest-reproduce.log": {
+    "bytes": 48345,
+    "sha256": "5a31248bb35704a0219a796743a57657024cec818b6c00ab9b2c50e88c16bf81"
+  },
+  "java-version.log": {
+    "bytes": 386,
+    "sha256": "38aad3ed4a980cee563de51294370209144b0e0b3801569a27dcff585520ed39"
+  },
+  "named-adapter.log": {
+    "bytes": 2774,
+    "sha256": "4cb3d84cda9ce3699bad9009531fe04f3e562ec33ef3886662b2c139146c5994"
+  },
+  "negative-control-and-checkpoint-map.json": {
+    "bytes": 4210,
+    "sha256": "861aeba167218753eee91aecf3af5ab043948fa77b08e96a2cfb42b539e4663e"
+  },
+  "proof-handoff-initial.json": {
+    "bytes": 4685,
+    "sha256": "2a8bedd01969c5bb6faf39afdaa2c4e9457d1eda7a3e6263ec2f2bc11187113e"
+  },
+  "proof-handoff.json": {
+    "bytes": 6204,
+    "sha256": "b4a7df852fc4648c0cff70faff24c3e1343cbe167834844bf0983ba7fb91c2d4"
+  },
+  "protocol-mutants.txt": {
+    "bytes": 29374,
+    "sha256": "3305dfb6e6077f07bf6b58dbfd2c10f0b1035c38e2d4d6c2ebdaafd449ad202f"
+  },
+  "protocol-required-renewed.log": {
+    "bytes": 3382,
+    "sha256": "dd5d569d4169ab76aa3a47fbb63c68a2de4acd4e2144ba9e2820560508797f37"
+  },
+  "protocol-required.log": {
+    "bytes": 9517,
+    "sha256": "956ec41aecf163acb634bbd1175bb564d0195f6324c1cc6f4cf1a2e4e3010d0f"
+  },
+  "protocol-scopes.txt": {
+    "bytes": 19843,
+    "sha256": "8aed8885ef20bd8ca1c637a60571748e91466343d6f575be5d9a90468ecd80ea"
+  },
+  "protocol-summary.json": {
+    "bytes": 5933,
+    "sha256": "81512871ed04f14524b7612de5e5e405ccc9c5559d5d62eaff5a6269f5125ffb"
+  },
+  "required-complement-seven.log": {
+    "bytes": 338020,
+    "sha256": "73ce1f94122f796c6399c0b34c3b648fa0995eed2c048bc99adec34a68ac1432"
+  },
+  "rust-version.log": {
+    "bytes": 36,
+    "sha256": "55cd0529c005d3f62869ea6e2271bfa9d5196f56dc65a8be00a371af114a4a98"
+  },
+  "shared-agreement-evidence-reuse.json": {
+    "bytes": 1450,
+    "sha256": "2df37096c51f7bb9f2158c321d8974a865b92eaf52c5b199164cfd00d6fecb01"
+  },
+  "snapshot-ownership.log": {
+    "bytes": 872,
+    "sha256": "4fd1bbe3a7d92306efcf11c4a0692ad4e6a56fc00cded4d6cd07c1f244559a56"
+  },
+  "source-manifest.json": {
+    "bytes": 45413,
+    "sha256": "57d7e20dc65c8b1789afca37f8d5cfb27cd1f52bd007927e4268f1e62c653a20"
+  },
+  "umpire_temporal_guest.wasm": {
+    "bytes": 3988325,
+    "sha256": "8b9ea3c0b29ab0b0f727cf083027c9ad9a6886634d8ce8be25a84115e315be50"
+  }
+}

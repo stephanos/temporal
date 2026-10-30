@@ -1,0 +1,32 @@
+   Compiling umpire-temporal-api v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24613-protocol/model/temporal/api)
+   Compiling umpire-temporal v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24613-protocol/model/temporal/realization)
+   Compiling umpire-temporal-tests v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24613-protocol/model/temporal/testing)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 8.07s
+     Running fixtures.rs (/home/agent/.cache/codex-build/fn24613-proof-20261030/debug/deps/fixtures-0f6520c602ce96cd)
+
+running 22 tests
+test protocol_fixtures::activity_tests::authored_source_admits_without_graph_emission ... ok
+test protocol_fixtures::activity_tests::backend_refuses_wrong_world_cut_graph_and_unsupported_source ... ok
+test protocol_fixtures::activity_tests::cancellation_notification_failure_timeout_and_acknowledgement_are_distinct ... ok
+test protocol_fixtures::activity_tests::erased_budgets_and_present_zero_are_observable_to_full_state_laws ... ok
+test protocol_fixtures::activity_tests::latent_budgets_count_down_reset_span_retry_and_select_exact_priority ... ok
+test protocol_fixtures::activity_tests::mutants::required_tlc_fact_counterexample_replays_and_refuses_changed_expiry_fact ... ok
+test protocol_fixtures::activity_tests::mutants::source_only_budget_reset_priority_outcome_and_fact_mutants_disagree ... ok
+test protocol_fixtures::activity_tests::parameters_tests::effective_parameters_preserve_every_selected_field_and_provenance ... ok
+test protocol_fixtures::activity_tests::parameters_tests::effective_parameters_refuse_invalid_bounds_without_substitution ... ok
+test protocol_fixtures::activity_tests::parameters_tests::exact_exports_refuse_missing_duplicate_renamed_retyped_and_nominally_wrong_values ... ok
+test protocol_fixtures::activity_tests::parameters_tests::exact_schema_refuses_missing_duplicate_renamed_retyped_and_changed_domain_fields ... ok
+test protocol_fixtures::activity_tests::parameters_tests::raw_start_applies_only_the_pinned_waiting_default_at_its_named_boundary ... ok
+test protocol_fixtures::activity_tests::protocol_local_adapter_and_feature_schema_share_exact_parameters_without_world_import ... ok
+test protocol_fixtures::activity_tests::selected_worlds_are_complete_compiled_interpreted_and_required_tlc_scopes ... ok
+test protocol_fixtures::activity_tests::terminal_result_and_retained_failure_are_independent ... ok
+test protocol_fixtures::activity_tests::view_tests::completion_keeps_last_attempt_failure_separate_from_outcome ... ok
+test protocol_fixtures::activity_tests::view_tests::full_state_schema_accounts_for_all_fields_and_rejects_erasure_or_retyping ... ok
+test protocol_fixtures::activity_tests::view_tests::heartbeat_notification_and_worker_acknowledgement_have_distinct_results ... ok
+test protocol_fixtures::activity_tests::view_tests::latent_countdowns_do_not_become_public_snapshot_fields ... ok
+test protocol_fixtures::activity_tests::view_tests::optional_remaining_preserves_absence_and_present_zero_in_exported_values ... ok
+test protocol_fixtures::activity_tests::view_tests::unknown_and_known_absence_constrain_views_differently ... ok
+test standalone_activity_protocol_fixtures ... ok
+
+test result: ok. 22 passed; 0 failed; 0 ignored; 0 measured; 42 filtered out; finished in 96.08s
+

@@ -1,0 +1,124 @@
+{
+  "worlds": [
+    {
+      "world": 0,
+      "parameters_scope_bound": "Parameters { maximum_attempts: 1, schedule_to_start: Some(1), start_to_close: Some(1), schedule_to_close: None, heartbeat_timeout: None, asynchronous_cancel: false }; timeout-scope=raw-realizable; cancellation-scope=atomic-compatibility; bound=4096",
+      "starts": 1,
+      "states": 8,
+      "native_states": 8,
+      "edges": 15,
+      "verified_own_laws": 16
+    },
+    {
+      "world": 1,
+      "parameters_scope_bound": "Parameters { maximum_attempts: 3, schedule_to_start: Some(1), start_to_close: Some(1), schedule_to_close: None, heartbeat_timeout: None, asynchronous_cancel: false }; timeout-scope=raw-realizable; cancellation-scope=atomic-compatibility; bound=4096",
+      "starts": 1,
+      "states": 28,
+      "native_states": 28,
+      "edges": 103,
+      "verified_own_laws": 16
+    },
+    {
+      "world": 2,
+      "parameters_scope_bound": "Parameters { maximum_attempts: 3, schedule_to_start: None, start_to_close: None, schedule_to_close: None, heartbeat_timeout: None, asynchronous_cancel: true }; timeout-scope=abstract-checker; cancellation-scope=cooperative; bound=4096",
+      "starts": 1,
+      "states": 21,
+      "native_states": 21,
+      "edges": 87,
+      "verified_own_laws": 16
+    },
+    {
+      "world": 3,
+      "parameters_scope_bound": "Parameters { maximum_attempts: 2, schedule_to_start: Some(1), start_to_close: Some(1), schedule_to_close: None, heartbeat_timeout: None, asynchronous_cancel: true }; timeout-scope=raw-realizable; cancellation-scope=cooperative; bound=4096",
+      "starts": 1,
+      "states": 23,
+      "native_states": 23,
+      "edges": 80,
+      "verified_own_laws": 16
+    },
+    {
+      "world": 4,
+      "parameters_scope_bound": "Parameters { maximum_attempts: 1, schedule_to_start: None, start_to_close: None, schedule_to_close: Some(3), heartbeat_timeout: None, asynchronous_cancel: true }; timeout-scope=abstract-checker; cancellation-scope=cooperative; bound=4096",
+      "starts": 1,
+      "states": 14,
+      "native_states": 14,
+      "edges": 53,
+      "verified_own_laws": 16
+    },
+    {
+      "world": 5,
+      "parameters_scope_bound": "Parameters { maximum_attempts: 3, schedule_to_start: None, start_to_close: None, schedule_to_close: None, heartbeat_timeout: Some(2), asynchronous_cancel: true }; timeout-scope=abstract-checker; cancellation-scope=cooperative; bound=4096",
+      "starts": 1,
+      "states": 44,
+      "native_states": 44,
+      "edges": 259,
+      "verified_own_laws": 16
+    },
+    {
+      "world": 6,
+      "parameters_scope_bound": "Parameters { maximum_attempts: 3, schedule_to_start: Some(3), start_to_close: Some(3), schedule_to_close: Some(3), heartbeat_timeout: Some(3), asynchronous_cancel: true }; timeout-scope=raw-realizable; cancellation-scope=cooperative; bound=4096",
+      "starts": 1,
+      "states": 90,
+      "native_states": 90,
+      "edges": 750,
+      "verified_own_laws": 16
+    },
+    {
+      "world": 7,
+      "parameters_scope_bound": "Parameters { maximum_attempts: 2, schedule_to_start: Some(1), start_to_close: Some(1), schedule_to_close: Some(1), heartbeat_timeout: Some(1), asynchronous_cancel: true }; timeout-scope=raw-realizable; cancellation-scope=cooperative; bound=4096",
+      "starts": 1,
+      "states": 16,
+      "native_states": 16,
+      "edges": 54,
+      "verified_own_laws": 16
+    },
+    {
+      "world": 8,
+      "parameters_scope_bound": "Parameters { maximum_attempts: 2, schedule_to_start: None, start_to_close: Some(2), schedule_to_close: None, heartbeat_timeout: Some(2), asynchronous_cancel: true }; timeout-scope=raw-realizable; cancellation-scope=cooperative; bound=4096",
+      "starts": 1,
+      "states": 33,
+      "native_states": 33,
+      "edges": 177,
+      "verified_own_laws": 16
+    },
+    {
+      "world": 9,
+      "parameters_scope_bound": "Parameters { maximum_attempts: 3, schedule_to_start: Some(3), start_to_close: Some(1), schedule_to_close: Some(3), heartbeat_timeout: None, asynchronous_cancel: true }; timeout-scope=raw-realizable; cancellation-scope=cooperative; bound=4096",
+      "starts": 1,
+      "states": 69,
+      "native_states": 69,
+      "edges": 442,
+      "verified_own_laws": 16
+    },
+    {
+      "world": 10,
+      "parameters_scope_bound": "Parameters { maximum_attempts: 2, schedule_to_start: None, start_to_close: Some(3), schedule_to_close: Some(3), heartbeat_timeout: Some(2), asynchronous_cancel: true }; timeout-scope=abstract-checker; cancellation-scope=cooperative; bound=4096",
+      "starts": 1,
+      "states": 59,
+      "native_states": 59,
+      "edges": 372,
+      "verified_own_laws": 16
+    },
+    {
+      "world": 11,
+      "parameters_scope_bound": "Parameters { maximum_attempts: 3, schedule_to_start: Some(2), start_to_close: None, schedule_to_close: None, heartbeat_timeout: None, asynchronous_cancel: true }; timeout-scope=abstract-checker; cancellation-scope=cooperative; bound=4096",
+      "starts": 1,
+      "states": 27,
+      "native_states": 27,
+      "edges": 114,
+      "verified_own_laws": 16
+    }
+  ],
+  "selected_world_count": 12,
+  "state_sum": 432,
+  "edge_sum": 2506,
+  "source_mutant_count": 20,
+  "tool": {
+    "release": "TLA+ 1.7.4",
+    "tlc_version": "Version 2.19 of 08 August 2024",
+    "jar_sha256": "936a262061c914694dfd669a543be24573c45d5aa0ff20a8b96b23d01e050e88",
+    "java": "Picked up JAVA_TOOL_OPTIONS: -Dhttp.proxyHost=gateway.docker.internal -Dhttp.proxyPort=3128 -Dhttps.proxyHost=gateway.docker.internal -Dhttps.proxyPort=3128 -Dhttp.nonProxyHosts=localhost|127.*|[::1]|gateway.docker.internal\nopenjdk version \"27\" 2026-09-15\nOpenJDK Runtime Environment Temurin-27+35 (build 27+35)\nOpenJDK 64-Bit Server VM Temurin-27+35 (build 27+35, mixed mode, sharing)\n",
+    "rust": "rustc 1.99.1 (58cf8f9c3 2026-10-13)\n"
+  },
+  "status": "protocol-native-and-TLC-proof-only; root-review-and-task-closure-pending"
+}

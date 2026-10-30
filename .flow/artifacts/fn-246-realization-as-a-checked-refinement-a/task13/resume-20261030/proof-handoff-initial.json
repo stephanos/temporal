@@ -1,0 +1,101 @@
+{
+  "head": "c9dc4fbc1e3318ad73e1e2f4410db3d22d501c45",
+  "source_checkpoints": [
+    "aaba1371907181f3050d84cf57481640d33becbc",
+    "5d8c856521106c31534e2d7fbbc3599c58bb82ca"
+  ],
+  "tracked_changes": "",
+  "source_changes": "none",
+  "flow_mutations": "none",
+  "commits_created": [],
+  "target": "/home/agent/.cache/codex-build/fn24613-proof-20261030",
+  "results": {
+    "protocol-required.log": {
+      "exit_code": 101,
+      "result": "19 passed; 3 refusals; missing pinned TLC jar; preserved initial provisioning failure",
+      "sha256": "956ec41aecf163acb634bbd1175bb564d0195f6324c1cc6f4cf1a2e4e3010d0f"
+    },
+    "fetch-tlc.log": {
+      "exit_code": 0,
+      "result": "pinned jar provisioned through current xtask",
+      "sha256": "4c0cf1545f8e5ca3a70a04ba10b382d2c52f89eed9f175fb33c48d8e7a86fc0f"
+    },
+    "protocol-required-renewed.log": {
+      "exit_code": 0,
+      "result": "22 passed; 0 failed; 42 filtered; 96.08s",
+      "sha256": "dd5d569d4169ab76aa3a47fbb63c68a2de4acd4e2144ba9e2820560508797f37"
+    },
+    "fixtures-native.log": {
+      "exit_code": 0,
+      "result": "62 passed; 0 failed; 2 inherited ignores; 3.13s",
+      "sha256": "6747ec3a57a9bd189123db4e988bf349cfe88990e13da99832318274461f7af1"
+    },
+    "snapshot-ownership.log": {
+      "exit_code": 0,
+      "result": "2 passed; 0 failed; 0.14s",
+      "sha256": "4fd1bbe3a7d92306efcf11c4a0692ad4e6a56fc00cded4d6cd07c1f244559a56"
+    },
+    "feature-policy-required.log": {
+      "exit_code": 0,
+      "result": "15 passed; 0 failed; 49 filtered; 805.58s",
+      "sha256": "46a66446ce42a2879c3a9efb10feb3e85bb4dd98f5fd3d7bca6add58fb1287b7"
+    },
+    "default-fixture-required.log": {
+      "exit_code": 0,
+      "result": "1 passed; 0 failed; 63 filtered; 27.92s; default18 states/63 edges/17 laws",
+      "sha256": "2e531922fef16ccdd1ec384d557b80f498564b8a50f7f3207d590a9d30594f27"
+    },
+    "named-adapter.log": {
+      "exit_code": 0,
+      "result": "1 passed; 0 failed; 14 filtered; 0.02s",
+      "sha256": "4cb3d84cda9ce3699bad9009531fe04f3e562ec33ef3886662b2c139146c5994"
+    },
+    "clippy.log": {
+      "exit_code": 0,
+      "result": "strict focused all-target clippy; 43.28s",
+      "sha256": "9b890b49261e3c429551dbd2622751a6a5b5625570f1f66287d13718e73a49d8"
+    },
+    "fmt.log": {
+      "exit_code": 0,
+      "result": "workspace rustfmt check",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "fmt-focused.log": {
+      "exit_code": 0,
+      "result": "explicit authored protocol/feature source and test rustfmt check",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "guest-reproduce.log": {
+      "exit_code": 0,
+      "result": "current driver reproduction in3m37s; exact byte comparison successful",
+      "sha256": "5a31248bb35704a0219a796743a57657024cec818b6c00ab9b2c50e88c16bf81"
+    },
+    "guest-freshness.log": {
+      "exit_code": 0,
+      "result": "current driver guest --check in1m44s; no output publication",
+      "sha256": "8cd8335cf4568c5d53219a11bb3b803d463f5afc69bd62f24c4b4ae0a8c98c91"
+    }
+  },
+  "primary_sources": {
+    "model/temporal/shared/protocol/activity/model.rs": "4b503c12e7aaf35aeb8b54a445253458010f357febaa3fb1b4eab18fff187b64",
+    "model/temporal/feature/activity/model.rs": "fd1d3e1e3fd393d84037c756819b3cb221b226831c395cc85f62eeaad80eb0bf",
+    "model/temporal/feature/activity/compatibility/checkpoint.rs": "cacbdfb3814fab83132f68721dcabe89ccd4e072148ec288f86159b5f91e781e"
+  },
+  "evidence_files": [
+    "commands.json",
+    "source-manifest.json",
+    "protocol-summary.json",
+    "protocol-scopes.txt",
+    "protocol-mutants.txt",
+    "feature-policy-summary.json",
+    "guest-publication.json"
+  ],
+  "limitations": [
+    "Root review, integration and Flow closure pending.",
+    "No full model-check or model-validate run; final broad gates remain fn254.8.",
+    "No online binding, TLC refinement or retained .9 full live umbrella proof claimed. External activity gaps snapshot remains delegated to make umpire-check-model-gaps.",
+    "Two inherited opt-in tests remain ignored: import_live_gap_candidate; realization_control::added_catalog_field_fails_the_real_coverage_golden.",
+    "README earlier45.96s/66.566s timing claims have no recovered final log. Current renewed22-test proof is96.08s and fresh native62-test proof is3.13s.",
+    "Task13 wording refers to removed original-artifact hash manifest. Current tracked fn227 historical original-artifacts.sha256 remains80,187bytes; active compatibility tests compare semantic1start/6state/11edge projection and changed-edge rejection. Protected historical records preserved."
+  ]
+}
