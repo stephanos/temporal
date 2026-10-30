@@ -1,0 +1,7 @@
+{
+  "native_registration": 62,
+  "required_union_exact": true,
+  "complete_passed_identities_match_native": true,
+  "two_corrected_complement_logs_pass": true,
+  "full_single_invocation_claimed": false
+}

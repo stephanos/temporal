@@ -1,0 +1,27 @@
+{
+  "base": "71ff747ebb42638fdf932b47eb380094b84d25df",
+  "removed": [
+    "tools/umpire/ir",
+    "tools/umpire/interp",
+    "tools/umpire/check",
+    "tools/umpire/realization",
+    "tools/umpire/export",
+    "tools/umpire/internal"
+  ],
+  "import_scan_status": 1,
+  "backend_hook_scan_status": 1,
+  "archive_unchanged": true,
+  "negative_import_fixture_unchanged": true,
+  "rust_make_suffix_sha256": "fad76006e09751de2eeb1efba325a3641fab7ed82758f307e74d4cdaf7f9aeb7",
+  "exemptions": [
+    "model/archived/**",
+    "historical .flow and .plans records including explicitly historical UMPIRE_MODULES sections",
+    "common/testing/testpilot/dependency_boundary_test.go synthetic forbidden-import fixture"
+  ],
+  "initial_source_manifest_sha256": "1f793e01e51ebf455294fbead20dee611d89e6fb95ca6384c93ea25d62038c07",
+  "source_manifest_sha256": "36eef226f7314b86538e64007ce60535dae3d3b42e6e9b048f9f8510ce0c7438",
+  "scope_additions": [
+    "tools/tdbg/dlq_v2_service.go pointer-preserving protobuf queues admitted by root499d4bb9fb",
+    "Makefile lint-code-fast deleted-directory success admitted by root95e029adf2"
+  ]
+}

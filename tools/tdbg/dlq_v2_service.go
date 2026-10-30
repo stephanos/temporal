@@ -441,13 +441,13 @@ func (ac *DLQV2Service) ListQueues(c *cli.Context) (err error) {
 		},
 	)
 
-	var queues []adminservice.ListQueuesResponse_QueueInfo
+	var queues []*adminservice.ListQueuesResponse_QueueInfo
 	for iterator.HasNext() {
 		queue, err := iterator.Next()
 		if err != nil {
 			return fmt.Errorf("ListQueues task iterator returned error: %w", err)
 		}
-		queues = append(queues, *queue)
+		queues = append(queues, queue)
 	}
 
 	// Sort the list of queues in decreasing order of MessageCount.

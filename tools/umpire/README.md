@@ -1,30 +1,16 @@
 # tools/umpire
 
-The Go tooling of the Temporal behavior model: the `umpire` command, the one host loop over a Model
-guest, and the Scala-era IR reader. The reader's packages work from the Umpire IR the archived
-Scala Models were lifted to; that IR is no longer checked in, so they keep only their own test
-fixtures. No package runs Scala or reads a Scala source. [model/README.md](../../model/README.md) explains the whole pipeline and its
-terms; this page says what each package is for.
+The Go tooling for live Temporal Model runs: the `umpire` Runner command and the
+Temporal Driver composition. [model/README.md](../../model/README.md) explains the
+Model and host pipeline; [.plans/UMPIRE_MODULES.md](../../.plans/UMPIRE_MODULES.md)
+states module ownership and permitted imports.
 
 ## Packages
 
 | Package | Job |
 | --- | --- |
-| `ir` | Loads and validates IR Models, computes totals and admits exploration declarations |
-| `interp` | Interprets Values, Machines, Channels and decision traces into finite tables |
-| `check` | Binds and answers Properties, Queries, compositions, refinements and progress claims, a composition's over its composed table and scoped fairness; owns `Realizer` and the bound declarations |
-| `realization` | Admits executable realizations and types their guards, operands and payloads |
-| `internal/engine` | Evaluates finite table claims; private to `interp` and `check` |
-| [`export`](export/README.md) | Writes the IR for Quint and compares its answers with the reader's |
-
-The module map, [.plans/UMPIRE_MODULES.md](../../.plans/UMPIRE_MODULES.md), states each package's
-public interface and what it may import. `ir/ownership_test.go` enforces the reader's layers:
-`realization` imports `interp`, `ir` imports both, and `check` imports `ir` and `interp`. None imports
-Testpilot. `export` depends only on `ir`, `interp` and `check`.
-
-fn-228.6 retired Case lowering, conformance, IR-bridge exploration, Model lint and their commands
-(`umpire-gen-cases`, `umpire-lint`, `umpire-ir-bridge`) with the Testpilot Case runtime; the Runner
-judges every observation through the Model instead.
+| `cmd/umpire` | Run the shared host loop over a Model guest and publish Runs. |
+| `temporaldriver` | Compose the Testpilot Temporal Driver with the raw and SDK reference workers. |
 
 ## Commands
 
@@ -55,10 +41,6 @@ activity slice through the command.
 ## Checks
 
 ```sh
-go test -tags test_dep ./tools/umpire/...   # every package; no JVM, no server
-make umpire-check-backends                  # Quint against the reader; needs the tools export/README.md names
+mise exec -- go test -count=1 -tags test_dep ./tools/umpire/cmd/umpire ./tools/umpire/temporaldriver ./common/testing/testpilot/...
+make umpire-check-live-tests
 ```
-
-Many of the reader's tests still read the retired `model/ir`, `model/irgen` and
-`model/temporal/features` trees and fail for that reason alone; they are not part of
-`make model-check`.

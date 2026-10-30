@@ -1,0 +1,8 @@
+{
+  "status": "Source frozen for review; full required fixture run remains in progress. Not acceptance/closure.",
+  "native": "62pass,2inherited ignores",
+  "required": "One known policy mutant anchor failure corrected; focused required complement passes; full invocation still executing remaining selected-world controls. Exact identity partition and snapshot verification will be completed before closure.",
+  "source": "0bda5f62c2",
+  "protected_goldens": "states/rows unchanged",
+  "removed_claims": "None; distinct forged-zero and Tick/Heartbeat ownership retained."
+}

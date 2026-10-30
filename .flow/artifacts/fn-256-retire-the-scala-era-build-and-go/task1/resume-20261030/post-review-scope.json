@@ -1,0 +1,9 @@
+{
+  "changed_source_paths": [
+    ".plans/UMPIRE_MODULES.md",
+    "model/temporal/feature/activity/expected/gaps.txt.snap",
+    "tools/umpire/README.md"
+  ],
+  "source_patch_sha256": "f3f790ac52f322f3785b65cde6b484b45b475db463225aec7d73d7898373e3ca",
+  "no_production_go_or_rust_changes": true
+}

@@ -1,0 +1,81 @@
+{
+  "type": "impl_review_fanout",
+  "focus": "Review current Scala-era Go IR reader/Quint/backend-hook retirement d9a58c62dd refreshed on integrated whole-prefix9 and exact current guest13 baseline. Six removed package trees; narrow CI/Make selector, deleted-directory lint wrapper, pointer-preserving DLQ protobuf iteration and current owner docs. Four independent production/test_dep/integration/canary dependency inventories pass, production build ./..., both broad vet modes, retained Umpire/Testpilot/canary tests,harness/build,tdbg and positive/negative wrapper controls pass,current driver guest --check8b9ea pass. Full live attempt passed former raw/SDKslice blocker, then exposed stale gap golden; renewed ONLY gaps snapshot through explicit Rust importer, no Model/catalog edits. Exact old/new case sets match prior reviewed producer accounting1178removals2additions4strengthenedpredictions,81/81authoredConfirmed0mismatch. Review gap-delta-review and importer verification artifacts. Actual complete live rerun still running and required before closure, no green umbrella claim. Broad model-check/validate owner-deferred fn254.8; no gate waiver. Historical records and forbidden-import synthetic negative fixture remain exemptions. Do not read entire raw historical logs; inspect source hunks, exact retained closure and current preflight summaries.",
+  "claim_token": null,
+  "id": "fn-256-retire-the-scala-era-build-and-go.1",
+  "standalone": false,
+  "base_branch": "36a03b6b81",
+  "reviewed_base_sha": "9212a1caed2cf82c0cd790c1e3ffafdbe4345b8e",
+  "reviewed_head_sha": "1888b3f70254839faad72940c955954d19e9e879",
+  "artifact_sha256": "38e0763825a140c831075afc9da9323de24408e55b1fb3a17fa51f5d325ab880",
+  "reservation_id": "ea7fc57e72694037858e01bf460ace76",
+  "rid": "ea7fc57e72694037858e01bf460ace76",
+  "primary_axis": "correctness",
+  "draws": [
+    {
+      "axis": "correctness",
+      "parse_status": {
+        "status": "unparsed",
+        "reason": "no-findings-container",
+        "block": null
+      },
+      "backend": "claude",
+      "model": "claude-fable-5-1",
+      "effort": "high",
+      "session_id": "14092bf8-d865-4bb0-b3a8-a1815ed0d87f",
+      "verdict": "SHIP",
+      "failed": false,
+      "failure_class": null,
+      "failure_message": null,
+      "exit_code": 0,
+      "started_at": "2026-10-30T03:56:08.271035Z",
+      "finished_at": "2026-10-30T03:58:52.345253Z",
+      "review_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2561-retirement/.flow/review-fanout/ea7fc57e72694037858e01bf460ace76/correctness.review.md",
+      "output_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2561-retirement/.flow/review-fanout/ea7fc57e72694037858e01bf460ace76/correctness.out.txt"
+    },
+    {
+      "axis": "contracts",
+      "parse_status": {
+        "status": "parsed",
+        "reason": null,
+        "block": null
+      },
+      "backend": "claude",
+      "model": "claude-fable-5-1",
+      "effort": "high",
+      "session_id": "a7e73d93-dca8-4243-9ada-f94bfc3c6927",
+      "verdict": "SHIP",
+      "failed": false,
+      "failure_class": null,
+      "failure_message": null,
+      "exit_code": 0,
+      "started_at": "2026-10-30T03:56:08.271278Z",
+      "finished_at": "2026-10-30T04:01:08.893557Z",
+      "review_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2561-retirement/.flow/review-fanout/ea7fc57e72694037858e01bf460ace76/contracts.review.md",
+      "output_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2561-retirement/.flow/review-fanout/ea7fc57e72694037858e01bf460ace76/contracts.out.txt"
+    },
+    {
+      "axis": "integration",
+      "parse_status": {
+        "status": "parsed",
+        "reason": null,
+        "block": null
+      },
+      "backend": "claude",
+      "model": "claude-fable-5-1",
+      "effort": "high",
+      "session_id": "afe00ce8-569d-4aca-b36a-7c8c28d40595",
+      "verdict": "SHIP",
+      "failed": false,
+      "failure_class": null,
+      "failure_message": null,
+      "exit_code": 0,
+      "started_at": "2026-10-30T03:56:08.271607Z",
+      "finished_at": "2026-10-30T03:59:29.310247Z",
+      "review_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2561-retirement/.flow/review-fanout/ea7fc57e72694037858e01bf460ace76/integration.review.md",
+      "output_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2561-retirement/.flow/review-fanout/ea7fc57e72694037858e01bf460ace76/integration.out.txt"
+    }
+  ],
+  "receipt_path": "/tmp/impl-review-receipt-62db8848e54f-fn-256-retire-the-scala-era-build-and-go.1.json",
+  "created_at": "2026-10-30T04:01:08.942545Z"
+}

@@ -24,9 +24,11 @@ outcomes:
   [6] Rejected(Unavailable): untouched
 faults: complete (empty catalog)
 claims (witness evaluations only):
-  invariant[0] state_bounds: touched evaluated=99
-  invariant[1] deadline_arming: touched evaluated=99
-  invariant[2] pending_is_cooperative: touched evaluated=99
+  invariant[0] policy_in_range: touched evaluated=99
+  invariant[1] attempt_within_policy: touched evaluated=99
+  invariant[2] countdowns_within_budget: touched evaluated=99
+  invariant[3] deadline_arming: touched evaluated=99
+  invariant[4] pending_is_cooperative: touched evaluated=99
   postcondition[0] terminal_remains: touched evaluated=78 triggered=78
   postcondition[1] closed_rejects: touched evaluated=78 triggered=78
   postcondition[2] global_never_replenished: touched evaluated=78 triggered=78

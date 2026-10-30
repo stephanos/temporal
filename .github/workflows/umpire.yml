@@ -57,7 +57,7 @@ jobs:
           sha256: "f9612efcddda0ae55b62d3b6f82a6c860d5b54ebee0807d4f1a1d578055e1607"
           cache: false
       - name: Run package-local Testpilot and Umpire tests
-        run: mise exec -- go test -count=1 -tags test_dep ./tools/umpire/... ./common/testing/testpilot/...
+        run: mise exec -- go test -count=1 -tags test_dep ./tools/umpire/cmd/umpire ./tools/umpire/temporaldriver ./common/testing/testpilot/...
       - name: Run the live Umpire tests
         run: make umpire-check-live-tests
   canary:

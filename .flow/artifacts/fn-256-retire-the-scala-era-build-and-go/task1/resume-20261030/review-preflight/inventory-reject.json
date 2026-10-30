@@ -1,0 +1,17 @@
+{
+  "name": "inventory-reject",
+  "command": "python3 -c 'import pathlib,re; p=pathlib.Path(\".flow/tmp/fn2561-resume-20261030\"); files=sorted(p.glob(\"dependencies-*.log\")); assert len(files)==4; bad={str(f):re.findall(r\"go.temporal.io/server/tools/umpire/(?:ir|interp|check|realization|export|internal)(?:/|$).*\", f.read_text(), re.M) for f in files}; print(bad); assert not any(bad.values())'",
+  "head": "d960113963efb6cd6d00fe49367c19558877b18c",
+  "source_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "start": "2026-10-30T03:45:45.028003+00:00",
+  "end": "2026-10-30T03:45:45.058060+00:00",
+  "status": 0,
+  "log_sha256": "03ebdae5970c1baf7754c9d8bc5e336b4a9940262c8eee49a5abb3df8fdc5d2d",
+  "environment": {
+    "GOFLAGS": "-p=2",
+    "GOCACHE": null,
+    "CARGO_TARGET_DIR": "/home/agent/.cache/codex-build/cargo-target",
+    "CARGO_BUILD_JOBS": "2",
+    "TMPDIR": "/home/agent/.cache/codex-build/tmp"
+  }
+}

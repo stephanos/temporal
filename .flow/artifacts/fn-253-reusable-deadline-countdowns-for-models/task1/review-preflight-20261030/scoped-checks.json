@@ -1,0 +1,56 @@
+[
+  {
+    "command": [
+      "mise",
+      "exec",
+      "--",
+      "cargo",
+      "test",
+      "-p",
+      "umpire-temporal-tests",
+      "--test",
+      "fixtures",
+      "--",
+      "--test-threads=2"
+    ],
+    "exit": 0,
+    "seconds": 7.039646877999985,
+    "log": "native-current.log"
+  },
+  {
+    "command": [
+      "mise",
+      "exec",
+      "--",
+      "cargo",
+      "clippy",
+      "-p",
+      "umpire-temporal-tests",
+      "--test",
+      "fixtures",
+      "--",
+      "-D",
+      "warnings"
+    ],
+    "exit": 0,
+    "seconds": 17.7930393000006,
+    "log": "clippy-current.log"
+  },
+  {
+    "command": [
+      "mise",
+      "exec",
+      "--",
+      "rustfmt",
+      "--check",
+      "--edition",
+      "2024",
+      "temporal/feature/activity/model.rs",
+      "temporal/feature/activity/proof_checks.rs",
+      "temporal/feature/activity/policy_checks.rs"
+    ],
+    "exit": 0,
+    "seconds": 0.06032983300065098,
+    "log": "fmt-current.log"
+  }
+]

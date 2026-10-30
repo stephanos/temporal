@@ -1,0 +1,19 @@
+{
+  "head": "d960113963efb6cd6d00fe49367c19558877b18c",
+  "removed": [
+    "ir",
+    "interp",
+    "check",
+    "realization",
+    "export",
+    "internal"
+  ],
+  "live_matches": [],
+  "archive_and_negative_fixture_unchanged_against": "9212a1caed",
+  "rust_suffix_sha256": "d751aa37314c689913f5f6a4bd7c1992414a76397011dd8bb155267665dc38a1",
+  "exemptions": [
+    "model/archived/**",
+    "historical .flow/.plans/.turbo and docs/superpowers records",
+    "common/testing/testpilot/dependency_boundary_test.go synthetic forbidden-import control"
+  ]
+}

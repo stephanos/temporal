@@ -766,10 +766,10 @@ fn required_tlc_refutes_source_only_boundary_policy_mutants() -> TestResult {
     );
     let pending_expiry_cancels = replace_in(
         SOURCE,
-        "fn expire_attempt(",
+        "fn time_out_attempt(",
         "fn clear_terminal(",
-        "if self.cancel_requested {\n                self.phase = Phase::TimedOut;",
-        "if self.cancel_requested {\n                self.phase = Phase::Canceled;",
+        "if self.cancel_requested {\n                self.time_out();",
+        "if self.cancel_requested {\n                self.phase = Phase::Canceled; self.clear_terminal();",
     );
     let heartbeat_closes = replace_in(
         SOURCE,
@@ -782,8 +782,8 @@ fn required_tlc_refutes_source_only_boundary_policy_mutants() -> TestResult {
         SOURCE,
         "self.decrement();",
         "Some(ExpiredDeadline::ScheduleToClose)",
-        "self.phase = Phase::TimedOut;",
-        "if self.cancel_requested { self.phase = Phase::Canceled; } else { self.phase = Phase::TimedOut; }",
+        "self.time_out();",
+        "if self.cancel_requested { self.phase = Phase::Canceled; self.clear_terminal(); } else { self.time_out(); }",
     );
     for (source, world, property) in [
         (
@@ -975,7 +975,9 @@ fn selected_deadline_worlds(partition: usize) -> TestResult {
         assert!(!report.claims.is_empty());
         assert_eq!(report.outcome(), umpire_dsl::CheckOutcome::Verified, "{report}");
         for name in [
-            "state_bounds",
+            "policy_in_range",
+            "attempt_within_policy",
+            "countdowns_within_budget",
             "deadline_arming",
             "pending_is_cooperative",
             "tick_priority",

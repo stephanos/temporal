@@ -1,0 +1,27 @@
+{
+  "full_required_command": "CARGO_TARGET_DIR=/home/agent/.cache/codex-build/cargo-target CARGO_BUILD_JOBS=2 INSTA_UPDATE=always UMPIRE_BACKENDS=require mise exec -- cargo test -p umpire-temporal-tests --test fixtures -- --nocapture --test-threads=2",
+  "required_complement_command": "CARGO_TARGET_DIR=/home/agent/.cache/codex-build/cargo-target CARGO_BUILD_JOBS=2 UMPIRE_BACKENDS=require mise exec -- cargo test -p umpire-temporal-tests --test fixtures activity_tests::policy_checks::required_tlc_refutes_source_only_boundary_policy_mutants -- --exact --nocapture --test-threads=1",
+  "partition_reason": "Full required run had one missing source mutation anchor after factoring global timeout. Only that test constructor changed while full run continued. Its entire required TLC test was rerun without snapshot-update mode; all other completed tests remain applicable to identical model/check code. No full required repetition.",
+  "test_constructor_delta": {
+    "file": "model/temporal/feature/activity/policy_checks.rs",
+    "constructor": "global_loses within required_tlc_refutes_source_only_boundary_policy_mutants",
+    "before_anchor": "self.phase = Phase::TimedOut;",
+    "after_anchor": "self.time_out();",
+    "before_replacement": "if self.cancel_requested { self.phase = Phase::Canceled; } else { self.phase = Phase::TimedOut; }",
+    "after_replacement": "if self.cancel_requested { self.phase = Phase::Canceled; self.clear_terminal(); } else { self.time_out(); }",
+    "meaning": "Same pending-only global-expiry Canceled mutation with terminal clearing; Post_tick_priority remains its owner."
+  },
+  "environment_failures_preserved": [
+    "tlc-update.log: missing local pinned jar",
+    "tlc-update-provisioned.log: function-local lint attribute refused by source-admission whitelist",
+    "clippy.log: policy invariant requires state signature but uses world only"
+  ],
+  "lint_resolution": "Module-level #[expect(clippy::unused_self)] before #[machine] follows optional_facts fixture precedent; source-admitted methods do not allow lint attributes.",
+  "scope_limits": [
+    "No claims removed beyond replacing state_bounds with its three exact clause partitions.",
+    "No production guest/canary artifacts changed.",
+    "Broad model-check/model-validate remains fn254.8 owner-deferred.",
+    "All source changes confined to assigned activity files plus helper-accuracy README correction."
+  ],
+  "model_sha256": "f8e5391666a66ca37a488ca29625c767fc0259f5e892f334ada5c430fe75e066"
+}

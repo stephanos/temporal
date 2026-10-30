@@ -1,0 +1,336 @@
+{
+  "reviewed_source_head": "1888b3f70254839faad72940c955954d19e9e879",
+  "launch_source_equivalence": "review-head-equivalence.json",
+  "gates": [
+    {
+      "name": "dependencies-production",
+      "command": "mise exec -- go list -mod=readonly -deps ./tools/umpire/cmd/umpire ./tools/umpire/temporaldriver ./common/testing/testpilot/... ./tools/canary/...",
+      "head": "d960113963efb6cd6d00fe49367c19558877b18c",
+      "source_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "start": "2026-10-30T03:45:27.967216+00:00",
+      "end": "2026-10-30T03:45:28.445263+00:00",
+      "status": 0,
+      "log_sha256": "1ff5c69881824d18ccfc5a9a811e5151781192b502f6c53e40284ad9ac5508a5",
+      "environment": {
+        "GOFLAGS": "-p=2",
+        "GOCACHE": null,
+        "CARGO_TARGET_DIR": "/home/agent/.cache/codex-build/cargo-target",
+        "CARGO_BUILD_JOBS": "2",
+        "TMPDIR": "/home/agent/.cache/codex-build/tmp"
+      }
+    },
+    {
+      "name": "dependencies-test-dep",
+      "command": "mise exec -- go list -mod=readonly -deps -test -tags test_dep ./tools/umpire/cmd/umpire ./tools/umpire/temporaldriver ./common/testing/testpilot/... ./tools/canary/...",
+      "head": "d960113963efb6cd6d00fe49367c19558877b18c",
+      "source_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "start": "2026-10-30T03:45:33.122745+00:00",
+      "end": "2026-10-30T03:45:33.414585+00:00",
+      "status": 0,
+      "log_sha256": "f884714eefb6a34f9cb41262e9e359b7a0644f806aa30d25ef77bbfd65146175",
+      "environment": {
+        "GOFLAGS": "-p=2",
+        "GOCACHE": null,
+        "CARGO_TARGET_DIR": "/home/agent/.cache/codex-build/cargo-target",
+        "CARGO_BUILD_JOBS": "2",
+        "TMPDIR": "/home/agent/.cache/codex-build/tmp"
+      }
+    },
+    {
+      "name": "dependencies-integration",
+      "command": "mise exec -- go list -mod=readonly -deps -test -tags 'test_dep integration' ./tests",
+      "head": "d960113963efb6cd6d00fe49367c19558877b18c",
+      "source_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "start": "2026-10-30T03:45:33.445063+00:00",
+      "end": "2026-10-30T03:45:34.294301+00:00",
+      "status": 0,
+      "log_sha256": "d0ad94fa81043d13d758ab6dc967600d48c601c2329b730542b4fc56bf91bc6d",
+      "environment": {
+        "GOFLAGS": "-p=2",
+        "GOCACHE": null,
+        "CARGO_TARGET_DIR": "/home/agent/.cache/codex-build/cargo-target",
+        "CARGO_BUILD_JOBS": "2",
+        "TMPDIR": "/home/agent/.cache/codex-build/tmp"
+      }
+    },
+    {
+      "name": "dependencies-canary",
+      "command": "mise exec -- go list -mod=readonly -deps -test -tags 'test_dep canary_harness' ./tools/canary/cmd/umpire-canary ./tools/canary/testharness",
+      "head": "d960113963efb6cd6d00fe49367c19558877b18c",
+      "source_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "start": "2026-10-30T03:45:34.318772+00:00",
+      "end": "2026-10-30T03:45:34.547200+00:00",
+      "status": 0,
+      "log_sha256": "4ea8f87a01e42e356c2f0b1cfcf8d985db48bcdaa05d30f1c5543cb79d0ab78f",
+      "environment": {
+        "GOFLAGS": "-p=2",
+        "GOCACHE": null,
+        "CARGO_TARGET_DIR": "/home/agent/.cache/codex-build/cargo-target",
+        "CARGO_BUILD_JOBS": "2",
+        "TMPDIR": "/home/agent/.cache/codex-build/tmp"
+      }
+    },
+    {
+      "name": "inventory-reject",
+      "command": "python3 -c 'import pathlib,re; p=pathlib.Path(\".flow/tmp/fn2561-resume-20261030\"); files=sorted(p.glob(\"dependencies-*.log\")); assert len(files)==4; bad={str(f):re.findall(r\"go.temporal.io/server/tools/umpire/(?:ir|interp|check|realization|export|internal)(?:/|$).*\", f.read_text(), re.M) for f in files}; print(bad); assert not any(bad.values())'",
+      "head": "d960113963efb6cd6d00fe49367c19558877b18c",
+      "source_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "start": "2026-10-30T03:45:45.028003+00:00",
+      "end": "2026-10-30T03:45:45.058060+00:00",
+      "status": 0,
+      "log_sha256": "03ebdae5970c1baf7754c9d8bc5e336b4a9940262c8eee49a5abb3df8fdc5d2d",
+      "environment": {
+        "GOFLAGS": "-p=2",
+        "GOCACHE": null,
+        "CARGO_TARGET_DIR": "/home/agent/.cache/codex-build/cargo-target",
+        "CARGO_BUILD_JOBS": "2",
+        "TMPDIR": "/home/agent/.cache/codex-build/tmp"
+      }
+    },
+    {
+      "name": "production-build",
+      "command": "mise exec -- go build ./...",
+      "head": "d960113963efb6cd6d00fe49367c19558877b18c",
+      "source_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "start": "2026-10-30T03:45:39.184779+00:00",
+      "end": "2026-10-30T03:47:02.307980+00:00",
+      "status": 0,
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "environment": {
+        "GOFLAGS": "-p=2",
+        "GOCACHE": null,
+        "CARGO_TARGET_DIR": "/home/agent/.cache/codex-build/cargo-target",
+        "CARGO_BUILD_JOBS": "2",
+        "TMPDIR": "/home/agent/.cache/codex-build/tmp"
+      }
+    },
+    {
+      "name": "production-vet",
+      "command": "mise exec -- go vet ./tools/... ./common/testing/testpilot/...",
+      "head": "d960113963efb6cd6d00fe49367c19558877b18c",
+      "source_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "start": "2026-10-30T03:46:04.843773+00:00",
+      "end": "2026-10-30T03:47:03.020643+00:00",
+      "status": 0,
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "environment": {
+        "GOFLAGS": "-p=2",
+        "GOCACHE": null,
+        "CARGO_TARGET_DIR": "/home/agent/.cache/codex-build/cargo-target",
+        "CARGO_BUILD_JOBS": "2",
+        "TMPDIR": "/home/agent/.cache/codex-build/tmp"
+      }
+    },
+    {
+      "name": "test-dep-vet",
+      "command": "mise exec -- go vet -tags test_dep ./tools/... ./common/testing/testpilot/...",
+      "head": "d960113963efb6cd6d00fe49367c19558877b18c",
+      "source_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "start": "2026-10-30T03:47:00.475803+00:00",
+      "end": "2026-10-30T03:47:30.780632+00:00",
+      "status": 0,
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "environment": {
+        "GOFLAGS": "-p=2",
+        "GOCACHE": null,
+        "CARGO_TARGET_DIR": "/home/agent/.cache/codex-build/cargo-target",
+        "CARGO_BUILD_JOBS": "2",
+        "TMPDIR": "/home/agent/.cache/codex-build/tmp"
+      }
+    },
+    {
+      "name": "retained-tests",
+      "command": "mise exec -- go test -count=1 -tags test_dep ./tools/umpire/... ./common/testing/testpilot/... ./tools/canary/...",
+      "head": "d960113963efb6cd6d00fe49367c19558877b18c",
+      "source_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "start": "2026-10-30T03:46:06.016348+00:00",
+      "end": "2026-10-30T03:46:37.537101+00:00",
+      "status": 0,
+      "log_sha256": "3378e9c01fccab43beef8c29d81b02728099c149f0ebb5dc559b07f75caae44c",
+      "environment": {
+        "GOFLAGS": "-p=2",
+        "GOCACHE": null,
+        "CARGO_TARGET_DIR": "/home/agent/.cache/codex-build/cargo-target",
+        "CARGO_BUILD_JOBS": "2",
+        "TMPDIR": "/home/agent/.cache/codex-build/tmp"
+      }
+    },
+    {
+      "name": "canary-harness",
+      "command": "mise exec -- go test -count=1 -tags \"test_dep canary_harness\" ./tools/canary/cmd/umpire-canary ./tools/canary/testharness",
+      "head": "d960113963efb6cd6d00fe49367c19558877b18c",
+      "source_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "start": "2026-10-30T03:47:01.636353+00:00",
+      "end": "2026-10-30T03:47:04.103478+00:00",
+      "status": 0,
+      "log_sha256": "4745161adac5d44be15fe0737fda9050767e196983e8b1f41b02e65f422ca7bc",
+      "environment": {
+        "GOFLAGS": "-p=2",
+        "GOCACHE": null,
+        "CARGO_TARGET_DIR": "/home/agent/.cache/codex-build/cargo-target",
+        "CARGO_BUILD_JOBS": "2",
+        "TMPDIR": "/home/agent/.cache/codex-build/tmp"
+      }
+    },
+    {
+      "name": "canary-build",
+      "command": "make canary-build",
+      "head": "d960113963efb6cd6d00fe49367c19558877b18c",
+      "source_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "start": "2026-10-30T03:47:44.260574+00:00",
+      "end": "2026-10-30T03:47:45.907280+00:00",
+      "status": 0,
+      "log_sha256": "dcd5ad3af23f0ddde432f3d698462dd865ede139d44ba61daebc5ff3d8a8ee29",
+      "environment": {
+        "GOFLAGS": "-p=2",
+        "GOCACHE": null,
+        "CARGO_TARGET_DIR": "/home/agent/.cache/codex-build/cargo-target",
+        "CARGO_BUILD_JOBS": "2",
+        "TMPDIR": "/home/agent/.cache/codex-build/tmp"
+      }
+    },
+    {
+      "name": "tdbg-controls",
+      "command": "mise exec -- go test -count=1 -tags test_dep ./tools/tdbg -run \"^TestDLQCommand_V2$\"",
+      "head": "d960113963efb6cd6d00fe49367c19558877b18c",
+      "source_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "start": "2026-10-30T03:47:46.585991+00:00",
+      "end": "2026-10-30T03:48:22.254565+00:00",
+      "status": 0,
+      "log_sha256": "8faa850df6cc47a87091d5beb6ae5817f529734476898742a6af331687a760ee",
+      "environment": {
+        "GOFLAGS": "-p=2",
+        "GOCACHE": null,
+        "CARGO_TARGET_DIR": "/home/agent/.cache/codex-build/cargo-target",
+        "CARGO_BUILD_JOBS": "2",
+        "TMPDIR": "/home/agent/.cache/codex-build/tmp"
+      }
+    },
+    {
+      "name": "lint-wrapper",
+      "command": "make GOLANGCI_LINT_BASE_REV=9212a1caed GOLANGCI_LINT_FIX=false lint-code-fast",
+      "head": "d960113963efb6cd6d00fe49367c19558877b18c",
+      "source_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "start": "2026-10-30T03:47:45.431084+00:00",
+      "end": "2026-10-30T03:48:27.482408+00:00",
+      "status": 0,
+      "log_sha256": "3d1f669cc9ff8a1b3708151ad3fe7328a4e03442abd0f0756ba1df1a4d272922",
+      "environment": {
+        "GOFLAGS": "-p=2",
+        "GOCACHE": null,
+        "CARGO_TARGET_DIR": "/home/agent/.cache/codex-build/cargo-target",
+        "CARGO_BUILD_JOBS": "2",
+        "TMPDIR": "/home/agent/.cache/codex-build/tmp"
+      }
+    },
+    {
+      "name": "guest-check-bootstrap",
+      "command": "cd model && tool=$(/bin/bash /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2561-retirement/model/scripts/xtask.sh) && \"$tool\" guest umpire-temporal-guest \"$PWD/temporal/hosts/go/umpire_temporal_guest.wasm\" --check",
+      "head": "d960113963efb6cd6d00fe49367c19558877b18c",
+      "source_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "start": "2026-10-30T03:46:41.216473+00:00",
+      "end": "2026-10-30T03:48:47.280360+00:00",
+      "status": 0,
+      "log_sha256": "421c3d2c4795fc0538285434880e8497e8c0a218e9bff59d2c537814c8807121",
+      "environment": {
+        "GOFLAGS": "-p=2",
+        "GOCACHE": null,
+        "CARGO_TARGET_DIR": "/home/agent/.cache/codex-build/cargo-target",
+        "CARGO_BUILD_JOBS": "2",
+        "TMPDIR": "/home/agent/.cache/codex-build/tmp"
+      }
+    },
+    {
+      "name": "gap-delta-review",
+      "command": "python3 .flow/tmp/fn2561-resume-20261030/review-gap-delta.py",
+      "head": "d960113963efb6cd6d00fe49367c19558877b18c",
+      "source_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "start": "2026-10-30T03:54:05.602379+00:00",
+      "end": "2026-10-30T03:54:05.649588+00:00",
+      "status": 0,
+      "log_sha256": "8d96f8006dda1a2e68f48e741bb70856a7bceca3d86f5f179f50644f0f2b5d65",
+      "environment": {
+        "GOFLAGS": "-p=2",
+        "GOCACHE": null,
+        "CARGO_TARGET_DIR": "/home/agent/.cache/codex-build/cargo-target",
+        "CARGO_BUILD_JOBS": "2",
+        "TMPDIR": "/home/agent/.cache/codex-build/tmp"
+      }
+    },
+    {
+      "name": "gap-import-verify",
+      "command": "cd model && UMPIRE_GAP_CANDIDATE=/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2561-retirement/.flow/tmp/fn2174-live-gap-report.txt INSTA_UPDATE=no mise exec -- cargo test -p umpire-temporal-tests --test fixtures import_live_gap_candidate -- --ignored",
+      "head": "d960113963efb6cd6d00fe49367c19558877b18c",
+      "source_diff_sha256": "89c4d47faf64cdcd0106de90bba25cd475c57909a21a59e3b81803884805fc5d",
+      "start": "2026-10-30T03:54:45.368211+00:00",
+      "end": "2026-10-30T03:54:50.317627+00:00",
+      "status": 0,
+      "log_sha256": "cc82478ca3b96d20a68020a191ace2e8b784e3a04205f8e8a5dc72d4227dd82a",
+      "environment": {
+        "GOFLAGS": "-p=2",
+        "GOCACHE": null,
+        "CARGO_TARGET_DIR": "/home/agent/.cache/codex-build/cargo-target",
+        "CARGO_BUILD_JOBS": "2",
+        "TMPDIR": "/home/agent/.cache/codex-build/tmp"
+      }
+    },
+    {
+      "name": "post-renewal-diff-check",
+      "command": "git diff --check",
+      "head": "d960113963efb6cd6d00fe49367c19558877b18c",
+      "source_diff_sha256": "89c4d47faf64cdcd0106de90bba25cd475c57909a21a59e3b81803884805fc5d",
+      "start": "2026-10-30T03:55:19.418121+00:00",
+      "end": "2026-10-30T03:55:19.452499+00:00",
+      "status": 0,
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "environment": {
+        "GOFLAGS": "-p=2",
+        "GOCACHE": null,
+        "CARGO_TARGET_DIR": "/home/agent/.cache/codex-build/cargo-target",
+        "CARGO_BUILD_JOBS": "2",
+        "TMPDIR": "/home/agent/.cache/codex-build/tmp"
+      }
+    },
+    {
+      "name": "live-tests-renewed",
+      "command": "make umpire-check-live-tests",
+      "head": "d960113963efb6cd6d00fe49367c19558877b18c",
+      "source_diff_sha256": "89c4d47faf64cdcd0106de90bba25cd475c57909a21a59e3b81803884805fc5d",
+      "start": "2026-10-30T03:54:51.089179+00:00",
+      "end": "2026-10-30T04:04:22.184079+00:00",
+      "status": 0,
+      "log_sha256": "c0fcbdfebe6513633322ca557387176d9ab1b7b8c77ff1ef0d7056b32aca129c",
+      "environment": {
+        "GOFLAGS": "-p=2",
+        "GOCACHE": null,
+        "CARGO_TARGET_DIR": "/home/agent/.cache/codex-build/cargo-target",
+        "CARGO_BUILD_JOBS": "2",
+        "TMPDIR": "/home/agent/.cache/codex-build/tmp"
+      }
+    }
+  ],
+  "negative_control": {
+    "name": "lint-failure-control",
+    "command": "make GOLANGCI_LINT_BASE_REV=9212a1caed GOLANGCI_LINT_FIX=false GOLANGCI_LINT=/bin/false ERRORTYPE=/bin/true lint-code-fast",
+    "head": "d960113963efb6cd6d00fe49367c19558877b18c",
+    "source_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "start": "2026-10-30T03:47:59.142627+00:00",
+    "end": "2026-10-30T03:48:01.640714+00:00",
+    "status": 2,
+    "log_sha256": "92dad53c672e6d3e937d98b07d805716ce331cfda8d73981f387878629d613b9",
+    "environment": {
+      "GOFLAGS": "-p=2",
+      "GOCACHE": null,
+      "CARGO_TARGET_DIR": "/home/agent/.cache/codex-build/cargo-target",
+      "CARGO_BUILD_JOBS": "2",
+      "TMPDIR": "/home/agent/.cache/codex-build/tmp"
+    }
+  },
+  "passing_identities": 1251,
+  "source_changes_after_baseline": [
+    "model/temporal/feature/activity/expected/gaps.txt.snap"
+  ],
+  "previous_failed_live": "live-tests.json",
+  "no_model_refutation": true,
+  "completed": "2026-10-30T04:05:05.246217+00:00"
+}
