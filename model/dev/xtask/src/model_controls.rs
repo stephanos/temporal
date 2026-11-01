@@ -26,50 +26,12 @@ fn executable(path: &Path, source: &str) -> io::Result<()> {
     fs::set_permissions(path, fs::Permissions::from_mode(0o755))
 }
 
-fn version(value: &str) -> io::Result<[u64; 3]> {
-    let mut result = [0; 3];
-    let fields: Vec<_> = value.split('.').collect();
-    require(fields.len() == 3, "mise version must have three numeric components")?;
-    for (slot, field) in result.iter_mut().zip(fields) {
-        *slot = field
-            .parse()
-            .map_err(|error| io::Error::other(format!("invalid mise version {value}: {error}")))?;
-    }
-    Ok(result)
-}
-
-fn quoted_assignment(line: &str, key: &str) -> Option<String> {
-    let (name, value) = line.trim().split_once('=')?;
-    (name.trim() == key).then(|| value.trim().trim_matches('"').to_owned())
-}
-
-fn ci_minimum(repository: &Path) -> io::Result<()> {
-    let workflow = fs::read_to_string(repository.join(".github/workflows/umpire.yml"))?;
-    let mut pending = false;
-    let mut versions = Vec::new();
-    for line in workflow.lines() {
-        if line.contains("uses: jdx/mise-action@") {
-            require(!pending, "mise action is missing a version")?;
-            pending = true;
-        } else if pending && let Some(value) = line.trim().strip_prefix("version:") {
-            versions.push(version(value.trim().trim_matches('"'))?);
-            pending = false;
-        }
-    }
-    require(!pending && !versions.is_empty(), "every CI mise action has a version")?;
-    for config in ["mise.toml", "../umpire/mise.toml"] {
-        let contents = fs::read_to_string(repository.join(config))?;
-        let minimum = contents
-            .lines()
-            .find_map(|line| quoted_assignment(line, "min_version"))
-            .ok_or_else(|| io::Error::other(format!("missing mise minimum in {config}")))?;
-        let minimum = version(&minimum)?;
-        require(
-            versions.iter().all(|actual| actual >= &minimum),
-            &format!("CI mise version meets {config} minimum"),
-        )?;
-    }
-    Ok(())
+/// Umpire stays internal: Temporal's GitHub workflows must not check out or run it.
+fn local_only(repository: &Path) -> io::Result<()> {
+    require(
+        !repository.join(".github/workflows/umpire.yml").try_exists()?,
+        "Temporal GitHub workflows exclude Umpire",
+    )
 }
 
 struct Fixture {
@@ -491,7 +453,7 @@ fn wiring_controls(shipping: &str, tool: &Path) -> io::Result<()> {
 fn run(root: &Path, tool: &Path) -> io::Result<i32> {
     let repository =
         root.parent().ok_or_else(|| io::Error::other("missing Model repository parent"))?;
-    ci_minimum(repository)?;
+    local_only(repository)?;
     let shipping = fs::read_to_string(repository.join("Makefile"))?;
     timer_controls(&shipping, tool)?;
     wiring_controls(&shipping, tool)?;

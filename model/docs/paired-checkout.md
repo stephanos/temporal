@@ -32,3 +32,9 @@ locally; no package publication or remote checkout fallback replaces that source
 The migration retains fresh paired source, generation, guest reproduction and
 Rust/Go edit proofs. CI support remains separate future work; local passing checks
 do not establish public CI compatibility.
+
+A checkout without the sibling `../umpire` cannot resolve `github.com/temporalio/umpire/hosts/go`.
+On such a checkout, including public CI, packages that import it (`tools/umpire/...`,
+`tools/canary/...`, `common/testing/testpilot/temporal/act` and the `./tests` functional
+package) and `go list -m all` fail with a missing replacement directory. This is the
+expected cost of keeping Umpire local-only.

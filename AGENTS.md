@@ -159,8 +159,11 @@ a branch, opening a PR or landing on origin remains separately authorized.
 
 ### Git worktrees
 
-- Create a worktree only for a parallel lane, under `.worktrees/<lane>`, and name its
-  owning task in the branch name (`work/fn<N><M>-<lane>`).
+- Create a worktree only for a parallel lane and name its owning task in the branch name
+  (`work/fn<N><M>-<lane>`). Model builds resolve the framework from `../umpire`, so place it
+  as `<lane-parent>/temporal` beside a matching `<lane-parent>/umpire` checkout (see
+  [the paired checkout guide](model/docs/paired-checkout.md)); a plain `.worktrees/<lane>`
+  checkout only suits work that never builds Models.
 - A worktree is no longer in use once its branch is integrated into `umpire` or
   abandoned, and no process or agent still runs in it. Remove it then, in the same
   session with `git worktree remove .worktrees/<lane>`; delete its branch with

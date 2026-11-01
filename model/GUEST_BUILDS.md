@@ -475,5 +475,5 @@ Checker provisioning uses the framework's isolated `mise-tools` configuration
 through the existing fetch entry points. Its data/cache/state overrides are local
 to jar provisioning and lookup; guest-driver Rust, Java and Cargo context is not
 relocated. Default jar provisioning selects TLC, with Apalache available only by
-explicit opt-in. See [provider controls](umpire/mise-tools/README.md) for the
+explicit opt-in. See [provider controls](../../umpire/mise-tools/README.md) for the
 retained admission requirements and replacement control mapping.

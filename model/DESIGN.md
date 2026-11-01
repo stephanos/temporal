@@ -553,7 +553,7 @@ its native/WASM reference payloads remain byte-identical.
 
 ## Kettle construct comparison
 
-These anchors compare the final [attribute source](umpire/dev/fixtures/fixtures/sample_kettle/model.rs)
+These anchors compare the final [attribute source](../../umpire/dev/fixtures/fixtures/sample_kettle/model.rs)
 with frozen [Kettle.scala](../../umpire-scala/framework/samples/Kettle.scala), including its imports and
 declarations. They compare authored constructs, not a claim of general front-end equivalence.
 
@@ -815,7 +815,7 @@ The Temporal adapter is a separate module at `temporal/hosts/go`.
 
 ### Protocol and ownership
 
-[`model.proto`](umpire/protocol/proto/umpire/model/v1/model.proto) adds
+[`model.proto`](../../umpire/protocol/proto/umpire/model/v1/model.proto) adds
 `METHOD_PROPOSE = 6`: `ProposeRequest { seed: uint64 }` returns
 `ProposeResponse { request: Any, action: string, kind: ProposalKind }`.
 Kinds are ACTION=1, BOOTSTRAP=2 and READ=3; unspecified/unknown kinds are refused.
@@ -861,7 +861,7 @@ offline gap and unheld-cancellation proof recorded below.
 
 ### Run, replay and publication
 
-The authoritative schema is [`umpire.run.v1`](umpire/protocol/proto/umpire/run/v1/run.proto).
+The authoritative schema is [`umpire.run.v1`](../../umpire/protocol/proto/umpire/run/v1/run.proto).
 `Run` fields are model_hash(1), protocol_version(2), world(3), seed(4), events(5),
 verdict(6), worker(7). Worker records kind, version, namespace and task_queue; it
 identifies the executor/deployment without assigning behavioral authority to Go.

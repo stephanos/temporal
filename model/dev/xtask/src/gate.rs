@@ -158,8 +158,19 @@ pub(crate) fn run(root: &Path) -> io::Result<i32> {
     command
         .env("UMPIRE_TEMPORAL_GATE_EXECUTABLE", std::env::current_exe()?)
         .env("UMPIRE_GATE_CONTROLLER_EXECUTABLE", std::env::current_exe()?)
-        .env("UMPIRE_GATE_EXECUTABLE", framework);
-    scheduler::run(command, "model:all", &records, &expected)
+        .env("UMPIRE_GATE_EXECUTABLE", &framework);
+    let result = scheduler::run(command, "model:all", &records, &expected);
+    if umpire_guest_driver::managed::enabled() {
+        remove_if_present(Path::new(&framework))?;
+    }
+    result
+}
+
+fn remove_if_present(path: &Path) -> io::Result<()> {
+    match std::fs::remove_file(path) {
+        Err(error) if error.kind() == io::ErrorKind::NotFound => Ok(()),
+        result => result,
+    }
 }
 
 /// A managed framework gate refuses Temporal's launcher target, so its stages re-enter the
@@ -195,9 +206,8 @@ fn framework_stage_executable(
     let directory = target.join("framework-stages");
     std::fs::create_dir_all(&directory)?;
     let executable = directory.join(format!("gate-{}", std::process::id()));
-    if executable.try_exists()? {
-        std::fs::remove_file(&executable)?;
-    }
+    // Never follow a leftover entry, including a dangling symlink.
+    remove_if_present(&executable)?;
     std::fs::write(&executable, script)?;
     std::fs::set_permissions(&executable, std::fs::Permissions::from_mode(0o555))?;
     Ok(executable.into_os_string())
@@ -774,7 +784,7 @@ exit 94
                 }
             }
         }
-        fs::remove_dir_all(root).unwrap();
+        fs::remove_dir_all(root.parent().unwrap().parent().unwrap()).unwrap();
     }
 
     #[test]
@@ -851,6 +861,6 @@ fi
             let end = failure.map_or(expected.len(), |index| index + 1);
             assert_eq!(actual.lines().collect::<Vec<_>>(), expected[..end]);
         }
-        fs::remove_dir_all(root).unwrap();
+        fs::remove_dir_all(root.parent().unwrap().parent().unwrap()).unwrap();
     }
 }

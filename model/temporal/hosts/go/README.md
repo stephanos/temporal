@@ -33,6 +33,6 @@ without Rust; Model changes require `make umpire-guest` from the Temporal root.
 
 Temporal protobuf schemas stay in `model/temporal/proto`, with generic imports
 resolved from the sibling Umpire `protocol/proto`. From the Temporal root,
-`bash model/scripts/proto-go.sh temporal` regenerates this module's three protobuf
+`(cd model && mise exec -- cargo xtask proto-go temporal)` regenerates this module's three protobuf
 files; adding `--check` compares them with fresh output. Keep generated sources
 aligned with the canonical generic schemas rather than editing descriptors by hand.
