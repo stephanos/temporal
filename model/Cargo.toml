@@ -21,23 +21,15 @@ license = "MIT"
 
 [workspace.dependencies]
 umpire-guest-driver = { version = "0.0.1", path = "../../umpire/dev/guest-driver" }
-umpire = { version = "0.0.1", path = "../../umpire/author/umpire" }
-umpire-reference-kettle = { version = "0.0.1", path = "../../umpire/reference/kettle" }
 umpire-catalog = { version = "0.0.1", path = "../../umpire/catalog" }
-umpire-catalog-macros = { version = "0.0.1", path = "../../umpire/catalog/macros" }
 umpire-catalog-syntax = { version = "0.0.1", path = "../../umpire/catalog/syntax" }
 umpire-catalog-build = { version = "0.0.1", path = "../../umpire/catalog/build" }
 umpire-dsl = { version = "0.0.1", path = "../../umpire/author/dsl" }
-umpire-dsl-macros = { version = "0.0.1", path = "../../umpire/author/dsl/macros" }
 umpire-checker = { version = "0.0.1", path = "../../umpire/backends/native" }
 umpire-testing = { version = "0.0.1", path = "../../umpire/dev/testing" }
 umpire-suite = { version = "0.0.1", path = "../../umpire/author/suite" }
-umpire-ir-derive = { version = "0.0.1", path = "../../umpire/ir/derive" }
-umpire-ir = { version = "0.0.1", path = "../../umpire/ir" }
 umpire-front = { version = "0.0.1", path = "../../umpire/front" }
-umpire-backend-process = { version = "0.0.1", path = "../../umpire/backends/process" }
 umpire-tla = { version = "0.0.1", path = "../../umpire/backends/tla" }
-umpire-apalache = { version = "0.0.1", path = "../../umpire/backends/apalache" }
 umpire-tlc = { version = "0.0.1", path = "../../umpire/backends/tlc" }
 umpire-runtime = { version = "0.0.1", path = "../../umpire/protocol/runtime" }
 umpire-temporal-api = { version = "0.0.1", path = "temporal/api" }
