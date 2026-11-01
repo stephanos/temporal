@@ -7,12 +7,12 @@ import (
 	"fmt"
 	"sync"
 
+	realizationv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/realization/v1"
 	"go.temporal.io/api/workflowservice/v1"
 	statuspb "google.golang.org/genproto/googleapis/rpc/status"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/anypb"
-	realizationv1 "umpire.local/model/gen/umpire/realization/v1"
 )
 
 // RPCStage distinguishes an actual invocation's registration from its completion.

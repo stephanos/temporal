@@ -43,8 +43,14 @@ exit "${CONTROL_STATUS:-0}"
     let absolute_target = caller.join("target link");
     let physical_target = caller.join("physical target");
     let default_target = model.join("target");
+    #[cfg(not(target_os = "macos"))]
     let raw_home = std::ffi::OsString::from_vec(b"cargo-\xff".to_vec());
+    #[cfg(target_os = "macos")]
+    let raw_home = std::ffi::OsString::from("cargo-é");
+    #[cfg(not(target_os = "macos"))]
     let raw_target = std::ffi::OsString::from_vec(b"target-\xfe".to_vec());
+    #[cfg(target_os = "macos")]
+    let raw_target = std::ffi::OsString::from("target-é");
     let raw_home_path = caller.join(&raw_home);
     let raw_target_path = caller.join(&raw_target);
     fs::create_dir(&raw_home_path)?;
@@ -109,5 +115,30 @@ exit "${CONTROL_STATUS:-0}"
     let path = scratch.0.clone();
     drop(scratch);
     assert!(!path.exists());
+    Ok(())
+}
+
+#[cfg(target_os = "macos")]
+#[test]
+fn invalid_utf8_build_target_is_refused_before_driver_execution() -> io::Result<()> {
+    let scratch = Scratch::new()?;
+    let mut command = Command::new(env::current_exe()?);
+    command
+        .args([
+            "--exact",
+            "build_guests::path_controls::isolated_build_child",
+            "--nocapture",
+            "--ignored",
+        ])
+        .current_dir(&scratch.0)
+        .env("UMPIRE_TEMPORAL_PATH_ROOT", &scratch.0)
+        .env("UMPIRE_TEMPORAL_PATH_DRIVER", "/missing/driver-must-not-run")
+        .env("CARGO_HOME", &scratch.0)
+        .env("CARGO_TARGET_DIR", std::ffi::OsString::from_vec(b"target-\xfe".to_vec()));
+    let output = xtask::gate::scheduler::execute(&command, false, false)?;
+    assert!(!output.status.success());
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(stderr.contains("Illegal byte sequence"), "{stderr}");
+    assert!(!stderr.contains("driver-must-not-run"), "{stderr}");
     Ok(())
 }

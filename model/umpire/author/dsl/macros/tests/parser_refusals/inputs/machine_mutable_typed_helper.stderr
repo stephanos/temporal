@@ -1,5 +1,0 @@
-error: helper takes &mut self; only #[on] and #[effect] methods change the state
-  --> tests/ui/machine_mutable_typed_helper.rs:15:12
-   |
-15 |         fn helper(self: &mut Self) {}
-   |            ^^^^^^

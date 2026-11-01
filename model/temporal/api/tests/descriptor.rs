@@ -10,7 +10,7 @@ use umpire_catalog_syntax::descriptor::{
 };
 use umpire_runtime::prost_types::{DescriptorProto, FieldDescriptorProto, FileDescriptorSet};
 
-#[path = "../../../umpire/catalog/syntax/tests/support/mod.rs"]
+#[path = "../../../../../umpire/catalog/syntax/tests/support/mod.rs"]
 mod support;
 
 #[test]

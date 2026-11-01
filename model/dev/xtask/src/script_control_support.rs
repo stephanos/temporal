@@ -27,3 +27,16 @@ impl Drop for Scratch {
         }
     }
 }
+
+#[cfg(target_os = "macos")]
+#[test]
+fn filesystem_refuses_invalid_utf8_names() -> io::Result<()> {
+    use std::{ffi::OsString, os::unix::ffi::OsStringExt};
+    let scratch = Scratch::new()?;
+    let raw = scratch.0.join(OsString::from_vec(b"invalid-\xff".to_vec()));
+    for result in [fs::write(&raw, b"control"), fs::create_dir(&raw)] {
+        let error = result.err().ok_or_else(|| io::Error::other("invalid filename accepted"))?;
+        assert_eq!(error.raw_os_error(), Some(92));
+    }
+    Ok(())
+}

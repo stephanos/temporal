@@ -8,10 +8,10 @@ publish = false
 [workspace]
 
 [dependencies]
-umpire = { path = "../../umpire/author/umpire" }
-umpire-dsl = { path = "../../umpire/author/dsl" }
-umpire-ir = { path = "../../umpire/ir" }
-umpire-checker = { path = "../../umpire/backends/native" }
+umpire = { path = "../../../../umpire/author/umpire" }
+umpire-dsl = { path = "../../../../umpire/author/dsl" }
+umpire-ir = { path = "../../../../umpire/ir" }
+umpire-checker = { path = "../../../../umpire/backends/native" }
 
 [profile.dev]
 overflow-checks = true

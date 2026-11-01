@@ -7,6 +7,7 @@ import (
 	"strings"
 	"sync/atomic"
 
+	realizationv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/realization/v1"
 	"go.temporal.io/api/workflowservice/v1"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -17,7 +18,6 @@ import (
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/reflect/protoregistry"
 	"google.golang.org/protobuf/types/known/anypb"
-	realizationv1 "umpire.local/model/gen/umpire/realization/v1"
 )
 
 // service is the generated WorkflowService descriptor every proposed request is sent through.

@@ -7,6 +7,7 @@ import (
 	"math"
 	"sync"
 
+	realizationv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/realization/v1"
 	"go.temporal.io/api/workflowservice/v1"
 	"go.temporal.io/sdk/client"
 	"google.golang.org/grpc"
@@ -15,7 +16,6 @@ import (
 	"google.golang.org/protobuf/encoding/protowire"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/anypb"
-	realizationv1 "umpire.local/model/gen/umpire/realization/v1"
 	temporalv1 "umpire.local/temporal/umpire/temporal/v1"
 )
 

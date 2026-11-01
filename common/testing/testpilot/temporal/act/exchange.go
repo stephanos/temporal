@@ -7,12 +7,12 @@ import (
 	"sync"
 	"time"
 
+	modelv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/model/v1"
+	realizationv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/realization/v1"
+	"github.com/temporalio/umpire/hosts/go/runner"
 	"go.temporal.io/api/workflowservice/v1"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/protobuf/types/known/anypb"
-	modelv1 "umpire.local/model/gen/umpire/model/v1"
-	realizationv1 "umpire.local/model/gen/umpire/realization/v1"
-	"umpire.local/model/runner"
 	temporalv1 "umpire.local/temporal/umpire/temporal/v1"
 )
 

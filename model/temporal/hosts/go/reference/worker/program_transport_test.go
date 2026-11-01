@@ -5,12 +5,12 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	realizationv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/realization/v1"
 	deploymentpb "go.temporal.io/api/deployment/v1"
 	failurepb "go.temporal.io/api/failure/v1"
 	"go.temporal.io/api/workflowservice/v1"
 	statuspb "google.golang.org/genproto/googleapis/rpc/status"
 	"google.golang.org/protobuf/proto"
-	realizationv1 "umpire.local/model/gen/umpire/realization/v1"
 )
 
 func completedRPC(t *testing.T, request, response proto.Message) RPC {

@@ -22,7 +22,7 @@ fn arguments(root: &Path, arguments: &[OsString]) -> io::Result<Vec<OsString>> {
         "--include".into(),
         "temporal/proto".into(),
         "--include".into(),
-        "umpire/protocol/proto".into(),
+        "../../umpire/protocol/proto".into(),
     ];
     for name in ["temporal", "probe", "activity"] {
         result.extend([
@@ -126,7 +126,7 @@ mod tests {
                         "--include",
                         "temporal/proto",
                         "--include",
-                        "umpire/protocol/proto",
+                        "../../umpire/protocol/proto",
                         "--input",
                         "temporal/proto/umpire/temporal/v1/temporal.proto",
                         "--input",

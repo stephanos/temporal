@@ -3,12 +3,12 @@ module umpire.local/temporal
 go 1.27.0
 
 require (
+	github.com/temporalio/umpire/hosts/go v0.0.0
 	github.com/tetratelabs/wazero v1.12.0
 	go.temporal.io/api v1.63.6-0.20260909222256-20151aa90480
 	go.temporal.io/sdk v1.48.0
 	google.golang.org/grpc v1.83.1
 	google.golang.org/protobuf v1.36.11
-	umpire.local/model v0.0.0
 )
 
 require (
@@ -35,4 +35,4 @@ require (
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
-replace umpire.local/model => ../../../umpire/hosts/go
+replace github.com/temporalio/umpire/hosts/go => ../../../../../umpire/hosts/go

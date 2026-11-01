@@ -1,5 +1,0 @@
-error: invariants and postconditions return nothing; use check!
-  --> tests/ui/machine_post_returns_unit.rs:16:25
-   |
-16 |         fn claim(&self) -> () {}
-   |                         ^^^^^

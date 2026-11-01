@@ -39,9 +39,9 @@ fn benchmark_command(
     let mut command = Command::new(framework);
     command
         .args(["test-run", "--package", package])
-        .current_dir(root.join("umpire"))
-        .env("UMPIRE_TOOL_ROOT", root.join("umpire"))
-        .env("UMPIRE_FRAMEWORK_ROOT", root.join("umpire"));
+        .current_dir(root.join("../../umpire"))
+        .env("UMPIRE_TOOL_ROOT", root.join("../../umpire"))
+        .env("UMPIRE_FRAMEWORK_ROOT", root.join("../../umpire"));
     super::admit_command("tests", &mut command)?;
     Ok(command)
 }
@@ -54,9 +54,10 @@ pub(crate) fn run(root: &Path) -> io::Result<i32> {
     let gate_budget = budget("UMPIRE_GATE_BUDGET", "60");
     let inner_budget = budget("UMPIRE_INNER_BUDGET", "10");
     let package = budget("UMPIRE_INNER_CRATE", "umpire-checker");
-    let source = env::var_os("UMPIRE_INNER_SOURCE")
-        .filter(|value| !value.is_empty())
-        .map_or_else(|| root.join("umpire/backends/native/src/lib.rs"), |value| root.join(value));
+    let source = env::var_os("UMPIRE_INNER_SOURCE").filter(|value| !value.is_empty()).map_or_else(
+        || root.join("../../umpire/backends/native/src/lib.rs"),
+        |value| root.join(value),
+    );
     writeln!(io::stdout(), "{:<32} {:>7}", "step (warm)", "time")?;
     writeln!(
         io::stdout(),
@@ -116,7 +117,7 @@ mod tests {
             command.get_args().collect::<Vec<_>>(),
             ["test-run", "--package", "selected-package"]
         );
-        assert_eq!(command.get_current_dir(), Some(root.join("umpire").as_path()));
+        assert_eq!(command.get_current_dir(), Some(root.join("../../umpire").as_path()));
         for (key, expected) in [
             ("UMPIRE_QUICK_CACHE", "0"),
             ("UMPIRE_CACHE_DISABLE", "1"),

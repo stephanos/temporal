@@ -57,7 +57,7 @@ fn ci_minimum(repository: &Path) -> io::Result<()> {
         }
     }
     require(!pending && !versions.is_empty(), "every CI mise action has a version")?;
-    for config in ["mise.toml", "model/umpire/mise.toml"] {
+    for config in ["mise.toml", "../umpire/mise.toml"] {
         let contents = fs::read_to_string(repository.join(config))?;
         let minimum = contents
             .lines()
@@ -79,29 +79,23 @@ struct Fixture {
 }
 impl Drop for Fixture {
     fn drop(&mut self) {
-        let _ = fs::remove_dir_all(&self.root);
+        let _ = fs::remove_dir_all(self.root.parent().unwrap_or(&self.root));
     }
 }
 impl Fixture {
     fn new(shipping: &str, tool: &Path, timing: bool) -> io::Result<Self> {
         static NEXT: AtomicU64 = AtomicU64::new(0);
         let parent = env::temp_dir().canonicalize()?;
-        let root = parent.join(format!(
+        let container = parent.join(format!(
             "model-recipe-controls-{}-{}",
             std::process::id(),
             NEXT.fetch_add(1, Ordering::Relaxed)
         ));
+        let root = container.join("temporal");
         let tool = tool.canonicalize()?;
-        fs::create_dir(&root)?;
+        fs::create_dir_all(root.join("../umpire"))?;
         let fixture = Self { root, tool, timing };
-        for directory in [
-            "model/umpire/scripts",
-            "model/scripts",
-            "bin",
-            "output",
-            "physical home",
-            "physical target",
-        ] {
+        for directory in ["model/scripts", "bin", "output", "physical home", "physical target"] {
             fs::create_dir_all(fixture.root.join(directory))?;
         }
         symlink("physical home", fixture.root.join("relative-home"))?;
@@ -154,8 +148,8 @@ control-api control-go control-grpc:
             );
         }
         fs::write(fixture.root.join("Makefile"), makefile)?;
-        executable(&fixture.root.join("model/umpire/scripts/xtask.sh"), BOOTSTRAP)?;
         executable(&fixture.root.join("model/scripts/xtask.sh"), BOOTSTRAP)?;
+        executable(&fixture.root.join("model/scripts/framework-root.sh"), "#!/bin/sh\nexit 0\n")?;
         executable(&fixture.root.join("bin/framework"), FRAMEWORK)?;
         executable(&fixture.root.join("bin/mise"), MISE)?;
         fs::write(fixture.root.join("calls"), "")?;
@@ -264,7 +258,7 @@ control-api control-go control-grpc:
     }
 
     fn close(self) -> io::Result<()> {
-        fs::remove_dir_all(&self.root)
+        fs::remove_dir_all(self.root.parent().unwrap_or(&self.root))
     }
 }
 
@@ -286,7 +280,7 @@ printf '%s\n' "$CONTROL_FRAMEWORK"
 const FRAMEWORK: &str = r#"#!/bin/bash
 set -euo pipefail
 if [ "$CONTROL_TIMING" = 1 ]; then
- [ "$PWD" = "$CONTROL_ROOT/model/umpire" ]
+ [ "$PWD" = "$(cd "$CONTROL_ROOT/../umpire" && pwd -P)" ]
  [ "$*" = 'test-run --package control-checker' ]
  [ "$CARGO_HOME:$CARGO_TARGET_DIR" = "$CONTROL_MODEL/physical home:$CONTROL_MODEL/relative-target" ]
  [ "$UMPIRE_QUICK_CACHE:$UMPIRE_CACHE_DISABLE" = 0:1 ]
@@ -306,7 +300,7 @@ set -euo pipefail
 [ "$PWD" = "$CONTROL_ROOT" ]
 [ "$MISE_AUTO_INSTALL:$MISE_EXEC_AUTO_INSTALL" = false:false ]
 if [ "$CONTROL_TIMING" = 1 ]; then
- [ "$*" = "exec -- cargo run --manifest-path $CONTROL_MODEL/model/Cargo.toml --package temporal-xtask --bin temporal-xtask --profile dev -- time" ]
+ [ "$*" = "exec -- cargo --config $CONTROL_MODEL/model/.cargo/config.toml run --manifest-path $CONTROL_MODEL/model/Cargo.toml --package temporal-xtask --bin temporal-xtask --profile dev -- time" ]
  if [ "${UMPIRE_BACKENDS:-}" = require ] || [ "${UMPIRE_APALACHE:-}" = require ]; then [ "$CARGO_BUILD_JOBS" = 1 ]; else [ "$CARGO_BUILD_JOBS" = 99 ]; fi
  [ "$CARGO_HOME:$CARGO_TARGET_DIR" = relative-home:relative-target ]
  exec "$CONTROL_TOOL" --exact model_controls::time_control_child --nocapture
@@ -407,7 +401,8 @@ fn wiring_controls(shipping: &str, tool: &Path) -> io::Result<()> {
     let fixture = Fixture::new(shipping, tool, false)?;
     let temporal = |arguments: &str, quick: &str, disabled: &str| {
         format!(
-            "temporal|{}|exec -- cargo {arguments}|{quick}|{disabled}\n",
+            "temporal|{}|exec -- cargo --config {}/model/.cargo/config.toml {arguments}|{quick}|{disabled}\n",
+            fixture.root.display(),
             fixture.root.display()
         )
     };
@@ -521,4 +516,25 @@ fn time_control_child() -> io::Result<()> {
 fn shipping_model_recipes_with_disposable_children() -> io::Result<()> {
     let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..").canonicalize()?;
     require(run(&root, &env::current_exe()?)? == 0, "native Model recipe controls")
+}
+
+#[test]
+fn missing_sibling_stops_public_recipes_before_tool_execution() -> io::Result<()> {
+    let repository = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../..");
+    let shipping = fs::read_to_string(repository.join("Makefile"))?;
+    let fixture = Fixture::new(&shipping, &env::current_exe()?, false)?;
+    fs::copy(
+        repository.join("model/scripts/framework-root.sh"),
+        fixture.root.join("model/scripts/framework-root.sh"),
+    )?;
+    for action in ["check", "quick", "fmt", "update", "time"] {
+        let mut command = fixture.command("make")?;
+        command.arg(format!("model-{action}"));
+        let output = fixture.check(action, &command, 2, "")?;
+        require(
+            String::from_utf8_lossy(&output.stderr).contains("missing sibling Umpire checkout"),
+            action,
+        )?;
+    }
+    fixture.close()
 }

@@ -12,6 +12,8 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
+	runv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/run/v1"
+	"github.com/temporalio/umpire/hosts/go/runner"
 	commonpb "go.temporal.io/api/common/v1"
 	"go.temporal.io/api/serviceerror"
 	"go.temporal.io/api/workflowservice/v1"
@@ -22,8 +24,6 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/protobuf/types/known/anypb"
-	runv1 "umpire.local/model/gen/umpire/run/v1"
-	"umpire.local/model/runner"
 )
 
 // testGuest stands for the Model guest; the scripted Runs never execute it.

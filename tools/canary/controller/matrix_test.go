@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
+	"github.com/temporalio/umpire/hosts/go/runner"
 	commonpb "go.temporal.io/api/common/v1"
 	"go.temporal.io/api/serviceerror"
 	"go.temporal.io/api/workflowservice/v1"
@@ -22,7 +23,6 @@ import (
 	"go.temporal.io/server/tools/canary/preflight"
 	"go.temporal.io/server/tools/canary/recovery"
 	"google.golang.org/protobuf/types/known/anypb"
-	"umpire.local/model/runner"
 	temporalv1 "umpire.local/temporal/umpire/temporal/v1"
 )
 

@@ -8,12 +8,12 @@ import (
 	"strings"
 
 	"github.com/google/uuid"
+	runv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/run/v1"
+	"github.com/temporalio/umpire/hosts/go/runner"
 	"go.temporal.io/api/workflowservice/v1"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/types/known/anypb"
-	runv1 "umpire.local/model/gen/umpire/run/v1"
-	"umpire.local/model/runner"
 	temporalv1 "umpire.local/temporal/umpire/temporal/v1"
 )
 

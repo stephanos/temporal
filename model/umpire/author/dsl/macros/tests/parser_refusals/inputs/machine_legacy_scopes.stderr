@@ -1,5 +1,0 @@
-error: use per-item #[on(Actor)], #[effect], #[invariant], #[postcondition], #[assumption], and #[progress] instead of #[scopes]
-  --> tests/ui/machine_legacy_scopes.rs:16:5
-   |
-16 |     #[scopes]
-   |     ^^^^^^^^^

@@ -13,14 +13,14 @@ workspace = true
 [dependencies]
 umpire-guest-driver.workspace = true
 serde_json.workspace = true
-xtask = { path = "../../umpire/dev/xtask" }
+xtask = { path = "../../../../umpire/dev/xtask" }
 
 [dev-dependencies]
 toml.workspace = true
 
 [[bin]]
 name = "identity-compiler-fixture"
-path = "../../umpire/dev/guest-driver/tests/identity/compiler_fixture.rs"
+path = "../../../../umpire/dev/guest-driver/tests/identity/compiler_fixture.rs"
 test = false
 bench = false
 

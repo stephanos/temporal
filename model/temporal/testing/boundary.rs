@@ -27,7 +27,7 @@ fn check(root: &Path) -> std::io::Result<Vec<Violation>> {
 
 #[test]
 fn generic_source_boundary() -> umpire_testing::TestResult {
-    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../umpire");
+    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../../umpire");
     let violations = check(&root)?;
     assert!(
         violations.is_empty(),

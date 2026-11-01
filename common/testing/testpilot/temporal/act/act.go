@@ -15,6 +15,9 @@ import (
 	"sync"
 	"time"
 
+	realizationv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/realization/v1"
+	runv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/run/v1"
+	"github.com/temporalio/umpire/hosts/go/runner"
 	"go.temporal.io/api/operatorservice/v1"
 	"go.temporal.io/api/workflowservice/v1"
 	"go.temporal.io/sdk/client"
@@ -25,9 +28,6 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/anypb"
-	realizationv1 "umpire.local/model/gen/umpire/realization/v1"
-	runv1 "umpire.local/model/gen/umpire/run/v1"
-	"umpire.local/model/runner"
 )
 
 // The Options defaults.

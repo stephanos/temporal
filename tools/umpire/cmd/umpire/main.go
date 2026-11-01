@@ -1,7 +1,7 @@
 // Command umpire runs the one host loop over a Model guest in one of its modes: question,
 // explore, reduce, replay or repeat. It exits 0 when the Run is Explained, 1 when Unexplained,
 // 2 when Refused or a Driver faulted, and 3 when the loop could not run. See
-// model/umpire/hosts/go/README.md.
+// hosts/go/README.md in the sibling Umpire checkout.
 //
 // Explore, reduce and repeat act through the Temporal Driver, configured by the UMPIRE_TEMPORAL_*
 // environment (tools/umpire/README.md).
@@ -17,9 +17,9 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/temporalio/umpire/hosts/go/runner"
 	"go.temporal.io/server/common/testing/testpilot/temporal/act"
 	"go.temporal.io/server/tools/umpire/temporaldriver"
-	"umpire.local/model/runner"
 )
 
 // cleanupTimeout bounds removing what the Temporal Driver provisioned.

@@ -18,7 +18,7 @@ pub(crate) fn prepare(root: &Path, caller: &Path, arguments: &mut [OsString]) ->
         .iter()
         .any(|known| package == known)
     }) {
-        workspace.push("umpire");
+        workspace.push("../../umpire");
     }
     if let Some(output) = arguments.get_mut(2) {
         let path = Path::new(output);

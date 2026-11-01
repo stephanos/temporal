@@ -25,8 +25,8 @@ fn executable(path: &Path, source: &str) -> io::Result<()> {
 #[test]
 fn interrupted_benchmark_preserves_original_source_bytes() -> io::Result<()> {
     let scratch = Scratch::new()?;
-    let root = scratch.0.join("model");
-    for directory in [root.join("scripts"), root.join("umpire"), scratch.0.join("bin")] {
+    let root = scratch.0.join("temporal/model");
+    for directory in [root.join("scripts"), root.join("../../umpire"), scratch.0.join("bin")] {
         fs::create_dir_all(directory)?;
     }
     let source = root.join("arbitrary source");

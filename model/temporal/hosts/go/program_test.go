@@ -5,11 +5,11 @@ import (
 	"context"
 	"testing"
 
+	modelv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/model/v1"
+	realizationv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/realization/v1"
 	commonpb "go.temporal.io/api/common/v1"
 	"go.temporal.io/api/workflowservice/v1"
 	"google.golang.org/protobuf/proto"
-	modelv1 "umpire.local/model/gen/umpire/model/v1"
-	realizationv1 "umpire.local/model/gen/umpire/realization/v1"
 	temporalv1 "umpire.local/temporal/umpire/temporal/v1"
 )
 

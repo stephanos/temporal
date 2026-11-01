@@ -19,6 +19,10 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
+	modelv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/model/v1"
+	realizationv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/realization/v1"
+	runv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/run/v1"
+	"github.com/temporalio/umpire/hosts/go/runner"
 	commonpb "go.temporal.io/api/common/v1"
 	enumspb "go.temporal.io/api/enums/v1"
 	"go.temporal.io/api/serviceerror"
@@ -33,10 +37,6 @@ import (
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/anypb"
 	"google.golang.org/protobuf/types/known/durationpb"
-	modelv1 "umpire.local/model/gen/umpire/model/v1"
-	realizationv1 "umpire.local/model/gen/umpire/realization/v1"
-	runv1 "umpire.local/model/gen/umpire/run/v1"
-	"umpire.local/model/runner"
 	"umpire.local/temporal"
 	temporalv1 "umpire.local/temporal/umpire/temporal/v1"
 )

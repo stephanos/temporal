@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
+	"github.com/temporalio/umpire/hosts/go/runner"
 	"go.temporal.io/api/serviceerror"
 	"go.temporal.io/server/tools/canary/authority"
 	"go.temporal.io/server/tools/canary/policy"
@@ -22,7 +23,6 @@ import (
 	"go.temporal.io/server/tools/canary/recovery"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/protobuf/types/known/anypb"
-	"umpire.local/model/runner"
 )
 
 var invokeCoordinates = authority.Coordinates{

@@ -33,6 +33,6 @@ fn main() -> io::Result<()> {
         &mut config,
         &repository.join("proto/api.binpb"),
         Path::new(schema),
-        &[Path::new("../proto"), Path::new("../proto/../../umpire/protocol/proto")],
+        &[Path::new("../proto"), Path::new("../../../../umpire/protocol/proto")],
     )
 }

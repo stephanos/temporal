@@ -1,7 +1,7 @@
 # Production canary
 
 `tools/canary` runs the committed activity Model against a dedicated canary namespace in
-production through the Runner (`umpire.local/model/runner`) and the Temporal Driver
+production through the Runner (`github.com/temporalio/umpire/hosts/go/runner`) and the Temporal Driver
 (`common/testing/testpilot/temporal/act`). Each invocation makes at most two serial Runs under one
 lease. Each Run starts one fresh activity on the canary task queue, whose in-process worker the
 Model answers, and is judged by the Model: Explained, Unexplained or Refused. Each Run is published
@@ -285,5 +285,11 @@ Everything canary-specific lives here. Umpire never imports `tools/canary`.
 The `canary_harness` build tag compiles a separate harness binary with a test policy, a plaintext
 transport and the `harness` authority class. The live tests in `tests/testpilot_canary_test.go`
 (`TestTestpilotCanary*`) run it against the test cluster. `build_test.go` pins that the untagged
-build has no override path. The `canary` job in `.github/workflows/umpire.yml` runs the canary's
-unit tests and the harness build's tests.
+build has no override path. Canary validation currently runs locally with the sibling Umpire
+checkout; GitHub workflow integration is deferred while Umpire remains internal.
+
+```sh
+go test -count=1 -tags test_dep ./tools/canary/...
+go test -count=1 -tags 'test_dep canary_harness' ./tools/canary/testharness/
+make canary-build
+```

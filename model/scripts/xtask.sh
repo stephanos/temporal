@@ -1,3 +1,4 @@
 #!/usr/bin/env bash
 set -euo pipefail
-exec /bin/bash "$(dirname "$0")/../umpire/scripts/xtask.sh" "$@"
+framework=$(/bin/bash "$(dirname "$0")/framework-root.sh")
+exec /bin/bash "$framework/scripts/xtask.sh" "$@"

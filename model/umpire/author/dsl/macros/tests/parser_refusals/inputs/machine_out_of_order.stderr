@@ -1,5 +1,0 @@
-error: #[invariant] methods must follow #[effect] and precede #[postcondition]
-  --> tests/ui/machine_out_of_order.rs:18:9
-   |
-18 |         #[invariant]
-   |         ^^^^^^^^^^^^

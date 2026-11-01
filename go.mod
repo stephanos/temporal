@@ -55,6 +55,7 @@ require (
 	github.com/temporalio/ringpop-go v0.1.0
 	github.com/temporalio/sqlparser v0.1.0
 	github.com/temporalio/tchannel-go v1.22.1
+	github.com/temporalio/umpire/hosts/go v0.0.0
 	github.com/tidwall/btree v1.8.1
 	github.com/uber-go/tally/v4 v4.1.17
 	github.com/urfave/cli v1.22.17
@@ -94,7 +95,6 @@ require (
 	gopkg.in/validator.v2 v2.0.1
 	gopkg.in/yaml.v3 v3.0.1
 	modernc.org/sqlite v1.51.0
-	umpire.local/model v0.0.0
 	umpire.local/temporal v0.0.0
 )
 
@@ -233,7 +233,7 @@ require (
 	sigs.k8s.io/yaml v1.6.0 // indirect
 )
 
-replace umpire.local/model => ./model/umpire/hosts/go
+replace github.com/temporalio/umpire/hosts/go => ../umpire/hosts/go
 
 replace umpire.local/temporal => ./model/temporal/hosts/go
 

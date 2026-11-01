@@ -1,5 +1,0 @@
-error: unknown after action User::Missing
-  --> tests/ui/machine_unknown_after.rs:15:33
-   |
-15 |         #[postcondition(after = User::Missing)]
-   |                                 ^^^^^^^^^^^^^

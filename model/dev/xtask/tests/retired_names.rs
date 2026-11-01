@@ -127,7 +127,9 @@ fn active_spellings_and_historical_exclusions() {
         scratch.write(path, layout.join("\n"));
     }
     assert!(
-        execute(Command::new("git").arg("-C").arg(&scratch.0).args(["add", "-A"])).status.success()
+        execute(Command::new("git").arg("-C").arg(&scratch.0).args(["add", "-f", "-A"]))
+            .status
+            .success()
     );
     assert_eq!(scratch.scan().status.code(), Some(0));
     for path in history {
@@ -178,7 +180,10 @@ fn raw_path_bytes_and_io_failures_reach_native_policy() {
     };
     let scratch = Scratch::new();
     assert!(execute(Command::new("git").args(["init", "-q"]).arg(&scratch.0)).status.success());
+    #[cfg(not(target_os = "macos"))]
     let raw = OsString::from_vec(b"raw-\xff.rs".to_vec());
+    #[cfg(target_os = "macos")]
+    let raw = OsString::from("raw-é.rs");
     let contents = [b"umpire".as_slice(), b"-wasm \xfe\n"].concat();
     scratch.write(&raw, &contents);
     let output = scratch.scan();

@@ -2,8 +2,8 @@
 
 Testpilot is what remains of the Go test runtime after fn-228 made the Runner the one host loop.
 The Model judges every observation and answers every callback; the Runner
-(`umpire.local/model/runner`, see `model/umpire/hosts/go/README.md`) asks it to Propose,
-Judge and Answer, drives a Driver and records a Run. Testpilot keeps only the Temporal mechanics
+(`github.com/temporalio/umpire/hosts/go/runner`, see the
+[sibling host guide](../../../../umpire/hosts/go/README.md)) asks it to Propose, Judge and Answer, drives a Driver and records a Run. Testpilot keeps only the Temporal mechanics
 that loop acts through.
 
 | Package | Job |
@@ -14,8 +14,8 @@ that loop acts through.
 | `duration` | Checked conversion between protobuf durations and whole milliseconds. |
 
 The package root holds tests only: `TestTestpilotDependencyBoundary`, which keeps every
-`umpire.local` import inside `temporal/act` and keeps Testpilot from importing `tests/`,
-`tools/umpire` or `tools/canary`, and the protocol schema checks `make umpire-check-testpilot-protocol`
+shared-host or `umpire.local/temporal` import inside `temporal/act` and keeps Testpilot from
+importing `tests/`, `tools/umpire` or `tools/canary`, and the protocol schema checks `make umpire-check-testpilot-protocol`
 runs over `proto/internal/temporal/server/api/testpilot/v1`.
 
 fn-228.6 retired the Case runtime: the root facade (`Prepare`, `PreparedCase`), the Program

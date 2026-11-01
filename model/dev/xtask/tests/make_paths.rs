@@ -12,7 +12,12 @@ fn shipping_framework_make_bootstrap_preserves_relative_cargo_paths() {
     let f = super::Fixture::new();
     fs::create_dir_all(f.root.join("make/model")).unwrap();
     let root = f.root.join("make").canonicalize().unwrap();
-    symlink(source.join("model/umpire"), root.join("model/umpire")).unwrap();
+    symlink(source.join("../umpire"), root.join("../umpire")).unwrap();
+    fs::create_dir_all(root.join("model/scripts")).unwrap();
+    for name in ["xtask.sh", "framework-root.sh"] {
+        fs::copy(source.join("model/scripts").join(name), root.join("model/scripts").join(name))
+            .unwrap();
+    }
     symlink(&home, root.join("cargo-home")).unwrap();
     symlink(&target, root.join("build-output")).unwrap();
     let makefile = fs::read_to_string(source.join("Makefile")).unwrap();
@@ -50,6 +55,8 @@ exec "$PATH_CONTROL_MISE" "$@"
         .env("CARGO_HOME", "cargo-home")
         .env("CARGO_NET_OFFLINE", "true")
         .env_remove("BASH_ENV")
+        .env_remove("BUILD_CACHE_MANAGED")
+        .env_remove("BUILD_CACHE_TOOL")
         .env_remove("UMPIRE_TOOL_ROOT")
         .env_remove("MAKEFLAGS")
         .env_remove("MFLAGS")
@@ -63,10 +70,10 @@ exec "$PATH_CONTROL_MISE" "$@"
         String::from_utf8_lossy(&output.stderr)
     );
     let calls = fs::read_to_string(root.join("calls")).unwrap();
-    let framework = source.join("model/umpire");
+    let framework = source.join("../umpire").canonicalize().unwrap();
     let bootstrap = format!(
         "{}|{}|{}|exec -- cargo build --locked",
-        root.join("model/umpire").display(),
+        framework.display(),
         root.join("build-output").display(),
         home.display()
     );
@@ -92,7 +99,7 @@ fn shipping_temporal_make_loads_the_workspace_linker_config_without_changing_cal
     for target in ["aarch64-unknown-linux-gnu", "x86_64-unknown-linux-gnu"] {
         let settings = targets[target].as_table().unwrap();
         assert_eq!(settings.len(), 1);
-        assert_eq!(settings["linker"].as_str(), Some("umpire/scripts/mold-linker.sh"));
+        assert_eq!(settings["linker"].as_str(), Some("../../umpire/scripts/mold-linker.sh"));
     }
     let f = super::Fixture::new();
     let root = f.root.join("make");
@@ -115,6 +122,8 @@ fn shipping_temporal_make_loads_the_workspace_linker_config_without_changing_cal
         .env("CARGO_HOME", "caller-home")
         .env("CARGO_TARGET_DIR", "caller-target")
         .env_remove("BASH_ENV")
+        .env_remove("BUILD_CACHE_MANAGED")
+        .env_remove("BUILD_CACHE_TOOL")
         .env_remove("MAKEFLAGS")
         .env_remove("MFLAGS")
         .env_remove("MAKEOVERRIDES")

@@ -1,5 +1,0 @@
-error: actor User already has an #[on] method
-  --> tests/ui/machine_duplicate_actor.rs:15:12
-   |
-15 |         fn second(&mut self, action: User) { match action { User::Press => {} } }
-   |            ^^^^^^

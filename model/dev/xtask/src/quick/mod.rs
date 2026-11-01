@@ -8,7 +8,7 @@ pub(crate) fn arguments(root: &Path, supplied: Vec<OsString>) -> io::Result<Vec<
         "--workspace".into(),
         root.clone().into_os_string(),
         "--workspace".into(),
-        root.join("umpire").into_os_string(),
+        root.join("../../umpire").into_os_string(),
     ];
     for package in [
         "umpire-temporal-tests",
@@ -44,7 +44,7 @@ mod tests {
         let arguments = arguments(&root, vec!["--base".into(), "HEAD~1".into()])?;
         assert_eq!(arguments[0], "quick");
         assert_eq!(arguments[2], root.as_os_str());
-        assert_eq!(arguments[4], root.join("umpire").as_os_str());
+        assert_eq!(arguments[4], root.join("../../umpire").as_os_str());
         let mappings: Vec<_> = arguments
             .windows(2)
             .filter(|pair| pair[0] == "--map")

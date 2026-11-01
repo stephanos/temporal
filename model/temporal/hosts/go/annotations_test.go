@@ -5,13 +5,13 @@ import (
 	"context"
 	"testing"
 
+	annotationsv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/annotations/v1"
+	modelv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/model/v1"
+	model "github.com/temporalio/umpire/hosts/go/host"
 	activitypb "go.temporal.io/api/activity/v1"
 	enumspb "go.temporal.io/api/enums/v1"
 	workflowservice "go.temporal.io/api/workflowservice/v1"
 	"google.golang.org/protobuf/proto"
-	annotationsv1 "umpire.local/model/gen/umpire/annotations/v1"
-	modelv1 "umpire.local/model/gen/umpire/model/v1"
-	model "umpire.local/model/host"
 )
 
 func TestAnnotationsPreserveFrozenModelAndActualResponseBytes(t *testing.T) {

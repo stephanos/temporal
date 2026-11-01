@@ -982,31 +982,38 @@ ensure-no-changes:
 ##### model: Umpire in Rust (fn-210) #####
 RUST_MODEL_COMPILER_ENV = $(if $(filter require,$(UMPIRE_BACKENDS) $(UMPIRE_APALACHE)),CARGO_BUILD_JOBS=1)
 RUST_MODEL_CARGO = MISE_AUTO_INSTALL=false MISE_EXEC_AUTO_INSTALL=false $(RUST_MODEL_COMPILER_ENV) mise exec -- cargo --config "$(CURDIR)/model/.cargo/config.toml"
-RUST_MODEL_FRAMEWORK = helper=$$($(RUST_MODEL_COMPILER_ENV) /bin/bash "$(CURDIR)/model/umpire/scripts/xtask.sh") && "$$helper"
+RUST_MODEL_FRAMEWORK = helper=$$($(RUST_MODEL_COMPILER_ENV) /bin/bash "$(CURDIR)/model/scripts/xtask.sh") && "$$helper"
+
+export UMPIRE_QUICK_CACHE UMPIRE_CACHE_DISABLE
 
 .PHONY: model-check model-prerequisites model-quick model-fmt model-update model-time model-validate
 model-quick: RUST_MODEL_COMPILER_ENV = CARGO_BUILD_JOBS=1
 model-quick:
+	@/bin/bash "$(CURDIR)/model/scripts/framework-root.sh" >/dev/null
 	@$(RUST_MODEL_CARGO) run --manifest-path "$(CURDIR)/model/Cargo.toml" --package temporal-xtask --bin temporal-xtask --profile dev -- quick
 
-model-check: override export UMPIRE_QUICK_CACHE = 0
-model-check: override export UMPIRE_CACHE_DISABLE = 1
+model-check: override UMPIRE_QUICK_CACHE = 0
+model-check: override UMPIRE_CACHE_DISABLE = 1
 model-check:
+	@/bin/bash "$(CURDIR)/model/scripts/framework-root.sh" >/dev/null
 	@$(RUST_MODEL_CARGO) run --manifest-path "$(CURDIR)/model/Cargo.toml" --package temporal-xtask --bin temporal-xtask --profile dev -- gate
 
-model-prerequisites: override export UMPIRE_QUICK_CACHE = 0
-model-prerequisites: override export UMPIRE_CACHE_DISABLE = 1
+model-prerequisites: override UMPIRE_QUICK_CACHE = 0
+model-prerequisites: override UMPIRE_CACHE_DISABLE = 1
 model-prerequisites: $(PROTOC_GEN_GO) $(PROTOC_GEN_GO_GRPC) $(API_BINPB)
 
 model-fmt:
+	@/bin/bash "$(CURDIR)/model/scripts/framework-root.sh" >/dev/null
 	@$(RUST_MODEL_FRAMEWORK) fmt
 	@$(RUST_MODEL_CARGO) fmt --manifest-path "$(CURDIR)/model/Cargo.toml" --all
 
 model-update:
+	@/bin/bash "$(CURDIR)/model/scripts/framework-root.sh" >/dev/null
 	@$(RUST_MODEL_FRAMEWORK) update
 	@INSTA_UPDATE=always TRYBUILD=overwrite $(RUST_MODEL_CARGO) run --manifest-path "$(CURDIR)/model/Cargo.toml" --package temporal-xtask --bin temporal-xtask --profile dev -- test-run
 
 model-time:
+	@/bin/bash "$(CURDIR)/model/scripts/framework-root.sh" >/dev/null
 	@printf $(COLOR) "Time the model feedback loop (fn-210 R30)..."
 	@$(RUST_MODEL_CARGO) run --manifest-path "$(CURDIR)/model/Cargo.toml" --package temporal-xtask --bin temporal-xtask --profile dev -- time
 

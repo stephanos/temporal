@@ -1,9 +1,33 @@
 # Extract Umpire into temporalio/umpire
 
-Status: **deferred by the owner on 2026-10-28**. The active goal is now ordinary
-[MILESTONES.md](MILESTONES.md) work; Temporal’s in-tree framework remains authoritative.
-[fn-258](.flow/specs/fn-258-complete-the-resumed-standalone-umpire.md) remains open,
-replacing retired fn-257 without accepting its unfinished work.
+Status: **resumed by the owner on 2026-10-31** to finish
+[fn-258](.flow/specs/fn-258-complete-the-resumed-standalone-umpire.md), with parallel
+source reconciliation, Temporal consumer preparation and Darwin repairs in fn-259.
+The renewed source checkpoint is `6f829925bc`, with framework tree
+`24178904d31cc467865c95e7ce7a699cd9f278db`. Current work and verification live in
+[the resumption record](.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/resume-20261031/).
+On 2026-11-01 the owner directed cutover ahead of final validation: Temporal no longer
+tracks `model/umpire` and resolves the framework from the sibling `../umpire` checkout
+at Umpire `main` `db80509`. Current R5 gates run against that exact pair under
+[final-db80509](.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/final-db80509/);
+defects they find are fixed after cutover and supply no earlier completion credit.
+
+The owner's 2026-10-31 CI amendment keeps Umpire internal and this integration
+local-only. The public Temporal branch cannot access Umpire. Keep Umpire out of
+Temporal's GitHub workflows: the dedicated workflow and prepared paired checkout
+wiring are removed, with their source retained in the resumption evidence.
+No CI credentials or revision variables are configured. Paired CI activation is
+deferred; current local proof and the authorized Umpire push remain required.
+
+GitHub access to `temporalio/umpire` now succeeds with push permission. Both the
+branches API and `git ls-remote` show no destination refs. The 48 prepared recovery
+refs have been received in the standalone checkout and all 50 custody snapshots
+verified against their complete file/blob/mode inventories. These refs preserve
+unfinished candidates; they do not activate or complete their product features.
+No remote publication or product commit has been made during this resumption.
+
+The following October 28 checkpoint is historical. Its deferral is superseded by
+the current instruction; its source-bound proof remains limited to its named pins.
 
 Historical source-readiness tasks1–3 are closed. Preserve source freeze `ac60daaf47`,
 1,189 selected files, export `a92db061` (627 mapped commits,6,634 projection-neutral
@@ -14,8 +38,9 @@ passes focused controls; the new cde paired gate was interrupted at the owner’
 Whole-pair acceptance remains incomplete. [Deferral checkpoint](.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/owner-deferral-20261028.md).
 
 All48 receiving refs remain uncreated;50 custody commits are prepared and retained.
-No publication, CI activation or source cutover occurred. Destination contents/history
-remain unknown: direct GitHub repository access returned SAML403 on2026-10-28.
+No publication, CI activation or source cutover occurred at that checkpoint.
+Direct GitHub repository access returned SAML403 on2026-10-28; the successful
+October 31 destination probe supersedes that access observation.
 Preserve all original inventories, source branches and recovery evidence. Milestone
 framework changes expire earlier migration proof applicability; resumption requires
 an explicit renewed source inventory/history/adaptation/current-pair proof.
@@ -101,7 +126,12 @@ Use sibling checkouts under a developer-chosen parent:
   go.work
 ```
 
-Today Cargo workspace `path` dependencies link the in-tree generic and Temporal
+### Historical local-layout record
+
+This paragraph records the pre-extraction checkout and module names. Current local
+source resolution uses the [paired checkout guide](model/docs/paired-checkout.md).
+
+At that checkpoint, Cargo workspace `path` dependencies linked the in-tree generic and Temporal
 crates. Root `go.mod` requires/replaces `umpire.local/model` and `umpire.local/temporal`
 with `model/umpire/hosts/go` and `model/temporal/hosts/go`; the extension module also
 replaces the generic host locally. The generic module exposes `host`, `runner` and
@@ -121,6 +151,11 @@ preserve that boundary rather than claim it closed.
 These local references require no publication. The post-extraction setup below preserves
 that development property. The local history export has run; consumer cutover and
 publication have not.
+
+### Current local checkout contract
+
+The historical record above supplies no current publication or cutover claim; use
+the resumption status and its exact receipts for those decisions.
 
 Rust consumers use Cargo `path` dependencies pointing to the exact Umpire crate
 directories. For example, from a consumer manifest at `temporal/model/Cargo.toml`,
@@ -143,8 +178,9 @@ the parent workspace outside either repository; scripts may create it only with
 the owner's consent when one already exists, preserving unrelated entries. Verify
 the selected workspace with `go env GOWORK`. See [Go multi-module workspaces](https://go.dev/doc/tutorial/workspaces).
 
-CI reproduces the sibling-checkout layout at explicit source revisions and constructs
-its own workspace. An Umpire-only job tests the host module independently; a paired
+Future paired CI would reproduce the sibling-checkout layout at explicit source revisions and construct
+its own workspace. It remains deferred under the owner's local-only amendment.
+An Umpire-only job tests the host module independently; a paired
 job tests the actual Temporal consumers. Record both revisions in the job output.
 If there are no Rust or Go Temporal consumers yet, prove local resolution with small
 disposable consumers instead of inventing server integration. Missing local checkouts
@@ -280,8 +316,8 @@ approved. Update Temporal's current docs, agent instructions and milestone/task
 pointers. Keep the Scala archive and caches intact, and retain the recorded source
 checkpoint so the extraction can be compared or reversed without rewriting history.
 
-Done when: each repository has one clear source owner, both local and CI consumers
-resolve the intended checkout/revision, and no active build command depends on the
+Done when: each repository has one clear source owner, local consumers
+resolve the intended checkout/revision, and no active local build command depends on the
 removed in-tree implementation. Destination publication and Temporal cleanup are
 separate completion claims from preparing this plan.
 

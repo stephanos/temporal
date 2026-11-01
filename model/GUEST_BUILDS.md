@@ -142,10 +142,10 @@ artifacts, rather than inferring unwind from the profile declaration.
 From the repository root:
 
 ```sh
-(cd model/umpire && mise exec -- cargo test -p xtask -p umpire-guest-driver --locked)
+(cd ../umpire && mise exec -- cargo test -p xtask -p umpire-guest-driver --locked)
 (cd model && mise exec -- cargo test -p temporal-xtask --locked)
-bash -n model/scripts/xtask.sh model/umpire/scripts/xtask.sh
-(cd model/umpire && CARGO_TARGET_DIR=/absolute/task-owned-target mise exec -- cargo xtask build-guests)
+bash -n model/scripts/xtask.sh ../umpire/scripts/xtask.sh
+(cd ../umpire && CARGO_TARGET_DIR=/absolute/task-owned-target mise exec -- cargo xtask build-guests)
 (cd model && CARGO_TARGET_DIR=/absolute/task-owned-target mise exec -- cargo xtask build-guests)
 CARGO_TARGET_DIR=/absolute/task-owned-target make model-validate
 ```
@@ -463,7 +463,7 @@ now invokes an absolute script path. The first timing run exposed its wrapper's
 different working directory; Python test discovery now also uses an absolute path.
 Neither correction changes test assertions or guest code generation.
 
-The independent framework workspace at `model/umpire` owns the native tools and
+The sibling framework checkout at `../umpire` owns the native tools and
 pins. `xtask` executes the dedicated `umpire-guest-driver`; guest caches hash that
 driver's complete executable, the caller workspace's complete lockfile and compiler
 input. Framework and caller workspace roots are admitted separately. Their canonical

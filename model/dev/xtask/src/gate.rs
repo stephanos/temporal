@@ -104,7 +104,7 @@ fn mise(root: &Path) -> io::Result<Command> {
     command
         .current_dir(root.parent().ok_or_else(|| io::Error::other("missing repository root"))?)
         .env("CARGO_HOME", home)
-        .env("UMPIRE_FRAMEWORK_ROOT", root.join("umpire"))
+        .env("UMPIRE_FRAMEWORK_ROOT", root.join("../../umpire"))
         .env("UMPIRE_TEMPORAL_ROOT", root)
         .env("UMPIRE_QUICK_CACHE", "0")
         .env("UMPIRE_CACHE_DISABLE", "1")
@@ -137,7 +137,7 @@ pub(crate) fn run(root: &Path) -> io::Result<i32> {
     );
     if std::env::var_os("UMPIRE_APALACHE").is_some_and(|value| value == "require") {
         let mut command = Command::new(&framework);
-        command.arg("fetch-apalache").arg(root.join("umpire"));
+        command.arg("fetch-apalache").arg(root.join("../../umpire"));
         let code = stage(root, "apalache", command)?;
         if code != 0 {
             return Ok(code);
@@ -153,12 +153,54 @@ pub(crate) fn run(root: &Path) -> io::Result<i32> {
         },
     );
     let records = scheduler::directory(&target.join("gate-receipts"))?;
+    let framework = framework_stage_executable(root, &target, framework)?;
     let mut command = mise(root)?;
     command
         .env("UMPIRE_TEMPORAL_GATE_EXECUTABLE", std::env::current_exe()?)
         .env("UMPIRE_GATE_CONTROLLER_EXECUTABLE", std::env::current_exe()?)
         .env("UMPIRE_GATE_EXECUTABLE", framework);
     scheduler::run(command, "model:all", &records, &expected)
+}
+
+/// A managed framework gate refuses Temporal's launcher target, so its stages re-enter the
+/// launcher for the sibling framework root and receive that root's target and lease.
+fn framework_stage_executable(
+    root: &Path,
+    target: &Path,
+    framework: std::ffi::OsString,
+) -> io::Result<std::ffi::OsString> {
+    use std::os::unix::fs::PermissionsExt;
+    if !umpire_guest_driver::managed::enabled() {
+        return Ok(framework);
+    }
+    let quote = |value: &std::ffi::OsStr| {
+        let value = value
+            .to_str()
+            .ok_or_else(|| io::Error::other("managed framework stage path is not UTF-8"))?;
+        Ok::<_, io::Error>(format!("'{}'", value.replace('\'', r"'\''")))
+    };
+    let required = |name: &str| {
+        std::env::var_os(name)
+            .filter(|value| !value.is_empty())
+            .ok_or_else(|| io::Error::other(format!("managed framework stage requires {name}")))
+    };
+    let workspace = root.join("../../umpire").canonicalize()?;
+    let script = format!(
+        "#!/bin/bash\nexec {} exec --project {} --workspace {} -- {} \"$@\"\n",
+        quote(&required("BUILD_CACHE_TOOL")?)?,
+        quote(&required("BUILD_CACHE_PROJECT")?)?,
+        quote(workspace.as_os_str())?,
+        quote(&framework)?,
+    );
+    let directory = target.join("framework-stages");
+    std::fs::create_dir_all(&directory)?;
+    let executable = directory.join(format!("gate-{}", std::process::id()));
+    if executable.try_exists()? {
+        std::fs::remove_file(&executable)?;
+    }
+    std::fs::write(&executable, script)?;
+    std::fs::set_permissions(&executable, std::fs::Permissions::from_mode(0o555))?;
+    Ok(executable.into_os_string())
 }
 
 pub(crate) fn framework_executable(root: &Path) -> io::Result<std::process::Output> {
@@ -241,6 +283,7 @@ pub(crate) fn run_stage(root: &Path, name: &str) -> io::Result<i32> {
     run_stage_with_tool(root, name, &std::env::current_exe()?)
 }
 
+#[expect(clippy::too_many_lines, reason = "One dispatch arm per scheduled Temporal stage")]
 fn run_stage_with_tool(root: &Path, name: &str, tool: &Path) -> io::Result<i32> {
     let native = |arguments: &[&str]| {
         let mut command = Command::new(tool);
@@ -546,9 +589,11 @@ esac
             std::process::id(),
             std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_nanos()
         ));
+        let root = root.join("temporal/model");
         fs::create_dir_all(root.join("scripts")).unwrap();
         fs::create_dir_all(root.join("bin")).unwrap();
-        fs::create_dir_all(root.join("umpire")).unwrap();
+        fs::create_dir_all(root.join("../../umpire")).unwrap();
+        let root = root.canonicalize().unwrap();
         fs::write(root.join("scripts/xtask.sh"), "#!/bin/bash\nprintf '/bin/true\\n'\n").unwrap();
         let body = CONTROL_BODY;
         fs::write(
@@ -616,7 +661,7 @@ esac
             format!(
                 r#"#!/bin/bash
 set -eu
-[ "$#" = 2 ] && [ "$1" = fetch-apalache ] && [ "$2" = "$UMPIRE_GATE_CONTROL_ROOT/umpire" ] || exit 91
+[ "$#" = 2 ] && [ "$1" = fetch-apalache ] && [ "$2" = "$UMPIRE_GATE_CONTROL_ROOT/../../umpire" ] || exit 91
 [ "$MISE_AUTO_INSTALL:$MISE_EXEC_AUTO_INSTALL:$MISE_TASK_PGID_MANAGED" = false:false:1 ] || exit 92
 [ "$UMPIRE_APALACHE:$UMPIRE_GATE_CONTROL_SENTINEL" = require:inherited ] || exit 93
 printf 'fetch stdout\n'

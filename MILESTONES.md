@@ -2,7 +2,18 @@
 
 The owner's overview of open work, execution order and blockers.
 
-As of 2026-10-30.
+As of 2026-10-31.
+
+The October 31 [fn-258 resumption record](.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/resume-20261031/)
+owns the current source, validation and publication evidence. Temporal's local consumer
+wiring uses the sibling Umpire checkout; Umpire remains internal and public Temporal
+CI integration stays deferred. Read [MIGRATE.md](MIGRATE.md) for actual final R5 and
+cutover status. Running or historical receipts grant no current completion credit.
+
+### Historical October 30 checkpoint
+
+The following source/status paragraphs retain their named historical scope; the
+October 31 resumption supersedes their deferral and host-validation instructions.
 
 Budget/gate work is resumed at the owner's request on 2026-10-30. Continue fn-254.12 from its retained applicability/input-custody checkpoint, including gate-tooling fixes and the remaining budget enforcement work. On 2026-10-30 the owner resumed the three source checkpoints, then stopped execution again after wrap-up: fn-246.10 is closed and integrated with a fresh Temporal guest; fn-256.2's source is integrated with only R4 evidence open under fn-254.8; fn-253.7 and fn-246.2 hold stop checkpoints on their branches (see their rows). Three source checkpoints remain unmerged: fn-246.10 awaits current Temporal guest acceptance; fn-253.7 awaits source review and guest acceptance; fn-256.2 awaits source review and full Rust R4 evidence. Migration fn-258 remains deferred. The sccache proposal was withdrawn and no longer blocks final validation.
 
@@ -41,7 +52,11 @@ The current .12 checkpoint passes 244 framework xtask tests, 39 consumer xtask t
 
 Umpire uses the Rust workspace described in [model/README.md](model/README.md).
 Its guest runs as stock WASM in a pure Go host.
+The sibling framework source and Temporal consumer use the [local paired setup](model/docs/paired-checkout.md).
 The Scala tree under `model/archived/` is frozen reference material.
+
+The October 31 resumption governs current migration work. The following October 28
+deferral is historical and supplies no current source-ownership or access verdict.
 
 Repository migration **fn-258 is deferred by the owner**. Retain its source candidates,
 recovery evidence and explicit interrupted validation state in [MIGRATE.md](MIGRATE.md).
@@ -50,7 +65,7 @@ Work proceeds on the in-tree framework; resume migration with a renewed source
 checkpoint after any framework changes. GitHub destination inspection remains SAML-blocked.
 
 Backlog order remains **fn-254 → fn-255 → fn-246 → fn-237.4 → fn-243.5 → fn-237.5 → fn-245**. fn-240 and fn-211 remain deferred.
-fn-254 (fast gates, and a framework gate that runs from `model/umpire` without the Temporal tree) leads: the owner
+fn-254 (fast gates, and a framework gate that runs from the sibling Umpire checkout without the Temporal tree) leads: the owner
 ranks a fast feedback loop among the most important properties. The standalone workspace/driver and independent gate checkpoint are integrated, and the complete isolated proof passed.
 The remaining fn-254 critical path includes budgets .12, consuming the reviewed and integrated .15 native ports, .16 mise provider and .17 nextest/stage-DAG checkpoint. Budget/gate work is resumed; complete .12 from its retained checkpoint before dependent enforcement and final proof. Final proof .8 also waits for .7 after committed fn-246 closure. The consumer/cache checkpoint is reviewed and closed; verified configurations cache independently of refuted siblings, and test-only Kettle readers no longer expand unrelated libraries. fn-254 gets first admission to shared build/JVM/review capacity. Disjoint source work may continue without delaying fn-254. Finish fn-254.7 after committed fn-246 closure.
 The owner waived fresh baseline measurements; final measurements remain. fn-254.7 waits for fn-246; fn-254.13's workspace move is integrated. fn-253.2–.5 (countdown spike and library) may run as a lane when one is free; activity changes
@@ -105,6 +120,25 @@ reviewed validation evidence and a committed validation-cost assessment.
 
 ### fn-258: Complete the resumed standalone Umpire migration
 
+The owner resumed fn-258 on 2026-10-31. Reconcile current integrated framework
+source at `6f829925bc` with the standalone managed-cache changes before renewing
+paired proof. fn-259 owns the Darwin signal/supervisor repairs required by this
+host. Destination access now succeeds and the remote has no refs. All 48 prepared
+recovery refs have been received locally in Umpire; their 50 custody snapshots
+verify against complete file/blob/mode inventories. Current evidence lives in
+[the resumption record](.flow/artifacts/fn-258-complete-the-resumed-standalone-umpire/resume-20261031/).
+
+The owner's current scope is local-only: keep Umpire internal and out of
+Temporal's GitHub workflows. Public CI cannot access it; credentials, CI pins and
+paired CI activation are deferred. Local validation and Umpire publication remain
+required before source cutover.
+
+Six retained legacy/system branches remain in Temporal under the five ownership
+research tasks in [fn-260](.flow/specs/fn-260-resolve-retained-temporal-candidate.md).
+Source custody preserves their unknown original product owners and recovery refs;
+it grants no implementation, integration or retirement authority.
+
+The following source-readiness and timing evidence belongs to the previous pair.
 The renewed source inventory and history task is reviewed and closed on `umpire`.
 The standalone preserves current integrated source and both verified histories;
 1,189 mapped files have zero missing or unexpected differences and all 499 protected
@@ -116,15 +150,15 @@ child stages, with 912 tests/doctests executed and three ignored in each tests s
 Its 1,679.762-second gate and 24.162-second edit loop miss their soft targets.
 Proof binaries, receipts and source snapshots are retained and independently recoverable.
 The idle isolated-child target was then removed, reclaiming 6.20 GiB; recovery still verifies.
-The in-tree framework stays authoritative until publication and verified cutover.
-Destination access remains blocked by SAML/credentials. See [MIGRATE.md](MIGRATE.md).
+The in-tree framework remains retained until publication and verified cutover.
+See [MIGRATE.md](MIGRATE.md).
 
 [Spec](.flow/specs/fn-258-complete-the-resumed-standalone-umpire.md).
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-258.4 | ⏸️ deferred | Owner stopped final-pair validation; standalone proofs and consumer cde control fix retained. Required paired, timing and local-edit acceptance remain incomplete (R3–R5) |
-| fn-258.5 | ⏸️ deferred | Recovery snapshots prepared only; actual receiving refs, destination access, publication, pinned CI and source cutover remain incomplete (R1, R4, R6) |
+| fn-258.4 | in progress | Renew current source and paired, timing and local-edit acceptance; prior pinned proofs remain historical (R3–R5) |
+| fn-258.5 | pending | Destination and local recovery reception verified; publication and local source cutover remain incomplete; public CI deferred by owner (R1, R4, R6) |
 
 
 ### fn-254: Fast validation gates and a real inner loop

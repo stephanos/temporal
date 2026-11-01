@@ -27,8 +27,8 @@ const (
 // and protocol schemas, the shared envelopes, and Temporal's read instruction. Never the Host,
 // the guest or the Realization.
 var actImports = []string{
-	"umpire.local/model/runner", "umpire.local/model/gen/umpire/run/v1", "umpire.local/model/gen/umpire/model/v1",
-	"umpire.local/model/gen/umpire/realization/v1", "umpire.local/temporal/umpire/temporal/v1",
+	"github.com/temporalio/umpire/hosts/go/runner", "github.com/temporalio/umpire/hosts/go/gen/umpire/run/v1", "github.com/temporalio/umpire/hosts/go/gen/umpire/model/v1",
+	"github.com/temporalio/umpire/hosts/go/gen/umpire/realization/v1", "umpire.local/temporal/umpire/temporal/v1",
 }
 
 // forbiddenPrefixes are what no Testpilot package imports: repository tests, Umpire tooling and
@@ -54,7 +54,7 @@ func boundaryProblems(packages []testpilotPackage) []string {
 					problems = append(problems, pkg.ImportPath+" imports "+imported)
 				}
 			}
-			if !strings.HasPrefix(imported, "umpire.local/") {
+			if !strings.HasPrefix(imported, "umpire.local/") && !strings.HasPrefix(imported, "github.com/temporalio/umpire/") {
 				return
 			}
 			allowed := pkg.ImportPath == actPackage && (slices.Contains(actImports, imported) || test && imported == "umpire.local/temporal")
@@ -120,12 +120,12 @@ func TestTestpilotDependencyBoundaryRejectsForbiddenEdges(t *testing.T) {
 			other + " imports " + serverModule + "tools/umpire/ir"},
 		"a package imports the canary": {testpilotPackage{ImportPath: other, Imports: []string{serverModule + "tools/canary/policy"}},
 			other + " imports " + serverModule + "tools/canary/policy"},
-		"another package imports the Runner": {testpilotPackage{ImportPath: other, Imports: []string{"umpire.local/model/runner"}},
-			other + " imports the Model host umpire.local/model/runner"},
+		"another package imports the Runner": {testpilotPackage{ImportPath: other, Imports: []string{"github.com/temporalio/umpire/hosts/go/runner"}},
+			other + " imports the Model host github.com/temporalio/umpire/hosts/go/runner"},
 		"the Driver imports a worker executor": {testpilotPackage{ImportPath: actPackage, Imports: []string{"umpire.local/temporal/reference/worker/raw"}},
 			actPackage + " imports the Model host umpire.local/temporal/reference/worker/raw"},
-		"the Driver imports the Host": {testpilotPackage{ImportPath: actPackage, Imports: []string{"umpire.local/model/host"}},
-			actPackage + " imports the Model host umpire.local/model/host"},
+		"the Driver imports the Host": {testpilotPackage{ImportPath: actPackage, Imports: []string{"github.com/temporalio/umpire/hosts/go/host"}},
+			actPackage + " imports the Model host github.com/temporalio/umpire/hosts/go/host"},
 		"the Driver imports the guest outside its tests": {testpilotPackage{ImportPath: actPackage, Imports: []string{"umpire.local/temporal"}},
 			actPackage + " imports the Model host umpire.local/temporal"},
 	} {

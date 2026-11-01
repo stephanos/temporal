@@ -5,7 +5,7 @@ use umpire_dsl::{__lifted::ConcreteOf, Machine, Outcome, Phase as _, Rejection, 
 use umpire_tla::observers;
 
 fn framework_root() -> std::path::PathBuf {
-    std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../umpire")
+    std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../../umpire")
 }
 
 fn checked_world(

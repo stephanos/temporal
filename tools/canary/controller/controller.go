@@ -8,6 +8,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/temporalio/umpire/hosts/go/runner"
 	"go.temporal.io/api/workflowservice/v1"
 	"go.temporal.io/sdk/client"
 	"go.temporal.io/server/tools/canary/authority"
@@ -15,7 +16,6 @@ import (
 	"go.temporal.io/server/tools/canary/preflight"
 	"go.temporal.io/server/tools/canary/recovery"
 	"google.golang.org/grpc"
-	"umpire.local/model/runner"
 	"umpire.local/temporal"
 )
 

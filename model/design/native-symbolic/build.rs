@@ -1,7 +1,7 @@
 use std::{env, fs, path::PathBuf};
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let source = "../../umpire/dev/fixtures/fixtures/sample_kettle/model.rs";
+    let source = "../../../../umpire/dev/fixtures/fixtures/sample_kettle/model.rs";
     println!("cargo:rerun-if-changed={source}");
     let authored = fs::read_to_string(source)?;
     let baseline = "const BOILING_TEMPERATURE: i32 = 100;";

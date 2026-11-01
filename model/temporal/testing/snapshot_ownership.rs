@@ -173,22 +173,36 @@ fn validate(
 #[test]
 fn current_snapshots_have_explicit_owners() -> TestResult {
     let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..").canonicalize()?;
-    let mut expected = Vec::new();
-    for fixtures in FIXTURES {
-        expected.extend(
-            umpire_testing::discovery::discover(
-                &root.join(fixtures),
-                umpire_testing::discovery::MODEL,
-            )?
-            .into_iter()
-            .map(|fixture| fixture.path.join("expected")),
-        );
+    for (prefix, checkout) in [
+        ("temporal/", root.join("temporal")),
+        ("umpire/", root.join("../../umpire").canonicalize()?),
+    ] {
+        let mut expected = Vec::new();
+        for fixtures in FIXTURES.iter().filter_map(|path| path.strip_prefix(prefix)) {
+            expected.extend(
+                umpire_testing::discovery::discover(
+                    &checkout.join(fixtures),
+                    umpire_testing::discovery::MODEL,
+                )?
+                .into_iter()
+                .map(|fixture| fixture.path.join("expected")),
+            );
+        }
+        let readers: Vec<_> = READERS
+            .iter()
+            .filter_map(|(path, owner)| path.strip_prefix(prefix).map(|path| (path, *owner)))
+            .collect();
+        let historical = if prefix == "temporal/" {
+            HISTORICAL
+                .iter()
+                .map(|file| checkout.join("feature/activity/compatibility/original").join(file))
+                .collect()
+        } else {
+            BTreeSet::new()
+        };
+        validate(&checkout, &expected, &readers, &historical)?;
     }
-    let historical = HISTORICAL
-        .iter()
-        .map(|file| root.join("temporal/feature/activity/compatibility/original").join(file))
-        .collect();
-    validate(&root, &expected, READERS, &historical)
+    Ok(())
 }
 
 #[test]

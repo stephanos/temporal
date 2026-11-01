@@ -14,6 +14,9 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
+	annotationsv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/annotations/v1"
+	realizationv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/realization/v1"
+	model "github.com/temporalio/umpire/hosts/go/host"
 	activitypb "go.temporal.io/api/activity/v1"
 	commonpb "go.temporal.io/api/common/v1"
 	failurepb "go.temporal.io/api/failure/v1"
@@ -25,9 +28,6 @@ import (
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/anypb"
 	"google.golang.org/protobuf/types/known/durationpb"
-	annotationsv1 "umpire.local/model/gen/umpire/annotations/v1"
-	realizationv1 "umpire.local/model/gen/umpire/realization/v1"
-	model "umpire.local/model/host"
 	temporalv1 "umpire.local/temporal/umpire/temporal/v1"
 )
 

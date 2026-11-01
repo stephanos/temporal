@@ -3,10 +3,10 @@ package temporal
 import (
 	"context"
 	"errors"
+	annotationsv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/annotations/v1"
+	model "github.com/temporalio/umpire/hosts/go/host"
 	"google.golang.org/grpc"
 	"google.golang.org/protobuf/proto"
-	model "umpire.local/model/host"
-	annotationsv1 "umpire.local/model/gen/umpire/annotations/v1"
 	temporalv1 "umpire.local/temporal/umpire/temporal/v1"
 )
 

@@ -9,7 +9,7 @@ mod smt;
 mod witness;
 
 #[allow(dead_code, missing_docs)]
-#[path = "../../../umpire/dev/fixtures/fixtures/sample_kettle/model.rs"]
+#[path = "../../../../../umpire/dev/fixtures/fixtures/sample_kettle/model.rs"]
 mod sample_kettle;
 #[allow(dead_code, missing_docs)]
 mod kettle_big {

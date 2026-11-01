@@ -28,6 +28,7 @@ mod script_control_support;
 mod test_run;
 
 fn bridge(root: &Path, mut arguments: Vec<OsString>) -> io::Result<i32> {
+    let framework = root.join("../../umpire");
     let caller = env::current_dir()?;
     let cargo_home = umpire_guest_driver::context::cargo_home(&caller).map_err(io::Error::other)?;
     if arguments.first().is_some_and(|command| command == "quick") {
@@ -69,6 +70,7 @@ fn bridge(root: &Path, mut arguments: Vec<OsString>) -> io::Result<i32> {
         command.args(arguments).current_dir(workspace).env("CARGO_HOME", cargo_home);
         command
     };
+    command.env("UMPIRE_TOOL_ROOT", framework);
     Err(command.exec())
 }
 

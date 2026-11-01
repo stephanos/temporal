@@ -5,13 +5,13 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
+	realizationv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/realization/v1"
+	"github.com/temporalio/umpire/hosts/go/runner"
 	"go.temporal.io/api/workflowservice/v1"
 	"go.temporal.io/server/common/testing/await"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/anypb"
-	realizationv1 "umpire.local/model/gen/umpire/realization/v1"
-	"umpire.local/model/runner"
 	temporalv1 "umpire.local/temporal/umpire/temporal/v1"
 )
 

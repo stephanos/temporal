@@ -4,6 +4,8 @@ import (
 	"context"
 	"testing"
 
+	annotationsv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/annotations/v1"
+	modelv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/model/v1"
 	"github.com/tetratelabs/wazero"
 	"github.com/tetratelabs/wazero/api"
 	"github.com/tetratelabs/wazero/experimental"
@@ -11,8 +13,6 @@ import (
 	enumspb "go.temporal.io/api/enums/v1"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/anypb"
-	annotationsv1 "umpire.local/model/gen/umpire/annotations/v1"
-	modelv1 "umpire.local/model/gen/umpire/model/v1"
 	temporalmodel "umpire.local/temporal"
 )
 

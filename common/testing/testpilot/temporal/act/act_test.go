@@ -11,6 +11,10 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
+	modelv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/model/v1"
+	realizationv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/realization/v1"
+	runv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/run/v1"
+	"github.com/temporalio/umpire/hosts/go/runner"
 	commonpb "go.temporal.io/api/common/v1"
 	"go.temporal.io/api/serviceerror"
 	taskqueuepb "go.temporal.io/api/taskqueue/v1"
@@ -22,10 +26,6 @@ import (
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/anypb"
-	modelv1 "umpire.local/model/gen/umpire/model/v1"
-	realizationv1 "umpire.local/model/gen/umpire/realization/v1"
-	runv1 "umpire.local/model/gen/umpire/run/v1"
-	"umpire.local/model/runner"
 	temporalv1 "umpire.local/temporal/umpire/temporal/v1"
 )
 

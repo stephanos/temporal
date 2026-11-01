@@ -11,9 +11,9 @@ use std::{
 #[test]
 fn seven_packages_two_entries_preserve_caller_paths_and_exact_arguments() -> io::Result<()> {
     let scratch = Scratch::new()?;
-    let model = scratch.0.join("model with spaces");
+    let model = scratch.0.join("temporal/model with spaces");
     let caller = scratch.0.join("caller with spaces");
-    fs::create_dir_all(model.join("umpire"))?;
+    fs::create_dir_all(model.join("../../umpire"))?;
     fs::create_dir_all(caller.join("real cargo"))?;
     fs::create_dir_all(caller.join("real target"))?;
     symlink("real cargo", caller.join("cargo home"))?;
@@ -35,14 +35,17 @@ fn seven_packages_two_entries_preserve_caller_paths_and_exact_arguments() -> io:
             let mut args: Vec<OsString> =
                 [entry, package, "relative output.wasm"].into_iter().map(OsString::from).collect();
             let workspace = prepare(&model, &caller, &mut args);
-            assert_eq!(workspace, if framework { model.join("umpire") } else { model.clone() });
+            assert_eq!(
+                workspace,
+                if framework { model.join("../../umpire") } else { model.clone() }
+            );
             let mut child =
                 command(&tool, &workspace, &caller, &args, &home, Some("relative target".into()));
             child.env_remove("BASH_ENV");
             let output = xtask::gate::scheduler::execute(&child, false, false)?;
             assert!(output.status.success());
             let expected = [
-                workspace.into_os_string(),
+                workspace.canonicalize()?.into_os_string(),
                 entry.into(),
                 package.into(),
                 caller.join("relative output.wasm").into_os_string(),
@@ -114,12 +117,21 @@ fn raw_arguments_check_output_and_failure_status_survive_execution() -> io::Resu
     let driver = scratch.0.join("driver");
     fs::write(&driver, b"#!/bin/sh\nprintf '%s\\0' \"$@\" \"$CARGO_TARGET_DIR\"\nexit 37\n")?;
     fs::set_permissions(&driver, fs::Permissions::from_mode(0o755))?;
+    #[cfg(not(target_os = "macos"))]
     let raw = OsString::from_vec(b"output-\xff.wasm".to_vec());
+    #[cfg(target_os = "macos")]
+    let raw = OsString::from("output-é.wasm");
     let target = OsString::from_vec(b"target-\xfe".to_vec());
     let output_path = caller.join(&raw);
     fs::write(&output_path, b"preserved output")?;
     for entry in ["guest", "guest-freshness"] {
-        let mut args = vec![entry.into(), "custom-extension".into(), raw.clone(), "--check".into()];
+        let mut args = vec![
+            entry.into(),
+            "custom-extension".into(),
+            raw.clone(),
+            "--check".into(),
+            OsString::from_vec(b"argument-\xff".to_vec()),
+        ];
         let workspace = prepare(&caller, &caller, &mut args);
         let child = command(&driver, &workspace, &caller, &args, &caller, Some(target.clone()));
         let output = xtask::gate::scheduler::execute(&child, false, false)?;

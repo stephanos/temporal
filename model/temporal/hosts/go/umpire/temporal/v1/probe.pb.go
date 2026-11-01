@@ -7,11 +7,11 @@
 package v1
 
 import (
+	v1 "github.com/temporalio/umpire/hosts/go/gen/umpire/annotations/v1"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
 	sync "sync"
-	v1 "umpire.local/model/gen/umpire/annotations/v1"
 	unsafe "unsafe"
 )
 

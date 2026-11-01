@@ -2,7 +2,7 @@
 #![forbid(unsafe_code)]
 #![allow(clippy::unwrap_used, clippy::expect_used)]
 mod make_paths;
-#[path = "../../../umpire/dev/guest-driver/tests/pipeline/support.rs"]
+#[path = "../../../../../umpire/dev/guest-driver/tests/pipeline/support.rs"]
 #[allow(dead_code)]
 mod support;
 use std::{
@@ -12,7 +12,7 @@ use std::{
 };
 use support::Fixture;
 fn framework_root() -> PathBuf {
-    Path::new(env!("CARGO_MANIFEST_DIR")).join("../../umpire")
+    Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../../umpire")
 }
 fn xtask_binary() -> &'static PathBuf {
     static TOOL: std::sync::OnceLock<PathBuf> = std::sync::OnceLock::new();
@@ -22,6 +22,8 @@ fn xtask_binary() -> &'static PathBuf {
             .arg(framework_root().join("scripts/xtask.sh"))
             .current_dir(framework_root())
             .env_remove("BASH_ENV")
+            .env_remove("BUILD_CACHE_MANAGED")
+            .env_remove("BUILD_CACHE_TOOL")
             .output()
             .unwrap();
         assert!(output.status.success(), "{}", String::from_utf8_lossy(&output.stderr));
@@ -57,7 +59,7 @@ export UMPIRE_TOOL_ROOT="$CONTROL_FRAMEWORK"
 exec "$CONTROL_NATIVE" "$@"
 WRAPPER
   chmod 755 "$bootstrap/debug/xtask"
-  cp /bin/true "$bootstrap/debug/umpire-guest-driver"
+  cp "$(type -P true)" "$bootstrap/debug/umpire-guest-driver"
   exit 0
 fi
 [[ "$PWD" = "$CONTROL_FRAMEWORK" ]]
@@ -72,6 +74,8 @@ exit "$CONTROL_STATUS"
             .arg("fmt")
             .current_dir(&f.model)
             .env_remove("BASH_ENV")
+            .env_remove("BUILD_CACHE_MANAGED")
+            .env_remove("BUILD_CACHE_TOOL")
             .env_remove("UMPIRE_JVM_LEASE_FD")
             .env("PATH", format!("{}:/usr/bin:/bin", f.root.join("bin").display()))
             .env("CARGO_HOME", f.root.join("cargo home"))
@@ -186,6 +190,7 @@ fn absent_embedded_guest_fails_go_compilation() {
         .args(["test", "-tags", "test_dep", "./..."])
         .current_dir(module)
         .env("GOTOOLCHAIN", "local")
+        .env("GOWORK", "off")
         .env("CGO_ENABLED", "0")
         .env("GOCACHE", f.root.join("go-cache"))
         .output()

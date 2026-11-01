@@ -17,6 +17,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
+	"github.com/temporalio/umpire/hosts/go/runner"
 	commonpb "go.temporal.io/api/common/v1"
 	enumspb "go.temporal.io/api/enums/v1"
 	"go.temporal.io/api/serviceerror"
@@ -29,7 +30,6 @@ import (
 	"go.temporal.io/server/tools/canary/preflight"
 	"go.temporal.io/server/tools/canary/recovery"
 	"go.temporal.io/server/tools/canary/testharness"
-	"umpire.local/model/runner"
 	"umpire.local/temporal"
 )
 

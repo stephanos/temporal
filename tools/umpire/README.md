@@ -18,7 +18,7 @@ Each command is `tools/umpire/cmd/<name>`. The Make targets build into `.build/`
 
 | Command | What it does | Make target |
 | --- | --- | --- |
-| `umpire` | The one host loop over a Model guest: `question`, `explore`, `reduce`, `replay` or `repeat`; it records and publishes Runs (see `model/umpire/hosts/go/README.md`), acting through the Temporal Driver configured below | `umpire` |
+| `umpire` | The one host loop over a Model guest: `question`, `explore`, `reduce`, `replay` or `repeat`; it records and publishes Runs (see the [sibling host guide](../../../umpire/hosts/go/README.md)), acting through the Temporal Driver configured below | `umpire` |
 
 ### The `umpire` command's Temporal Driver
 

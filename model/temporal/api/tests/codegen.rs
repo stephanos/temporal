@@ -38,7 +38,7 @@ fn descriptor_file_permutations_generate_identical_rust() -> Result<(), Box<dyn 
             &mut config,
             &input,
             &manifest.join("../proto/umpire/temporal/v1/temporal.proto"),
-            &[&manifest.join("../proto"), &manifest.join("../../umpire/protocol/proto")],
+            &[&manifest.join("../proto"), &manifest.join("../../../../umpire/protocol/proto")],
         )?;
         let mut generated = BTreeMap::<PathBuf, Vec<u8>>::new();
         for entry in fs::read_dir(&output)? {

@@ -24,9 +24,11 @@ they do not require full Tables or their old fingerprint encoding for the new ar
 
 ## Current Rust framework ownership
 
-The independent framework Cargo workspace is under `model/umpire/`; the system Model workspace is under `model/`; the former Scala framework is frozen under
-`model/archived/`. The crate map in [model/README.md](../model/README.md#crate-map) identifies
-author-facing crates. Paths in this table are relative to `model/umpire/`, and dependencies
+The independent framework Cargo workspace is in the sibling `../umpire/` repository,
+relative to the Temporal repository root; the system Model workspace is under `model/`.
+The former Scala framework is frozen under `model/archived/`. The crate map in
+[model/README.md](../model/README.md#crate-map) identifies author-facing crates.
+Paths in this table are relative to the sibling Umpire root, and dependencies
 name normal domain dependencies; test-only dependencies do not reverse the production graph.
 
 | Crate and path | One job and public interface | Permitted domain dependencies |
@@ -51,7 +53,7 @@ name normal domain dependencies; test-only dependencies do not reverse the produ
 | `umpire-guest-driver`, `dev/guest-driver` | Guest build/closure/compiler/freshness admission, shared tool/caller context and portable remaps. | No CLI/gate or Model-domain dependencies; never part of a guest runtime closure. |
 
 The outer `model/dev/xtask` package is a thin system-workspace command bridge and owns
-only its repository-specific controls; it delegates reusable commands inward.
+only its repository-specific controls; it delegates reusable commands to sibling Umpire tools.
 
 Workspace Rust tests own process/xtask controls once; no active Model helper requires Python.
 Process support preserves Linux adopted-descendant cleanup and Darwin descendant prevention;
@@ -63,7 +65,7 @@ macros admit descriptor-typed action registries; `realization::registry` exposes
 classification, fallible full-prefix evidence and immutable entity/read configuration with typed
 correlation hooks. Production activity lens/probe installation remains separate work. Generic crates retain the source
 boundary against system-specific imports and names. The Go host, Runner, generated protocol
-and Kettle module ownership rows below describe their current paths.
+and Kettle module ownership rows in the next section describe their current paths.
 
 ## Current Go tooling ownership
 
@@ -71,8 +73,18 @@ and Kettle module ownership rows below describe their current paths.
 `temporaldriver`, which composes Testpilot's Temporal Driver with the raw and SDK
 reference workers. The command depends on the shared Go Runner and that driver;
 the driver depends on Testpilot's `temporal/act`, the Temporal SDK and the reference
-workers. Testpilot, the canary, Go hosts, generated protocols and embedded guests
-remain live consumers, with their ownership rows recorded below.
+workers. Testpilot, the canary and the Temporal guest/Go adapter remain Temporal-owned.
+Framework Go paths below are relative to the Temporal repository root.
+
+| Owner and source | One job | Permitted domain dependencies |
+| --- | --- | --- |
+| `github.com/temporalio/umpire/hosts/go/host`, `../umpire/hosts/go/host` | Transport opaque Model requests over the wasm ABI. | Shared generated envelopes and wazero; no system schemas or server module. |
+| `github.com/temporalio/umpire/hosts/go/runner`, `../umpire/hosts/go/runner` | Drive one Model and Driver per Run and record/publish the Run. | Shared host and generated envelopes; no system adapter. |
+| `github.com/temporalio/umpire/hosts/go/gen/umpire`, `../umpire/hosts/go/gen/umpire` | Shared generated protocol messages. | Protobuf support; generated code remains framework-owned. |
+| `github.com/temporalio/umpire/reference/kettle`, `../umpire/reference/kettle` | Independent Kettle service and host/parity controls. | Shared host through local `../../hosts/go` replacement; gRPC/protobuf support. |
+
+[Local paired setup](../model/docs/paired-checkout.md) records Cargo/Go source resolution.
+Umpire remains internal; Temporal GitHub workflow integration is deferred.
 
 fn-256 retires the Scala-era Go IR reader, interpreter, checker, realization
 admission, private engine and Quint exporter, together with their backend Make
@@ -82,6 +94,10 @@ are historical; their removed paths, planned interfaces and old commands do not
 describe current build targets or permitted imports.
 
 ## Historical Scala and Go migration ownership
+
+Framework paths such as `model/umpire/` and module names `umpire.local/model` and
+`umpire.local/kettle` below describe the pre-extraction migration. The current
+framework owners and paths are recorded above; retain the historical rows unchanged.
 
 Paths below are destinations, except the explicitly planned Answering module. Public entry points
 list current signatures unless a fn-173 replacement is marked planned. Current eager table,
