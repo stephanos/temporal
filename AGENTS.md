@@ -147,7 +147,8 @@ This project uses Flow-Next for ALL task tracking. `flowctl` comes from the flow
 
 ## Local milestone execution
 
-For single-writer MILESTONES.md work, stay on `umpire` (`--branch=current`), keeping
+Flow records and `MILESTONES.md` live unversioned in the workspace root (`../`); see
+`../AGENTS.md`. For single-writer milestone work, stay on `umpire` (`--branch=current`), keeping
 task boundaries in commits. Integrate any existing task/spec branches locally back
 into `umpire` at a safe worker boundary, after scoped checks pass and the Flow
 closure is committed. A predecessor is satisfied once its closure is in `umpire`'s history;

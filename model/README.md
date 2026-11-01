@@ -153,7 +153,7 @@ The generic Go module separates `hosts/go/host` (wasm transport), `hosts/go/runn
 Kettle's Go server and host tests live at `../umpire/reference/kettle` relative to
 Temporal's root, with a local replacement onto `../../hosts/go`; the model gate tests
 all three host modules. No publication
-is needed for uncommitted local changes. [MIGRATE.md](../MIGRATE.md) retains migration
+is needed for uncommitted local changes. [MIGRATE.md](../../MIGRATE.md) retains migration
 and source-custody records; Temporal's Models, generated API and realization stay in the server repository.
 
 The real in-process server/SDK check is separate from the fast model gate:

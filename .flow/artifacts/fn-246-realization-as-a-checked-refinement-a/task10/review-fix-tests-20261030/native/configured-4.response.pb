@@ -1,4 +1,0 @@
-*
-
-Deliver
-Outcome(1)

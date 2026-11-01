@@ -1,1 +1,0 @@
-baseline: none (task/spec has no executable Quick commands; owner waived fresh timing baselines, retained current exact inventory and affected verification)

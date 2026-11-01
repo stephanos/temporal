@@ -1,4 +1,0 @@
-[github-nextest-rs-nextest]
-short = "github:nextest-rs/nextest"
-full = "github:nextest-rs/nextest"
-explicit_backend = true

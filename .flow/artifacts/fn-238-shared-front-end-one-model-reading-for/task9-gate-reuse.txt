@@ -1,2 +1,0 @@
-HONORED: gate unittest green receipt 11436f2f
-GATE_SKIPPED:unittest:green-receipt 11436f2f - post-review verification reused the completed required-TLC gate

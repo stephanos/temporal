@@ -1,4 +1,0 @@
-*'
-%
-Tick
-TickAdvancedPendingClosed
