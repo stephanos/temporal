@@ -1,3 +1,5 @@
+Read the workspace rules in [`../AGENTS.md`](../AGENTS.md) and [`../../AGENTS.md`](../../AGENTS.md) first; they apply here too.
+
 You are an experienced developer working on the temporal project. Your task is to fix a bug or implement a new feature while adhering to the project's best practices and development guidelines. Your background is in distributed systems, database engines, and scalable platforms.
 Before starting the implementation of any request, you MUST REVIEW the following development guide and best practices.
 
@@ -157,33 +159,27 @@ Keep deferred obligations open when integrating a completed source checkpoint.
 Uncommitted closures and unmerged branches do not satisfy dependencies. Publishing
 a branch, opening a PR or landing on origin remains separately authorized.
 
-### Git worktrees
+### Parallel lanes
 
-- Create a worktree only for a parallel lane and name its owning task in the branch name
-  (`work/fn<N><M>-<lane>`). Model builds resolve the framework from `../umpire`, so place it
-  as `<lane-parent>/temporal` beside a matching `<lane-parent>/umpire` checkout (see
-  [the paired checkout guide](model/docs/paired-checkout.md)); a plain `.worktrees/<lane>`
-  checkout only suits work that never builds Models. Prefer the workspace's reusable lane
-  slots (`../wt/lane-a/`, `../wt/lane-b/`, ...; see `../AGENTS.md`) so managed targets stay warm.
-- A worktree is no longer in use once its branch is integrated into `umpire` or
-  abandoned, and no process or agent still runs in it. Remove it then, in the same
-  session with `git worktree remove .worktrees/<lane>`; delete its branch with
-  `git branch -d <branch>` only when fully integrated.
-- Preserve unfinished or uncertain worktrees. The owner authorizes reclaiming a closed
-  spec's inactive checkout: retain any unmerged branch, and first checkpoint dirty
-  tracked/untracked files and unique ignored source or evidence. Verify the recovery
-  refs, patches and archives before removal; keep backups outside the deleted checkout
-  and disposable scratch. Use normal `git worktree remove`; force removal or branch
-  deletion still requires explicit approval.
-- The worker that created a worktree removes it at its handoff. At each integration
-  boundary the conductor runs `git worktree list`, removes finished worktrees by the
-  rules above, and runs `git worktree prune` for stale entries.
-- Scratch output belongs in `.flow/tmp`, not in a worktree kept for its logs.
+- Follow the shared lane rule in `../../AGENTS.md`: parallel coding agents use private clones in the
+  fixed pool `../.private/lane-a` to `lane-d`, never Git worktrees, and lanes are never moved or renamed.
+- Each lane pairs a `temporal/` clone with an `umpire/` clone so `../umpire` resolves (see
+  [the paired checkout guide](model/docs/paired-checkout.md)). Name the task branch after its owning
+  task (`work/fn<N><M>-<lane>`).
+- A lane is free once its branch is integrated into `umpire` or abandoned and no process or agent
+  still runs in it. Delete an integrated branch with `git branch -d <branch>`.
+- Preserve unfinished or uncertain lane work. Before reusing a lane that holds a closed spec's
+  inactive work, retain any unmerged branch and checkpoint dirty tracked/untracked files and unique
+  ignored source or evidence; verify those recovery refs, patches and archives first. Forced resets
+  or branch deletion still require explicit approval.
+- Existing `.worktrees/` checkouts are legacy; remove them with normal `git worktree remove` under
+  the same preservation rules, then `git worktree prune`.
+- Scratch output belongs in `../.flow/tmp`, not in a lane kept for its logs.
 
 ### Closed-spec cleanup
 
-After a spec's closure record is committed, clean up its inactive local worktrees
-and integrated branches using the rules above. Preserve unresolved worktrees and
+After a spec's closure record is committed, free its lanes, remove any legacy worktrees
+and clean up integrated branches using the rules above. Preserve unresolved lanes, worktrees and
 branches containing uncommitted changes or commits absent from `umpire`; report
 them instead of discarding or archiving them.
 
