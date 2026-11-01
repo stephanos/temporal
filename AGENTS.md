@@ -163,7 +163,8 @@ a branch, opening a PR or landing on origin remains separately authorized.
   (`work/fn<N><M>-<lane>`). Model builds resolve the framework from `../umpire`, so place it
   as `<lane-parent>/temporal` beside a matching `<lane-parent>/umpire` checkout (see
   [the paired checkout guide](model/docs/paired-checkout.md)); a plain `.worktrees/<lane>`
-  checkout only suits work that never builds Models.
+  checkout only suits work that never builds Models. Prefer the workspace's reusable lane
+  slots (`../wt/lane-a/`, `../wt/lane-b/`, ...; see `../AGENTS.md`) so managed targets stay warm.
 - A worktree is no longer in use once its branch is integrated into `umpire` or
   abandoned, and no process or agent still runs in it. Remove it then, in the same
   session with `git worktree remove .worktrees/<lane>`; delete its branch with
