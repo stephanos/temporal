@@ -13,7 +13,7 @@ deferred by the owner. See [local paired setup](docs/paired-checkout.md).
 The Kettle fixtures establish the generic authoring and checker surface; the activity slice additionally hosts one real SDK run through a Model.
 See [DESIGN.md](DESIGN.md) for the scope, measurements and retained authoring decisions.
 
-`archived/` holds the former Scala tree as read-only reference material, including its retained
+`../../umpire-scala/` (outside this repository) holds the former Scala tree as read-only reference material, including its retained
 build caches. Its internal paths describe the old layout; the Scala build tooling and Make targets
 have been removed. The Cargo workspaces and Rust gate do not build the archive.
 

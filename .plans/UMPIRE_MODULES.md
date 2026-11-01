@@ -26,7 +26,7 @@ they do not require full Tables or their old fingerprint encoding for the new ar
 
 The independent framework Cargo workspace is in the sibling `../umpire/` repository,
 relative to the Temporal repository root; the system Model workspace is under `model/`.
-The former Scala framework is frozen under `model/archived/`. The crate map in
+The former Scala framework is frozen under `../umpire-scala/`. The crate map in
 [model/README.md](../model/README.md#crate-map) identifies author-facing crates.
 Paths in this table are relative to the sibling Umpire root, and dependencies
 name normal domain dependencies; test-only dependencies do not reverse the production graph.
@@ -515,7 +515,7 @@ code. `tableSide`/`sideOf` stay as dedicated reader test support.
 
 ## Scala layout and commands
 
-Historical: fn-256.2 removed the Scala Make targets and the `scala-cli` pin in `427a45e113`; the Scala tree under `model/archived/` is read-only reference and no longer builds. The commands named in this section and in "Shared leaves decision" (including `make check-model-boundary`) no longer exist.
+Historical: fn-256.2 removed the Scala Make targets and the `scala-cli` pin in `427a45e113`; the Scala tree under `../umpire-scala/` is read-only reference and no longer builds. The commands named in this section and in "Shared leaves decision" (including `make check-model-boundary`) no longer exist.
 
 `model/framework/dsl/project.scala` is the framework core's directive file: compile the DSL and the
 realization core with `model/framework/dsl` and `model/framework/realize` alone. `model/project.scala`

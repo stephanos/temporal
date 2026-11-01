@@ -1,6 +1,6 @@
 # Umpire in Rust: decision
 
-The workspace now lives at `model/`, with the frozen Scala reference under `model/archived/`.
+The workspace now lives at `model/`, with the frozen Scala reference in the sibling `../../umpire-scala/` directory.
 Run `make model-check` and `make model-time` from the repository root. Measurements below retain
 the command names used when they were recorded, before the workspace move.
 
@@ -554,7 +554,7 @@ its native/WASM reference payloads remain byte-identical.
 ## Kettle construct comparison
 
 These anchors compare the final [attribute source](umpire/dev/fixtures/fixtures/sample_kettle/model.rs)
-with frozen [Kettle.scala](archived/framework/samples/Kettle.scala), including its imports and
+with frozen [Kettle.scala](../../umpire-scala/framework/samples/Kettle.scala), including its imports and
 declarations. They compare authored constructs, not a claim of general front-end equivalence.
 
 | Construct | Scala lines | Rust lines | Authoring tradeoff |
@@ -599,9 +599,9 @@ snapshot payloads are excluded. `awk` counts records, rather than language-aware
 
 | Frozen Scala counterpart | Files | Physical | Nonblank |
 | --- | ---: | ---: | ---: |
-| `archived/framework/dsl` | 61 | 12,518 | 11,530 |
-| `archived/framework/checker` | 21 | 4,901 | 4,599 |
-| `archived/framework/samples` | 7 | 892 | 719 |
+| `../../umpire-scala/framework/dsl` | 61 | 12,518 | 11,530 |
+| `../../umpire-scala/framework/checker` | 21 | 4,901 | 4,599 |
+| `../../umpire-scala/framework/samples` | 7 | 892 | 719 |
 
 Scala excludes `*.test.scala`, `testdata/` and build-directive `project.scala` files. The samples
 row also excludes the assertion-based `PublicQuestionsClient.scala` integration client

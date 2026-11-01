@@ -4,7 +4,7 @@ Before starting the implementation of any request, you MUST REVIEW the following
 # Core Mandates
 
 - **Conventions:** Rigorously adhere to existing project conventions when reading or modifying code. Analyze surrounding code, tests, and configuration first.
-- **Model:** Umpire source belongs to the sibling `../umpire/` repository; system Models use the workspace under `model/`. Read [model/README.md](model/README.md) before working on Models and verify with `make model-check`. The former Scala tree is read-only reference material under `model/archived/`; its build tooling and Make targets have been removed.
+- **Model:** Umpire source belongs to the sibling `../umpire/` repository; system Models use the workspace under `model/`. Read [model/README.md](model/README.md) before working on Models and verify with `make model-check`. The former Scala tree is read-only reference material in the sibling `../umpire-scala/` directory; its build tooling and Make targets have been removed.
 - Update the Model independently of the implementation. When conformance fails, ask a human rather than fitting the Model to the code.
 - **Umpire:** Before editing framework code, read the sibling [Umpire instructions](../umpire/AGENTS.md). For Temporal Umpire consumers (`model/`, `tools/umpire/`, `common/testing/testpilot/`, `tools/canary/`), read and follow [UMPIRE4 Spec](.plans/UMPIRE4_SPEC.md), the high-level architecture and its rules in [UMPIRE4 Vision](.plans/UMPIRE4_VISION.md#high-level-architecture), and the [module map](.plans/UMPIRE_MODULES.md), which states each module's job, public interface and permitted imports.
 - **Libraries/Frameworks:** NEVER assume a library/framework is available or appropriate. Verify its established usage within the project (check imports, and 'go.mod') before employing it.
@@ -46,7 +46,7 @@ Before starting the implementation of any request, you MUST REVIEW the following
 - `/config`: configuration files and templates
 - `/docs`: documentation
 - `/model`: the Temporal Model Rust workspace, API acquisition, realization, guest and Go adapter; see [model/README.md](model/README.md). The sibling `../umpire/` repository owns the reusable framework, Go host/Runner and Kettle reference. Use the [local paired setup](model/docs/paired-checkout.md); Umpire remains internal and Temporal GitHub workflow integration is deferred.
-- `/model/archived`: the frozen Scala framework and Temporal Models, retained with history for reference
+- `../umpire-scala/` (outside this repository): the frozen Scala framework and Temporal Models; their history remains in this repository's Git log
 - `/proto`: proto definitions for internal services
 - `/schema`: database schema definitions for core databases store and visibility store
 - `/service`: main services (frontend, history, matching, worker, etc.)
