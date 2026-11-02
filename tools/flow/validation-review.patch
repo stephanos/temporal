@@ -1,6 +1,6 @@
 --- a/flowctl.py
 +++ b/flowctl.py
-@@ -26,6 +26,7 @@
+@@ -27,6 +27,7 @@
  import threading
  import time
  import unicodedata
@@ -8,7 +8,7 @@
  import urllib.parse
  from collections import deque
  from collections.abc import Iterator
-@@ -1389,6 +1390,7 @@
+@@ -1418,6 +1419,7 @@
      """Return default config structure."""
      return {
          "memory": {"enabled": True},
@@ -16,7 +16,7 @@
          # fn-83.4 — NO `gate` key here: the plan-sync skip-gate was proven
          # non-viable (fn-83.6 cross-repo verdict FAIL; decision record
          # plan-sync-skip-gate-not-viable-2026-07-03.md) and its machinery
-@@ -37764,6 +37766,177 @@
+@@ -38031,6 +38033,196 @@
      _time.sleep(seconds)
  
  
@@ -148,15 +148,34 @@
 +        "Assess existing gates and review overhead, then supply a v1 report with "
 +        "--validation-review-file <repo-file> (automated close expects "
 +        f".flow/artifacts/{spec_id}/validation-cost-review.json). "
-+        "Close copies it into .flow/artifacts; commit the report artifact and "
-+        "its .gitattributes with the normal closure changes."
++        "Close retains exact bytes in .flow/artifacts. Commit the artifact and "
++        "its .gitattributes when the tracker is Git-tracked; otherwise retain "
++        "them in the workspace's unversioned evidence store."
 +    )
++
++
++def _cost_review_git_worktree(repo_root: Path) -> bool:
++    result = subprocess.run(
++        ["git", "rev-parse", "--is-inside-work-tree"], cwd=repo_root,
++        env={**os.environ, "LC_ALL": "C"}, capture_output=True, text=True,
++        encoding="utf-8",
++    )
++    if result.returncode == 0 and result.stdout.strip() in ("true", "false"):
++        return result.stdout.strip() == "true"
++    markers = (repo_root, *repo_root.parents)
++    explicit_git = any(os.environ.get(key) for key in ("GIT_DIR", "GIT_WORK_TREE", "GIT_COMMON_DIR"))
++    if (result.returncode == 128 and "not a git repository" in result.stderr
++            and not explicit_git and not any(os.path.lexists(root / ".git") for root in markers)):
++        return False
++    raise ValueError("Cannot establish validation-report Git context: " + result.stderr.strip())
 +
 +
 +def _preserve_cost_review_bytes(repo_root: Path, artifact: Path) -> None:
 +    attributes = artifact.with_name(".gitattributes")
 +    rule = b" -text -filter -working-tree-encoding -ident\n"
 +    _publish_cost_review(repo_root, attributes, b"validation-cost-review-*.json" + rule + b".gitattributes" + rule)
++    if not _cost_review_git_worktree(repo_root):
++        return
 +    keys = ("text", "filter", "working-tree-encoding", "ident")
 +    paths = (artifact.as_posix(), attributes.as_posix())
 +    rc, out, err = _export_run_git(["check-attr", "-z", *keys, "--", *paths], cwd=repo_root)
@@ -192,13 +211,23 @@
 +
 +
  def cmd_spec_close(args: argparse.Namespace) -> None:
-     """Close a spec (all tasks must be done)."""
+     """Close a spec (all tasks must be done), or retire it with --retire."""
      if not ensure_flow_exists():
-@@ -37807,6 +37980,20 @@
+@@ -38041,6 +38233,9 @@
+     by = getattr(args, "by", None) or []
+     if by and not retire:
+         error_exit("--by requires --retire", use_json=args.json)
++
++    if retire and getattr(args, "validation_review_file", None) is not None:
++        error_exit("Validation reviews apply to normal completion, not retirement", use_json=args.json)
+ 
+     flow_dir = get_flow_dir()
+     # fn-52.10: casefold → validate → expand (handles uppercase tracker handles).
+@@ -38102,6 +38297,20 @@
      with _review_sidecar_lock(flow_dir, args.id):
          spec_data = load_json_or_exit(spec_path, f"Spec {args.id}", use_json=args.json)
          modified_paths = [spec_path]
-+        if spec_data.get("status") != "done":
++        if not retire and spec_data.get("status") != "done":
 +            try:
 +                required = _spec_close_validation_required(flow_dir)
 +                filename = getattr(args, "validation_review_file", None)
@@ -215,17 +244,17 @@
          # Validate the whole spec before publishing any final task status. Keep
          # runtime claims and evidence local; only the status must travel with git.
          for task_file, definition, status in final_tasks:
-@@ -57682,6 +57869,7 @@
-             "id", help=f"{noun.capitalize()} ID (e.g., fn-1, fn-1-add-auth)"
+@@ -57750,6 +57959,7 @@
+             help="What replaced or delivered it (repeatable; needs --retire)",
          )
          p_close.add_argument("--json", action="store_true", help="JSON output")
-+        p_close.add_argument("--validation-review-file", help="Repository-local v1 validation-cost report; copied into the closure commit")
++        p_close.add_argument("--validation-review-file", help="Workspace-local v1 validation-cost report for normal completion")
          p_close.set_defaults(func=cmd_spec_close)
  
-         # fn-58.1 (R2): human-owned readiness gate. Lazy on-disk — the sidecar
+         # fn-58.1 (R2): the readiness (consent) gate. Lazy on-disk — the sidecar
 --- a/make-pr-preflight.sh
 +++ b/make-pr-preflight.sh
-@@ -205,14 +205,38 @@
+@@ -203,14 +203,38 @@
    [[ -z "$CLOSE_DIRTY" ]] || {
      echo "Error: pending changes in spec close paths; commit them before make-pr closes the spec; PR not opened" >&2; exit 1;
    }

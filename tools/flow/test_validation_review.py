@@ -5,6 +5,7 @@ import hashlib
 import importlib.util
 import json
 import os
+import shutil
 from pathlib import Path
 import subprocess
 import sys
@@ -70,8 +71,12 @@ class ValidationReview(unittest.TestCase):
         return self.flow("spec", "close", self.id, *args, "--json", ok=ok)
 
     def snapshot(self):
-        return {p: p.read_bytes() for directory in ("specs", "tasks")
-                for p in (self.repo / ".flow" / directory).glob("*") if p.is_file()}
+        result = {p: p.read_bytes() for directory in ("specs", "tasks")
+                  for p in (self.repo / ".flow" / directory).glob("*") if p.is_file()}
+        if self.env.get("FLOW_STATE_DIR"):
+            state = Path(self.env["FLOW_STATE_DIR"])
+            result.update({p: p.read_bytes() for p in state.rglob("*") if p.is_file()})
+        return result
 
     def assert_refusal(self, *args, text="validation"):
         before = self.snapshot()
@@ -305,18 +310,89 @@ class ValidationReview(unittest.TestCase):
         self.assertEqual(before, self.snapshot())
         real_run = module.subprocess.run
         def local_attributes_only(command, *args, **kwargs):
-            self.assertEqual(["git", "check-attr"], command[:2])
+            self.assertIn(command[:2], (["git", "rev-parse"], ["git", "check-attr"]))
             return real_run(command, *args, **kwargs)
         with patch.object(module, "get_repo_root", return_value=self.repo), \
              patch.object(module.subprocess, "run", side_effect=local_attributes_only) as calls:
             reference, artifact = module._prepare_cost_review(self.repo / ".flow", self.id, str(self.input))
-        self.assertEqual(1, calls.call_count)
+        self.assertEqual(2, calls.call_count)
         self.assertEqual(self.input.read_bytes(), artifact.read_bytes())
         self.assertEqual(hashlib.sha256(self.input.read_bytes()).hexdigest(), reference["sha256"])
 
     def test_incomplete_task_precedes_report(self):
         self.flow("task", "create", "--spec", self.id, "--title", "Open", "--json")
         self.assert_refusal(text="incomplete tasks")
+
+
+class ValidationReviewRuntime(unittest.TestCase):
+    git = ValidationReview.git
+    flow = ValidationReview.flow
+    config = ValidationReview.config
+    write_report = ValidationReview.write_report
+    close = ValidationReview.close
+    snapshot = ValidationReview.snapshot
+    assert_refusal = ValidationReview.assert_refusal
+    load_module = ValidationReview.load_module
+
+    def setUp(self):
+        ValidationReview.setUp(self)
+        shutil.rmtree(self.repo / ".git")
+        runtime = tempfile.TemporaryDirectory(prefix="flow-external-runtime-")
+        self.addCleanup(runtime.cleanup)
+        self.env["FLOW_STATE_DIR"] = str(Path(runtime.name).resolve())
+
+    def test_runtime_done_is_authoritative_and_report_bytes_survive(self):
+        task = self.flow("task", "create", "--spec", self.id, "--title", "Runtime only", "--json")["id"]
+        self.flow("start", task, "--json")
+        self.flow("done", task, "--summary", "Fixture completion", "--evidence", json.dumps({"tests": ["fixture-owned control"]}), "--json")
+        definition = self.repo / ".flow/tasks" / (task + ".json")
+        self.assertNotEqual("done", json.loads(definition.read_text())["status"])
+        before = self.snapshot()
+        self.assert_refusal(text="Can these validation gates be sped up")
+        self.assertEqual(before, self.snapshot())
+        result = self.close("--validation-review-file", str(self.input))
+        spec = json.loads(self.spec_path.read_text())
+        self.assertEqual("done", spec["status"])
+        self.assertEqual("done", json.loads(definition.read_text())["status"])
+        reference = spec["validation_review"]
+        artifact = self.repo / reference["path"]
+        self.assertEqual(self.input.read_bytes(), artifact.read_bytes())
+        self.assertEqual(hashlib.sha256(self.input.read_bytes()).hexdigest(), reference["sha256"])
+        self.assertIn(str(artifact), result["modified_paths"])
+
+    def test_runtime_invalid_report_leaves_definitions_and_state_unchanged(self):
+        task = self.flow("task", "create", "--spec", self.id, "--title", "Runtime only", "--json")["id"]
+        self.flow("start", task, "--json")
+        self.flow("done", task, "--evidence", json.dumps({"tests": ["fixture"]}), "--json")
+        self.input.write_text("{broken")
+        self.assert_refusal("--validation-review-file", str(self.input))
+
+    def test_retirement_keeps_native_behavior_without_completion_report(self):
+        task = self.flow("task", "create", "--spec", self.id, "--title", "Never run", "--json")["id"]
+        self.flow("start", task, "--json")
+        self.close("--retire", "moot")
+        spec = json.loads(self.spec_path.read_text())
+        self.assertEqual("moot", spec["retired"]["reason"])
+        self.assertEqual("not_required", spec["completion_review_status"])
+        self.assertNotIn("validation_review", spec)
+        self.assertEqual("retired", self.flow("show", task, "--json")["status"])
+
+    def test_retirement_report_combination_refuses_before_runtime_writes(self):
+        task = self.flow("task", "create", "--spec", self.id, "--title", "Never run", "--json")["id"]
+        self.flow("start", task, "--json")
+        self.assert_refusal("--retire", "moot", "--validation-review-file", str(self.input), text="normal completion")
+
+    def test_retirement_empty_report_refuses_before_runtime_writes(self):
+        task = self.flow("task", "create", "--spec", self.id, "--title", "Runtime only", "--json")["id"]
+        self.flow("start", task, "--json")
+        self.assert_refusal("--retire", "moot", "--validation-review-file", "", text="normal completion")
+        self.assertEqual("in_progress", self.flow("show", task, "--json")["status"])
+
+    def test_git_discovery_error_does_not_become_plain_workspace(self):
+        module = self.load_module()
+        with patch.object(module.subprocess, "run", return_value=subprocess.CompletedProcess(["git"], 128, "", "fatal: Permission denied")):
+            with self.assertRaisesRegex(ValueError, "Cannot establish"):
+                module._cost_review_git_worktree(self.repo)
 
 
 class ValidationReviewInstall(unittest.TestCase):
