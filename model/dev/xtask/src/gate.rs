@@ -197,7 +197,8 @@ fn framework_stage_executable(
     };
     let workspace = root.join("../../umpire").canonicalize()?;
     let script = format!(
-        "#!/bin/bash\nexec {} exec --project {} --workspace {} -- {} \"$@\"\n",
+        "#!/bin/bash\nexport UMPIRE_GATE_CONTROLLER_EXECUTABLE={}\nexec {} exec --project {} --workspace {} -- {} \"$@\"\n",
+        quote(&framework)?,
         quote(&required("BUILD_CACHE_TOOL")?)?,
         quote(&required("BUILD_CACHE_PROJECT")?)?,
         quote(workspace.as_os_str())?,
@@ -430,6 +431,91 @@ fn run_stage_with_tool(root: &Path, name: &str, tool: &Path) -> io::Result<i32> 
 #[allow(clippy::unwrap_used, clippy::expect_used)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn managed_framework_wrapper_controller_child() {
+        if std::env::var_os("TEMPORAL_WRAPPED_CONTROLLER_CHILD").is_some() {
+            assert!(work_counts::owns_controller().unwrap());
+        }
+    }
+
+    #[test]
+    #[ignore = "explicit real managed-wrapper admission probe; no gate or build children"]
+    fn real_managed_framework_wrapper_retains_controller_identity() {
+        assert!(umpire_guest_driver::managed::enabled());
+        let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..").canonicalize().unwrap();
+        let target = std::path::PathBuf::from(std::env::var_os("CARGO_TARGET_DIR").unwrap());
+        let wrapper = framework_stage_executable(
+            &root,
+            &target,
+            std::env::current_exe().unwrap().into_os_string(),
+        )
+        .unwrap();
+        let output = Command::new(&wrapper)
+            .args([
+                "--exact",
+                "gate::tests::managed_framework_wrapper_controller_child",
+                "--nocapture",
+            ])
+            .env("TEMPORAL_WRAPPED_CONTROLLER_CHILD", "1")
+            .env("UMPIRE_GATE_EXECUTABLE", &wrapper)
+            .env("UMPIRE_GATE_CONTROLLER_EXECUTABLE", "/bin/false")
+            .output()
+            .unwrap();
+        std::fs::remove_file(wrapper).unwrap();
+        assert!(output.status.success(), "{output:?}");
+        io::stderr().write_all(&output.stderr).unwrap();
+    }
+
+    #[test]
+    fn managed_framework_wrapper_selects_native_controller_identity() {
+        use std::os::unix::fs::PermissionsExt;
+        if let Some(root) = std::env::var_os("TEMPORAL_WRAPPER_CONTROLLER_CONTROL") {
+            let root = std::path::PathBuf::from(root);
+            let executable = std::env::current_exe().unwrap();
+            let wrapper = framework_stage_executable(
+                &root,
+                &root.join("target"),
+                executable.into_os_string(),
+            )
+            .unwrap();
+            let output = Command::new(wrapper)
+                .args([
+                    "--exact",
+                    "gate::tests::managed_framework_wrapper_controller_child",
+                    "--nocapture",
+                ])
+                .env("TEMPORAL_WRAPPED_CONTROLLER_CHILD", "1")
+                .env("UMPIRE_GATE_EXECUTABLE", "/bin/false")
+                .env("UMPIRE_GATE_CONTROLLER_EXECUTABLE", "/bin/false")
+                .output()
+                .unwrap();
+            assert!(output.status.success(), "{output:?}");
+            return;
+        }
+        let root = control_directory();
+        let launcher = root.join("bin/build-cache");
+        std::fs::write(
+            &launcher,
+            "#!/bin/bash\nset -eu\n[ \"$1\" = exec ]\n[ \"$6\" = -- ]\nshift 6\nexec \"$@\"\n",
+        )
+        .unwrap();
+        std::fs::set_permissions(&launcher, std::fs::Permissions::from_mode(0o755)).unwrap();
+        let output = Command::new(std::env::current_exe().unwrap())
+            .args([
+                "--exact",
+                "gate::tests::managed_framework_wrapper_selects_native_controller_identity",
+                "--nocapture",
+            ])
+            .env("TEMPORAL_WRAPPER_CONTROLLER_CONTROL", &root)
+            .env("BUILD_CACHE_MANAGED", "1")
+            .env("BUILD_CACHE_TOOL", launcher)
+            .env("BUILD_CACHE_PROJECT", "umpire")
+            .output()
+            .unwrap();
+        assert!(output.status.success(), "{output:?}");
+        std::fs::remove_dir_all(root.parent().unwrap().parent().unwrap()).unwrap();
+    }
 
     #[test]
     fn full_gate_overrides_cache_and_preserves_failure() {
