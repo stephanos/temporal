@@ -37,4 +37,5 @@ umpire-temporal.workspace = true
 umpire-temporal-api.workspace = true
 umpire-runtime.workspace = true
 prost.workspace = true
+toml.workspace = true
 

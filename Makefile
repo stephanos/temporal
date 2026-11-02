@@ -323,14 +323,14 @@ $(LOCALBIN)/protoc-gen-go-chasm: $(LOCALBIN) cmd/tools/protoc-gen-go-chasm/main.
 # $3 - specific version of package
 # This is courtesy of https://github.com/kubernetes-sigs/kubebuilder/pull/3718
 define go-install-tool
-@[ -f $(1) ] || { \
+@[ -f "$(1)" ] || { \
 set -e; \
 package=$(2)@$(3) ;\
 printf $(COLOR) "Downloading $${package}" ;\
-tmpdir=$$(mktemp -d) ;\
-GOBIN=$${tmpdir} go install $${package} ;\
-mv $${tmpdir}/$$(basename "$$(echo "$(1)" | sed "s/-$(3)$$//")") $(1) ;\
-rm -rf $${tmpdir} ;\
+tmpdir=$$(mktemp -d "$${TMPDIR:-/tmp}/temporal-go-tool.XXXXXXXX") ;\
+trap 'rm -rf "$${tmpdir:?}"' EXIT ;\
+GOBIN="$${tmpdir}" go install "$${package}" ;\
+mv "$${tmpdir}/$$(basename "$$(echo "$(1)" | sed "s/-$(3)$$//")")" "$(1)" ;\
 }
 endef
 

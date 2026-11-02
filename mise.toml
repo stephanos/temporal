@@ -111,7 +111,7 @@ dir = "{{env.UMPIRE_TEMPORAL_ROOT}}"
 run = 'exec "$UMPIRE_TEMPORAL_GATE_EXECUTABLE" gate --scheduled-stage wasm-guest'
 
 [tasks."model:temporal-go-host"]
-depends = ["model:wasm-guest", "gate:standalone"]
+depends = ["model:wasm-guest", "gate:all"]
 env.UMPIRE_GATE_STAGE = "temporal-go-host"
 env.UMPIRE_GATE_ORDER = "12"
 env.UMPIRE_GATE_SCOPE = "temporal"

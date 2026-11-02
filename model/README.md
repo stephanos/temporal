@@ -114,8 +114,12 @@ make model-fmt     # rustfmt both workspaces
 make model-time    # time the actual gate; note overruns of 10 s inner-loop / 60 s gate soft targets (R30)
 ```
 
-Root Make delegates framework checks once to the sibling Umpire checkout and retains the Temporal
-checks. For framework-only feedback, run `mise exec -- cargo xtask gate` from
+Root Make delegates the 17 primary framework stages once to the sibling Umpire checkout
+and retains the Temporal checks. Routine paired validation does not repeat a cold isolation
+build. Run explicit framework-only isolation from the sibling checkout with make standalone
+(stable source copy and retained targets) or make standalone-fresh (unique copy and verified
+initially empty target); warm isolation has no cold-proof credit.
+For framework-only feedback, run `mise exec -- cargo xtask gate` from
 the sibling Umpire root; see its README for gate commands. Both full gates disable
 quick-cache reads before starting stage children.
 

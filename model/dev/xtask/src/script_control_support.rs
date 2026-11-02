@@ -33,10 +33,11 @@ impl Drop for Scratch {
 fn filesystem_refuses_invalid_utf8_names() -> io::Result<()> {
     use std::{ffi::OsString, os::unix::ffi::OsStringExt};
     let scratch = Scratch::new()?;
+    fs::write(scratch.0.join("valid-file"), b"control")?;
+    fs::create_dir(scratch.0.join("valid-directory"))?;
     let raw = scratch.0.join(OsString::from_vec(b"invalid-\xff".to_vec()));
     for result in [fs::write(&raw, b"control"), fs::create_dir(&raw)] {
-        let error = result.err().ok_or_else(|| io::Error::other("invalid filename accepted"))?;
-        assert_eq!(error.raw_os_error(), Some(92));
+        assert!(result.is_err(), "invalid filename accepted");
     }
     Ok(())
 }

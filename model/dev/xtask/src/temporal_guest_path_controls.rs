@@ -122,6 +122,16 @@ exit "${CONTROL_STATUS:-0}"
 #[test]
 fn invalid_utf8_build_target_is_refused_before_driver_execution() -> io::Result<()> {
     let scratch = Scratch::new()?;
+    let driver = scratch.0.join("driver");
+    let log = scratch.0.join("calls");
+    fs::write(
+        &driver,
+        br#"#!/bin/bash
+set -euo pipefail
+printf '%s\0' "$@" > "$CONTROL_LOG"
+"#,
+    )?;
+    fs::set_permissions(&driver, fs::Permissions::from_mode(0o755))?;
     let mut command = Command::new(env::current_exe()?);
     command
         .args([
@@ -132,13 +142,27 @@ fn invalid_utf8_build_target_is_refused_before_driver_execution() -> io::Result<
         ])
         .current_dir(&scratch.0)
         .env("UMPIRE_TEMPORAL_PATH_ROOT", &scratch.0)
-        .env("UMPIRE_TEMPORAL_PATH_DRIVER", "/missing/driver-must-not-run")
+        .env("UMPIRE_TEMPORAL_PATH_DRIVER", &driver)
+        .env("CONTROL_LOG", &log)
         .env("CARGO_HOME", &scratch.0)
-        .env("CARGO_TARGET_DIR", std::ffi::OsString::from_vec(b"target-\xfe".to_vec()));
+        .env("CARGO_TARGET_DIR", "valid-target")
+        .env_remove("BASH_ENV");
+    let output = xtask::gate::scheduler::execute(&command, false, false)?;
+    assert!(output.status.success(), "{}", String::from_utf8_lossy(&output.stderr));
+    let mut expected = b"guest\0umpire-temporal-guest\0".to_vec();
+    expected.extend(
+        scratch
+            .0
+            .join("valid-target/wasm32-wasip1/guest/umpire_temporal_guest.wasm")
+            .as_os_str()
+            .as_encoded_bytes(),
+    );
+    expected.push(0);
+    assert_eq!(fs::read(&log)?, expected);
+    fs::remove_file(&log)?;
+    command.env("CARGO_TARGET_DIR", std::ffi::OsString::from_vec(b"target-\xfe".to_vec()));
     let output = xtask::gate::scheduler::execute(&command, false, false)?;
     assert!(!output.status.success());
-    let stderr = String::from_utf8_lossy(&output.stderr);
-    assert!(stderr.contains("Illegal byte sequence"), "{stderr}");
-    assert!(!stderr.contains("driver-must-not-run"), "{stderr}");
+    assert!(!log.exists(), "invalid target reached driver execution");
     Ok(())
 }

@@ -518,6 +518,14 @@ mod tests {
     }
 
     #[test]
+    fn paired_gate_waits_for_primary_framework_without_implicit_isolation() {
+        let config: toml::Value = toml::from_str(include_str!("../../../../mise.toml")).unwrap();
+        let dependencies = config["tasks"]["model:temporal-go-host"]["depends"].as_array().unwrap();
+        assert!(dependencies.iter().any(|value| value.as_str() == Some("gate:all")));
+        assert!(!include_str!("../../../../mise.toml").contains("gate:standalone"));
+    }
+
+    #[test]
     fn full_gate_overrides_cache_and_preserves_failure() {
         let mut command = Command::new("/bin/bash");
         command.args(["-c", "test \"$UMPIRE_QUICK_CACHE\" = 0 && test \"$UMPIRE_CACHE_DISABLE\" = 1 || exit 9; exit 37"])
@@ -829,6 +837,7 @@ exit 94
                     .env("CARGO_TARGET_DIR", "control-relative-target")
                     .env("UMPIRE_GATE_CONTROL_CALLER", &root)
                     .env("UMPIRE_BACKENDS", "skip")
+                    .env_remove("UMPIRE_GATE_SCOPE")
                     .env("UMPIRE_TIME_STEPS", timed)
                     .env(
                         "PATH",
@@ -926,6 +935,7 @@ fi
                 .env("CARGO_HOME", "control-relative-home")
                 .env("CARGO_TARGET_DIR", "control-relative-target")
                 .env("UMPIRE_GATE_CONTROL_CALLER", &root)
+                .env_remove("UMPIRE_GATE_SCOPE")
                 .current_dir(&root)
                 .env("UMPIRE_TIME_STEPS", timed)
                 .env("MAKEFLAGS", "-n -j99")
