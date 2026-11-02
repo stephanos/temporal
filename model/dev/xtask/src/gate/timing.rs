@@ -36,12 +36,17 @@ fn benchmark_command(
     framework: &std::ffi::OsStr,
     package: &str,
 ) -> io::Result<Command> {
-    let mut command = Command::new(framework);
+    let workspace = root.join("../../umpire").canonicalize()?;
+    let mut command =
+        umpire_guest_driver::managed::command(&workspace, framework).map_err(io::Error::other)?;
     command
         .args(["test-run", "--package", package])
-        .current_dir(root.join("../../umpire"))
-        .env("UMPIRE_TOOL_ROOT", root.join("../../umpire"))
-        .env("UMPIRE_FRAMEWORK_ROOT", root.join("../../umpire"));
+        .current_dir(&workspace)
+        .env("UMPIRE_TOOL_ROOT", &workspace)
+        .env("UMPIRE_FRAMEWORK_ROOT", &workspace);
+    if umpire_guest_driver::managed::enabled() {
+        command.env("UMPIRE_GATE_CONTROLLER_EXECUTABLE", framework);
+    }
     super::admit_command("tests", &mut command)?;
     Ok(command)
 }
@@ -55,7 +60,7 @@ pub(crate) fn run(root: &Path) -> io::Result<i32> {
     let inner_budget = budget("UMPIRE_INNER_BUDGET", "10");
     let package = budget("UMPIRE_INNER_CRATE", "umpire-checker");
     let source = env::var_os("UMPIRE_INNER_SOURCE").filter(|value| !value.is_empty()).map_or_else(
-        || root.join("../../umpire/backends/native/src/lib.rs"),
+        || root.join("../../umpire/crates/umpire-checker/src/lib.rs"),
         |value| root.join(value),
     );
     writeln!(io::stdout(), "{:<32} {:>7}", "step (warm)", "time")?;
@@ -109,15 +114,71 @@ mod tests {
     use super::*;
 
     #[test]
+    fn benchmark_uses_framework_workspace_context() -> io::Result<()> {
+        use std::os::unix::fs::PermissionsExt;
+
+        let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..").canonicalize()?;
+        let workspace = root.join("../../umpire").canonicalize()?;
+        let scratch = crate::script_control_support::Scratch::new()?;
+        let executable = scratch.0.join("benchmark");
+        fs::write(
+            &executable,
+            r#"#!/bin/sh
+set -eu
+[ "$*" = 'test-run --package selected-package' ]
+[ "$CARGO_HOME" = "$CONTROL_HOME" ]
+[ "$UMPIRE_QUICK_CACHE:$UMPIRE_CACHE_DISABLE" = 0:1 ]
+if [ "$CONTROL_MANAGED" = 1 ]; then
+    printf 'workspace=%s\ntarget=%s\n' "$BUILD_CACHE_WORKSPACE" "$CARGO_TARGET_DIR" >&2
+    [ "$BUILD_CACHE_WORKSPACE" = "$CONTROL_WORKSPACE" ]
+    [ "$CARGO_TARGET_DIR" = "$CONTROL_TARGET" ]
+    [ "$CARGO_TARGET_DIR" != "$CONTROL_PARENT_TARGET" ]
+    [ "$UMPIRE_GATE_CONTROLLER_EXECUTABLE" = "$CONTROL_EXECUTABLE" ]
+fi
+printf 'benchmark context complete\n'
+"#,
+        )?;
+        fs::set_permissions(&executable, fs::Permissions::from_mode(0o755))?;
+        let managed = umpire_guest_driver::managed::enabled();
+        let target = if managed {
+            umpire_guest_driver::managed::target(&workspace).map_err(io::Error::other)?
+        } else {
+            workspace.join("target")
+        };
+        let home = umpire_guest_driver::context::cargo_home(&env::current_dir()?)
+            .map_err(io::Error::other)?;
+        let mut command = benchmark_command(&root, executable.as_os_str(), "selected-package")?;
+        let output = command
+            .env("CONTROL_MANAGED", if managed { "1" } else { "0" })
+            .env("CONTROL_WORKSPACE", &workspace)
+            .env("CONTROL_TARGET", target)
+            .env("CONTROL_PARENT_TARGET", env::var_os("CARGO_TARGET_DIR").unwrap_or_default())
+            .env("CONTROL_EXECUTABLE", &executable)
+            .env("CONTROL_HOME", home)
+            .output()?;
+        assert!(
+            output.status.success(),
+            "benchmark context failed:\n{}\n{}",
+            String::from_utf8_lossy(&output.stdout),
+            String::from_utf8_lossy(&output.stderr),
+        );
+        assert_eq!(output.stdout, b"benchmark context complete\n");
+        Ok(())
+    }
+
+    #[test]
     fn benchmark_selects_authoritative_package_runner_and_disables_caches() -> io::Result<()> {
         let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..").canonicalize()?;
         let command =
             benchmark_command(&root, std::ffi::OsStr::new("framework"), "selected-package")?;
-        assert_eq!(
-            command.get_args().collect::<Vec<_>>(),
-            ["test-run", "--package", "selected-package"]
-        );
-        assert_eq!(command.get_current_dir(), Some(root.join("../../umpire").as_path()));
+        let arguments = command.get_args().collect::<Vec<_>>();
+        assert!(arguments.ends_with(&[
+            std::ffi::OsStr::new("test-run"),
+            std::ffi::OsStr::new("--package"),
+            std::ffi::OsStr::new("selected-package"),
+        ]));
+        let workspace = root.join("../../umpire").canonicalize()?;
+        assert_eq!(command.get_current_dir(), Some(workspace.as_path()));
         for (key, expected) in [
             ("UMPIRE_QUICK_CACHE", "0"),
             ("UMPIRE_CACHE_DISABLE", "1"),

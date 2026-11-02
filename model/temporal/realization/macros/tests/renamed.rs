@@ -10,11 +10,12 @@ fn renamed_dependencies_preserve_realization_and_enum_admission() {
         .join("tests/renamed-realization");
     for invalid in [false, true] {
         let mut command = std::process::Command::new(env!("CARGO"));
-        command.current_dir(&fixture).env("CARGO_TARGET_DIR", &target).args([
-            "check",
-            "--offline",
-            "--locked",
-        ]);
+        command
+            .current_dir(&fixture)
+            .env_remove("BUILD_CACHE_MANAGED")
+            .env_remove("BUILD_CACHE_TOOL")
+            .env("CARGO_TARGET_DIR", &target)
+            .args(["check", "--offline", "--locked"]);
         if invalid {
             command.args(["--features", "invalid-enum"]);
         }

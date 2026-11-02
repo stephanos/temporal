@@ -32,35 +32,35 @@ Quint backend tooling have been retired; the Rust workspaces own Model checking.
 
 ## Crate map
 
-Paths below are relative to the sibling Umpire checkout root. Role directories group crates; each crate's
-proc macros, syntax, build support and derives live beneath that crate.
+Paths below are relative to the sibling Umpire checkout root. Reusable libraries use
+package-named directories under crates; native tools and provisioning live under tools.
 
 | Path | Crate | Job | Used by Model authors |
 | --- | --- | --- | --- |
-| `author/umpire` | `umpire` | Author facade for DSL declarations, suite questions and catalog derives. | Yes; shared fixtures use it. |
-| `author/dsl` | `umpire-dsl` | Model, World, action, claim and path contracts. | Yes; available directly. |
-| `author/dsl/macros` | `umpire-dsl-macros` | Generate declarations from the shared front end. | Through the DSL or facade. |
-| `author/suite` | `umpire-suite` | Authored runs, searches, coverage and verification. | Through the facade or directly. |
-| `front` | `umpire-front` | Read declarations and admit typed Model bodies once. | No; compiler support. |
-| `ir` | `umpire-ir` | Admitted typed tree, expressions and embedded values. | No; compiler/checker interface. |
-| `ir/derive` | `umpire-ir-derive` | Generate embedded tree construction. | No; IR implementation. |
-| `backends/native` | `umpire-checker` | Explore and check Models natively. | Through the suite; direct engine use is available. |
-| `backends/process` | `umpire-backend-process` | Own bounded backend processes, Java admission, capture and scratch cleanup. | No; backend support. |
-| `backends/tla` | `umpire-tla` | Bind and emit TLA+ and admit shared typed values. | No; backend support. |
-| `backends/tlc` | `umpire-tlc` | Execute TLC and decode complete state sets and counterexamples. | No; backend adapter. |
-| `backends/apalache` | `umpire-apalache` | Execute bounded safety checks and confirm traces by native replay. | No; optional backend adapter. |
+| `crates/umpire` | `umpire` | Author facade for DSL declarations, suite questions and catalog derives. | Yes; shared fixtures use it. |
+| `crates/umpire-dsl` | `umpire-dsl` | Model, World, action, claim and path contracts. | Yes; available directly. |
+| `crates/umpire-dsl-macros` | `umpire-dsl-macros` | Generate declarations from the shared front end. | Through the DSL or facade. |
+| `crates/umpire-suite` | `umpire-suite` | Authored runs, searches, coverage and verification. | Through the facade or directly. |
+| `crates/umpire-front` | `umpire-front` | Read declarations and admit typed Model bodies once. | No; compiler support. |
+| `crates/umpire-ir` | `umpire-ir` | Admitted typed tree, expressions and embedded values. | No; compiler/checker interface. |
+| `crates/umpire-ir-derive` | `umpire-ir-derive` | Generate embedded tree construction. | No; IR implementation. |
+| `crates/umpire-checker` | `umpire-checker` | Explore and check Models natively. | Through the suite; direct engine use is available. |
+| `crates/umpire-backend-process` | `umpire-backend-process` | Own bounded backend processes, Java admission, capture and scratch cleanup. | No; backend support. |
+| `crates/umpire-tla` | `umpire-tla` | Bind and emit TLA+ and admit shared typed values. | No; backend support. |
+| `crates/umpire-tlc` | `umpire-tlc` | Execute TLC and decode complete state sets and counterexamples. | No; backend adapter. |
+| `crates/umpire-apalache` | `umpire-apalache` | Execute bounded safety checks and confirm traces by native replay. | No; optional backend adapter. |
 | `protocol/proto` | — | Shared protobuf schemas and ABI contract. | For host/realization integration. |
-| `protocol/runtime` | `umpire-runtime` | Protocol messages, transactional dispatch and core-wasm ABI. | For guest/realization integration. |
-| `protocol/runtime/guests/stock` | `umpire-stock-guest` | Stock independent checker guest. | No; ABI/parity control. |
-| `protocol/runtime/guests/control` | `umpire-control-guest` | Stateful dispatch and transaction controls. | No; ABI control. |
-| `protocol/runtime/guests/caught-panic` | `umpire-caught-panic-guest` | Native/wasm caught-panic comparison. | No; fault control. |
-| `protocol/runtime/guests/overflow` | `umpire-overflow-guest` | Checked-arithmetic failure control. | No; fault control. |
-| `catalog` | `umpire-catalog` | Typed field catalogs, validation, generation, gaps, inspection and derives. | Through the facade or directly. |
-| `catalog/syntax` | `umpire-catalog-syntax` | Admit catalog declarations and descriptor coverage. | No; catalog compiler support. |
-| `catalog/macros` | `umpire-catalog-macros` | Generate exhaustive catalogs and inspection. | Through catalog or facade. |
-| `catalog/build` | `umpire-catalog-build` | Generate descriptor-checked API dispatch and wire mutations. | In API consumers' build scripts. |
-| `dev/testing` | `umpire-testing` | Discover fixtures and compare deterministic golden outputs. | For fixture harnesses. |
-| `dev/fixtures` | `umpire-fixtures` | Shared end-to-end Models, authored tests and goldens. | Reference examples and regression inputs. |
+| `crates/umpire-runtime` | `umpire-runtime` | Protocol messages, transactional dispatch and core-wasm ABI. | For guest/realization integration. |
+| `guests/stock` | `umpire-stock-guest` | Stock independent checker guest. | No; ABI/parity control. |
+| `guests/control` | `umpire-control-guest` | Stateful dispatch and transaction controls. | No; ABI control. |
+| `guests/caught-panic` | `umpire-caught-panic-guest` | Native/wasm caught-panic comparison. | No; fault control. |
+| `guests/overflow` | `umpire-overflow-guest` | Checked-arithmetic failure control. | No; fault control. |
+| `crates/umpire-catalog` | `umpire-catalog` | Typed field catalogs, validation, generation, gaps, inspection and derives. | Through the facade or directly. |
+| `crates/umpire-catalog-syntax` | `umpire-catalog-syntax` | Admit catalog declarations and descriptor coverage. | No; catalog compiler support. |
+| `crates/umpire-catalog-macros` | `umpire-catalog-macros` | Generate exhaustive catalogs and inspection. | Through catalog or facade. |
+| `crates/umpire-catalog-build` | `umpire-catalog-build` | Generate descriptor-checked API dispatch and wire mutations. | In API consumers' build scripts. |
+| `crates/umpire-testing` | `umpire-testing` | Discover fixtures and compare deterministic golden outputs. | For fixture harnesses. |
+| `fixtures/umpire-fixtures` | `umpire-fixtures` | Shared end-to-end Models, authored tests and goldens. | Reference examples and regression inputs. |
 | `reference/kettle` | `umpire-reference-kettle` | Independent reference Model and realization, with its own Go server/tests. | Reference integration example. |
 | `reference/kettle/guest` | `umpire-kettle-guest` | Kettle realization over the shared ABI. | Reference guest example. |
 
@@ -75,19 +75,19 @@ Checker supervision owns adopted descendants on Linux; on Darwin it prevents des
 and refuses root. Native validation controllers use a separate orchestration policy with
 inherited cancellation/completion custody; its Darwin runtime proof remains open. Other
 platforms refuse. Apalache remains opt-in with `UMPIRE_APALACHE=require`; TLC requires `UMPIRE_BACKENDS=require`.
-`author/umpire/tests/consumer` proves authoring with one renamed facade dependency.
-`protocol/runtime/guests` contains stock/control guest packages; `reference/kettle/guest`
+`crates/umpire/tests/consumer` proves authoring with one renamed facade dependency.
+`guests` contains stock/control guest packages; `reference/kettle/guest`
 contains the reference guest. The Temporal guest and extension remain under `model/temporal/`.
 
-The host-only `../../umpire/dev/xtask` command front door owns checker provisioning, native
+The host-only `../../umpire/tools/xtask` command front door owns checker provisioning, native
 gate stages, timing, protobuf generation and retired-name filtering. Guest commands
 execute the independent
-`../../umpire/dev/guest-driver` executable, which owns guest builds, compiler wrapping,
+`../../umpire/tools/guest-driver` executable, which owns guest builds, compiler wrapping,
 lock admission and the shared admitted tool/caller context. `model/dev/xtask`
 retains the thin system workspace command bridge and its entry-point controls.
 Root Make and the system `cargo xtask` bridge delegate to the framework tools.
 See [GUEST_BUILDS.md](GUEST_BUILDS.md) and
-[native tool contracts](../../umpire/dev/xtask/README.md).
+[native tool contracts](../../umpire/tools/xtask/README.md).
 
 ## Hygiene
 
@@ -198,7 +198,7 @@ From either workspace, `cargo check-all` and `cargo doc-all` are aliases for its
 `model-validate` forces TLC-required `model-time` through environment/Make conflicts; add
 `UMPIRE_APALACHE=require` for both. Legacy modes remain; required timings are separate from historical defaults.
 `model-time` measures every `model-check` stage, then updates the modification time of
-`../../umpire/backends/native/src/lib.rs` and runs the framework `test-run --package umpire-checker`
+`../../umpire/crates/umpire-checker/src/lib.rs` and runs the framework `test-run --package umpire-checker`
 route. Source bytes remain unchanged, including when the benchmark is interrupted.
 Select another crate/source with `UMPIRE_INNER_CRATE`/`UMPIRE_INNER_SOURCE` (relative to `model/`).
 Timed command failures fail the helper; exceeding a time budget prints a warning and succeeds.
@@ -400,7 +400,7 @@ fn selected_world() -> umpire_testing::TestResult {
 }
 ```
 
-This exact block compiles as [the DSL README fixture](../../umpire/author/dsl/tests/readme/parameterized.rs),
+This exact block compiles as [the DSL README fixture](../../umpire/crates/umpire-dsl/tests/readme/parameterized.rs),
 checked against the README by `mise exec -- cargo test -p umpire-dsl --test main readme::` from
 the sibling Umpire root. The fixture binds one selected World explicitly; `bound_for` selects another without
 fabricating defaults. `World::new` assigns fields and does not validate their ranges or starts.
@@ -662,7 +662,7 @@ umbrella now expects no failure identity.
 
 ## Testing
 
-Models are read once, in `umpire-front` (`../../umpire/front/`). `declare/` reads the declarations:
+Models are read once, in `umpire-front` (`../../umpire/crates/umpire-front/`). `declare/` reads the declarations:
 attribute kinds and their order, registration, the State/World/actor schema, starts, input
 domains and `&World` parameters, and `path.rs` the `path!` language. The macros in
 `umpire-dsl-macros` only generate from what `declare/` read, and report its refusals as compile
@@ -679,7 +679,7 @@ produces (`model.rs`, `tests.rs` and `expected/`). "Fixture", not
 
 - behaviour: each fixture's `expected/report.txt.snap`, `states.txt.snap`, `rows.txt.snap` and `paths/<claim>.txt.snap`
   (`insta`; review with `cargo insta review`);
-- refusals: `trybuild` `.rs` + `.stderr` under `../../umpire/author/dsl/macros/tests/ui/`;
+- refusals: `trybuild` `.rs` + `.stderr` under `../../umpire/crates/umpire-dsl-macros/tests/ui/`;
 - expansion: insta snapshots of each macro's implementation function, formatted by
   `prettyplease`;
 - one property test against a brute-force reference explorer, the check that goldens are right
@@ -689,7 +689,7 @@ Goldens are deterministic, human-readable and timing-free. `make model-update` r
 shared fixture folder without `model.rs`, `tests.rs` or `expected/` fails the build naming it. Unit tests only when a defect cannot be
 written as a fixture.
 
-`umpire-fixtures` at `../../umpire/dev/fixtures/` owns 12 shared fixtures in `fixtures/<name>/`, all
+`umpire-fixtures` at `../../umpire/fixtures/umpire-fixtures/` owns 12 shared fixtures in `fixtures/<name>/`, all
 `#[machine]` Models or adapters of one. `sample_kettle` is the canonical authoring example;
 focused controls are named for the behavior they test. `progress_dead_end` refutes
 progress on a finite maximal path in the assumption-filtered graph, with no enabled internal
@@ -702,7 +702,7 @@ Folder names that are not plain lowercase identifiers compile under an escaped `
 The lifter reads a hook's supplemental claims from `tests.rs`.
 The attribute Kettle lives in its fixture's `model.rs`; native and wasm hosts can include
 that source by path. Checker-specific failures, panics, overflows, holes, budget cuts and
-refusals remain in `../../umpire/backends/native/tests/fixtures/`, together with the manual-trait Models the
+refusals remain in `../../umpire/crates/umpire-checker/tests/fixtures/`, together with the manual-trait Models the
 attribute surface cannot state (DESIGN.md lists each with its gap). Among them,
 `sample_kettle_trait` is the independent manual-trait engine reference: its Model is
 `kettle.rs`, which the stock wasm guest includes, and its report, states and rows goldens are
@@ -710,7 +710,7 @@ the Go host's expected payloads. DSL formatting fixtures remain with the DSL.
 The historical authoring sketches have been retired after preserving their comparison in
 [DESIGN.md](DESIGN.md#historical-authoring-options); there is no samples crate.
 
-`umpire-suite` at `../../umpire/author/suite/` is what a Model's own `tests.rs` uses (fn-213). An example is
+`umpire-suite` at `../../umpire/crates/umpire-suite/` is what a Model's own `tests.rs` uses (fn-213). An example is
 an authored path: `Run::from(state)`, `.step(action)`, `.repeat(n, action)` and `.state()` replay it
 through `Machine::checked_step`, and `Run::along(path![state, .., |s| ..])` fills in the gaps with
 the shortest path through every waypoint, retaining exact explored rows. A disabled action, one emitting several
@@ -734,7 +734,7 @@ paths. Pattern progress spends no Model-state budget, even when a witness revisi
 A cut graph can answer only when its unexplored frontier cannot hide a shorter witness; a bounded
 pattern anchored at one concrete state can also settle absence before that frontier.
 The refusal names the furthest waypoint reached. The suite's messages are pinned by its fixtures
-in `../../umpire/author/suite/tests/fixtures/`.
+in `../../umpire/crates/umpire-suite/tests/fixtures/`.
 
 ### Test-space patterns
 
@@ -849,7 +849,7 @@ To write a Model's tests, add `mod examples` and `mod explorations` to its `test
 `use umpire_suite::*;` and plain `#[test]` functions returning `Result<(), Refusal>` so a refusal
 fails the test with its message; `cargo test` and the gate run them, nothing registers them
 (`umpire-suite` is a dev-dependency of the crate that compiles the fixture). Kettle's
-`../../umpire/dev/fixtures/fixtures/sample_kettle/tests.rs` is the example: it asks the questions of the archived
+`../../umpire/fixtures/umpire-fixtures/fixtures/sample_kettle/tests.rs` is the example: it asks the questions of the archived
 `Kettle.test.scala` that the surface admits (the press/heat/depress table from the coldest and room
 starts, the 99-to-100 boundary and the `>=` failover guard refuting `fails_over_at_boiling` at 101,
 the 81 steps from switching on to the beep, every start from -40 to 40, `never_beeps` refuted by a
@@ -877,7 +877,7 @@ surface does not admit, and why:
 updates, discovery and the consumer registry. Build scripts share its dependency-free discovery
 source, avoiding a checker dependency cycle. Fixtures are discovered in name order and must
 contain `model.rs`, `expected/`, and at least one consumer-owned expected file; shared fixture
-roots (`../../umpire/dev/fixtures/fixtures/`, `temporal/feature/`) also require `tests.rs`, while synthetic
+roots (`../../umpire/fixtures/umpire-fixtures/fixtures/`, `temporal/feature/`) also require `tests.rs`, while synthetic
 control roots keep the hook in `model.rs`. Expected files
 select consumers: the checker owns `report.txt`, `states.txt`, `rows.txt`, `negative_report.txt`
 and `paths/*.txt`; a selected consumer renders and checks its outputs twice for determinism.
@@ -916,7 +916,7 @@ make model-validate
 ```
 
 The native fetch command delegates provisioning to the framework-owned mise HTTP provider
-under `../../umpire/mise-tools`; Apalache is explicit opt-in and execution never auto-installs.
+under `../../umpire/tools/mise`; Apalache is explicit opt-in and execution never auto-installs.
 The backend admits the official `tla2tools` 1.7.4 artifact by SHA-256 and its TLC 2.19
 version, using the repository's mise-pinned Temurin 27. TLC and Apalache share one admission,
 `umpire_backend_process::PinnedJar::admit_mise`: a symlink-free exact mise install path, an
@@ -1094,6 +1094,6 @@ stutters, before-state history, arithmetic boundaries and selected-claim confirm
 The DSL's generated `__umpire_*` Rust methods and the emitter's hygienic TLA locals
 and arithmetic operators are internal helpers, separate from trace observer fields.
 
-The combined gate uses one mise DAG: root tasks import the framework task file in the sibling `../umpire/dev/xtask/src/gate/tasks.toml` and add Temporal stages. Public `model-check` enters the Temporal gate once; framework `cargo xtask gate` remains independently runnable. Cross-workspace `wait_for` edges constrain already selected work without causing a framework-only invocation to select Temporal tasks. Host admission and owned cleanup span the whole invocation, including the isolated child; stage receipts retain scoped identities for later budget enforcement.
+The combined gate uses one mise DAG: root tasks import the framework task file in the sibling `../umpire/tools/xtask/src/gate/tasks.toml` and add Temporal stages. Public `model-check` enters the Temporal gate once; framework `cargo xtask gate` remains independently runnable. Cross-workspace `wait_for` edges constrain already selected work without causing a framework-only invocation to select Temporal tasks. Host admission and owned cleanup span the whole invocation, including the isolated child; stage receipts retain scoped identities for later budget enforcement.
 
 The Temporal prerequisite stage invokes the existing Make producer leaf under native host admission: root Go generator pins and `proto/api.binpb` are prepared before Temporal guest/API consumers. The leaf runs with `make -j1`; no mise task freshness substitutes for execution. API build scripts retain their own descriptor freshness/link checks. Initial compilation of the native command itself remains caller preparation with the required-mode bootstrap job cap.

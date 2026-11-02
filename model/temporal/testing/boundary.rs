@@ -44,7 +44,7 @@ fn check(root: &Path) -> io::Result<Vec<Violation>> {
 }
 
 fn descriptor_lines(root: &Path) -> io::Result<BTreeMap<(PathBuf, usize), String>> {
-    let policy = match fs::read_to_string(root.join("dev/gate/policy/framework-boundary.txt")) {
+    let policy = match fs::read_to_string(root.join("tools/xtask/policy/framework-boundary.txt")) {
         Ok(policy) => policy,
         Err(error) if error.kind() == io::ErrorKind::NotFound => return Ok(BTreeMap::new()),
         Err(error) => return Err(error),
@@ -156,7 +156,7 @@ fn boundary_controls() -> umpire_testing::TestResult {
 fn descriptor_controls() -> umpire_testing::TestResult {
     let root =
         std::env::temp_dir().join(format!("umpire-descriptor-boundary-{}", std::process::id()));
-    fs::create_dir_all(root.join("dev/gate/policy"))?;
+    fs::create_dir_all(root.join("tools/xtask/policy"))?;
     fs::create_dir_all(root.join("nested"))?;
     let result = (|| -> umpire_testing::TestResult {
         let line = "\t\"\\x06proto3ZAgithub.com/temporalio/umpire/hosts/go;modelv1\"";
@@ -168,7 +168,7 @@ fn descriptor_controls() -> umpire_testing::TestResult {
             )
         };
         let descriptor = root.join("nested/descriptor.go");
-        let policy_path = root.join("dev/gate/policy/framework-boundary.txt");
+        let policy_path = root.join("tools/xtask/policy/framework-boundary.txt");
         fs::write(&descriptor, format!("{header}{line}\n"))?;
         fs::write(&policy_path, policy(line))?;
         assert_eq!(check(&root)?, []);

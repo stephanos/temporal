@@ -10,11 +10,11 @@ use std::{
 use umpire_testing::TestResult;
 
 const FIXTURES: &[&str] = &[
-    "umpire/author/dsl/macros/tests/fixtures",
-    "umpire/author/dsl/tests/fixtures",
-    "umpire/author/suite/tests/fixtures",
-    "umpire/backends/native/tests/fixtures",
-    "umpire/dev/fixtures/fixtures",
+    "umpire/crates/umpire-dsl-macros/tests/fixtures",
+    "umpire/crates/umpire-dsl/tests/fixtures",
+    "umpire/crates/umpire-suite/tests/fixtures",
+    "umpire/crates/umpire-checker/tests/fixtures",
+    "umpire/fixtures/umpire-fixtures/fixtures",
     "temporal/feature",
     "temporal/shared/protocol",
 ];
@@ -25,11 +25,11 @@ const READERS: &[(&str, &str)] = &[
         "realization macros::tests::typed_registry_expansion",
     ),
     (
-        "umpire/catalog/syntax/tests/snapshots/expansion__typed-catalog.snap",
+        "umpire/crates/umpire-catalog-syntax/tests/snapshots/expansion__typed-catalog.snap",
         "cargo test -p umpire-catalog-syntax --test main expansion::executable_expansion_and_source_coverage",
     ),
     (
-        "umpire/catalog/tests/snapshots/controls__generated-catalog.snap",
+        "umpire/crates/umpire-catalog/tests/snapshots/controls__generated-catalog.snap",
         "controls::generated_catalogs_retain_executable_declaration_metadata",
     ),
     (
@@ -45,19 +45,19 @@ const READERS: &[(&str, &str)] = &[
         "realization macros::tests::activity_expansion",
     ),
     (
-        "umpire/catalog/tests/snapshots/catalog__admission.snap",
+        "umpire/crates/umpire-catalog/tests/snapshots/catalog__admission.snap",
         "catalog::request_admission_retains_typed_diagnostics",
     ),
     (
-        "umpire/catalog/tests/snapshots/catalog__gaps.snap",
+        "umpire/crates/umpire-catalog/tests/snapshots/catalog__gaps.snap",
         "catalog::gap_goldens_are_derived_from_validation_and_redact_secret_values",
     ),
     (
-        "umpire/catalog/tests/snapshots/catalog__kind-violations.snap",
+        "umpire/crates/umpire-catalog/tests/snapshots/catalog__kind-violations.snap",
         "catalog::kind_constraints_have_positive_and_negative_controls",
     ),
     (
-        "umpire/catalog/tests/snapshots/catalog__presence-violations.snap",
+        "umpire/crates/umpire-catalog/tests/snapshots/catalog__presence-violations.snap",
         "catalog::presence_operators_validate_and_guide_fill",
     ),
     (
@@ -81,19 +81,19 @@ const READERS: &[(&str, &str)] = &[
         "Go TestKettleJudgeAnswerTranscript; live_snapshots::import_live_candidates",
     ),
     (
-        "umpire/backends/native/tests/fixtures/sample_kettle_trait/expected/report.txt.snap",
+        "umpire/crates/umpire-checker/tests/fixtures/sample_kettle_trait/expected/report.txt.snap",
         "runtime dispatch::explore; Go TestKettleParity",
     ),
     (
-        "umpire/backends/native/tests/fixtures/sample_kettle_trait/expected/rows.txt.snap",
+        "umpire/crates/umpire-checker/tests/fixtures/sample_kettle_trait/expected/rows.txt.snap",
         "runtime dispatch::rows; Go TestKettleParity",
     ),
     (
-        "umpire/backends/native/tests/fixtures/effect_panic/expected/report.txt.snap",
+        "umpire/crates/umpire-checker/tests/fixtures/effect_panic/expected/report.txt.snap",
         "panic-control-reports native comparison",
     ),
     (
-        "umpire/backends/native/tests/fixtures/effect_overflow/expected/report.txt.snap",
+        "umpire/crates/umpire-checker/tests/fixtures/effect_overflow/expected/report.txt.snap",
         "panic-control-reports native comparison",
     ),
     (

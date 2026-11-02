@@ -1,7 +1,7 @@
 # System workspace tool bridge
 
 From `model/`, use `mise exec -- cargo xtask <command>`. The bridge delegates reusable
-commands to the independent framework CLI at `../../umpire/dev/xtask`. Guest commands route
+commands to the independent framework CLI at `../../umpire/tools/xtask`. Guest commands route
 the five framework guest packages to `../../umpire/`; `umpire-temporal-guest` and custom
 packages use the system workspace. Output, Cargo home and target paths resolve
 against the caller before changing directories. Compiler wrapping and cache admission
@@ -15,6 +15,6 @@ run. The bridge's forwarded `validate` command retains framework-only scope.
 
 `timing-controls` and `proto-controls` run selected Rust controls through the shared
 test runner. Repository Make freshness, guest routing, embedded-guest refusal and
-retired-name controls remain system-owned. The two minimal `scripts/xtask.sh` files
-bootstrap current native tools; the former orchestration and control scripts are
+retired-name controls remain system-owned. Temporal's `model/scripts/xtask.sh` delegates
+to Umpire's `tools/scripts/xtask.sh` to bootstrap current native tools; the former orchestration and control scripts are
 native commands and Rust tests.

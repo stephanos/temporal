@@ -33,24 +33,24 @@ name normal domain dependencies; test-only dependencies do not reverse the produ
 
 | Crate and path | One job and public interface | Permitted domain dependencies |
 | --- | --- | --- |
-| `umpire`, `author/umpire` | Model author facade: DSL declarations, suite questions, `Catalog` and `annotate`; named `dsl`, `suite` and `catalog` module roots. | DSL, suite and catalog; runtime re-export for generated support. |
-| `umpire-dsl`, `author/dsl` | Model, World, state, action, outcome, claim and path contracts; native Models embed the admitted tree. | DSL macros; IR on native targets. |
-| `umpire-dsl-macros`, `author/dsl/macros` | Generate author declarations, retain opaque per-variant metadata, and expose the complete action inventory through `action_metadata!`; preserve direct-crate macro expansion. | Front and IR; no backend or system-specific metadata semantics. |
-| `umpire-front`, `front` | Read declarations once and admit bodies into the typed tree, with located diagnostics. | IR; no backend or system Model. |
-| `umpire-ir`, `ir` and `umpire-ir-derive`, `ir/derive` | Represent the admitted tree, expressions and embedded typed values; admit exported literals into typed values (`Literal::admit`); derive constructor tokens. | IR depends on its derive support; no front or backend import. |
-| `umpire-checker`, `backends/native` | Explore a `Machine`, evaluate claims and retain exact rows and witnesses; interpreted checking uses the same admitted tree. | DSL, including its embedded IR contract; no symbolic adapter or system Model. |
-| `umpire-suite`, `author/suite` | Authored `Run`, `Space`, path search, coverage and verification questions. | DSL and native checker. |
-| `umpire-backend-process`, `backends/process` | Own native bounded supervision, Java admission, capture and scratch cleanup; typed invocation provenance and scoped work observations; parent-side rustix/tempfile support and an audited allocation-free raw-libc child path. | No domain dependencies. |
-| `umpire-tla`, `backends/tla` | Bind a selected World and emit TLA+ from the admitted tree; typed assignment/schema admission. | Front and process support; no normal TLC or Apalache dependency. |
-| `umpire-tlc`, `backends/tlc` | Run pinned TLC, decode complete reachable sets and typed counterexamples, distinguish execution/evaluation failures from verdicts. | TLA+ and process support. |
-| `umpire-apalache`, `backends/apalache` | Run optional bounded safety checks, decode typed ITF and confirm exact traces by native replay. | TLA+ and process support, DSL and native checker; no TLC dependency. |
-| `umpire-runtime`, `protocol/runtime`; schemas in `protocol/proto` | Generated Model/realization/annotation envelopes, transactional dispatch and core-wasm ABI; guests select their Model and realization. | DSL and native checker; schemas carry no system policy. |
-| `umpire-catalog`, `catalog` | Typed field `Catalog<M>`, validation, generation, gap reports, inspection and semantic views; `Catalog` derive and `annotate`; `generic_probe::{Engine, ProbeSystem}` owns descriptor probe orchestration behind typed system adapters. | Runtime and catalog macros; native checker for the shared deterministic seeded stream. |
-| `umpire-catalog-syntax`, `catalog/syntax`; `umpire-catalog-macros`, `catalog/macros`; `umpire-catalog-build`, `catalog/build` | Admit exhaustive declarations; expose derive entry points; generate descriptor-checked API dispatch and wire mutations. | Macros depend on syntax; syntax on runtime; build support on syntax and runtime. |
-| `umpire-testing`, `dev/testing`; `umpire-fixtures`, `dev/fixtures` | Deterministic fixture discovery/golden comparison; shared Models and authored tests consume the facade. | Testing uses DSL, native checker, TLA+ and TLC; fixtures use author and test support plus generic checker/backend controls. Fixture source-mutant tests may import `umpire-front` and `syn` only to parse candidate source into ordinary IR. Neither imports system Models. |
+| `umpire`, `crates/umpire` | Model author facade: DSL declarations, suite questions, `Catalog` and `annotate`; named `dsl`, `suite` and `catalog` module roots. | DSL, suite and catalog; runtime re-export for generated support. |
+| `umpire-dsl`, `crates/umpire-dsl` | Model, World, state, action, outcome, claim and path contracts; native Models embed the admitted tree. | DSL macros; IR on native targets. |
+| `umpire-dsl-macros`, `crates/umpire-dsl-macros` | Generate author declarations, retain opaque per-variant metadata, and expose the complete action inventory through `action_metadata!`; preserve direct-crate macro expansion. | Front and IR; no backend or system-specific metadata semantics. |
+| `umpire-front`, `crates/umpire-front` | Read declarations once and admit bodies into the typed tree, with located diagnostics. | IR; no backend or system Model. |
+| `umpire-ir`, `crates/umpire-ir` and `umpire-ir-derive`, `crates/umpire-ir-derive` | Represent the admitted tree, expressions and embedded typed values; admit exported literals into typed values (`Literal::admit`); derive constructor tokens. | IR depends on its derive support; no front or backend import. |
+| `umpire-checker`, `crates/umpire-checker` | Explore a `Machine`, evaluate claims and retain exact rows and witnesses; interpreted checking uses the same admitted tree. | DSL, including its embedded IR contract; no symbolic adapter or system Model. |
+| `umpire-suite`, `crates/umpire-suite` | Authored `Run`, `Space`, path search, coverage and verification questions. | DSL and native checker. |
+| `umpire-backend-process`, `crates/umpire-backend-process` | Own native bounded supervision, Java admission, capture and scratch cleanup; typed invocation provenance and scoped work observations; parent-side rustix/tempfile support and an audited allocation-free raw-libc child path. | No domain dependencies. |
+| `umpire-tla`, `crates/umpire-tla` | Bind a selected World and emit TLA+ from the admitted tree; typed assignment/schema admission. | Front and process support; no normal TLC or Apalache dependency. |
+| `umpire-tlc`, `crates/umpire-tlc` | Run pinned TLC, decode complete reachable sets and typed counterexamples, distinguish execution/evaluation failures from verdicts. | TLA+ and process support. |
+| `umpire-apalache`, `crates/umpire-apalache` | Run optional bounded safety checks, decode typed ITF and confirm exact traces by native replay. | TLA+ and process support, DSL and native checker; no TLC dependency. |
+| `umpire-runtime`, `crates/umpire-runtime`; schemas in `protocol/proto` | Generated Model/realization/annotation envelopes, transactional dispatch and core-wasm ABI; guests select their Model and realization. | DSL and native checker; schemas carry no system policy. |
+| `umpire-catalog`, `crates/umpire-catalog` | Typed field `Catalog<M>`, validation, generation, gap reports, inspection and semantic views; `Catalog` derive and `annotate`; `generic_probe::{Engine, ProbeSystem}` owns descriptor probe orchestration behind typed system adapters. | Runtime and catalog macros; native checker for the shared deterministic seeded stream. |
+| `umpire-catalog-syntax`, `crates/umpire-catalog-syntax`; `umpire-catalog-macros`, `crates/umpire-catalog-macros`; `umpire-catalog-build`, `crates/umpire-catalog-build` | Admit exhaustive declarations; expose derive entry points; generate descriptor-checked API dispatch and wire mutations. | Macros depend on syntax; syntax on runtime; build support on syntax and runtime. |
+| `umpire-testing`, `crates/umpire-testing`; `umpire-fixtures`, `fixtures/umpire-fixtures` | Deterministic fixture discovery/golden comparison; shared Models and authored tests consume the facade. | Testing uses DSL, native checker, TLA+ and TLC; fixtures use author and test support plus generic checker/backend controls. Fixture source-mutant tests may import `umpire-front` and `syn` only to parse candidate source into ordinary IR. Neither imports system Models. |
 | `umpire-reference-kettle`, `reference/kettle` | Independent reference Model and realization, with its own guest and Go service/parity controls. | Generic DSL, native checker, catalog and runtime; no Temporal extension. |
-| `xtask`, `dev/xtask` | Host-only framework gate, observed test/TLC counts, timing, checker provisioning, protobuf generation and retired-name filtering; executes the dedicated driver for guest commands. | Guest-driver context utilities, owned process supervision and native tooling support; no Model-domain dependencies. |
-| `umpire-guest-driver`, `dev/guest-driver` | Guest build/closure/compiler/freshness admission, shared tool/caller context and portable remaps. | No CLI/gate or Model-domain dependencies; never part of a guest runtime closure. |
+| `xtask`, `tools/xtask` | Host-only framework gate, observed test/TLC counts, timing, checker provisioning, protobuf generation and retired-name filtering; executes the dedicated driver for guest commands. | Guest-driver context utilities, owned process supervision and native tooling support; no Model-domain dependencies. |
+| `umpire-guest-driver`, `tools/guest-driver` | Guest build/closure/compiler/freshness admission, shared tool/caller context and portable remaps. | No CLI/gate or Model-domain dependencies; never part of a guest runtime closure. |
 
 The outer `model/dev/xtask` package is a thin system-workspace command bridge and owns
 only its repository-specific controls; it delegates reusable commands to sibling Umpire tools.
@@ -66,6 +66,7 @@ classification, fallible full-prefix evidence and immutable entity/read configur
 correlation hooks. Production activity lens/probe installation remains separate work. Generic crates retain the source
 boundary against system-specific imports and names. The Go host, Runner, generated protocol
 and Kettle module ownership rows in the next section describe their current paths.
+
 
 ## Current Go tooling ownership
 

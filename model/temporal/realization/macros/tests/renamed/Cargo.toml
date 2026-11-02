@@ -10,6 +10,6 @@ publish = false
 invalid-enum = []
 
 [dependencies]
-author-kit = { package = "umpire", path = "../../../../../../../umpire/author/umpire" }
+author-kit = { package = "umpire", path = "../../../../../../../umpire/crates/umpire" }
 temporal-kit = { package = "umpire-temporal", path = "../../.." }
 api-kit = { package = "umpire-temporal-api", path = "../../../../api" }

@@ -259,7 +259,7 @@ observable close. Task9's lexical unsafe inventory decreased from 77 to 67 sites
 is a source count, not a proof of runtime safety. Java heap configuration is not an OS
 memory cap, and regular-file polling is not a strict kernel output cap.
 
-Host-only `../umpire/dev/xtask` in the sibling framework repository owns the gate, checker provisioning,
+Host-only `../umpire/tools/xtask` in the sibling framework repository owns the gate, checker provisioning,
 timing, protobuf generation and retired-name filtering, and delegates guest/closure/
 compiler identity/freshness to `umpire-guest-driver`. `model/dev/xtask` owns the system
 bridge and its controls. The two minimal `xtask.sh` entry points bootstrap native tools
@@ -268,7 +268,7 @@ Rust owns TOML/JSON/pin/readiness admission, including cold and cached paths; mi
 tools fail regardless of CI. Schema 2 and native parser/argument/error contracts replace
 old Python encodings and quirks, with coordinated callers and cache invalidation.
 Raw OS argv, prior wrappers, jobserver/loader inheritance and sidecar-before-compiler
-publication/failure cleanup remain controls. [Native contracts](../../umpire/dev/xtask/README.md).
+publication/failure cleanup remain controls. [Native contracts](../../umpire/tools/xtask/README.md).
 
 The fn-247 R18 admissions were libc 0.2.191, rustix 1.1.5, tempfile 3.27.0, native toml 1.1.8+spec-1.1.0
 (std/parse/serde), sha2 0.11.1, tar 0.4.46 (no default/xattr) and flate2 1.1.10 (miniz_oxide).
@@ -553,7 +553,7 @@ its native/WASM reference payloads remain byte-identical.
 
 ## Kettle construct comparison
 
-These anchors compare the final [attribute source](../../umpire/dev/fixtures/fixtures/sample_kettle/model.rs)
+These anchors compare the final [attribute source](../../umpire/fixtures/umpire-fixtures/fixtures/sample_kettle/model.rs)
 with frozen [Kettle.scala](../../umpire-scala/framework/samples/Kettle.scala), including its imports and
 declarations. They compare authored constructs, not a claim of general front-end equivalence.
 

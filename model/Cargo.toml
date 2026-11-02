@@ -20,18 +20,18 @@ publish = false
 license = "MIT"
 
 [workspace.dependencies]
-umpire-guest-driver = { version = "0.0.1", path = "../../umpire/dev/guest-driver" }
-umpire-catalog = { version = "0.0.1", path = "../../umpire/catalog" }
-umpire-catalog-syntax = { version = "0.0.1", path = "../../umpire/catalog/syntax" }
-umpire-catalog-build = { version = "0.0.1", path = "../../umpire/catalog/build" }
-umpire-dsl = { version = "0.0.1", path = "../../umpire/author/dsl" }
-umpire-checker = { version = "0.0.1", path = "../../umpire/backends/native" }
-umpire-testing = { version = "0.0.1", path = "../../umpire/dev/testing" }
-umpire-suite = { version = "0.0.1", path = "../../umpire/author/suite" }
-umpire-front = { version = "0.0.1", path = "../../umpire/front" }
-umpire-tla = { version = "0.0.1", path = "../../umpire/backends/tla" }
-umpire-tlc = { version = "0.0.1", path = "../../umpire/backends/tlc" }
-umpire-runtime = { version = "0.0.1", path = "../../umpire/protocol/runtime" }
+umpire-guest-driver = { version = "0.0.1", path = "../../umpire/tools/guest-driver" }
+umpire-catalog = { version = "0.0.1", path = "../../umpire/crates/umpire-catalog" }
+umpire-catalog-syntax = { version = "0.0.1", path = "../../umpire/crates/umpire-catalog-syntax" }
+umpire-catalog-build = { version = "0.0.1", path = "../../umpire/crates/umpire-catalog-build" }
+umpire-dsl = { version = "0.0.1", path = "../../umpire/crates/umpire-dsl" }
+umpire-checker = { version = "0.0.1", path = "../../umpire/crates/umpire-checker" }
+umpire-testing = { version = "0.0.1", path = "../../umpire/crates/umpire-testing" }
+umpire-suite = { version = "0.0.1", path = "../../umpire/crates/umpire-suite" }
+umpire-front = { version = "0.0.1", path = "../../umpire/crates/umpire-front" }
+umpire-tla = { version = "0.0.1", path = "../../umpire/crates/umpire-tla" }
+umpire-tlc = { version = "0.0.1", path = "../../umpire/crates/umpire-tlc" }
+umpire-runtime = { version = "0.0.1", path = "../../umpire/crates/umpire-runtime" }
 umpire-temporal-api = { version = "0.0.1", path = "temporal/api" }
 umpire-temporal-annotate-syntax = { version = "0.0.1", path = "temporal/annotate/syntax" }
 umpire-temporal = { version = "0.0.1", path = "temporal/realization" }

@@ -111,7 +111,15 @@ control-api control-go control-grpc:
         }
         fs::write(fixture.root.join("Makefile"), makefile)?;
         executable(&fixture.root.join("model/scripts/xtask.sh"), BOOTSTRAP)?;
-        executable(&fixture.root.join("model/scripts/framework-root.sh"), "#!/bin/sh\nexit 0\n")?;
+        executable(
+            &fixture.root.join("model/scripts/framework-root.sh"),
+            "#!/bin/sh\nprintf '%s\\n' \"$CONTROL_ROOT/../umpire\"\n",
+        )?;
+        fs::create_dir_all(fixture.root.join("../umpire/tools/scripts"))?;
+        executable(
+            &fixture.root.join("../umpire/tools/scripts/run-xtask.sh"),
+            "#!/bin/sh\nexec \"$CONTROL_FRAMEWORK\" \"$@\"\n",
+        )?;
         executable(&fixture.root.join("bin/framework"), FRAMEWORK)?;
         executable(&fixture.root.join("bin/mise"), MISE)?;
         fs::write(fixture.root.join("calls"), "")?;
@@ -147,6 +155,8 @@ control-api control-go control-grpc:
         for key in [
             "UMPIRE_BACKENDS",
             "UMPIRE_APALACHE",
+            "BUILD_CACHE_MANAGED",
+            "BUILD_CACHE_TOOL",
             "MAKEFLAGS",
             "MFLAGS",
             "MAKEOVERRIDES",

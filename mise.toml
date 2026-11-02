@@ -9,7 +9,7 @@ rust = "1.99.1"
 "github:nextest-rs/nextest" = { version = "0.9.149", version_prefix = "cargo-nextest-" }
 
 [task_config]
-includes = ["../umpire/dev/xtask/src/gate/tasks.toml"]
+includes = ["../umpire/tools/xtask/src/gate/tasks.toml"]
 
 # Temporal imports the framework graph once and adds only its own stages and resource edges.
 [tasks."model:all"]

@@ -1,4 +1,4 @@
-#[path = "../../../../../../umpire/author/dependency_roots.rs"]
+#[path = "../../../../../../umpire/crates/dependency_roots.rs"]
 mod dependency_roots;
 
 pub(crate) fn resolve(tokens: proc_macro2::TokenStream) -> proc_macro2::TokenStream {

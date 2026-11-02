@@ -983,7 +983,7 @@ ensure-no-changes:
 ##### model: Umpire in Rust (fn-210) #####
 RUST_MODEL_COMPILER_ENV = $(if $(filter require,$(UMPIRE_BACKENDS) $(UMPIRE_APALACHE)),CARGO_BUILD_JOBS=1)
 RUST_MODEL_CARGO = MISE_AUTO_INSTALL=false MISE_EXEC_AUTO_INSTALL=false $(RUST_MODEL_COMPILER_ENV) mise exec -- cargo --config "$(CURDIR)/model/.cargo/config.toml"
-RUST_MODEL_FRAMEWORK = helper=$$($(RUST_MODEL_COMPILER_ENV) /bin/bash "$(CURDIR)/model/scripts/xtask.sh") && "$$helper"
+RUST_MODEL_FRAMEWORK = framework=$$(/bin/bash "$(CURDIR)/model/scripts/framework-root.sh") && $(RUST_MODEL_COMPILER_ENV) /bin/bash "$$framework/tools/scripts/run-xtask.sh"
 
 export UMPIRE_QUICK_CACHE UMPIRE_CACHE_DISABLE
 

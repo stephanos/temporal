@@ -2,7 +2,7 @@
 #![forbid(unsafe_code)]
 #![allow(clippy::unwrap_used, clippy::expect_used)]
 mod make_paths;
-#[path = "../../../../../umpire/dev/guest-driver/tests/pipeline/support.rs"]
+#[path = "../../../../../umpire/tools/guest-driver/tests/pipeline/support.rs"]
 #[allow(dead_code)]
 mod support;
 use std::{
@@ -19,7 +19,7 @@ fn xtask_binary() -> &'static PathBuf {
     TOOL.get_or_init(|| {
         use std::os::unix::ffi::OsStringExt;
         let output = Command::new("/bin/bash")
-            .arg(framework_root().join("scripts/xtask.sh"))
+            .arg(framework_root().join("tools/scripts/xtask.sh"))
             .current_dir(framework_root())
             .env_remove("BASH_ENV")
             .env_remove("BUILD_CACHE_MANAGED")

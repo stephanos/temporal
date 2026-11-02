@@ -85,7 +85,7 @@ UTF-8 tokens; `CARGO_ENCODED_RUSTFLAGS` preserves raw OS tokens separated by 0x1
 
 ## Linux host linking
 
-Both workspaces select the framework's `scripts/mold-linker.sh` for
+Both workspaces select the framework's `tools/scripts/mold-linker.sh` for
 `aarch64-unknown-linux-gnu` and `x86_64-unknown-linux-gnu`. The adapter resolves
 `github:rui314/mold` from the framework's own mise context, refuses a missing
 `bin/ld.mold`, disables automatic installation and invokes the existing `cc`
@@ -144,7 +144,7 @@ From the repository root:
 ```sh
 (cd ../umpire && mise exec -- cargo test -p xtask -p umpire-guest-driver --locked)
 (cd model && mise exec -- cargo test -p temporal-xtask --locked)
-bash -n model/scripts/xtask.sh ../umpire/scripts/xtask.sh
+bash -n model/scripts/xtask.sh ../umpire/tools/scripts/xtask.sh
 (cd ../umpire && CARGO_TARGET_DIR=/absolute/task-owned-target mise exec -- cargo xtask build-guests)
 (cd model && CARGO_TARGET_DIR=/absolute/task-owned-target mise exec -- cargo xtask build-guests)
 CARGO_TARGET_DIR=/absolute/task-owned-target make model-validate
@@ -475,5 +475,5 @@ Checker provisioning uses the framework's isolated `mise-tools` configuration
 through the existing fetch entry points. Its data/cache/state overrides are local
 to jar provisioning and lookup; guest-driver Rust, Java and Cargo context is not
 relocated. Default jar provisioning selects TLC, with Apalache available only by
-explicit opt-in. See [provider controls](../../umpire/mise-tools/README.md) for the
+explicit opt-in. See [provider controls](../../umpire/tools/mise/README.md) for the
 retained admission requirements and replacement control mapping.

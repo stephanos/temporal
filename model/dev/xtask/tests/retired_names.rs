@@ -108,7 +108,7 @@ fn active_spellings_and_historical_exclusions() {
         assert_eq!(result.status.code(), Some(1), "{spelling}: {result:?}");
         assert!(String::from_utf8_lossy(&result.stdout).contains("model/source.rs:1:"));
     }
-    scratch.write("model/source.rs", ["umpire-runtime umpire_fixtures umpire/author/dsl umpire/protocol/proto umpire/annotations/v1 file_umpire_annotations_v1_annotations_proto __umpire_lifted ", "umpire/author/umpire/", "tests/consumer /repo/model/umpire/author/umpire/", "tests/consumer /repo/umpire/author/umpire/", "tests/consumer author/umpire/", "tests/consumer umpire/protocolv2 umpire/protobuf-lean/v1\n"].concat());
+    scratch.write("model/source.rs", ["umpire-runtime umpire_fixtures umpire/author/dsl umpire/protocol/proto umpire/annotations/v1 file_umpire_annotations_v1_annotations_proto __umpire_lifted ", "umpire/crates/umpire/", "tests/consumer /repo/model/umpire/crates/umpire/", "tests/consumer /repo/umpire/crates/umpire/", "tests/consumer author/umpire/", "tests/consumer umpire/protocolv2 umpire/protobuf-lean/v1\n"].concat());
     for path in [
         "model/archived/source.rs",
         ".flow/tasks/history.md",

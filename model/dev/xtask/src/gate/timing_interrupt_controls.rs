@@ -74,6 +74,8 @@ kill -KILL "$timing_pid"
         )
         .env_remove("UMPIRE_BACKENDS")
         .env_remove("UMPIRE_APALACHE")
+        .env_remove("BUILD_CACHE_MANAGED")
+        .env_remove("BUILD_CACHE_TOOL")
         .env_remove("BASH_ENV");
     let output = xtask::gate::scheduler::execute(&command, false, false)?;
     assert_eq!(output.status.code(), Some(137), "{output:?}");

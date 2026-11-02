@@ -99,7 +99,7 @@ fn shipping_temporal_make_loads_the_workspace_linker_config_without_changing_cal
     for target in ["aarch64-unknown-linux-gnu", "x86_64-unknown-linux-gnu"] {
         let settings = targets[target].as_table().unwrap();
         assert_eq!(settings.len(), 1);
-        assert_eq!(settings["linker"].as_str(), Some("../../umpire/scripts/mold-linker.sh"));
+        assert_eq!(settings["linker"].as_str(), Some("../../umpire/tools/scripts/mold-linker.sh"));
     }
     let f = super::Fixture::new();
     let root = f.root.join("make");

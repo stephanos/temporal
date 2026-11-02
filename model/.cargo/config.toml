@@ -4,7 +4,7 @@ doc-all = "doc --workspace --no-deps --document-private-items"
 xtask = "run --package temporal-xtask --bin temporal-xtask --profile dev --"
 
 [target.aarch64-unknown-linux-gnu]
-linker = "../../umpire/scripts/mold-linker.sh"
+linker = "../../umpire/tools/scripts/mold-linker.sh"
 
 [target.x86_64-unknown-linux-gnu]
-linker = "../../umpire/scripts/mold-linker.sh"
+linker = "../../umpire/tools/scripts/mold-linker.sh"
