@@ -8,13 +8,10 @@ fn framework_root() -> std::path::PathBuf {
     std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../umpire")
 }
 
-fn checked_world(
-    maximum: u8,
-    asynchronous: bool,
-    timeouts: [Option<u8>; 4],
-) -> Result<World, &'static str> {
+fn checked_world(maximum: u8, timeouts: [Option<u8>; 4]) -> Result<World, &'static str> {
     fn timeout(raw: Option<u8>, field: &'static str) -> Result<Option<Ticks<3>>, &'static str> {
-        raw.map(|value| Ticks::<3>::contains(value).then_some(Ticks(value)).ok_or(field)).transpose()
+        raw.map(|value| Ticks::<3>::contains(value).then_some(Ticks(value)).ok_or(field))
+            .transpose()
     }
 
     if !(1..=3).contains(&maximum) {
@@ -27,17 +24,15 @@ fn checked_world(
         timeout(stc, "start_to_close")?,
         timeout(sc, "schedule_to_close")?,
         timeout(hb, "heartbeat_timeout")?,
-        asynchronous,
     ))
 }
 
-fn configured(maximum: u8, asynchronous: bool, timeouts: [Option<u8>; 4]) -> World {
-    checked_world(maximum, asynchronous, timeouts)
-        .unwrap_or_else(|field| panic!("invalid fixture {field}"))
+fn configured(maximum: u8, timeouts: [Option<u8>; 4]) -> World {
+    checked_world(maximum, timeouts).unwrap_or_else(|field| panic!("invalid fixture {field}"))
 }
 
 fn world() -> World {
-    configured(3, false, [Some(1), Some(1), None, None])
+    configured(3, [Some(1), Some(1), None, None])
 }
 
 fn state(phase: Phase, attempt: u8) -> Model {
@@ -121,13 +116,15 @@ fn closings() -> Result<umpire_suite::Covered<Model>, umpire_suite::Refusal> {
         assert_eq!(
             run.state().phase,
             match index % 7 {
-                0 | 2 => Phase::Canceled,
+                0 => Phase::Canceled,
+                2 => Phase::Started,
                 5 | 6 if retry => Phase::Scheduled,
                 1 | 6 => Phase::TimedOut,
                 3 => Phase::Completed,
                 _ => Phase::Failed,
             }
         );
+        assert_eq!(run.state().cancel_requested, index % 7 == 2);
     }
     Ok(covered)
 }
@@ -180,7 +177,7 @@ fn terminal_classification_covers_every_phase() {
 fn six_phase_transition_matrix_includes_disabled_actions() {
     use Phase::{Canceled, Completed, Failed, Scheduled, Started, TimedOut};
 
-    let world = configured(1, false, [Some(1), Some(1), None, None]);
+    let world = configured(1, [Some(1), Some(1), None, None]);
     let actions = world.actions();
     let expected_actions = [
         Client::Cancel.into(),
@@ -204,7 +201,7 @@ fn six_phase_transition_matrix_includes_disabled_actions() {
         (
             Started,
             [
-                Some(Canceled),
+                Some(Started),
                 None,
                 Some(Completed),
                 Some(Failed),
@@ -235,8 +232,15 @@ fn six_phase_transition_matrix_includes_disabled_actions() {
             } else {
                 vec![]
             };
-            let expected: Vec<_> =
-                next.into_iter().map(|phase| (outcome, facts.clone(), state(phase, 1))).collect();
+            let pending = phase == Started && *action == Client::Cancel.into();
+            let expected: Vec<_> = next
+                .into_iter()
+                .map(|phase| {
+                    let mut after = state(phase, 1);
+                    after.cancel_requested = pending;
+                    (outcome, facts.clone(), after)
+                })
+                .collect();
             assert_eq!(steps.as_slice(), expected.as_slice(), "{action} after {phase:?}");
         }
     }
@@ -373,7 +377,7 @@ fn nonpending_attempt_expiry_retries_with_exact_timeout_fact() -> umpire_testing
 fn retry_policy_caps_and_stale_delivery() {
     use crate::activity::activity::World;
     for maximum in [1, 3] {
-        let world = configured(maximum, false, [Some(1), Some(1), None, None]);
+        let world = configured(maximum, [Some(1), Some(1), None, None]);
         assert_eq!(world.starts(), [state(Phase::Scheduled, 1)]);
         for attempt in 1..=maximum {
             let scheduled = state(Phase::Scheduled, attempt);
@@ -410,9 +414,6 @@ fn retry_policy_caps_and_stale_delivery() {
     }
 }
 
-#[path = "compatibility/checkpoint.rs"]
-mod compatibility;
-
 #[test]
 #[allow(clippy::print_stderr)]
 fn actual_tlc_agrees_and_replays_retry_payload_counterexamples() -> umpire_testing::TestResult {
@@ -423,11 +424,11 @@ fn actual_tlc_agrees_and_replays_retry_payload_counterexamples() -> umpire_testi
     let folder = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../feature/activity");
     let source = std::fs::read_to_string(folder.join("model.rs"))?;
     let negative = format!(
-        "{source}\numpire_testing::fixture!(World = World::new(3, Some(Ticks(1)), Some(Ticks(1)), None, None, false), 4096, Claim::new(\"never_retried\", |_, state: &Model| (state.attempt == 1).into()));"
+        "{source}\numpire_testing::fixture!(World = World::new(3, Some(Ticks(1)), Some(Ticks(1)), None, None), 4096, Claim::new(\"never_retried\", |_, state: &Model| (state.attempt == 1).into()));"
     );
-    for (maximum, states, replayed) in [(1, 6, 0), (3, 18, 1)] {
+    for (maximum, states, replayed) in [(1, 7, 0), (3, 21, 1)] {
         let bound = umpire_testing::bound(
-            configured(maximum, false, [Some(1), Some(1), None, None]),
+            configured(maximum, [Some(1), Some(1), None, None]),
             64,
             Some(umpire_dsl::Claim::new("never_retried", |_, state: &Model| {
                 (state.attempt == 1).into()

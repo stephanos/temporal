@@ -18,7 +18,6 @@ pub fn world(parameters: Parameters) -> Result<World, ParameterError> {
             parameters.schedule_to_close,
             parameters.heartbeat_timeout,
         ],
-        parameters.asynchronous_cancel,
     )?;
     let timeout = |raw: Option<u8>| -> Result<Option<Ticks>, ParameterError> {
         raw.map(|ticks| {
@@ -33,7 +32,6 @@ pub fn world(parameters: Parameters) -> Result<World, ParameterError> {
         timeout(exact.start_to_close)?,
         timeout(exact.schedule_to_close)?,
         timeout(exact.heartbeat_timeout)?,
-        exact.asynchronous_cancel,
     );
     #[cfg(not(target_arch = "wasm32"))]
     exact.validate_world(&world, super::parameters::WorldSource::Protocol)?;

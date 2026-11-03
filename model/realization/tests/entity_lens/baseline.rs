@@ -133,7 +133,7 @@ impl Realize<activity::World> for LiveRealization {}
 
 fn fresh_model() -> ModelRuntime {
     Runtime::new(
-        activity::World::new(3, None, None, None, None, false),
+        activity::World::new(3, None, None, None, None),
         LiveRealization { inner: Realization::default(), receipt: None },
     )
 }
@@ -190,7 +190,7 @@ impl LiveRuntime {
                             "retry_policy.maximum_attempts must be explicitly in 1..=3",
                         )
                     })?;
-                    let world = activity::World::new(maximum, None, None, None, None, false);
+                    let world = activity::World::new(maximum, None, None, None, None);
                     let program = Realization::worker_program(&start, &world)?;
                     return Ok((
                         Outcome::Reset(protocol::ResetResponse::current(Some(program))),
@@ -398,7 +398,7 @@ impl LiveRuntime {
                 Some(LiveTransaction { change: Change::Freeze { receipt, refusal } }),
             ));
         };
-        let world = activity::World::new(maximum_attempts, None, None, None, None, false);
+        let world = activity::World::new(maximum_attempts, None, None, None, None);
         let starts = world.starts();
         let [initial] = starts.as_slice() else {
             return Err(state("admitted World requires exactly one start"));

@@ -47,7 +47,7 @@ impl Binding {
 
 #[cfg(not(feature = "invalid-enum"))]
 fn main() {
-    let world = activity::World::new(3, None, None, None, None, false);
+    let world = activity::World::new(3, None, None, None, None);
     let state = world.starts().remove(0);
     let observation = Any::pack(&author_kit::runtime::realization::Observation {
         method: "/temporal.api.workflowservice.v1.WorkflowService/RequestCancelActivityExecution"

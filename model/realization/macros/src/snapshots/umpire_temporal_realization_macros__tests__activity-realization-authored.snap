@@ -24,14 +24,7 @@ impl Realization {
                 ..Default::default()
             },
         );
-        let read = Any::pack(
-            &umpire_temporal_api::umpire::temporal::v1::ObserveActivity {
-                request: Some(describe),
-                poll_interval_ms: 10,
-                read_timeout_ms: 30_000,
-                backoff_ms: 10,
-            },
-        );
+        let read = Any::pack(&crate::support::scheduled_read(describe, 10, 30_000, 10));
         if !umpire_dsl::Phase::closed(&state.phase) && seed % 2 == 1 {
             return Ok(Proposal::Read { request: read });
         }

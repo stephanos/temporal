@@ -27,7 +27,7 @@ fn assert_pending(state: &Model, global: u8, running: u8, heartbeat: u8) {
 
 #[test]
 fn compatible_heartbeat_histories_require_distinct_global_and_local_expiry_facts() {
-    let world = configured(3, true, [None, Some(3), Some(3), Some(2)]);
+    let world = configured(3, [None, Some(3), Some(3), Some(2)]);
     let initial = world.starts().remove(0);
     assert_eq!(
         initial,

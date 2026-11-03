@@ -5,12 +5,12 @@ use umpire_temporal::activity_protocol::parameters::{
 };
 
 fn selected() -> Parameters {
-    Parameters::new(3, [Some(1), Some(2), Some(3), None], true)
+    Parameters::new(3, [Some(1), Some(2), Some(3), None])
         .unwrap_or_else(|error| panic!("invalid selected parameters: {error}"))
 }
 
 fn feature() -> World {
-    World::new(3, Some(Ticks(1)), Some(Ticks(2)), Some(Ticks(3)), None, true)
+    World::new(3, Some(Ticks(1)), Some(Ticks(2)), Some(Ticks(3)), None)
 }
 
 #[test]
@@ -20,32 +20,31 @@ fn effective_parameters_preserve_every_selected_field_and_provenance() -> umpire
     assert_eq!(validate_effective_world(&feature(), WorldSource::Feature)?, expected);
     let provenance = expected.validate_world(&feature(), WorldSource::Feature)?;
     assert!(provenance.source.ends_with("activity/model.rs"));
-    assert_eq!(provenance.fields.len(), 6);
+    assert_eq!(provenance.fields.len(), 5);
     assert_eq!(provenance.fields[0].name, "maximum_attempts");
     assert_eq!(provenance.fields[4].value, Value::Optional(None));
     assert!(provenance.fields.iter().all(|field| field.location.line > 0));
-    assert!(Parameters::new(1, [None; 4], false).is_ok());
+    assert!(Parameters::new(1, [None; 4]).is_ok());
     Ok(())
 }
 
 #[test]
 fn effective_parameters_refuse_invalid_bounds_without_substitution() {
     for maximum in [0, 4, u8::MAX] {
-        assert!(Parameters::new(maximum, [None; 4], false).is_err());
+        assert!(Parameters::new(maximum, [None; 4]).is_err());
     }
     for field in 0..4 {
         for value in [0, 4, u8::MAX] {
             let mut timeouts = [None; 4];
             timeouts[field] = Some(value);
-            assert!(Parameters::new(1, timeouts, false).is_err());
+            assert!(Parameters::new(1, timeouts).is_err());
         }
     }
-    let defaulted =
-        World::new(3, Some(Ticks(1)), Some(Ticks(2)), Some(Ticks(3)), Some(Ticks(1)), true);
+    let defaulted = World::new(3, Some(Ticks(1)), Some(Ticks(2)), Some(Ticks(3)), Some(Ticks(1)));
     assert!(selected().validate_world(&defaulted, WorldSource::Feature).is_err());
-    let clamped = World::new(2, Some(Ticks(1)), Some(Ticks(2)), Some(Ticks(3)), None, true);
+    let clamped = World::new(2, Some(Ticks(1)), Some(Ticks(2)), Some(Ticks(3)), None);
     assert!(selected().validate_world(&clamped, WorldSource::Feature).is_err());
-    let zero = World::new(3, Some(Ticks(1)), Some(Ticks(2)), Some(Ticks(3)), Some(Ticks(0)), true);
+    let zero = World::new(3, Some(Ticks(1)), Some(Ticks(2)), Some(Ticks(3)), Some(Ticks(0)));
     assert!(validate_effective_world(&zero, WorldSource::Feature).is_err());
 }
 
@@ -92,7 +91,7 @@ impl<const MUTATION: u8, const PROTOCOL: bool> Lifts for Control<MUTATION, PROTO
                 let Type::Optional(bounded) = &mut model.world_fields[1].ty else { panic!() };
                 bounded.backing = "u16".into();
             }
-            9 => model.world_fields.swap(0, 5),
+            9 => model.world_fields.swap(0, 4),
             _ => {}
         }
         embedded
@@ -128,14 +127,15 @@ fn exact_exports_refuse_missing_duplicate_renamed_retyped_and_nominally_wrong_va
         let mut kind = values.clone();
         kind[0].1 = Value::Bool(true);
         let mut nominal = values.clone();
-        nominal[1].1 = Value::Optional(Some(Box::new(Value::Bounded { name: "Remaining", raw: 1 })));
+        nominal[1].1 =
+            Value::Optional(Some(Box::new(Value::Bounded { name: "Remaining", raw: 1 })));
         let mut other_source = values.clone();
         other_source[1].1 = Value::Optional(Some(Box::new(Value::Bounded {
             name: if PROTOCOL { "umpire_dsl::countdown::Ticks<3>" } else { "Ticks" },
             raw: 1,
         })));
         let mut reordered = values;
-        reordered.swap(0, 5);
+        reordered.swap(0, 4);
         for mutant in [missing, duplicate, renamed, kind, nominal, other_source, reordered] {
             assert!(validate_effective_world(&Control::<0, PROTOCOL>(mutant), source).is_err());
         }
@@ -155,12 +155,11 @@ fn raw_start_applies_only_the_pinned_waiting_default_at_its_named_boundary()
         start_to_close: None,
         schedule_to_close: Some(3),
         heartbeat_timeout: Some(2),
-        asynchronous_cancel: true,
     };
-    assert_eq!(raw.into_effective()?, Parameters::new(3, [Some(3), None, Some(3), Some(2)], true)?);
+    assert_eq!(raw.into_effective()?, Parameters::new(3, [Some(3), None, Some(3), Some(2)])?);
     assert_eq!(
         RawStart { schedule_to_start: Some(1), ..raw }.into_effective()?,
-        Parameters::new(3, [Some(1), None, Some(3), Some(2)], true)?
+        Parameters::new(3, [Some(1), None, Some(3), Some(2)])?
     );
     assert!(RawStart { schedule_to_close: None, ..raw }.into_effective().is_err());
     let attempt_only = RawStart { start_to_close: Some(2), schedule_to_close: None, ..raw };

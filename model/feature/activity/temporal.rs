@@ -33,7 +33,7 @@ type Action = <activity::World as Machine>::Action;
 /// Creates one independently owned guest run.
 pub fn runtime() -> umpire_runtime::Runtime<activity::World, Realization> {
     umpire_runtime::Runtime::new(
-        activity::World::new(3, None, None, None, None, false),
+        activity::World::new(3, None, None, None, None),
         Realization::default(),
     )
 }

@@ -16,7 +16,7 @@ type TestResult = umpire_testing::TestResult;
 type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 
 fn selected(timeouts: [Option<u8>; 4]) -> Result<World> {
-    Ok(adapter::world(Parameters::new(2, timeouts, true)?)?)
+    Ok(adapter::world(Parameters::new(2, timeouts)?)?)
 }
 
 fn initial(world: &World) -> Result<Model> {

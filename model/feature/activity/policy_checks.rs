@@ -64,10 +64,10 @@ fn configured_deadlines_reject_zero_and_binding_bypass() {
         for invalid in [0, 4] {
             let mut timeouts = [None; 4];
             timeouts[index] = Some(invalid);
-            assert_eq!(checked_world(3, true, timeouts).err(), Some(field));
+            assert_eq!(checked_world(3, timeouts).err(), Some(field));
             let mut raw = [None; 4];
             raw[index] = Some(Ticks(invalid));
-            let world = World::new(3, raw[0], raw[1], raw[2], raw[3], true);
+            let world = World::new(3, raw[0], raw[1], raw[2], raw[3]);
             let error = bound_for(world)
                 .lift_source("model.rs", SOURCE)
                 .err()
@@ -76,83 +76,59 @@ fn configured_deadlines_reject_zero_and_binding_bypass() {
         }
     }
     for timeout in [None, Some(1), Some(3)] {
-        assert!(checked_world(3, true, [timeout; 4]).is_ok());
+        assert!(checked_world(3, [timeout; 4]).is_ok());
     }
 }
 
 #[test]
 fn cancellation_and_worker_races_have_exact_reachable_results() {
     for maximum in [1, 3] {
-        for asynchronous in [false, true] {
-            let world = configured(maximum, asynchronous, [Some(3); 4]);
-            for number in 1..=maximum {
-                let scheduled = attempt(&world, number, false, false);
-                assert_closed(&world, &scheduled, Client::Cancel.into(), Phase::Canceled);
-                let started = attempt(&world, number, true, false);
-                if asynchronous {
-                    let pending = accepted(&world, &started, Client::Cancel.into());
-                    let mut expected = started.clone();
-                    expected.cancel_requested = true;
-                    assert_eq!(pending, expected);
-                    assert_eq!(
-                        world
-                            .checked_step(&pending, Client::Cancel.into())
-                            .unwrap_or_default()
-                            .into_vec(),
-                        [(
-                            Outcome::Rejected(Rejection::FailedPrecondition),
-                            vec![],
-                            pending.clone()
-                        )]
-                    );
-                    assert_closed(
-                        &world,
-                        &pending,
-                        Worker::RespondCanceled(number).into(),
-                        Phase::Canceled,
-                    );
-                    assert_closed(
-                        &world,
-                        &pending,
-                        Worker::RespondCompleted.into(),
-                        Phase::Completed,
-                    );
-                    for (retryable, phase) in [(false, Phase::Failed), (true, Phase::Failed)] {
-                        assert_closed(
-                            &world,
-                            &pending,
-                            Worker::RespondFailed { retryable }.into(),
-                            phase,
-                        );
-                    }
-                    let ticked =
-                        world.checked_step(&pending, Deadline::Tick.into()).unwrap_or_default();
-                    assert_eq!(ticked.len(), 1);
-                    let consumed = &ticked[0].2;
-                    assert_eq!(consumed.phase, Phase::Started);
-                    let heartbeat = accepted(&world, consumed, Worker::Heartbeat.into());
-                    let mut expected = consumed.clone();
-                    expected.heartbeat_remaining = Some(Remaining { ticks: 3 });
-                    assert_eq!(heartbeat, expected);
-                } else {
-                    assert_closed(&world, &started, Client::Cancel.into(), Phase::Canceled);
-                }
-                assert_closed(&world, &started, Worker::RespondCompleted.into(), Phase::Completed);
-                assert_closed(
-                    &world,
-                    &started,
-                    Worker::RespondFailed { retryable: false }.into(),
-                    Phase::Failed,
-                );
-                let failed =
-                    accepted(&world, &started, Worker::RespondFailed { retryable: true }.into());
-                if number < maximum {
-                    let mut expected = scheduled;
-                    expected.attempt += 1;
-                    assert_eq!(failed, expected);
-                } else {
-                    assert_eq!(failed, cleared(&started, Phase::Failed));
-                }
+        let world = configured(maximum, [Some(3); 4]);
+        for number in 1..=maximum {
+            let scheduled = attempt(&world, number, false, false);
+            assert_closed(&world, &scheduled, Client::Cancel.into(), Phase::Canceled);
+            let started = attempt(&world, number, true, false);
+            let pending = accepted(&world, &started, Client::Cancel.into());
+            let mut expected = started.clone();
+            expected.cancel_requested = true;
+            assert_eq!(pending, expected);
+            assert_eq!(
+                world.checked_step(&pending, Client::Cancel.into()).unwrap_or_default().into_vec(),
+                [(Outcome::Rejected(Rejection::FailedPrecondition), vec![], pending.clone())]
+            );
+            assert_closed(
+                &world,
+                &pending,
+                Worker::RespondCanceled(number).into(),
+                Phase::Canceled,
+            );
+            assert_closed(&world, &pending, Worker::RespondCompleted.into(), Phase::Completed);
+            for (retryable, phase) in [(false, Phase::Failed), (true, Phase::Failed)] {
+                assert_closed(&world, &pending, Worker::RespondFailed { retryable }.into(), phase);
+            }
+            let ticked = world.checked_step(&pending, Deadline::Tick.into()).unwrap_or_default();
+            assert_eq!(ticked.len(), 1);
+            let consumed = &ticked[0].2;
+            assert_eq!(consumed.phase, Phase::Started);
+            let heartbeat = accepted(&world, consumed, Worker::Heartbeat.into());
+            let mut expected = consumed.clone();
+            expected.heartbeat_remaining = Some(Remaining { ticks: 3 });
+            assert_eq!(heartbeat, expected);
+            assert_closed(&world, &started, Worker::RespondCompleted.into(), Phase::Completed);
+            assert_closed(
+                &world,
+                &started,
+                Worker::RespondFailed { retryable: false }.into(),
+                Phase::Failed,
+            );
+            let failed =
+                accepted(&world, &started, Worker::RespondFailed { retryable: true }.into());
+            if number < maximum {
+                let mut expected = scheduled;
+                expected.attempt += 1;
+                assert_eq!(failed, expected);
+            } else {
+                assert_eq!(failed, cleared(&started, Phase::Failed));
             }
         }
     }
@@ -160,7 +136,7 @@ fn cancellation_and_worker_races_have_exact_reachable_results() {
 
 #[test]
 fn current_and_stale_worker_tokens_preserve_exact_availability() -> TestResult {
-    let world = configured(3, true, [None; 4]);
+    let world = configured(3, [None; 4]);
     for number in 1..=3 {
         for (started, pending) in [(false, false), (true, false), (true, true)] {
             let before = attempt(&world, number, started, pending);
@@ -269,7 +245,7 @@ fn each_deadline_expires_once_with_its_exact_fact() -> TestResult {
                         }
                         let mut timeouts = [None; 4];
                         timeouts[index] = Some(ticks);
-                        let world = configured(maximum, true, timeouts);
+                        let world = configured(maximum, timeouts);
                         let mut state = attempt(&world, number, index != 0, pending);
                         for remaining in (0..ticks).rev() {
                             let steps = world.checked_step(&state, Deadline::Tick.into())?;
@@ -312,7 +288,7 @@ fn simultaneous_expiry_obeys_global_then_attempt_then_heartbeat_priority() -> Te
             if pending && !started {
                 continue;
             }
-            let world = configured(3, true, timeouts);
+            let world = configured(3, timeouts);
             let before = attempt(&world, 1, started, pending);
             assert_eq!(
                 world.checked_step(&before, Deadline::Tick.into())?.into_vec(),
@@ -330,7 +306,7 @@ fn timeout_retry_rearms_waiting_then_poll_and_preserves_spanning_budget() -> Tes
             for global in [None, Some(3)] {
                 let mut timeouts = [Some(3), Some(3), global, Some(3)];
                 timeouts[index] = Some(1);
-                let world = configured(maximum, true, timeouts);
+                let world = configured(maximum, timeouts);
                 for number in 1..=maximum {
                     for pending in [false, true] {
                         let before = attempt(&world, number, true, pending);
@@ -409,7 +385,7 @@ fn timeout_retry_rearms_waiting_then_poll_and_preserves_spanning_budget() -> Tes
 
 #[test]
 fn poll_retry_and_heartbeat_reset_only_their_applicable_budgets() -> TestResult {
-    let world = configured(3, true, [Some(3); 4]);
+    let world = configured(3, [Some(3); 4]);
     let start = world.starts().remove(0);
     assert_eq!(start.schedule_to_start_remaining, Some(Remaining { ticks: 3 }));
     assert_eq!(start.schedule_to_close_remaining, Some(Remaining { ticks: 3 }));
@@ -466,8 +442,9 @@ fn extra_method(method: &str) -> String {
 
 fn check_trace_state(native: &Model, state: &umpire_tlc::State) {
     use umpire_tlc::Value;
-    let remaining =
-        |value: Option<Remaining<3>>| Value::Int(value.map_or(0, |value| i128::from(value.ticks) + 1));
+    let remaining = |value: Option<Remaining<3>>| {
+        Value::Int(value.map_or(0, |value| i128::from(value.ticks) + 1))
+    };
     assert_eq!(state.len(), 7);
     assert_eq!(state["phase"], Value::Text(format!("Phase::{:?}", native.phase)));
     assert_eq!(state["attempt"], Value::Int(i128::from(native.attempt)));
@@ -546,7 +523,7 @@ fn required_tlc_replays_both_pending_failure_payloads_at_every_attempt() -> Test
     for maximum in [1, 3] {
         for number in 1..=maximum {
             for retryable in [false, true] {
-                let world = configured(maximum, true, [None; 4]);
+                let world = configured(maximum, [None; 4]);
                 let method = format!(
                     r"
         #[progress]
@@ -622,7 +599,7 @@ fn required_tlc_replays_timeout_retries_with_exact_cause_and_budget() -> TestRes
         for (global, number) in [(None, 2), (Some(3), 1)] {
             let mut deadlines = [Some(3), None, global, None];
             deadlines[index] = Some(1);
-            let world = configured(3, true, deadlines);
+            let world = configured(3, deadlines);
             let source = extra_method(&format!(
                 r"
         #[postcondition(after = Deadline::Tick)]
@@ -692,7 +669,7 @@ fn required_tlc_replays_both_pending_attempt_expiry_facts() -> TestResult {
     for (index, fact) in [(1, ExpiredDeadline::StartToClose), (3, ExpiredDeadline::Heartbeat)] {
         let mut timeouts = [None; 4];
         timeouts[index] = Some(1);
-        let world = configured(3, true, timeouts);
+        let world = configured(3, timeouts);
         let module = only_property(
             bound_for(world.clone()).lift_source("model.rs", &source)?,
             "Post_false_pending_tick",
@@ -786,36 +763,20 @@ fn required_tlc_refutes_source_only_boundary_policy_mutants() -> TestResult {
         "if self.cancel_requested { self.phase = Phase::Canceled; self.clear_terminal(); } else { self.time_out(); }",
     );
     for (source, world, property) in [
-        (
-            pending_retries,
-            configured(3, true, [None; 4]),
-            "Progress_pending_retryable_failure_fails",
-        ),
-        (
-            retryable_cancels,
-            configured(3, true, [None; 4]),
-            "Progress_pending_retryable_failure_fails",
-        ),
+        (pending_retries, configured(3, [None; 4]), "Progress_pending_retryable_failure_fails"),
+        (retryable_cancels, configured(3, [None; 4]), "Progress_pending_retryable_failure_fails"),
         (
             nonretryable_loses,
-            configured(3, true, [None; 4]),
+            configured(3, [None; 4]),
             "Progress_pending_nonretryable_failure_fails",
         ),
         (
             pending_expiry_cancels,
-            configured(3, true, [None, Some(1), None, Some(1)]),
+            configured(3, [None, Some(1), None, Some(1)]),
             "Post_tick_priority",
         ),
-        (
-            heartbeat_closes,
-            configured(3, true, [None; 4]),
-            "Post_heartbeat_preserves_attempt_and_global",
-        ),
-        (
-            global_loses,
-            configured(3, true, [None, Some(1), Some(1), Some(1)]),
-            "Post_tick_priority",
-        ),
+        (heartbeat_closes, configured(3, [None; 4]), "Post_heartbeat_preserves_attempt_and_global"),
+        (global_loses, configured(3, [None, Some(1), Some(1), Some(1)]), "Post_tick_priority"),
     ] {
         let module = only_property(bound_for(world).lift_source("model.rs", &source)?, property);
         let result = tlc.check_module(&module)?;
@@ -849,7 +810,7 @@ fn required_tlc_fact_only_mutants_fail_replay_on_the_same_pending_tick() -> Test
     ] {
         let mut timeouts = [None; 4];
         timeouts[index] = Some(1);
-        let world = configured(3, true, timeouts);
+        let world = configured(3, timeouts);
         let source = replace_once(&witness, original, replacement);
         rejects_fact_mutant(&world, &source, "Post_false_pending_tick")?;
     }
@@ -882,7 +843,7 @@ fn required_tlc_nonexpiring_tick_fact_leak_fails_exact_replay() -> TestResult {
         .ok_or("missing nonexpiring fact leaf")?;
     let source =
         format!("{} Some(ExpiredDeadline::Heartbeat) {}", &witness[..tail.0], &witness[tail.1..]);
-    let world = configured(1, true, [None, None, Some(3), None]);
+    let world = configured(1, [None, None, Some(3), None]);
     rejects_fact_mutant(&world, &source, "Post_false_nonexpiring_tick")
 }
 
@@ -941,12 +902,12 @@ fn remaining_deadline_worlds_agree_compiled_interpreted_and_required_tlc() -> Te
 
 #[allow(clippy::print_stderr)]
 fn selected_deadline_worlds(partition: usize) -> TestResult {
-    let mut selections = vec![(1, false, [None; 4]), (3, true, [None; 4])];
-    for (maximum, asynchronous, ticks) in [(1, false, 1), (3, true, 3)] {
+    let mut selections = vec![(1, [None; 4]), (3, [None; 4])];
+    for (maximum, ticks) in [(1, 1), (3, 3)] {
         for index in [0, 2] {
             let mut deadlines = [None; 4];
             deadlines[index] = Some(ticks);
-            selections.push((maximum, asynchronous, deadlines));
+            selections.push((maximum, deadlines));
         }
     }
     for maximum in 1..=3 {
@@ -954,20 +915,20 @@ fn selected_deadline_worlds(partition: usize) -> TestResult {
             for global in [None, Some(1), Some(3)] {
                 let mut deadlines = [Some(3), None, global, None];
                 deadlines[index] = Some(1);
-                selections.push((maximum, true, deadlines));
+                selections.push((maximum, deadlines));
             }
         }
         for global in [None, Some(1)] {
-            selections.push((maximum, true, [None, Some(1), global, Some(1)]));
+            selections.push((maximum, [None, Some(1), global, Some(1)]));
         }
     }
     selections.extend([
-        (1, false, [Some(1), None, Some(1), None]),
-        (3, true, [None, Some(3), None, None]),
-        (3, true, [None, None, None, Some(3)]),
+        (1, [Some(1), None, Some(1), None]),
+        (3, [None, Some(3), None, None]),
+        (3, [None, None, None, Some(3)]),
     ]);
-    for (maximum, asynchronous, deadlines) in selections.into_iter().skip(partition).step_by(2) {
-        let world = configured(maximum, asynchronous, deadlines);
+    for (maximum, deadlines) in selections.into_iter().skip(partition).step_by(2) {
+        let world = configured(maximum, deadlines);
         let graph = umpire_testing::Checker::explore(&world, 4096)?;
         assert!(!graph.counts.cut);
         assert!(graph.counts.reached > 0 && graph.counts.emitted > 0);
@@ -996,14 +957,14 @@ fn selected_deadline_worlds(partition: usize) -> TestResult {
             (graph.counts.reached, graph.counts.emitted)
         );
         eprintln!(
-            "activity policy max={maximum} cooperative={asynchronous} timeouts={deadlines:?}: states={} edges={} cut={}",
+            "activity policy max={maximum} timeouts={deadlines:?}: states={} edges={} cut={}",
             graph.counts.reached, graph.counts.emitted, graph.counts.cut
         );
         if std::env::var("UMPIRE_BACKENDS").as_deref() == Ok("require") {
             let module = bound_for(world.clone()).lift_source("model.rs", SOURCE)?;
             let files = bound_for(world).check_module(&folder(), &module)?;
             eprintln!(
-                "activity policy max={maximum} cooperative={asynchronous} timeouts={deadlines:?}: {}",
+                "activity policy max={maximum} timeouts={deadlines:?}: {}",
                 files.get("tlc.txt").ok_or("missing TLC receipt")?
             );
         }

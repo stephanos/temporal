@@ -2,10 +2,10 @@
 source: umpire/dev/testing/src/runner.rs
 ---
 starts: 1
-reached: 28
-emitted: 103
-evaluated: 336
-refused: 233
+reached: 37
+emitted: 162
+evaluated: 444
+refused: 282
 depth: 6
 cut: false
 outcome: Verified

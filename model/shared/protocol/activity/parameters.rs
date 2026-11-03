@@ -15,8 +15,6 @@ pub struct Parameters {
     pub schedule_to_close: Option<u8>,
     /// Effective heartbeat budget.
     pub heartbeat_timeout: Option<u8>,
-    /// Whether running cancellation waits for an attempt boundary.
-    pub asynchronous_cancel: bool,
 }
 
 /// The independently selected declaration contract for an effective World.
@@ -56,11 +54,7 @@ impl Parameters {
     ///
     /// # Errors
     /// Refuses attempts outside one through three and present timeouts outside one through three.
-    pub fn new(
-        maximum_attempts: u8,
-        timeouts: [Option<u8>; 4],
-        asynchronous_cancel: bool,
-    ) -> Result<Self, ParameterError> {
+    pub fn new(maximum_attempts: u8, timeouts: [Option<u8>; 4]) -> Result<Self, ParameterError> {
         if !(1..=3).contains(&maximum_attempts) {
             return Err(ParameterError("maximum_attempts must be in 1..=3".into()));
         }
@@ -76,7 +70,6 @@ impl Parameters {
             start_to_close,
             schedule_to_close,
             heartbeat_timeout,
-            asynchronous_cancel,
         })
     }
 
@@ -117,8 +110,6 @@ pub struct RawStart {
     pub schedule_to_close: Option<u8>,
     /// Caller-selected heartbeat timeout.
     pub heartbeat_timeout: Option<u8>,
-    /// Selected cancellation mode.
-    pub asynchronous_cancel: bool,
 }
 
 impl RawStart {
@@ -135,7 +126,6 @@ impl RawStart {
                 self.schedule_to_close,
                 self.heartbeat_timeout,
             ],
-            self.asynchronous_cancel,
         )?;
         if supplied.start_to_close.is_none() && supplied.schedule_to_close.is_none() {
             return Err(ParameterError(
@@ -199,7 +189,6 @@ fn expected_schema(source: WorldSource) -> Vec<(&'static str, umpire_dsl::__lift
     });
     let mut fields = vec![("maximum_attempts", Type::Int { min: 0, max: 255 })];
     fields.extend(TIMEOUT_NAMES.map(|name| (name, ticks.clone())));
-    fields.push(("asynchronous_cancel", Type::Bool));
     fields
 }
 
@@ -223,7 +212,7 @@ fn inspect_world<M: umpire_dsl::Values + umpire_dsl::__lifted::Lifts>(
         || values.len() != expected.len()
     {
         return Err(ParameterError(
-            "effective World must declare and export exactly six fields".into(),
+            "effective World must declare and export exactly five fields".into(),
         ));
     }
     let mut provenance = WorldProvenance { source: embedded.file, fields: Vec::new() };
@@ -270,8 +259,5 @@ fn inspect_world<M: umpire_dsl::Values + umpire_dsl::__lifted::Lifts>(
                 _ => return Err(ParameterError(format!("{name} must export an optional value"))),
             };
     }
-    let Value::Bool(asynchronous) = values[5].1 else {
-        return Err(ParameterError("asynchronous_cancel must export a boolean".into()));
-    };
-    Ok((Parameters::new(maximum, timeouts, asynchronous)?, provenance))
+    Ok((Parameters::new(maximum, timeouts)?, provenance))
 }

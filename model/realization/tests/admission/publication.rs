@@ -109,7 +109,7 @@ fn success_freeze_and_composed_reset_roll_back_false_panic_and_oversize() {
                     else {
                         panic!("explore")
                     };
-                    assert_eq!(result.reached, 5);
+                    assert_eq!(result.reached, 6);
                 }
                 "freeze" => {
                     guest.judge(Any::pack(&describe(1, 1, 1))).refusal(RefusalCode::State);

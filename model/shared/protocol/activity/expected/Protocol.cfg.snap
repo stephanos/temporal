@@ -7,7 +7,6 @@ CONSTANT __umpire_world_schedule_to_start = 2
 CONSTANT __umpire_world_start_to_close = 2
 CONSTANT __umpire_world_schedule_to_close = 0
 CONSTANT __umpire_world_heartbeat_timeout = 0
-CONSTANT __umpire_world_asynchronous_cancel = TRUE
 INVARIANT Invariant_selected_attempts
 INVARIANT Invariant_outcome_and_pending_are_distinct
 INVARIANT Invariant_exact_budget_arming

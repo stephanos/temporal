@@ -32,8 +32,6 @@ pub mod protocol {
         pub schedule_to_close: Option<Ticks>,
         /// Maximum interval between successful heartbeats.
         pub heartbeat_timeout: Option<Ticks>,
-        /// Cooperative cancellation; false is the declared atomic compatibility abstraction.
-        pub asynchronous_cancel: bool,
     }
 
     fn attempts(world: &World) -> impl Iterator<Item = u8> {
@@ -183,14 +181,14 @@ pub mod protocol {
         }
 
         #[on(Client)]
-        fn client(&mut self, action: Client, world: &World) {
+        fn client(&mut self, action: Client) {
             match action {
                 Client::RequestCancel => {
                     if self.lifecycle == Lifecycle::Closed {
                         reject!(Rejection::NotFound);
                     } else if self.cancellation_pending {
                         reject!(Rejection::FailedPrecondition);
-                    } else if self.lifecycle == Lifecycle::Executing && world.asynchronous_cancel {
+                    } else if self.lifecycle == Lifecycle::Executing {
                         self.cancellation_pending = true;
                     } else {
                         self.terminal_outcome = Terminal::Canceled;
@@ -381,14 +379,11 @@ pub mod protocol {
         }
 
         #[invariant]
-        fn outcome_and_pending_are_distinct(&self, world: &World) {
+        fn outcome_and_pending_are_distinct(&self) {
             check!(
                 (self.lifecycle == Lifecycle::Closed) == (self.terminal_outcome != Terminal::None)
             );
-            check!(
-                !self.cancellation_pending
-                    || (world.asynchronous_cancel && self.lifecycle == Lifecycle::Executing)
-            );
+            check!(!self.cancellation_pending || self.lifecycle == Lifecycle::Executing);
         }
 
         #[invariant]

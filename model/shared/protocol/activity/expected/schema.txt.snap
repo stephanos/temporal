@@ -91,15 +91,6 @@ World fields: [
             message: "",
         },
     },
-    WorldField {
-        name: "asynchronous_cancel",
-        ty: Bool,
-        location: Diagnostic {
-            line: 35,
-            column: 9,
-            message: "",
-        },
-    },
 ]
 Full-state fields: [
     FieldDef {
@@ -114,7 +105,7 @@ Full-state fields: [
         },
         start: Computed,
         location: Diagnostic {
-            line: 141,
+            line: 139,
             column: 9,
             message: "",
         },
@@ -127,7 +118,7 @@ Full-state fields: [
         },
         start: Computed,
         location: Diagnostic {
-            line: 143,
+            line: 141,
             column: 9,
             message: "",
         },
@@ -137,7 +128,7 @@ Full-state fields: [
         ty: Bool,
         start: Computed,
         location: Diagnostic {
-            line: 145,
+            line: 143,
             column: 9,
             message: "",
         },
@@ -156,7 +147,7 @@ Full-state fields: [
         },
         start: Computed,
         location: Diagnostic {
-            line: 147,
+            line: 145,
             column: 9,
             message: "",
         },
@@ -177,7 +168,7 @@ Full-state fields: [
         },
         start: Computed,
         location: Diagnostic {
-            line: 149,
+            line: 147,
             column: 9,
             message: "",
         },
@@ -199,7 +190,7 @@ Full-state fields: [
         ),
         start: Computed,
         location: Diagnostic {
-            line: 151,
+            line: 149,
             column: 9,
             message: "",
         },
@@ -221,7 +212,7 @@ Full-state fields: [
         ),
         start: Computed,
         location: Diagnostic {
-            line: 153,
+            line: 151,
             column: 9,
             message: "",
         },
@@ -243,7 +234,7 @@ Full-state fields: [
         ),
         start: Computed,
         location: Diagnostic {
-            line: 155,
+            line: 153,
             column: 9,
             message: "",
         },
@@ -265,7 +256,7 @@ Full-state fields: [
         ),
         start: Computed,
         location: Diagnostic {
-            line: 157,
+            line: 155,
             column: 9,
             message: "",
         },

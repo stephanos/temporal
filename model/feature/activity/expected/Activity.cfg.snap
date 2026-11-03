@@ -7,7 +7,6 @@ CONSTANT __umpire_world_schedule_to_start = 2
 CONSTANT __umpire_world_start_to_close = 2
 CONSTANT __umpire_world_schedule_to_close = 0
 CONSTANT __umpire_world_heartbeat_timeout = 0
-CONSTANT __umpire_world_asynchronous_cancel = FALSE
 INVARIANT Invariant_policy_in_range
 INVARIANT Invariant_attempt_within_policy
 INVARIANT Invariant_countdowns_within_budget
@@ -15,6 +14,7 @@ INVARIANT Invariant_deadline_arming
 INVARIANT Invariant_pending_is_cooperative
 PROPERTY Post_terminal_remains
 PROPERTY Post_closed_rejects
+PROPERTY Post_started_cancel_is_pending
 PROPERTY Post_global_never_replenished
 PROPERTY Post_tick_descends_and_expires
 PROPERTY Post_countdowns_decrement

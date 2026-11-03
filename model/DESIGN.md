@@ -710,10 +710,9 @@ The default World reaches 18 states, emits 48 choices from 162 evaluations, refu
 disabled actions and reaches depth 6 without a cut. Coverage is `Cases(3 * 7) = 21`: seven
 scheduled/started closing or retry alternatives per attempt, each with an exact witness.
 [Compatibility](feature/activity/compatibility/README.md) retains all 15 immutable
-artifacts pinned at `af0ebafc571d33651fdf2c008d4415ad72467a0d`. The explicit one-attempt
-state/action/fact projection equals the original six-state/eleven-edge graph, including both
-deadlines and four rejected terminal Cancel loops; a changed deadline fails that comparison.
-This is the retry checkpoint, not old-byte equality. fn-237.3 owns final Tick-era compatibility.
+artifacts pinned at `af0ebafc571d33651fdf2c008d4415ad72467a0d`. At this checkpoint the explicit
+one-attempt atomic projection equalled the original six-state/eleven-edge graph; fn-253.10
+retired that control with the cancellation-mode flag and keeps the artifacts as provenance.
 
 ### Live admission and retained verification
 

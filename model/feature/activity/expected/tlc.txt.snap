@@ -2,7 +2,7 @@
 source: umpire/dev/testing/src/runner.rs
 ---
 TLC 1.7.4; complete source-lifted exploration
-states: 18; native: 18; agreement: yes
+states: 21; native: 21; agreement: yes
 claim attempt_changes_only_on_retry: Verified; native: Verified; agreement: yes
 claim attempt_within_policy: Verified; native: Verified; agreement: yes
 claim closed_rejects: Verified; native: Verified; agreement: yes
@@ -19,6 +19,7 @@ claim pending_is_cooperative: Verified; native: Verified; agreement: yes
 claim pending_nonretryable_failure_fails: Verified; native: Verified; agreement: yes
 claim pending_retryable_failure_fails: Verified; native: Verified; agreement: yes
 claim policy_in_range: Verified; native: Verified; agreement: yes
+claim started_cancel_is_pending: Verified; native: Verified; agreement: yes
 claim terminal_remains: Verified; native: Verified; agreement: yes
 claim tick_descends_and_expires: Verified; native: Verified; agreement: yes
 claim tick_priority: Verified; native: Verified; agreement: yes

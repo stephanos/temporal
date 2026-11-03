@@ -149,7 +149,7 @@ fn edits() -> Vec<(String, String)> {
 fn source_only_budget_reset_priority_outcome_and_fact_mutants_disagree()
 -> umpire_testing::TestResult {
     use std::fmt::Write;
-    let world = configured(3, [Some(3), Some(2), Some(3), Some(2)], true);
+    let world = configured(3, [Some(3), Some(2), Some(3), Some(2)]);
     let healthy = World::__umpire_lifted().model.map_err(|error| format!("{error:?}"))?;
     assert_eq!(healthy.fields.len(), 9);
     let mut controls = String::new();
@@ -177,13 +177,13 @@ fn required_tlc_fact_counterexample_replays_and_refuses_changed_expiry_fact()
     if std::env::var("UMPIRE_BACKENDS").as_deref() != Ok("require") {
         return Ok(());
     }
-    let world = configured(2, [Some(1), Some(1), None, None], true);
+    let world = configured(2, [Some(1), Some(1), None, None]);
     let claim = || {
         umpire_dsl::Claim::new("no_attempt_timeout", |_: &World, state: &Model| {
             (state.retained_failure != Failure::StartToClose).into()
         })
     };
-    let suffix = "\numpire_testing::fixture!(World = World::new(2, Some(Ticks(1)), Some(Ticks(1)), None, None, true), 4096, Claim::new(\"no_attempt_timeout\", |_, state: &Model| (state.retained_failure != Failure::StartToClose).into()));";
+    let suffix = "\numpire_testing::fixture!(World = World::new(2, Some(Ticks(1)), Some(Ticks(1)), None, None), 4096, Claim::new(\"no_attempt_timeout\", |_, state: &Model| (state.retained_failure != Failure::StartToClose).into()));";
     let selected = umpire_testing::bound(world.clone(), BUDGET, Some(claim()));
     let healthy = selected.lift_source("model.rs", &format!("{SOURCE}{suffix}"))?;
     let result = selected.check_module(&folder(), &healthy)?;

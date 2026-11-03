@@ -9,16 +9,16 @@ type TestResult = umpire_testing::TestResult;
 const BUDGET: usize = 4096;
 const SOURCE: &str = include_str!("model.rs");
 
-fn configured(maximum: u8, timeouts: [Option<u8>; 4], cooperative: bool) -> World {
+fn configured(maximum: u8, timeouts: [Option<u8>; 4]) -> World {
     assert!((1..=3).contains(&maximum));
     let [waiting, running, global, heartbeat] = timeouts.map(|raw| {
         raw.map(|ticks| Ticks::try_new(ticks).unwrap_or_else(|| panic!("invalid timeout")))
     });
-    World::new(maximum, waiting, running, global, heartbeat, cooperative)
+    World::new(maximum, waiting, running, global, heartbeat)
 }
 
 fn world() -> World {
-    configured(2, [Some(1), Some(1), None, None], true)
+    configured(2, [Some(1), Some(1), None, None])
 }
 
 fn folder() -> std::path::PathBuf {
@@ -79,7 +79,7 @@ fn terminal_result_and_retained_failure_are_independent() -> TestResult {
 #[test]
 fn cancellation_notification_failure_timeout_and_acknowledgement_are_distinct() -> TestResult {
     for cap in 1..=3 {
-        let world = configured(cap, [Some(2), Some(1), None, Some(1)], true);
+        let world = configured(cap, [Some(2), Some(1), None, Some(1)]);
         let scheduled = world.starts().remove(0);
         let canceled = accepted(&world, &scheduled, Client::RequestCancel.into())?;
         assert_eq!(canceled.terminal_outcome, Terminal::Canceled);
@@ -111,7 +111,7 @@ fn cancellation_notification_failure_timeout_and_acknowledgement_are_distinct() 
 
 #[test]
 fn latent_budgets_count_down_reset_span_retry_and_select_exact_priority() -> TestResult {
-    let world = configured(3, [Some(3), Some(2), Some(3), Some(1)], true);
+    let world = configured(3, [Some(3), Some(2), Some(3), Some(1)]);
     let scheduled = world.starts().remove(0);
     let running = accepted(&world, &scheduled, Worker::Deliver(1).into())?;
     let expiry = world.checked_step(&running, Timer::Tick.into())?;
@@ -137,7 +137,7 @@ fn latent_budgets_count_down_reset_span_retry_and_select_exact_priority() -> Tes
         ([None, Some(2), None, Some(1)], Expired::Heartbeat),
         ([Some(1), Some(1), Some(1), Some(1)], Expired::ScheduleToClose),
     ] {
-        let world = configured(1, timeouts, true);
+        let world = configured(1, timeouts);
         let start = world.starts().remove(0);
         let before = if expected == Expired::ScheduleToStart {
             start
@@ -153,7 +153,7 @@ fn latent_budgets_count_down_reset_span_retry_and_select_exact_priority() -> Tes
 
 #[test]
 fn erased_budgets_and_present_zero_are_observable_to_full_state_laws() -> TestResult {
-    let world = configured(2, [Some(2); 4], true);
+    let world = configured(2, [Some(2); 4]);
     let start = world.starts().remove(0);
     for (index, replacement) in (0..4).flat_map(|index| {
         [None, Some(Remaining { ticks: 0 })].map(|replacement| (index, replacement))
@@ -176,7 +176,7 @@ fn erased_budgets_and_present_zero_are_observable_to_full_state_laws() -> TestRe
         .verify_all()?;
         assert_eq!(report.outcome(), umpire_dsl::CheckOutcome::Refuted);
     }
-    let no_timer = configured(3, [None; 4], true);
+    let no_timer = configured(3, [None; 4]);
     assert!(no_timer.checked_step(&no_timer.starts()[0], Timer::Tick.into())?.is_empty());
     Ok(())
 }
@@ -195,23 +195,15 @@ fn protocol_local_adapter_and_feature_schema_share_exact_parameters_without_worl
 -> TestResult {
     use umpire_temporal::activity_protocol::{adapter, parameters::Parameters};
     for maximum in 1..=3 {
-        for cooperative in [false, true] {
-            for timeouts in [[None; 4], [Some(1); 4], [Some(3), None, Some(2), Some(1)]] {
-                let parameters = Parameters::new(maximum, timeouts, cooperative)?;
-                let protocol = adapter::world(parameters)?;
-                parameters.validate_world(&protocol, parameters::WorldSource::Protocol)?;
-                let [wait, run, global, heartbeat] =
-                    timeouts.map(|raw| raw.map(crate::activity::activity::Ticks));
-                let feature = crate::activity::activity::World::new(
-                    maximum,
-                    wait,
-                    run,
-                    global,
-                    heartbeat,
-                    cooperative,
-                );
-                parameters.validate_world(&feature, parameters::WorldSource::Feature)?;
-            }
+        for timeouts in [[None; 4], [Some(1); 4], [Some(3), None, Some(2), Some(1)]] {
+            let parameters = Parameters::new(maximum, timeouts)?;
+            let protocol = adapter::world(parameters)?;
+            parameters.validate_world(&protocol, parameters::WorldSource::Protocol)?;
+            let [wait, run, global, heartbeat] =
+                timeouts.map(|raw| raw.map(crate::activity::activity::Ticks));
+            let feature =
+                crate::activity::activity::World::new(maximum, wait, run, global, heartbeat);
+            parameters.validate_world(&feature, parameters::WorldSource::Feature)?;
         }
     }
     Ok(())
@@ -219,18 +211,18 @@ fn protocol_local_adapter_and_feature_schema_share_exact_parameters_without_worl
 
 fn selected_worlds() -> Vec<World> {
     vec![
-        configured(1, [Some(1), Some(1), None, None], false),
-        configured(3, [Some(1), Some(1), None, None], false),
-        configured(3, [None; 4], true),
+        configured(1, [Some(1), Some(1), None, None]),
+        configured(3, [Some(1), Some(1), None, None]),
+        configured(3, [None; 4]),
         world(),
-        configured(1, [None, None, Some(3), None], true),
-        configured(3, [None, None, None, Some(2)], true),
-        configured(3, [Some(3); 4], true),
-        configured(2, [Some(1); 4], true),
-        configured(2, [None, Some(2), None, Some(2)], true),
-        configured(3, [Some(3), Some(1), Some(3), None], true),
-        configured(2, [None, Some(3), Some(3), Some(2)], true),
-        configured(3, [Some(2), None, None, None], true),
+        configured(1, [None, None, Some(3), None]),
+        configured(3, [None, None, None, Some(2)]),
+        configured(3, [Some(3); 4]),
+        configured(2, [Some(1); 4]),
+        configured(2, [None, Some(2), None, Some(2)]),
+        configured(3, [Some(3), Some(1), Some(3), None]),
+        configured(2, [None, Some(3), Some(3), Some(2)]),
+        configured(3, [Some(2), None, None, None]),
     ]
 }
 
@@ -240,9 +232,8 @@ fn scope(world: &World) -> Result<String, Box<dyn std::error::Error>> {
     let raw_timeouts = (values.start_to_close.is_some() || values.schedule_to_close.is_some())
         && (values.schedule_to_start.is_some() || values.schedule_to_close.is_none());
     Ok(format!(
-        "{values:?}; timeout-scope={}; cancellation-scope={}; bound={BUDGET}",
-        if raw_timeouts { "raw-realizable" } else { "abstract-checker" },
-        if values.asynchronous_cancel { "cooperative" } else { "atomic-compatibility" }
+        "{values:?}; timeout-scope={}; bound={BUDGET}",
+        if raw_timeouts { "raw-realizable" } else { "abstract-checker" }
     ))
 }
 
@@ -315,8 +306,8 @@ fn selected_worlds_are_complete_compiled_interpreted_and_required_tlc_scopes() -
 #[test]
 fn backend_refuses_wrong_world_cut_graph_and_unsupported_source() -> TestResult {
     let selected = bound(world());
-    let wrong = bound(configured(1, [Some(1), Some(1), None, None], true))
-        .lift_source("model.rs", SOURCE)?;
+    let wrong =
+        bound(configured(1, [Some(1), Some(1), None, None])).lift_source("model.rs", SOURCE)?;
     let refusal = selected.check_module(&folder(), &wrong).err().ok_or("wrong World admitted")?;
     assert!(refusal.to_string().contains("World"), "{refusal}");
     let module = bound(world()).lift_source("model.rs", SOURCE)?;

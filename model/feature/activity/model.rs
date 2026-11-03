@@ -29,8 +29,6 @@ pub mod activity {
         pub schedule_to_close: Option<Ticks<3>>,
         /// Running budget reset by heartbeats.
         pub heartbeat_timeout: Option<Ticks<3>>,
-        /// Whether cancellation of a running attempt is cooperative.
-        pub asynchronous_cancel: bool,
     }
 
     fn attempts(world: &World) -> impl Iterator<Item = u8> {
@@ -149,11 +147,11 @@ pub mod activity {
         }
 
         #[on(Client)]
-        fn client(&mut self, action: Client, world: &World) {
+        fn client(&mut self, action: Client) {
             match action {
                 Client::Cancel if self.closed() => reject!(Rejection::NotFound),
                 Client::Cancel if self.cancel_requested => reject!(Rejection::FailedPrecondition),
-                Client::Cancel if world.asynchronous_cancel && self.phase == Phase::Started => {
+                Client::Cancel if self.phase == Phase::Started => {
                     self.cancel_requested = true;
                 }
                 Client::Cancel => {
@@ -282,8 +280,8 @@ pub mod activity {
                 || countdown::armed(self.heartbeat_remaining)
         }
 
-        fn pending_cancel(&self, world: &World) -> bool {
-            world.asynchronous_cancel && self.phase == Phase::Started && self.cancel_requested
+        fn pending_cancel(&self) -> bool {
+            self.phase == Phase::Started && self.cancel_requested
         }
 
         fn running_without_cancel(&self) -> bool {
@@ -345,11 +343,8 @@ pub mod activity {
         }
 
         #[invariant]
-        fn pending_is_cooperative(&self, world: &World) {
-            check!(
-                !self.cancel_requested
-                    || (world.asynchronous_cancel && self.phase == Phase::Started)
-            );
+        fn pending_is_cooperative(&self) {
+            check!(!self.cancel_requested || self.phase == Phase::Started);
         }
 
         #[postcondition]
@@ -360,6 +355,13 @@ pub mod activity {
         #[postcondition]
         fn closed_rejects(&self, before: &Self, outcome: &Outcome) {
             closable::closed_rejects(self, before, outcome, Rejection::NotFound);
+        }
+
+        #[postcondition(after = Client::Cancel)]
+        fn started_cancel_is_pending(&self, before: &Self) {
+            if before.phase == Phase::Started && !before.cancel_requested {
+                check!(self.phase == Phase::Started && self.cancel_requested);
+            }
         }
 
         #[postcondition]
@@ -491,14 +493,14 @@ pub mod activity {
         }
 
         #[progress]
-        fn pending_retryable_failure_fails(&self, world: &World) -> LeadsTo {
-            path![self.pending_cancel(world), ..=1, self.phase == Phase::Failed]
+        fn pending_retryable_failure_fails(&self) -> LeadsTo {
+            path![self.pending_cancel(), ..=1, self.phase == Phase::Failed]
                 .assuming(only([Worker::RespondFailed { retryable: true }]))
         }
 
         #[progress]
-        fn pending_nonretryable_failure_fails(&self, world: &World) -> LeadsTo {
-            path![self.pending_cancel(world), ..=1, self.phase == Phase::Failed]
+        fn pending_nonretryable_failure_fails(&self) -> LeadsTo {
+            path![self.pending_cancel(), ..=1, self.phase == Phase::Failed]
                 .assuming(only([Worker::RespondFailed { retryable: false }]))
         }
 

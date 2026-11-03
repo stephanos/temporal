@@ -108,6 +108,13 @@ impl umpire_runtime::capability::Snapshot<activity::World> for LiveRealization {
         current: &activity::Model,
     ) -> Result<Projection<Action, umpire_dsl::Outcome, NoTarget>, Refusal> {
         let observed = crate::support::Observed::new(actual)?;
+        if observed.method == CANCEL && current.phase == activity::Phase::Started {
+            // The cooperative Model records a pending request here; live evidence of its
+            // heartbeat report and acknowledgement is not bound yet.
+            return Err(Refusal::unsupported(
+                "cancel_requested: live admission cannot evidence a pending cancellation of a Started attempt",
+            ));
+        }
         if observed.method != START {
             return Realize::observe(&self.inner, world, actual, current);
         }
@@ -134,7 +141,7 @@ impl Realize<activity::World> for LiveRealization {}
 
 fn fresh_model() -> ModelRuntime {
     Runtime::new(
-        activity::World::new(3, None, None, None, None, false),
+        activity::World::new(3, None, None, None, None),
         LiveRealization { inner: Realization::default(), receipt: None },
     )
 }
@@ -164,7 +171,7 @@ impl EntityBinding for ActivityEntity {
         let maximum = u8::try_from(maximum).map_err(|_| {
             Refusal::unsupported("retry_policy.maximum_attempts must be explicitly in 1..=3")
         })?;
-        let world = activity::World::new(maximum, None, None, None, None, false);
+        let world = activity::World::new(maximum, None, None, None, None);
         Realization::worker_program(&start, &world)
     }
     fn bootstrap(&self, configuration: &Any, seed: u64) -> Result<Any, Refusal> {
@@ -230,7 +237,7 @@ impl EntityBinding for ActivityEntity {
                 Refusal::unsupported("retry_policy.maximum_attempts must be explicitly in 1..=3");
             return Ok(Admission::Frozen { receipt, refusal });
         };
-        let world = activity::World::new(maximum_attempts, None, None, None, None, false);
+        let world = activity::World::new(maximum_attempts, None, None, None, None);
         let starts = world.starts();
         let [initial] = starts.as_slice() else {
             return Err(state("admitted World requires exactly one start"));

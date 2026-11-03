@@ -537,15 +537,16 @@ Exact Poll(1)..Poll(maximum_attempts) and RespondCompleted weak fairness establi
 closure, including timeoutless Worlds. Registered countdown laws establish the spanning
 actual-Tick bound across arbitrary interleavings. The [activity guide](feature/activity/README.md)
 states arming/reset rules, cancellation boundaries, the induction and availability controls.
-Its [compatibility projection](feature/activity/compatibility/README.md) validates
-one atomic attempt with one-tick waiting/running deadlines against all 15 original artifacts,
-retaining exactly one start, six states and eleven old visible edges.
+Cancellation is always cooperative. The former atomic [compatibility projection](feature/activity/compatibility/README.md)
+against the 15 original artifacts is retired; the artifacts remain as provenance.
 
-The default offline three-attempt World reaches 18 states and emits 63 edges from 216
-evaluations, with 153 disabled evaluations and depth six. Its 17 claims verify natively;
-Cases(3 * 7) retains 21 atomic witnesses. Expanded cooperative Worlds are checked separately.
-Live constructors keep request-derived maximum_attempts, absent timeouts and atomic
-cancellation until the downstream binding work; checker Worlds grant no live capability.
+The default offline three-attempt World reaches 21 states and emits 96 edges from 252
+evaluations, with 156 disabled evaluations and depth six. Its 20 claims verify natively;
+Cases(3 * 7) retains 21 closing, pending or retry witnesses. Expanded Worlds are checked separately.
+Live constructors keep request-derived maximum_attempts and absent timeouts; live admission
+refuses a Cancel against a Started attempt as `cancel_requested` Unsupported until the
+downstream binding evidences pending heartbeat and acknowledgement. Checker Worlds grant
+no live capability.
 
 `terminal_remains` and `closed_rejects` are registered postconditions, delegating to the
 shared closure laws. Fn-221 adds a rejected cancel self-loop at each of the four terminal

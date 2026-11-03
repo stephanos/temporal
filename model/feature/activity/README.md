@@ -1,8 +1,8 @@
 # Activity deadlines and cancellation
 
 The independent `feature/activity/model.rs` declares a retry World with
-`maximum_attempts` one through three, four optional `countdown::Ticks<3>` deadlines and
-`asynchronous_cancel`. State carries phase, attempt, a pending cancellation bit and
+`maximum_attempts` one through three and four optional `countdown::Ticks<3>` deadlines.
+Cancellation is always cooperative. State carries phase, attempt, a pending cancellation bit and
 four optional `countdown::Remaining<3>` countdowns. The explicit offline fixture factory
 checks each configuration field. Raw `World::new` remains infallible; authored bounds
 and arming invariants independently check native states and updates. Source binding
@@ -26,8 +26,8 @@ global budget is preserved. The next accepted Poll arms the new attempt timers. 
 cap, local expiry closes TimedOut; ScheduleToStart expiry always closes TimedOut. Ordinary and nonexpiring edges have empty facts. Tick is
 disabled with no live budget, including after closure.
 
-Atomic Cancel closes immediately. Cooperative Scheduled Cancel also closes immediately;
-Started Cancel records pending without changing any budget. A fresh distinct pending
+Scheduled Cancel closes immediately; Started Cancel records pending without changing
+any budget (`started_cancel_is_pending`). A fresh distinct pending
 Cancel rejects FailedPrecondition with an exact self-loop; same-request-ID replay has no
 outcome promise. Heartbeat preserves pending and never closes. Current pending
 `RespondCanceled(attempt)` closes Canceled; Complete and nonretryable failure can win.
@@ -53,29 +53,25 @@ heartbeats or rejected actions. Separate transition-availability controls detect
 Ticks, which the numerical upper bound alone cannot exclude. No history counter or cut
 supplies this proof.
 
-The default fixture remains atomic with three attempts, one-tick ScheduleToStart and
-StartToClose, and absent global/heartbeat deadlines. Its complete graph has 18 states,
-63 emitted choices from 216 evaluations, 153 disabled evaluations and depth six.
-Its 19 registered claims pass natively. `Cases(3 * 7)` retains the 21 scheduled/started
-closing or retry witnesses in their atomic scope, including timeout retries below the cap. Cooperative and larger deadline Worlds
-are checked separately; verification records their exact counts and backend evidence.
+The default fixture has three attempts, one-tick ScheduleToStart and StartToClose, and
+absent global/heartbeat deadlines. Its complete graph has 21 states, 96 emitted choices
+from 252 evaluations, 156 disabled evaluations and depth six. Its 20 registered claims
+pass natively. `Cases(3 * 7)` retains the 21 scheduled/started closing, pending or retry
+witnesses, including timeout retries below the cap. Larger deadline Worlds are checked
+separately; verification records their exact counts and backend evidence.
 
-`feature/activity/compatibility/` retains all 15 original artifacts; the active
-gate compares their independently retained lifecycle semantics. The final one-attempt
-atomic World has one-tick waiting and running budgets. Projection validates full state, maps each Tick using its singleton
-expiry fact and erases only an Accepted, empty-fact, unchanged Started Heartbeat.
-Failure payload assignments deduplicate after projection. Exact comparison retains one
-start, six states and eleven old visible edges, including all four terminal Cancel
-NotFound loops; changing an old edge fails the same relation. Original bytes and the
-semantic verifier remain unchanged.
+`feature/activity/compatibility/original/` keeps all 15 original artifacts as provenance.
+The lifecycle comparison against them (fn-237 R3) is retired: it needed an atomic
+cancellation World, which no live behaviour matches. See [compatibility](compatibility/README.md).
 
-Live constructors retain actual admitted maximum_attempts with all four timeouts absent
-and atomic cancellation. The production runtime default uses the same policy at maximum
-three. Request timeout/protocol admission, heartbeat and acknowledgement program rows,
+Live constructors retain actual admitted maximum_attempts with all four timeouts absent.
+The production runtime default uses the same policy at maximum three. Live admission
+refuses a Cancel observed against a Started attempt as `cancel_requested` Unsupported,
+because the binding does not yet evidence the pending heartbeat and acknowledgement. Request timeout/protocol admission, heartbeat and acknowledgement program rows,
 and cancellation observation evidence remain downstream work. The existing unheld
-atomic cancellation refusal remains exact. A checker World grants no live capability.
+open-cancellation refusal remains exact. A checker World grants no live capability.
 
-The [original pre-correction verification record](../../../.flow/artifacts/fn-237-activity-timeouts-heartbeat-and/activity-policy-verification.md) retains the original selected World counts, TLC/replay controls, fairness lists and timing; it is historical evidence, not proof of the corrected transitions. The [retained lifecycle projection](compatibility/README.md) specifies every erased field and edge.
+The [original pre-correction verification record](../../../.flow/artifacts/fn-237-activity-timeouts-heartbeat-and/activity-policy-verification.md) retains the original selected World counts, TLC/replay controls, fairness lists and timing; it is historical evidence, not proof of the corrected transitions. The [retired lifecycle projection](compatibility/README.md) records why the old control was removed.
 
 ## Temporal deadline pattern
 
@@ -110,14 +106,11 @@ closes TimedOut. The global budget is armed only initially and never replenished
 Poll, retry, Heartbeat or Cancel. Nonexpiring and ordinary actions emit no expiry
 fact; no Tick is enabled after closure or with every budget absent.
 
-The pending-state rules apply only to Started cooperative cancellation
-(`asynchronous_cancel = true`): Cancel preserves budgets, Heartbeat preserves the
-pending bit, worker failure closes Failed without retry, and local expiry closes
-TimedOut. Current pending acknowledgement closes Canceled; completion may still win.
-The existing atomic mode and [lifecycle compatibility control](compatibility/README.md)
-remain in scope. Removing the mode flag belongs to the separately gated
-[cancellation task](../../../.flow/tasks/fn-253-reusable-deadline-countdowns-for-models.10.md),
-not to adoption of this pattern.
+The pending-state rules apply to Started cancellation: Cancel preserves budgets,
+Heartbeat preserves the pending bit, worker failure closes Failed without retry, and
+local expiry closes TimedOut. Current pending acknowledgement closes Canceled;
+completion may still win. The [cancellation task](../../../.flow/tasks/fn-253-reusable-deadline-countdowns-for-models.10.md)
+removed the former atomic mode flag.
 
 Current implementation owners are `initial` and `worker` for arming/reset,
 `deadline` plus `decrement` for Tick/priority, `time_out_attempt` for local expiry,
@@ -168,10 +161,11 @@ terminalization and exercise erroneous cap/pending retry, global reset/priority,
 waiting reset, attempt increment and replaced/missing timeout facts. A timeout fact
 cannot be erased to present a worker-failure retry.
 
-Only current semantic snapshots are renewed. The original max-one compatibility
-checkpoint still compares one start, six states and eleven visible edges, including
-the changed-old-edge negative control. The current default remains 18 states/63 edges;
-its rows and two timeout-retry witnesses change. Required verification from `model/`:
+Only current semantic snapshots are renewed. At that checkpoint the original max-one
+compatibility control still compared one start, six states and eleven visible edges,
+including the changed-old-edge negative control, and the atomic default kept 18 states/63
+edges; its rows and two timeout-retry witnesses changed. fn-253.10 later retired the
+control and made the default cooperative. Required verification from `model/`:
 
 ```sh
 mise exec -- cargo test -p umpire-temporal-tests --test fixtures
@@ -200,8 +194,8 @@ Pending retryable worker failure now closes Failed, with no retry or attempt inc
 Pending StartToClose and Heartbeat expiry close TimedOut, retaining the exact singleton
 expiry cause; global priority is unchanged. Scheduled Cancel and current pending
 RespondCanceled still close Canceled. All terminal budgets and the pending bit clear.
-The task15 nonpending local-timeout retries and original atomic six-state/eleven-edge
-projection remain unchanged. All-absent checker Worlds remain abstract scopes; this
+The task15 nonpending local-timeout retries and, until fn-253.10 retired it, the original
+atomic six-state/eleven-edge projection remained unchanged. All-absent checker Worlds remain abstract scopes; this
 correction adds no raw Start admission, hidden timeout defaults or live capability.
 
 Native exact-edge controls cover pending failures and both local expiry causes at every

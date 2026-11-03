@@ -270,7 +270,7 @@ fn typed_worker_filler_packs_heartbeat_and_canceled_for_the_selected_attempt()
     type Action = <activity::World as Machine>::Action;
     type Inputs = <Realization as Fill<Action>>::Inputs;
     let binding = Realization::default();
-    let world = activity::World::new(3, None, None, None, None, true);
+    let world = activity::World::new(3, None, None, None, None);
     let identity = binding
         .identify(&common::start(3).request.ok_or("start request")?)
         .map_err(|e| e.message)?;

@@ -30,7 +30,7 @@ for these cells. The owner's
 [API-aligned correction approval](../../../../.flow/artifacts/fn-246-realization-as-a-checked-refinement-a/task13/planning/approved-api-correction.json)
 authorizes precisely this correction. Scheduled cancellation and explicit running
 worker acknowledgement still produce Canceled. Task15's approved nonpending local
-timeout retry and the original atomic compatibility checkpoint retain their scope.
+timeout retry retains its scope; fn-253.10 retired the atomic compatibility checkpoint.
 
 Published [request-cancel guidance, lines 25–33](https://github.com/temporalio/documentation/blob/56a8a19b04e7fe642e4f8da03ff997afc42b40bd/docs/encyclopedia/activities/activity-operations/request-cancel.mdx#L25-L33)
 describes cancellation at a non-heartbeating attempt boundary. This conflicts with
@@ -83,11 +83,11 @@ NotFound. Stale Deliver selects FailedPrecondition and stale acknowledgement sel
 NotFound. These exact selected rejection cells preserve full state. Public
 [operation error categories](https://github.com/temporalio/documentation/blob/56a8a19b04e7fe642e4f8da03ff997afc42b40bd/docs/encyclopedia/activities/activity-operations/index.mdx#L68-L75)
 do not enumerate every cell. Same-request-ID replay, unsolicited acknowledgement,
-pause, terminate and reset are outside the selected actions. `asynchronous_cancel`
-false selects the retained atomic abstraction, not a public Start request option.
+pause, terminate and reset are outside the selected actions. Cancellation is always
+cooperative; the World has no cancellation-mode field.
 
 The authored invariants check selected attempts, outcome/closure equivalence,
-pending only in cooperative Executing, exact timer arming and positive bounded
+pending only in Executing, exact timer arming and positive bounded
 Remaining. Postconditions check terminal permanence, rejection identity, retry-only
 attempt increments, heartbeat reset isolation, retry timer rearming, Tick descent,
 global expiry dominance and pending failure/expiry outcome separation from ACK.
@@ -143,8 +143,7 @@ and classifiable evidence.
 The authored fixture retains starts, states, exact outcome/fact-bearing rows and
 all sixteen own-law verdicts for each of twelve selected Worlds under
 `expected/worlds/`. `worlds.txt.snap` identifies their exact effective parameters,
-4096-state bound and raw-realizable versus abstract timeout scope. Atomic
-compatibility cancellation is separately labelled. The default cooperative
+4096-state bound and raw-realizable versus abstract timeout scope. The default
 maximum-two fixture has 23 states and 80 edges; the largest selected World has
 90 states and 750 edges. All twelve native/interpreted graphs are complete.
 

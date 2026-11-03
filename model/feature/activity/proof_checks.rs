@@ -28,7 +28,7 @@ fn fair_actions(maximum: u8) -> Vec<Action> {
 #[test]
 fn selected_worlds_have_exact_poll_and_completion_fairness() -> umpire_testing::TestResult {
     for maximum in [1, 2, 3] {
-        let world = configured(maximum, true, [None; 4]);
+        let world = configured(maximum, [None; 4]);
         let expected = fair_actions(maximum);
         let native = world.assumptions();
         assert!(native.iter().any(|(_, scope)| scope.fair == expected));
@@ -129,7 +129,7 @@ fn replay_native_lasso(
 #[test]
 fn native_fairness_omissions_expose_heartbeat_and_retry_starvation() -> umpire_testing::TestResult {
     for maximum in [1, 2, 3] {
-        let world = configured(maximum, true, [None; 4]);
+        let world = configured(maximum, [None; 4]);
         let graph = umpire_checker::Checker::explore(&world, 4096)?;
         assert!(!graph.counts.cut);
         let progress = world
@@ -162,7 +162,7 @@ fn native_fairness_omissions_expose_heartbeat_and_retry_starvation() -> umpire_t
 fn total_tick_bound_laws_hold_on_complete_interleaving_graphs() -> umpire_testing::TestResult {
     for maximum in [1, 2, 3] {
         for ticks in [1, 2, 3] {
-            let world = configured(maximum, true, [Some(3), Some(3), Some(ticks), Some(3)]);
+            let world = configured(maximum, [Some(3), Some(3), Some(ticks), Some(3)]);
             let graph = umpire_checker::Checker::explore(&world, 4096)?;
             assert!(!graph.counts.cut);
             graph.verify_all()?.assert_verified();
@@ -203,7 +203,7 @@ fn shared_replay_checks_typed_activity_edges_and_retains_native_disagreement()
         replay,
     };
     use umpire_tlc::{State, Trace, TraceState, Value};
-    let world = configured(1, true, [None, None, Some(1), None]);
+    let world = configured(1, [None, None, Some(1), None]);
     let module = bound_for(world.clone()).lift_source("model.rs", &source()?)?;
     let starts = world.starts();
     let action = Deadline::Tick.into();
@@ -387,7 +387,7 @@ fn actual_tlc_selected_fairness_and_starvation_lassos() -> umpire_testing::TestR
         return Ok(());
     }
     for maximum in [1, 2, 3] {
-        let world = configured(maximum, true, [None; 4]);
+        let world = configured(maximum, [None; 4]);
         let module = closure_only(bound_for(world.clone()).lift_source("model.rs", &source()?)?);
         let result = tlc()?.check_module(&module)?;
         assert_eq!(result.properties["Progress_eventually_closed"].verdict, Verified);
@@ -459,7 +459,7 @@ fn actual_tlc_selected_fairness_and_starvation_lassos() -> umpire_testing::TestR
 fn forged_countdowns_refute_bounds_and_armed_zero_expires() -> umpire_testing::TestResult {
     use crate::activity::activity::{ExpiredDeadline, Remaining};
     use umpire_dsl::Verdict;
-    let world = configured(3, true, [Some(3); 4]);
+    let world = configured(3, [Some(3); 4]);
     let bounds = world
         .invariants()
         .into_iter()
@@ -563,7 +563,7 @@ fn global_mutants(healthy: &str) -> Vec<(&'static str, String, &'static str)> {
 #[expect(clippy::print_stderr, reason = "Retain exact typed global-budget counterexamples")]
 fn source_only_global_budget_controls_keep_laws_and_discriminate() -> umpire_testing::TestResult {
     let healthy = source()?;
-    let world = configured(3, true, [None, None, Some(3), None]);
+    let world = configured(3, [None, None, Some(3), None]);
     for (name, mutant, property) in global_mutants(&healthy) {
         assert_eq!(
             healthy.split("        #[postcondition]").skip(1).collect::<Vec<_>>(),
@@ -622,7 +622,7 @@ fn actual_tlc_global_tick_law_bundle_on_selected_worlds() -> umpire_testing::Tes
         return Ok(());
     }
     for (maximum, ticks) in [(1, 1), (2, 2), (3, 3)] {
-        let world = configured(maximum, true, [Some(3), Some(3), Some(ticks), Some(3)]);
+        let world = configured(maximum, [Some(3), Some(3), Some(ticks), Some(3)]);
         let properties = [
             "Invariant_policy_in_range",
             "Invariant_attempt_within_policy",
@@ -691,7 +691,7 @@ fn source_only_pending_cancellation_outcome_controls_keep_independent_laws()
         );
         let parsed = source_tree(&changed)?;
         for maximum in 1..=3 {
-            let world = configured(maximum, true, deadlines);
+            let world = configured(maximum, deadlines);
             let interpreted = umpire_checker::Interpreted::from_tree(world, &parsed)?;
             let graph = umpire_checker::Checker::explore(&interpreted, 4096)?;
             assert!(!graph.counts.cut);
@@ -777,7 +777,7 @@ fn source_only_timeout_retry_controls_discriminate_exact_edges() -> umpire_testi
             let global = if name == "global_loses_priority" { 1 } else { 3 };
             let mut deadlines = [Some(3), None, Some(global), None];
             deadlines[index] = Some(1);
-            let world = configured(maximum, true, deadlines);
+            let world = configured(maximum, deadlines);
             let start = world.starts()[0].clone();
             let mut before = world.checked_step(&start, Worker::Poll(1).into())?[0].2.clone();
             if pending {
@@ -830,6 +830,61 @@ fn source_only_timeout_retry_controls_discriminate_exact_edges() -> umpire_testi
                 );
             }
         }
+    }
+    Ok(())
+}
+
+#[test]
+#[expect(clippy::print_stderr, reason = "Retain the exact atomic Started-cancel counterexample")]
+fn source_only_atomic_started_cancel_is_refuted_natively_and_by_tlc() -> umpire_testing::TestResult
+{
+    let healthy = source()?;
+    let pending = "Client::Cancel if self.phase == Phase::Started => {\n                    self.cancel_requested = true;";
+    let atomic = "Client::Cancel if self.phase == Phase::Started => {\n                    self.phase = Phase::Canceled;\n                    self.clear_terminal();";
+    let mutant = replace_code(&healthy, pending, atomic);
+    assert_eq!(
+        healthy.split("        #[postcondition]").skip(1).collect::<Vec<_>>(),
+        mutant.split("        #[postcondition]").skip(1).collect::<Vec<_>>()
+    );
+    let parsed = source_tree(&mutant)?;
+    for maximum in 1..=3 {
+        let world = configured(maximum, [None; 4]);
+        let interpreted = umpire_checker::Interpreted::from_tree(world.clone(), &parsed)?;
+        let started = world.step(&world.starts()[0], Worker::Poll(1).into()).remove(0).2;
+        let native = world.step(&started, crate::activity::activity::Client::Cancel.into());
+        let changed = interpreted.step(&started, crate::activity::activity::Client::Cancel.into());
+        assert_eq!(native[0].2.phase, Phase::Started);
+        assert!(native[0].2.cancel_requested);
+        assert_eq!(changed[0].2.phase, Phase::Canceled);
+        let graph = umpire_checker::Checker::explore(&interpreted, 4096)?;
+        assert!(!graph.counts.cut);
+        let report = graph.verify_all()?;
+        assert!(
+            report.claims.iter().any(|claim| claim.name == "started_cancel_is_pending"
+                && claim.outcome == CheckOutcome::Refuted),
+            "{report}"
+        );
+    }
+    if std::env::var("UMPIRE_BACKENDS").as_deref() == Ok("require") {
+        let world = configured(1, [None; 4]);
+        let property = "Post_started_cancel_is_pending";
+        let module =
+            safety_only(bound_for(world.clone()).lift_source("model.rs", &mutant)?, &[property]);
+        let result = tlc()?.check_module(&module)?;
+        let claim = &result.properties[property];
+        assert_eq!(claim.verdict, umpire_tlc::Verdict::Refuted);
+        eprintln!("activity atomic Started cancel trace={:#?}", claim.trace);
+        let trace = claim.trace.as_ref().ok_or("missing atomic cancel trace")?;
+        assert!(
+            umpire_testing::replay_trace(&world, &world.starts(), &module, trace).is_err(),
+            "atomic Started cancel replayed against the cooperative Model"
+        );
+        let healthy_module =
+            safety_only(bound_for(world).lift_source("model.rs", &healthy)?, &[property]);
+        assert_eq!(
+            tlc()?.check_module(&healthy_module)?.properties[property].verdict,
+            umpire_tlc::Verdict::Verified
+        );
     }
     Ok(())
 }

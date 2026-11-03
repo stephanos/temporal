@@ -38,7 +38,7 @@ fn start_selects_world_and_original_replay_never_resets_progress() {
     else {
         panic!("explore")
     };
-    assert_eq!(explore.reached, 5);
+    assert_eq!(explore.reached, 6);
     advanced(guest.judge(Any::pack(&describe(1, 1, 2))), &["Worker::Poll(1)"]);
     advanced(guest.judge(Any::pack(&captured)), &["Worker::Poll(1)"]);
     advanced(guest.judge(Any::pack(&describe(1, 1, 2))), &["Worker::Poll(1)"]);
@@ -395,7 +395,7 @@ fn only_explicit_attempt_domain_is_admitted_while_timeouts_are_retained_exactly(
     else {
         panic!("explore")
     };
-    assert_eq!(result.reached, 5);
+    assert_eq!(result.reached, 6);
 }
 
 #[test]

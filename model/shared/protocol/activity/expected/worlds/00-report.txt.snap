@@ -2,10 +2,10 @@
 source: umpire/dev/testing/src/runner.rs
 ---
 starts: 1
-reached: 8
-emitted: 15
-evaluated: 64
-refused: 49
+reached: 9
+emitted: 22
+evaluated: 72
+refused: 50
 depth: 2
 cut: false
 outcome: Verified
@@ -25,4 +25,4 @@ claim execution_expiry_dominates: Verified
 claim local_expiry_priority_retains_its_cause: Verified
 claim pending_failure_is_not_acknowledgement: Verified
 claim pending_expiry_is_not_acknowledgement: Verified
-vacuity: action Worker::AcknowledgeCancel(1) never fired
+vacuity: none

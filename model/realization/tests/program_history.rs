@@ -798,8 +798,7 @@ fn unheld_open_cancellation_is_refused_before_a_proposal_becomes_pending() {
 #[test]
 fn heartbeat_domains_follow_checked_model_histories() -> Result<(), Box<dyn std::error::Error>> {
     use umpire_temporal::{Realization, activity};
-    let cooperative = activity::World::new(3, None, None, None, None, true);
-    let atomic = activity::World::new(3, None, None, None, None, false);
+    let cooperative = activity::World::new(3, None, None, None, None);
     for attempt in 1..=3 {
         for (world, history, expected) in [
             (&cooperative, &[][..], &[false, true][..]),
@@ -808,8 +807,6 @@ fn heartbeat_domains_follow_checked_model_histories() -> Result<(), Box<dyn std:
             (&cooperative, &[true][..], &[true][..]),
             (&cooperative, &[false, true][..], &[true][..]),
             (&cooperative, &[true, true][..], &[true][..]),
-            (&atomic, &[][..], &[false][..]),
-            (&atomic, &[false][..], &[false][..]),
         ] {
             let actual = Realization::heartbeat_successors(world, attempt, history, 64, 200_000)
                 .map_err(|error| error.message)?;
@@ -824,7 +821,7 @@ fn successor_manifest_is_checked_independently_of_policy_rows()
 -> Result<(), Box<dyn std::error::Error>> {
     use umpire_temporal::{Realization, activity};
     use umpire_temporal_api::umpire::temporal::v1::{ActivityTaskKey, ActivityTaskSuccessors};
-    let world = activity::World::new(1, None, None, None, None, true);
+    let world = activity::World::new(1, None, None, None, None);
     for (history, domain, valid) in [
         (vec![], vec![false, true], true),
         (vec![], vec![true, false], true),
@@ -867,7 +864,6 @@ fn successor_manifest_is_checked_independently_of_policy_rows()
         Some(activity::Ticks(3)),
         Some(activity::Ticks(3)),
         Some(activity::Ticks(3)),
-        true,
     );
     assert_eq!(
         Realization::heartbeat_successors(&bounded, 2, &[false], 64, 200_000)
