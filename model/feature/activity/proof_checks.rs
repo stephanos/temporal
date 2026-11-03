@@ -528,7 +528,7 @@ fn forged_countdowns_refute_bounds_and_armed_zero_expires() -> umpire_testing::T
 
 fn global_mutants(healthy: &str) -> Vec<(&'static str, String, &'static str)> {
     let reset = "Worker::Heartbeat if self.phase == Phase::Started => {";
-    let expiry = "if self.schedule_to_close_remaining == Some(Remaining { ticks: 0 }) {";
+    let expiry = "if countdown::expired(self.schedule_to_close_remaining) {";
     let tick = "Deadline::Tick if !self.closed() && self.armed()";
     vec![
         (
@@ -741,15 +741,15 @@ fn timeout_retry_mutant(healthy: &str, name: &str) -> String {
             healthy,
             retry,
             end,
-            "ticks: world.schedule_to_start.unwrap_or(Ticks(1)).0",
-            "ticks: 1",
+            "countdown::arm(world.schedule_to_start)",
+            "Some(Remaining { ticks: 1 })",
         ),
         "wrong_attempt" => {
             replace_in(healthy, retry, end, "self.attempt += 1;", "self.attempt += 2;")
         }
         _ => replace_code(
             healthy,
-            "if self.schedule_to_close_remaining == Some(Remaining { ticks: 0 }) {",
+            "if countdown::expired(self.schedule_to_close_remaining) {",
             "if false {",
         ),
     }

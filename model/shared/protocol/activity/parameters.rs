@@ -19,6 +19,26 @@ pub struct Parameters {
     pub asynchronous_cancel: bool,
 }
 
+/// The independently selected declaration contract for an effective World.
+#[cfg(not(target_arch = "wasm32"))]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum WorldSource {
+    /// Feature World using the shared countdown's exact three-tick nominal type.
+    Feature,
+    /// Independent protocol World using its own local nominal type.
+    Protocol,
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+impl WorldSource {
+    fn ticks_name(self) -> &'static str {
+        match self {
+            Self::Feature => "umpire_dsl::countdown::Ticks<3>",
+            Self::Protocol => "Ticks",
+        }
+    }
+}
+
 /// A parameter, schema or adapter disagreement.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct ParameterError(pub String);
@@ -68,8 +88,9 @@ impl Parameters {
     pub fn validate_world<M: umpire_dsl::Values + umpire_dsl::__lifted::Lifts>(
         &self,
         world: &M,
+        source: WorldSource,
     ) -> Result<WorldProvenance, ParameterError> {
-        let (actual, provenance) = inspect_world(world)?;
+        let (actual, provenance) = inspect_world(world, source)?;
         if actual != *self {
             return Err(ParameterError(format!(
                 "effective World differs from exact parameters: expected {self:?}, got {actual:?}"
@@ -159,15 +180,16 @@ pub struct WorldProvenance {
 #[cfg(not(target_arch = "wasm32"))]
 pub fn validate_effective_world<M: umpire_dsl::Values + umpire_dsl::__lifted::Lifts>(
     world: &M,
+    source: WorldSource,
 ) -> Result<Parameters, ParameterError> {
-    inspect_world(world).map(|(parameters, _)| parameters)
+    inspect_world(world, source).map(|(parameters, _)| parameters)
 }
 
 #[cfg(not(target_arch = "wasm32"))]
-fn expected_schema() -> Vec<(&'static str, umpire_dsl::__lifted::Type)> {
+fn expected_schema(source: WorldSource) -> Vec<(&'static str, umpire_dsl::__lifted::Type)> {
     use umpire_dsl::__lifted::{Bounded, Type};
     let ticks = Type::Optional(Bounded {
-        name: "Ticks".into(),
+        name: source.ticks_name().into(),
         field: None,
         backing: "u8".into(),
         min: 0,
@@ -184,6 +206,7 @@ fn expected_schema() -> Vec<(&'static str, umpire_dsl::__lifted::Type)> {
 #[cfg(not(target_arch = "wasm32"))]
 fn inspect_world<M: umpire_dsl::Values + umpire_dsl::__lifted::Lifts>(
     world: &M,
+    source: WorldSource,
 ) -> Result<(Parameters, WorldProvenance), ParameterError> {
     use umpire_dsl::Value;
     let embedded = M::__umpire_lifted();
@@ -193,7 +216,7 @@ fn inspect_world<M: umpire_dsl::Values + umpire_dsl::__lifted::Lifts>(
             embedded.file, error.line, error.column, error.message
         ))
     })?;
-    let expected = expected_schema();
+    let expected = expected_schema(source);
     let values = world.values();
     if !model.declared_world
         || model.world_fields.len() != expected.len()
@@ -231,9 +254,15 @@ fn inspect_world<M: umpire_dsl::Values + umpire_dsl::__lifted::Lifts>(
             match value {
                 Value::Optional(None) => None,
                 Value::Optional(Some(payload)) => {
-                    let Value::Bounded { name: "Ticks", raw } = payload.as_ref() else {
+                    let Value::Bounded { name: nominal, raw } = payload.as_ref() else {
                         return Err(ParameterError(format!("{name} must export optional Ticks")));
                     };
+                    if *nominal != source.ticks_name() {
+                        return Err(ParameterError(format!(
+                            "{name} must export optional {}",
+                            source.ticks_name()
+                        )));
+                    }
                     Some(u8::try_from(*raw).map_err(|_| {
                         ParameterError(format!("{name} is outside its backing type"))
                     })?)

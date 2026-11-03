@@ -1,9 +1,9 @@
 # Activity deadlines and cancellation
 
 The independent `feature/activity/model.rs` declares a retry World with
-`maximum_attempts` one through three, four optional `Ticks(1..=3)` deadlines and
+`maximum_attempts` one through three, four optional `countdown::Ticks<3>` deadlines and
 `asynchronous_cancel`. State carries phase, attempt, a pending cancellation bit and
-four optional `Remaining { ticks }` countdowns. The explicit offline fixture factory
+four optional `countdown::Remaining<3>` countdowns. The explicit offline fixture factory
 checks each configuration field. Raw `World::new` remains infallible; authored bounds
 and arming invariants independently check native states and updates. Source binding
 rejects configured zero. Terminal transitions clear every budget and the pending bit.
@@ -56,7 +56,7 @@ supplies this proof.
 The default fixture remains atomic with three attempts, one-tick ScheduleToStart and
 StartToClose, and absent global/heartbeat deadlines. Its complete graph has 18 states,
 63 emitted choices from 216 evaluations, 153 disabled evaluations and depth six.
-Its 17 registered claims pass natively. `Cases(3 * 7)` retains the 21 scheduled/started
+Its 19 registered claims pass natively. `Cases(3 * 7)` retains the 21 scheduled/started
 closing or retry witnesses in their atomic scope, including timeout retries below the cap. Cooperative and larger deadline Worlds
 are checked separately; verification records their exact counts and backend evidence.
 
@@ -128,7 +128,8 @@ Current implementation owners are `initial` and `worker` for arming/reset,
 `attempt_changes_only_on_retry`, `global_never_replenished` and
 `tick_descends_and_expires` check transition obligations. The
 [consumer refactor](../../../.flow/tasks/fn-253-reusable-deadline-countdowns-for-models.7.md)
-will adopt countdown library calls while preserving these obligations and the
+uses `countdown::arm`, `tick`, `armed` and `expired` for mechanics, and explicit
+`within` and conditional `descends` laws, preserving these obligations and the
 corrected behavior.
 
 Authority is the existing pinned API

@@ -13,8 +13,8 @@ fn checked_world(
     asynchronous: bool,
     timeouts: [Option<u8>; 4],
 ) -> Result<World, &'static str> {
-    fn timeout(raw: Option<u8>, field: &'static str) -> Result<Option<Ticks>, &'static str> {
-        raw.map(|value| Ticks::try_new(value).ok_or(field)).transpose()
+    fn timeout(raw: Option<u8>, field: &'static str) -> Result<Option<Ticks<3>>, &'static str> {
+        raw.map(|value| Ticks::<3>::contains(value).then_some(Ticks(value)).ok_or(field)).transpose()
     }
 
     if !(1..=3).contains(&maximum) {

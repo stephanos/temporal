@@ -467,7 +467,7 @@ fn extra_method(method: &str) -> String {
 fn check_trace_state(native: &Model, state: &umpire_tlc::State) {
     use umpire_tlc::Value;
     let remaining =
-        |value: Option<Remaining>| Value::Int(value.map_or(0, |value| i128::from(value.ticks) + 1));
+        |value: Option<Remaining<3>>| Value::Int(value.map_or(0, |value| i128::from(value.ticks) + 1));
     assert_eq!(state.len(), 7);
     assert_eq!(state["phase"], Value::Text(format!("Phase::{:?}", native.phase)));
     assert_eq!(state["attempt"], Value::Int(i128::from(native.attempt)));

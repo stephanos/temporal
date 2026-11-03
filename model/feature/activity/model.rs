@@ -5,24 +5,16 @@ use umpire_dsl::machine;
 
 /// One activity's finite lifecycle, independent of any SDK or server observation.
 #[expect(clippy::unused_self, reason = "invariants evaluate policy in every Model state")]
+#[expect(clippy::collapsible_else_if, reason = "claims admit nested if, not else-if")]
+#[expect(clippy::nonminimal_bool, reason = "keep pending, retry and cap policy cells explicit")]
 #[machine]
 pub mod activity {
     use umpire_dsl::{
-        Action, Finite, Outcome, Phased, Rejection, State, World, check, closable, path, reject,
+        Action, Outcome, Phased, Rejection, State, World, check, closable, countdown, path, reject,
         stay,
     };
 
-    /// Positive configured timeout in abstract ticks.
-    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Finite)]
-    pub struct Ticks(#[inputs(1..=3)] pub u8);
-
-    /// A live countdown, with zero representable for exhaustion checks.
-    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Finite)]
-    pub struct Remaining {
-        /// Number of ticks remaining.
-        #[inputs(0..=3)]
-        pub ticks: u8,
-    }
+    pub use umpire_dsl::countdown::{Remaining, Ticks};
 
     /// Fixed retry, timeout and cancellation policy.
     #[derive(World)]
@@ -30,13 +22,13 @@ pub mod activity {
         /// Maximum number of attempts, selected from one through three.
         pub maximum_attempts: u8,
         /// Waiting budget, rearmed for each retry.
-        pub schedule_to_start: Option<Ticks>,
+        pub schedule_to_start: Option<Ticks<3>>,
         /// Running budget, armed on delivery.
-        pub start_to_close: Option<Ticks>,
+        pub start_to_close: Option<Ticks<3>>,
         /// Global budget spanning every attempt.
-        pub schedule_to_close: Option<Ticks>,
+        pub schedule_to_close: Option<Ticks<3>>,
         /// Running budget reset by heartbeats.
-        pub heartbeat_timeout: Option<Ticks>,
+        pub heartbeat_timeout: Option<Ticks<3>>,
         /// Whether cancellation of a running attempt is cooperative.
         pub asynchronous_cancel: bool,
     }
@@ -125,13 +117,13 @@ pub mod activity {
         /// A cooperative cancellation request awaiting an attempt boundary.
         pub cancel_requested: bool,
         /// Current waiting budget.
-        pub schedule_to_start_remaining: Option<Remaining>,
+        pub schedule_to_start_remaining: Option<Remaining<3>>,
         /// Current attempt budget.
-        pub start_to_close_remaining: Option<Remaining>,
+        pub start_to_close_remaining: Option<Remaining<3>>,
         /// Global budget, never replenished by retries or worker activity.
-        pub schedule_to_close_remaining: Option<Remaining>,
+        pub schedule_to_close_remaining: Option<Remaining<3>>,
         /// Current heartbeat budget.
-        pub heartbeat_remaining: Option<Remaining>,
+        pub heartbeat_remaining: Option<Remaining<3>>,
     }
 
     impl Phased for Model {
@@ -149,17 +141,9 @@ pub mod activity {
                 phase: Phase::Scheduled,
                 attempt: 1,
                 cancel_requested: false,
-                schedule_to_start_remaining: if world.schedule_to_start.is_some() {
-                    Some(Remaining { ticks: world.schedule_to_start.unwrap_or(Ticks(1)).0 })
-                } else {
-                    None
-                },
+                schedule_to_start_remaining: countdown::arm(world.schedule_to_start),
                 start_to_close_remaining: None,
-                schedule_to_close_remaining: if world.schedule_to_close.is_some() {
-                    Some(Remaining { ticks: world.schedule_to_close.unwrap_or(Ticks(1)).0 })
-                } else {
-                    None
-                },
+                schedule_to_close_remaining: countdown::arm(world.schedule_to_close),
                 heartbeat_remaining: None,
             }]
         }
@@ -188,15 +172,8 @@ pub mod activity {
                 Worker::Poll(_) if self.phase == Phase::Scheduled => {
                     self.phase = Phase::Started;
                     self.schedule_to_start_remaining = None;
-                    if world.start_to_close.is_some() {
-                        self.start_to_close_remaining =
-                            Some(Remaining { ticks: world.start_to_close.unwrap_or(Ticks(1)).0 });
-                    }
-                    if world.heartbeat_timeout.is_some() {
-                        self.heartbeat_remaining = Some(Remaining {
-                            ticks: world.heartbeat_timeout.unwrap_or(Ticks(1)).0,
-                        });
-                    }
+                    self.start_to_close_remaining = countdown::arm(world.start_to_close);
+                    self.heartbeat_remaining = countdown::arm(world.heartbeat_timeout);
                 }
                 Worker::RespondCompleted if self.phase == Phase::Started => {
                     self.phase = Phase::Completed;
@@ -215,11 +192,7 @@ pub mod activity {
                 }
                 Worker::Heartbeat if self.phase == Phase::Started => {
                     stay!();
-                    if world.heartbeat_timeout.is_some() {
-                        self.heartbeat_remaining = Some(Remaining {
-                            ticks: world.heartbeat_timeout.unwrap_or(Ticks(1)).0,
-                        });
-                    }
+                    self.heartbeat_remaining = countdown::arm(world.heartbeat_timeout);
                 }
                 Worker::RespondCanceled(expected) if !self.closed() && expected != self.attempt => {
                     reject!(Rejection::NotFound);
@@ -239,21 +212,16 @@ pub mod activity {
             match action {
                 Deadline::Tick if !self.closed() && self.armed() => {
                     self.decrement();
-                    if self.schedule_to_close_remaining == Some(Remaining { ticks: 0 }) {
+                    if countdown::expired(self.schedule_to_close_remaining) {
                         self.time_out();
                         Some(ExpiredDeadline::ScheduleToClose)
-                    } else if (self.start_to_close_remaining == Some(Remaining { ticks: 0 }))
-                        || (self.heartbeat_remaining == Some(Remaining { ticks: 0 }))
-                    {
-                        let start_to_close_expired =
-                            self.start_to_close_remaining == Some(Remaining { ticks: 0 });
+                    } else if countdown::expired(self.start_to_close_remaining) {
                         self.time_out_attempt(world);
-                        if start_to_close_expired {
-                            Some(ExpiredDeadline::StartToClose)
-                        } else {
-                            Some(ExpiredDeadline::Heartbeat)
-                        }
-                    } else if self.schedule_to_start_remaining == Some(Remaining { ticks: 0 }) {
+                        Some(ExpiredDeadline::StartToClose)
+                    } else if countdown::expired(self.heartbeat_remaining) {
+                        self.time_out_attempt(world);
+                        Some(ExpiredDeadline::Heartbeat)
+                    } else if countdown::expired(self.schedule_to_start_remaining) {
                         self.time_out();
                         Some(ExpiredDeadline::ScheduleToStart)
                     } else {
@@ -270,10 +238,7 @@ pub mod activity {
             self.phase = Phase::Scheduled;
             self.start_to_close_remaining = None;
             self.heartbeat_remaining = None;
-            if world.schedule_to_start.is_some() {
-                self.schedule_to_start_remaining =
-                    Some(Remaining { ticks: world.schedule_to_start.unwrap_or(Ticks(1)).0 });
-            }
+            self.schedule_to_start_remaining = countdown::arm(world.schedule_to_start);
         }
 
         #[effect]
@@ -304,44 +269,17 @@ pub mod activity {
 
         #[effect]
         fn decrement(&mut self) {
-            if self.schedule_to_start_remaining.is_some()
-                && self.schedule_to_start_remaining.unwrap_or(Remaining { ticks: 0 }).ticks > 0
-            {
-                self.schedule_to_start_remaining = Some(Remaining {
-                    ticks: self.schedule_to_start_remaining.unwrap_or(Remaining { ticks: 0 }).ticks
-                        - 1,
-                });
-            }
-            if self.start_to_close_remaining.is_some()
-                && self.start_to_close_remaining.unwrap_or(Remaining { ticks: 0 }).ticks > 0
-            {
-                self.start_to_close_remaining = Some(Remaining {
-                    ticks: self.start_to_close_remaining.unwrap_or(Remaining { ticks: 0 }).ticks
-                        - 1,
-                });
-            }
-            if self.schedule_to_close_remaining.is_some()
-                && self.schedule_to_close_remaining.unwrap_or(Remaining { ticks: 0 }).ticks > 0
-            {
-                self.schedule_to_close_remaining = Some(Remaining {
-                    ticks: self.schedule_to_close_remaining.unwrap_or(Remaining { ticks: 0 }).ticks
-                        - 1,
-                });
-            }
-            if self.heartbeat_remaining.is_some()
-                && self.heartbeat_remaining.unwrap_or(Remaining { ticks: 0 }).ticks > 0
-            {
-                self.heartbeat_remaining = Some(Remaining {
-                    ticks: self.heartbeat_remaining.unwrap_or(Remaining { ticks: 0 }).ticks - 1,
-                });
-            }
+            self.schedule_to_start_remaining = countdown::tick(self.schedule_to_start_remaining);
+            self.start_to_close_remaining = countdown::tick(self.start_to_close_remaining);
+            self.schedule_to_close_remaining = countdown::tick(self.schedule_to_close_remaining);
+            self.heartbeat_remaining = countdown::tick(self.heartbeat_remaining);
         }
 
         fn armed(&self) -> bool {
-            self.schedule_to_start_remaining.is_some()
-                || self.start_to_close_remaining.is_some()
-                || self.schedule_to_close_remaining.is_some()
-                || self.heartbeat_remaining.is_some()
+            countdown::armed(self.schedule_to_start_remaining)
+                || countdown::armed(self.start_to_close_remaining)
+                || countdown::armed(self.schedule_to_close_remaining)
+                || countdown::armed(self.heartbeat_remaining)
         }
 
         fn pending_cancel(&self, world: &World) -> bool {
@@ -357,19 +295,19 @@ pub mod activity {
             check!(world.maximum_attempts >= 1 && world.maximum_attempts <= 3);
             check!(
                 world.schedule_to_start.is_none()
-                    || Ticks::contains(world.schedule_to_start.unwrap_or(Ticks(1)).0)
+                    || Ticks::<3>::contains(world.schedule_to_start.unwrap_or(Ticks(1)).0)
             );
             check!(
                 world.start_to_close.is_none()
-                    || Ticks::contains(world.start_to_close.unwrap_or(Ticks(1)).0)
+                    || Ticks::<3>::contains(world.start_to_close.unwrap_or(Ticks(1)).0)
             );
             check!(
                 world.schedule_to_close.is_none()
-                    || Ticks::contains(world.schedule_to_close.unwrap_or(Ticks(1)).0)
+                    || Ticks::<3>::contains(world.schedule_to_close.unwrap_or(Ticks(1)).0)
             );
             check!(
                 world.heartbeat_timeout.is_none()
-                    || Ticks::contains(world.heartbeat_timeout.unwrap_or(Ticks(1)).0)
+                    || Ticks::<3>::contains(world.heartbeat_timeout.unwrap_or(Ticks(1)).0)
             );
         }
 
@@ -380,53 +318,10 @@ pub mod activity {
 
         #[invariant]
         fn countdowns_within_budget(&self, world: &World) {
-            check!(
-                self.schedule_to_start_remaining.is_none()
-                    || (Remaining::contains(
-                        self.schedule_to_start_remaining.unwrap_or(Remaining { ticks: 0 }).ticks
-                    ) && self
-                        .schedule_to_start_remaining
-                        .unwrap_or(Remaining { ticks: 0 })
-                        .ticks
-                        > 0
-                        && self
-                            .schedule_to_start_remaining
-                            .unwrap_or(Remaining { ticks: 0 })
-                            .ticks
-                            <= world.schedule_to_start.unwrap_or(Ticks(1)).0)
-            );
-            check!(
-                self.start_to_close_remaining.is_none()
-                    || (Remaining::contains(
-                        self.start_to_close_remaining.unwrap_or(Remaining { ticks: 0 }).ticks
-                    ) && self.start_to_close_remaining.unwrap_or(Remaining { ticks: 0 }).ticks
-                        > 0
-                        && self.start_to_close_remaining.unwrap_or(Remaining { ticks: 0 }).ticks
-                            <= world.start_to_close.unwrap_or(Ticks(1)).0)
-            );
-            check!(
-                self.schedule_to_close_remaining.is_none()
-                    || (Remaining::contains(
-                        self.schedule_to_close_remaining.unwrap_or(Remaining { ticks: 0 }).ticks
-                    ) && self
-                        .schedule_to_close_remaining
-                        .unwrap_or(Remaining { ticks: 0 })
-                        .ticks
-                        > 0
-                        && self
-                            .schedule_to_close_remaining
-                            .unwrap_or(Remaining { ticks: 0 })
-                            .ticks
-                            <= world.schedule_to_close.unwrap_or(Ticks(1)).0)
-            );
-            check!(
-                self.heartbeat_remaining.is_none()
-                    || (Remaining::contains(
-                        self.heartbeat_remaining.unwrap_or(Remaining { ticks: 0 }).ticks
-                    ) && self.heartbeat_remaining.unwrap_or(Remaining { ticks: 0 }).ticks > 0
-                        && self.heartbeat_remaining.unwrap_or(Remaining { ticks: 0 }).ticks
-                            <= world.heartbeat_timeout.unwrap_or(Ticks(1)).0)
-            );
+            countdown::within(self.schedule_to_start_remaining, world.schedule_to_start);
+            countdown::within(self.start_to_close_remaining, world.start_to_close);
+            countdown::within(self.schedule_to_close_remaining, world.schedule_to_close);
+            countdown::within(self.heartbeat_remaining, world.heartbeat_timeout);
         }
 
         #[invariant]
@@ -469,32 +364,25 @@ pub mod activity {
 
         #[postcondition]
         fn global_never_replenished(&self, before: &Self, world: &World) {
-            check!(
-                before.closed()
-                    || self.closed()
-                    || world.schedule_to_close.is_none()
-                    || self.schedule_to_close_remaining.unwrap_or(Remaining { ticks: 0 }).ticks
-                        <= before
-                            .schedule_to_close_remaining
-                            .unwrap_or(Remaining { ticks: 0 })
-                            .ticks
-            );
+            if !(before.closed() || self.closed() || world.schedule_to_close.is_none()) {
+                countdown::never_replenished(
+                    self.schedule_to_close_remaining,
+                    before.schedule_to_close_remaining,
+                );
+            }
         }
 
         #[postcondition(after = Deadline::Tick)]
-        fn tick_descends_and_expires(&self, before: &Self, world: &World) {
+        fn tick_descends_and_expires(&self, before: &Self) {
             check!(!before.closed());
+            if !self.closed() {
+                countdown::descends(
+                    self.schedule_to_close_remaining,
+                    before.schedule_to_close_remaining,
+                );
+            }
             check!(
-                world.schedule_to_close.is_none()
-                    || self.closed()
-                    || before.schedule_to_close_remaining.unwrap_or(Remaining { ticks: 0 }).ticks
-                        == self.schedule_to_close_remaining.unwrap_or(Remaining { ticks: 0 }).ticks
-                            + 1
-            );
-            check!(
-                world.schedule_to_close.is_none()
-                    || before.schedule_to_close_remaining.unwrap_or(Remaining { ticks: 0 }).ticks
-                        != 1
+                !countdown::expired(countdown::tick(before.schedule_to_close_remaining))
                     || self.phase == Phase::TimedOut
             );
         }
@@ -505,55 +393,29 @@ pub mod activity {
                 check!(!before.cancel_requested && before.attempt < world.maximum_attempts);
                 check!(self.phase == Phase::Scheduled && self.attempt == before.attempt + 1);
                 check!(!self.cancel_requested);
-                check!(
-                    self.schedule_to_start_remaining
-                        == if world.schedule_to_start.is_some() {
-                            Some(Remaining { ticks: world.schedule_to_start.unwrap_or(Ticks(1)).0 })
-                        } else {
-                            None
-                        }
-                );
+                check!(self.schedule_to_start_remaining == countdown::arm(world.schedule_to_start));
                 check!(
                     self.start_to_close_remaining.is_none() && self.heartbeat_remaining.is_none()
                 );
             } else {
-                check!(
-                    self.closed()
-                        || before.schedule_to_start_remaining.is_none()
-                        || before
-                            .schedule_to_start_remaining
-                            .unwrap_or(Remaining { ticks: 0 })
-                            .ticks
-                            == self
-                                .schedule_to_start_remaining
-                                .unwrap_or(Remaining { ticks: 0 })
-                                .ticks
-                                + 1
-                );
-                check!(
-                    self.closed()
-                        || before.start_to_close_remaining.is_none()
-                        || before.start_to_close_remaining.unwrap_or(Remaining { ticks: 0 }).ticks
-                            == self
-                                .start_to_close_remaining
-                                .unwrap_or(Remaining { ticks: 0 })
-                                .ticks
-                                + 1
-                );
-                check!(
-                    self.closed()
-                        || before.heartbeat_remaining.is_none()
-                        || before.heartbeat_remaining.unwrap_or(Remaining { ticks: 0 }).ticks
-                            == self.heartbeat_remaining.unwrap_or(Remaining { ticks: 0 }).ticks + 1
+                if !self.closed() {
+                    countdown::descends(
+                        self.schedule_to_start_remaining,
+                        before.schedule_to_start_remaining,
+                    );
+                    countdown::descends(
+                        self.start_to_close_remaining,
+                        before.start_to_close_remaining,
+                    );
+                    countdown::descends(self.heartbeat_remaining, before.heartbeat_remaining);
+                }
+            }
+            if !self.closed() {
+                countdown::descends(
+                    self.schedule_to_close_remaining,
+                    before.schedule_to_close_remaining,
                 );
             }
-            check!(
-                self.closed()
-                    || before.schedule_to_close_remaining.is_none()
-                    || before.schedule_to_close_remaining.unwrap_or(Remaining { ticks: 0 }).ticks
-                        == self.schedule_to_close_remaining.unwrap_or(Remaining { ticks: 0 }).ticks
-                            + 1
-            );
         }
 
         #[postcondition(after = Worker::Heartbeat)]
@@ -565,12 +427,7 @@ pub mod activity {
             check!(self.schedule_to_close_remaining == before.schedule_to_close_remaining);
             check!(self.start_to_close_remaining == before.start_to_close_remaining);
             check!(self.schedule_to_start_remaining == before.schedule_to_start_remaining);
-            check!(self.heartbeat_remaining.is_some() == world.heartbeat_timeout.is_some());
-            check!(
-                world.heartbeat_timeout.is_none()
-                    || self.heartbeat_remaining.unwrap_or(Remaining { ticks: 0 }).ticks
-                        == world.heartbeat_timeout.unwrap_or(Ticks(1)).0
-            );
+            check!(self.heartbeat_remaining == countdown::arm(world.heartbeat_timeout));
         }
 
         #[postcondition]
@@ -592,75 +449,29 @@ pub mod activity {
 
         #[postcondition(after = Deadline::Tick)]
         fn tick_priority(&self, before: &Self, world: &World) {
-            check!(
-                !(before.schedule_to_close_remaining.is_some()
-                    && before.schedule_to_close_remaining.unwrap_or(Remaining { ticks: 0 }).ticks
-                        <= 1)
-                    || self.phase == Phase::TimedOut
-            );
-            check!(
-                (before.schedule_to_close_remaining.is_some()
-                    && before.schedule_to_close_remaining.unwrap_or(Remaining { ticks: 0 }).ticks
-                        <= 1)
-                    || !((before.start_to_close_remaining.is_some()
-                        && before
-                            .start_to_close_remaining
-                            .unwrap_or(Remaining { ticks: 0 })
-                            .ticks
-                            <= 1)
-                        || (before.heartbeat_remaining.is_some()
-                            && before.heartbeat_remaining.unwrap_or(Remaining { ticks: 0 }).ticks
-                                <= 1))
-                    || (before.cancel_requested && self.phase == Phase::TimedOut)
-                    || (!before.cancel_requested
-                        && before.attempt < world.maximum_attempts
-                        && self.phase == Phase::Scheduled)
-                    || (!before.cancel_requested
-                        && before.attempt == world.maximum_attempts
-                        && self.phase == Phase::TimedOut)
-            );
-            check!(
-                (before.schedule_to_close_remaining.is_some()
-                    && before.schedule_to_close_remaining.unwrap_or(Remaining { ticks: 0 }).ticks
-                        <= 1)
-                    || ((before.start_to_close_remaining.is_some()
-                        && before
-                            .start_to_close_remaining
-                            .unwrap_or(Remaining { ticks: 0 })
-                            .ticks
-                            <= 1)
-                        || (before.heartbeat_remaining.is_some()
-                            && before.heartbeat_remaining.unwrap_or(Remaining { ticks: 0 }).ticks
-                                <= 1))
-                    || !(before.schedule_to_start_remaining.is_some()
-                        && before
-                            .schedule_to_start_remaining
-                            .unwrap_or(Remaining { ticks: 0 })
-                            .ticks
-                            <= 1)
-                    || self.phase == Phase::TimedOut
-            );
-            check!(
-                (before.schedule_to_close_remaining.is_some()
-                    && before.schedule_to_close_remaining.unwrap_or(Remaining { ticks: 0 }).ticks
-                        <= 1)
-                    || ((before.start_to_close_remaining.is_some()
-                        && before
-                            .start_to_close_remaining
-                            .unwrap_or(Remaining { ticks: 0 })
-                            .ticks
-                            <= 1)
-                        || (before.heartbeat_remaining.is_some()
-                            && before.heartbeat_remaining.unwrap_or(Remaining { ticks: 0 }).ticks
-                                <= 1))
-                    || (before.schedule_to_start_remaining.is_some()
-                        && before
-                            .schedule_to_start_remaining
-                            .unwrap_or(Remaining { ticks: 0 })
-                            .ticks
-                            <= 1)
-                    || self.phase == before.phase
-            );
+            if countdown::expired(countdown::tick(before.schedule_to_close_remaining)) {
+                check!(self.phase == Phase::TimedOut);
+            } else {
+                if countdown::expired(countdown::tick(before.start_to_close_remaining))
+                    || countdown::expired(countdown::tick(before.heartbeat_remaining))
+                {
+                    check!(
+                        (before.cancel_requested && self.phase == Phase::TimedOut)
+                            || (!before.cancel_requested
+                                && before.attempt < world.maximum_attempts
+                                && self.phase == Phase::Scheduled)
+                            || (!before.cancel_requested
+                                && before.attempt == world.maximum_attempts
+                                && self.phase == Phase::TimedOut)
+                    );
+                } else {
+                    if countdown::expired(countdown::tick(before.schedule_to_start_remaining)) {
+                        check!(self.phase == Phase::TimedOut);
+                    } else {
+                        check!(self.phase == before.phase);
+                    }
+                }
+            }
         }
 
         #[assumption]

@@ -36,7 +36,7 @@ pub fn world(parameters: Parameters) -> Result<World, ParameterError> {
         exact.asynchronous_cancel,
     );
     #[cfg(not(target_arch = "wasm32"))]
-    exact.validate_world(&world)?;
+    exact.validate_world(&world, super::parameters::WorldSource::Protocol)?;
     Ok(world)
 }
 

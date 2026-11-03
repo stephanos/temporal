@@ -199,7 +199,7 @@ fn protocol_local_adapter_and_feature_schema_share_exact_parameters_without_worl
             for timeouts in [[None; 4], [Some(1); 4], [Some(3), None, Some(2), Some(1)]] {
                 let parameters = Parameters::new(maximum, timeouts, cooperative)?;
                 let protocol = adapter::world(parameters)?;
-                parameters.validate_world(&protocol)?;
+                parameters.validate_world(&protocol, parameters::WorldSource::Protocol)?;
                 let [wait, run, global, heartbeat] =
                     timeouts.map(|raw| raw.map(crate::activity::activity::Ticks));
                 let feature = crate::activity::activity::World::new(
@@ -210,7 +210,7 @@ fn protocol_local_adapter_and_feature_schema_share_exact_parameters_without_worl
                     heartbeat,
                     cooperative,
                 );
-                parameters.validate_world(&feature)?;
+                parameters.validate_world(&feature, parameters::WorldSource::Feature)?;
             }
         }
     }
@@ -236,7 +236,7 @@ fn selected_worlds() -> Vec<World> {
 
 fn scope(world: &World) -> Result<String, Box<dyn std::error::Error>> {
     use parameters::validate_effective_world;
-    let values = validate_effective_world(world)?;
+    let values = validate_effective_world(world, parameters::WorldSource::Protocol)?;
     let raw_timeouts = (values.start_to_close.is_some() || values.schedule_to_close.is_some())
         && (values.schedule_to_start.is_some() || values.schedule_to_close.is_none());
     Ok(format!(
@@ -270,7 +270,7 @@ pub(crate) fn scopes() -> umpire_testing::RunResult {
     use umpire_dsl::__lifted::Lifts;
     let model = World::__umpire_lifted().model.map_err(|error| format!("{error:?}"))?;
     umpire_temporal::activity_protocol::adapter::validate_state_schema(&model)?;
-    parameters::validate_effective_world(&world())?;
+    parameters::validate_effective_world(&world(), parameters::WorldSource::Protocol)?;
     let mut files = umpire_testing::Files::from([
         ("worlds.txt".into(), world_reports()?),
         (
