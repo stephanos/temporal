@@ -676,6 +676,33 @@ mod tests {
     use std::sync::{Barrier, OnceLock};
 
     #[test]
+    fn inventory_method_set_must_equal_registered_baseline_fillers() -> Result<()> {
+        use super::{Entry, verify_inventory};
+        let copy = |entry: &Entry, context, method| Entry {
+            context,
+            method,
+            prerequisite: entry.prerequisite,
+            target: entry.target.clone(),
+            field: entry.field.clone(),
+        };
+        let current = inventory()?;
+        let full: Vec<_> = current.iter().map(|e| copy(e, e.context, e.method)).collect();
+        verify_inventory(&full)?;
+        let guard = "probe inventory methods differ from registered baseline fillers";
+        let truncated: Vec<_> = current
+            .iter()
+            .filter(|e| e.method != "RespondActivityTaskCanceled")
+            .map(|e| copy(e, e.context, e.method))
+            .collect();
+        assert!(truncated.len() < full.len());
+        assert_eq!(verify_inventory(&truncated).map_err(|e| e.to_string()), Err(guard.into()));
+        let mut extra = full;
+        extra.push(copy(&current[0], "extra", "UnregisteredMethod"));
+        assert_eq!(verify_inventory(&extra).map_err(|e| e.to_string()), Err(guard.into()));
+        Ok(())
+    }
+
+    #[test]
     fn generated_findings_preserve_contextual_intents_and_recursive_checks() -> Result<()> {
         use super::{
             Failure, FailureInfo, ProbeRequest, RespondActivityTaskFailedRequest,
