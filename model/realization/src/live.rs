@@ -3,7 +3,7 @@ use umpire_catalog::{Catalog, validate};
 use umpire_dsl::Machine;
 use umpire_runtime::AnyMessage as _;
 use umpire_runtime::{
-    Dispatch, NoTarget, Projection, Proposal, Realize, Runtime, Transaction,
+    Dispatch, NoTarget, Projection, Proposal, Realize, Runtime,
     prost_types::Any,
     protocol::{self, Refusal, RefusalCode, response::Outcome},
     realization::{Observation, observation::Result as ResultValue},
@@ -25,10 +25,10 @@ const CANCEL: &str =
     "/temporal.api.workflowservice.v1.WorkflowService/RequestCancelActivityExecution";
 type ModelRuntime = Runtime<activity::World, LiveRealization>;
 type Action = <activity::World as Machine>::Action;
-type Prepared = Result<(Outcome, Option<LiveTransaction>), Refusal>;
 
 #[derive(Clone)]
-struct Receipt {
+/// Immutable activity bootstrap evidence retained by the migration adapter.
+pub struct Receipt {
     request: Any,
     response: Any,
     namespace: String,
@@ -38,7 +38,8 @@ struct Receipt {
     maximum_attempts: Option<u8>,
 }
 
-struct LiveRealization {
+/// Activity projections around the existing independent Model runtime.
+pub struct LiveRealization {
     inner: Realization,
     receipt: Option<Receipt>,
 }
@@ -138,169 +139,43 @@ fn fresh_model() -> ModelRuntime {
     )
 }
 
-/// Temporal-owned live realization around an independently owned Model runtime.
-pub struct LiveRuntime {
-    model: ModelRuntime,
-    receipt: Option<Receipt>,
-    frozen: Option<Refusal>,
-    configuration: Option<Any>,
-    bootstrap: Option<Any>,
-    pending: Option<Any>,
+use crate::lens::{Admission, EntityBinding, EntityLens};
+
+/// Activity policy adapter retained while the feature declaration migrates.
+pub struct ActivityEntity;
+
+/// Activity policy composed with the shared entity lifecycle.
+pub(crate) type LiveRuntime = EntityLens<ActivityEntity>;
+
+pub(super) fn runtime() -> LiveRuntime {
+    EntityLens::new(ActivityEntity)
 }
 
-/// Owned facade effects, installed only after the complete response is published.
-pub struct LiveTransaction {
-    change: Change,
-}
-
-enum Change {
-    Model(Transaction<activity::World>),
-    Pending { model: Transaction<activity::World>, request: Option<Any> },
-    Admit { model: Box<ModelRuntime>, receipt: Receipt },
-    Freeze { receipt: Receipt, refusal: Refusal },
-    Reset(Transaction<activity::World>),
-    Configure(Any),
-    Propose(Any),
-}
-
-impl LiveRuntime {
-    pub(super) fn new() -> Self {
-        Self {
-            model: fresh_model(),
-            receipt: None,
-            frozen: None,
-            configuration: None,
-            bootstrap: None,
-            pending: None,
-        }
+impl EntityBinding for ActivityEntity {
+    type Model = ModelRuntime;
+    type Receipt = Receipt;
+    const BOOTSTRAP: &'static str = START;
+    fn fresh(&self) -> ModelRuntime {
+        fresh_model()
     }
-
-    fn prepare_method(&self, method: u32, bytes: &[u8]) -> Prepared {
-        match i32::try_from(method).ok().and_then(|value| protocol::Method::try_from(value).ok()) {
-            Some(protocol::Method::Reset) => {
-                let request = protocol::ResetRequest::decode(bytes)
-                    .map_err(|_| Refusal::malformed("malformed Reset request"))?;
-                let configuration = request.configuration.or_else(|| self.configuration.clone());
-                if let Some(configuration) = configuration {
-                    let start: StartActivityExecutionRequest = configuration.unpack()?;
-                    let maximum =
-                        start.retry_policy.as_ref().map_or(0, |policy| policy.maximum_attempts);
-                    let maximum = u8::try_from(maximum).map_err(|_| {
-                        Refusal::unsupported(
-                            "retry_policy.maximum_attempts must be explicitly in 1..=3",
-                        )
-                    })?;
-                    let world = activity::World::new(maximum, None, None, None, None, false);
-                    let program = Realization::worker_program(&start, &world)?;
-                    return Ok((
-                        Outcome::Reset(protocol::ResetResponse::current(Some(program))),
-                        Some(LiveTransaction { change: Change::Configure(configuration) }),
-                    ));
-                }
-                let (response, transaction) = self.model.prepare(method, bytes);
-                Ok((
-                    response.outcome.ok_or_else(|| state("Reset response is missing"))?,
-                    transaction
-                        .map(|transaction| LiveTransaction { change: Change::Reset(transaction) }),
-                ))
-            }
-            Some(protocol::Method::Judge) => self.judge(bytes),
-            Some(protocol::Method::Answer) => {
-                Err(Refusal::unsupported("Temporal workers follow the Reset program"))
-            }
-            Some(protocol::Method::Propose) => self.propose(bytes),
-            _ => {
-                let (response, transaction) = self.model.prepare(method, bytes);
-                Ok((
-                    response.outcome.ok_or_else(|| state("Model response is missing"))?,
-                    transaction
-                        .map(|transaction| LiveTransaction { change: Change::Model(transaction) }),
-                ))
-            }
-        }
-    }
-
-    fn judge(&self, bytes: &[u8]) -> Prepared {
-        let request = protocol::JudgeRequest::decode(bytes)
-            .map_err(|_| Refusal::malformed("malformed Judge request"))?;
-        let value = Any::required(request.observation)?;
-        let observed = crate::support::Observed::new(&value)?;
-        if observed.acknowledged().is_some() && self.pending.is_none() {
-            return Err(state("compound evidence requires a pending cancellation"));
-        }
-        if observed.method == START {
-            return self.start(&value);
-        }
-        let observation = observed.current();
-        match observation.method.as_str() {
-            DESCRIBE => {
-                let response: DescribeActivityExecutionResponse = observed.response()?;
-                let info =
-                    response.info.ok_or_else(|| Refusal::malformed("activity info is missing"))?;
-                let _ = activity::Phase::try_from(info.clone())?;
-                let request: DescribeActivityExecutionRequest = required_request(observation)?;
-                let receipt = self.receipt()?;
-                receipt.matches(&request.namespace, &request.activity_id, &request.run_id)?;
-                receipt.matches(&request.namespace, &info.activity_id, &info.run_id)?;
-                receipt.matches(&request.namespace, &request.activity_id, &response.run_id)?;
-                if info.attempt < 1
-                    || receipt
-                        .maximum_attempts
-                        .is_some_and(|maximum| info.attempt > i32::from(maximum))
-                {
-                    return Err(state("Describe attempt is outside the admitted attempts"));
-                }
-            }
-            CANCEL => {
-                if observed.code()?.is_none() {
-                    let _: RequestCancelActivityExecutionResponse =
-                        observed.response().map_err(|error| Refusal::malformed(error.message))?;
-                }
-                let request: RequestCancelActivityExecutionRequest = required_request(observation)?;
-                self.receipt()?.matches(
-                    &request.namespace,
-                    &request.activity_id,
-                    &request.run_id,
-                )?;
-            }
-            _ => return Err(Refusal::unsupported("observation RPC is not supported")),
-        }
-        let receipt = self.receipt()?;
-        let prepared = self.delegate(4, bytes)?;
-        if let Outcome::Refusal(refusal) = &prepared.0 {
-            return Err(refusal.clone());
-        }
-        if let Some(frozen) = &self.frozen {
-            return Err(frozen.clone());
-        }
-        if receipt.maximum_attempts.is_none() {
-            return Err(state("live Start was not admitted"));
-        }
-        Ok(prepared)
-    }
-
-    fn propose(&self, bytes: &[u8]) -> Prepared {
-        let request = protocol::ProposeRequest::decode(bytes)
-            .map_err(|_| Refusal::malformed("malformed Propose request"))?;
-        let configuration = self
-            .configuration
-            .as_ref()
-            .ok_or_else(|| Refusal::unsupported("proposal configuration required"))?;
-        if self.frozen.is_some() || self.bootstrap.is_some() {
-            return Err(state("admission frozen or bootstrap pending until Reset or final Judge"));
-        }
-        if self.receipt.is_some() {
-            return self.delegate(6, bytes);
-        }
+    fn configure(&self, configuration: &Any) -> Result<Any, Refusal> {
         let start: StartActivityExecutionRequest = configuration.unpack()?;
-        let filled =
-            crate::activity_api::annotate(START, false, &start.encode_to_vec(), request.seed)?;
+        let maximum = start.retry_policy.as_ref().map_or(0, |policy| policy.maximum_attempts);
+        let maximum = u8::try_from(maximum).map_err(|_| {
+            Refusal::unsupported("retry_policy.maximum_attempts must be explicitly in 1..=3")
+        })?;
+        let world = activity::World::new(maximum, None, None, None, None, false);
+        Realization::worker_program(&start, &world)
+    }
+    fn bootstrap(&self, configuration: &Any, seed: u64) -> Result<Any, Refusal> {
+        let start: StartActivityExecutionRequest = configuration.unpack()?;
+        let filled = crate::activity_api::annotate(START, false, &start.encode_to_vec(), seed)?;
         if filled.out_of_scope.is_some() || !filled.violations.is_empty() {
             return Err(Refusal::malformed("configured Start violates its catalog"));
         }
         let mut start = StartActivityExecutionRequest::decode(filled.bytes.as_slice())
             .map_err(|_| Refusal::malformed("filled Start is malformed"))?;
-        let scenario = crate::activity_realization::SCENARIOS[(request.seed % 3) as usize];
+        let scenario = crate::activity_realization::SCENARIOS[(seed % 3) as usize];
         start.header.get_or_insert_with(Header::default).fields.insert(
             crate::activity_realization::SCENARIO_HEADER.into(),
             Payload {
@@ -312,68 +187,28 @@ impl LiveRuntime {
                 ..Default::default()
             },
         );
-        let request = Any::pack(&start);
-        Ok((
-            Outcome::Propose(protocol::ProposeResponse {
-                request: Some(request.clone()),
-                action: String::new(),
-                kind: protocol::ProposalKind::Bootstrap as i32,
-            }),
-            Some(LiveTransaction { change: Change::Propose(request) }),
-        ))
+        Ok(Any::pack(&start))
     }
-
-    fn receipt(&self) -> Result<&Receipt, Refusal> {
-        self.receipt.as_ref().ok_or_else(|| state("live Start admission is required"))
+    fn bootstrap_request(&self, actual: &Any) -> Result<Any, Refusal> {
+        let observation: Observation = actual.unpack()?;
+        let raw = observation
+            .request
+            .ok_or_else(|| Refusal::malformed("Start actual request is missing"))?;
+        let _: StartActivityExecutionRequest = raw.unpack()?;
+        Ok(raw)
     }
-
-    fn delegate(&self, method: u32, bytes: &[u8]) -> Prepared {
-        let (response, transaction) = self.model.prepare(method, bytes);
-        let outcome = response.outcome.ok_or_else(|| state("Model response is missing"))?;
-        let pending = match &outcome {
-            Outcome::Propose(proposal) => proposal.request.as_ref().filter(|request| request.type_url == <umpire_temporal_api::umpire::temporal::v1::TemporalInstruction as prost::Name>::type_url()).cloned(),
-            Outcome::Judge(judgment) if !judgment.continue_polling => None,
-            _ => self.pending.clone(),
-        };
-        Ok((
-            outcome,
-            transaction.map(|model| LiveTransaction {
-                change: Change::Pending { model, request: pending },
-            }),
-        ))
-    }
-
-    fn start(&self, value: &Any) -> Prepared {
-        let observation: Observation = value.unpack()?;
+    fn admit(&self, actual: &Any) -> Result<Admission<Self>, Refusal> {
+        let observation: Observation = actual.unpack()?;
         let raw_request = observation
             .request
             .as_ref()
             .ok_or_else(|| Refusal::malformed("Start actual request is missing"))?;
         let request: StartActivityExecutionRequest = raw_request.unpack()?;
-        if self.configuration.is_some()
-            && self.receipt.is_none()
-            && self.bootstrap.as_ref() != Some(raw_request)
-        {
-            return Err(state("Start actual request does not match pending bootstrap"));
-        }
         let Some(ResultValue::Response(raw_response)) = &observation.result else {
             return Err(Refusal::malformed("successful Start response is required"));
         };
         let response: StartActivityExecutionResponse = raw_response.unpack()?;
         validate_start(&request, &response)?;
-        if let Some(receipt) = &self.receipt {
-            receipt.validate_replay(&request, &response, raw_request, raw_response)?;
-            if let Some(frozen) = &self.frozen {
-                return Err(frozen.clone());
-            }
-            if receipt.maximum_attempts.is_none() {
-                return Err(state("rejected Start requires a fresh guest"));
-            }
-            return self.delegate(
-                protocol::Method::Judge as u32,
-                &protocol::JudgeRequest { observation: Some(value.clone()) }.encode_to_vec(),
-            );
-        }
         if !response.started {
             return Err(state("initial Start must create a new run"));
         }
@@ -393,10 +228,7 @@ impl LiveRuntime {
         let Some(maximum_attempts) = maximum_attempts else {
             let refusal =
                 Refusal::unsupported("retry_policy.maximum_attempts must be explicitly in 1..=3");
-            return Ok((
-                Outcome::Refusal(refusal.clone()),
-                Some(LiveTransaction { change: Change::Freeze { receipt, refusal } }),
-            ));
+            return Ok(Admission::Frozen { receipt, refusal });
         };
         let world = activity::World::new(maximum_attempts, None, None, None, None, false);
         let starts = world.starts();
@@ -410,7 +242,7 @@ impl LiveRuntime {
         )?;
         let (response, transaction) = model.prepare(
             protocol::Method::Judge as u32,
-            &protocol::JudgeRequest { observation: Some(value.clone()) }.encode_to_vec(),
+            &protocol::JudgeRequest { observation: Some(actual.clone()) }.encode_to_vec(),
         );
         let outcome = response.outcome.ok_or_else(|| state("Start judgment is missing"))?;
         if let Outcome::Refusal(refusal) = outcome {
@@ -419,30 +251,91 @@ impl LiveRuntime {
         if let Some(transaction) = transaction {
             model.commit(transaction);
         }
-        Ok((
-            outcome,
-            Some(LiveTransaction { change: Change::Admit { model: Box::new(model), receipt } }),
-        ))
+        Ok(Admission::Admitted { model, receipt, outcome })
     }
-}
-
-impl LiveRuntime {
-    fn install_context(&mut self) {
-        if self.configuration.is_some()
-            && let Some(receipt) = &self.receipt
-        {
-            let request: StartActivityExecutionRequest = receipt
-                .request
-                .unpack()
-                .unwrap_or_else(|_| unreachable!("validated Start receipt"));
-            self.model.replace_realization(LiveRealization {
-                inner: Realization::configured(crate::activity_realization::ProposalContext {
-                    start: request,
-                    run_id: receipt.run_id.clone(),
-                }),
-                receipt: Some(receipt.clone()),
-            });
+    fn replay(&self, receipt: &Receipt, actual: &Any) -> Result<(), Refusal> {
+        let observation: Observation = actual.unpack()?;
+        let raw_request = observation
+            .request
+            .as_ref()
+            .ok_or_else(|| Refusal::malformed("Start actual request is missing"))?;
+        let request: StartActivityExecutionRequest = raw_request.unpack()?;
+        let Some(ResultValue::Response(raw_response)) = &observation.result else {
+            return Err(Refusal::malformed("successful Start response is required"));
+        };
+        let response: StartActivityExecutionResponse = raw_response.unpack()?;
+        validate_start(&request, &response)?;
+        receipt.validate_replay(&request, &response, raw_request, raw_response)
+    }
+    fn validate(
+        &self,
+        receipt: Option<&Receipt>,
+        observed: &crate::support::Observed,
+    ) -> Result<(), Refusal> {
+        let observation = observed.current();
+        match observation.method.as_str() {
+            DESCRIBE => {
+                let response: DescribeActivityExecutionResponse = observed.response()?;
+                let info =
+                    response.info.ok_or_else(|| Refusal::malformed("activity info is missing"))?;
+                let _ = activity::Phase::try_from(info.clone())?;
+                let request: DescribeActivityExecutionRequest = required_request(observation)?;
+                let receipt = receipt.ok_or_else(|| self.missing_receipt())?;
+                receipt.matches(&request.namespace, &request.activity_id, &request.run_id)?;
+                receipt.matches(&request.namespace, &info.activity_id, &info.run_id)?;
+                receipt.matches(&request.namespace, &request.activity_id, &response.run_id)?;
+                if info.attempt < 1
+                    || receipt
+                        .maximum_attempts
+                        .is_some_and(|maximum| info.attempt > i32::from(maximum))
+                {
+                    return Err(state("Describe attempt is outside the admitted attempts"));
+                }
+            }
+            CANCEL => {
+                if observed.code()?.is_none() {
+                    let _: RequestCancelActivityExecutionResponse =
+                        observed.response().map_err(|error| Refusal::malformed(error.message))?;
+                }
+                let request: RequestCancelActivityExecutionRequest = required_request(observation)?;
+                receipt.ok_or_else(|| self.missing_receipt())?.matches(
+                    &request.namespace,
+                    &request.activity_id,
+                    &request.run_id,
+                )?;
+            }
+            _ => return Err(Refusal::unsupported("observation RPC is not supported")),
         }
+        Ok(())
+    }
+    fn ready(&self, receipt: &Receipt) -> Result<(), Refusal> {
+        if receipt.maximum_attempts.is_none() {
+            return Err(state("live Start was not admitted"));
+        }
+        Ok(())
+    }
+    fn ready_replay(&self, receipt: &Receipt) -> Result<(), Refusal> {
+        if receipt.maximum_attempts.is_none() {
+            return Err(state("rejected Start requires a fresh guest"));
+        }
+        Ok(())
+    }
+    fn install(&self, model: &mut ModelRuntime, receipt: &Receipt) {
+        let request: StartActivityExecutionRequest =
+            receipt.request.unpack().unwrap_or_else(|_| unreachable!("validated Start receipt"));
+        model.replace_realization(LiveRealization {
+            inner: Realization::configured(crate::activity_realization::ProposalContext {
+                start: request,
+                run_id: receipt.run_id.clone(),
+            }),
+            receipt: Some(receipt.clone()),
+        });
+    }
+    fn instruction(&self, request: &Any) -> bool {
+        request.type_url == <umpire_temporal_api::umpire::temporal::v1::TemporalInstruction as prost::Name>::type_url()
+    }
+    fn missing_receipt(&self) -> Refusal {
+        state("live Start admission is required")
     }
 }
 
@@ -478,53 +371,6 @@ impl Receipt {
             }
         }
         Ok(())
-    }
-}
-
-impl Dispatch for LiveRuntime {
-    type Transaction = LiveTransaction;
-    fn prepare(
-        &self,
-        method: u32,
-        request: &[u8],
-    ) -> (protocol::Response, Option<LiveTransaction>) {
-        let (outcome, transaction) = self
-            .prepare_method(method, request)
-            .unwrap_or_else(|refusal| (Outcome::Refusal(refusal), None));
-        (protocol::Response { outcome: Some(outcome) }, transaction)
-    }
-    fn commit(&mut self, transaction: LiveTransaction) {
-        match transaction.change {
-            Change::Model(transaction) => self.model.commit(transaction),
-            Change::Pending { model, request } => {
-                self.model.commit(model);
-                self.pending = request;
-            }
-            Change::Admit { model, receipt } => {
-                self.model = *model;
-                self.receipt = Some(receipt);
-                self.bootstrap = None;
-                self.install_context();
-            }
-            Change::Freeze { receipt, refusal } => {
-                self.receipt = Some(receipt);
-                self.frozen = Some(refusal);
-            }
-            Change::Configure(configuration) => {
-                self.model = fresh_model();
-                self.configuration = Some(configuration);
-                self.receipt = None;
-                self.bootstrap = None;
-                self.pending = None;
-                self.frozen = None;
-            }
-            Change::Propose(request) => self.bootstrap = Some(request),
-            Change::Reset(transaction) => {
-                self.model.commit(transaction);
-                self.pending = None;
-                self.frozen = None;
-            }
-        }
     }
 }
 
@@ -596,3 +442,7 @@ fn validate_start(
     }
     Ok(())
 }
+
+#[cfg(test)]
+#[path = "../tests/entity_lens/mod.rs"]
+mod equivalence;

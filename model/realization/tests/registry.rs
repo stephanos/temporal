@@ -41,8 +41,27 @@ fn proposals_worker_rows_and_probe_baselines_use_one_current_typed_filler() -> R
         umpire_runtime::Proposal::Action { action: client.clone(), request: request.clone() };
     assert!(matches!(proposal, umpire_runtime::Proposal::Action { .. }));
     let baseline: RequestCancelActivityExecutionRequest =
-        binding.fill(&client, &world, &inputs, &identity)?.pack_request().unpack()?;
+        umpire_temporal::probe_fillers::registered(
+            &binding,
+            "/temporal.api.workflowservice.v1.WorkflowService/RequestCancelActivityExecution",
+            &client,
+            &world,
+            &inputs,
+            &identity,
+        )?
+        .unpack()?;
     assert_eq!(baseline, request.unpack::<RequestCancelActivityExecutionRequest>()?);
+    assert!(
+        umpire_temporal::probe_fillers::registered(
+            &binding,
+            "/temporal.api.workflowservice.v1.WorkflowService/RespondActivityTaskCompleted",
+            &client,
+            &world,
+            &inputs,
+            &identity,
+        )
+        .is_err()
+    );
     assert_eq!(
         (
             baseline.namespace.as_str(),

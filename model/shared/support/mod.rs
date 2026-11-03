@@ -125,3 +125,46 @@ impl ApplicationFailure for Failure {
         }
     }
 }
+
+/// Assemble a declared read schedule without choosing feature finality or polling policy.
+pub fn scheduled_read(
+    request: umpire_runtime::prost_types::Any,
+    poll_interval_ms: u64,
+    read_timeout_ms: u64,
+    backoff_ms: u64,
+) -> umpire_temporal_api::umpire::temporal::v1::ObserveActivity {
+    umpire_temporal_api::umpire::temporal::v1::ObserveActivity {
+        request: Some(request),
+        poll_interval_ms,
+        read_timeout_ms,
+        backoff_ms,
+    }
+}
+
+/// Assemble the transport instruction after the feature has selected hold and reconciliation.
+pub fn instruction(
+    request: umpire_runtime::prost_types::Any,
+    hold_worker_polls: bool,
+    not_found_read: umpire_runtime::prost_types::Any,
+) -> umpire_temporal_api::umpire::temporal::v1::TemporalInstruction {
+    umpire_temporal_api::umpire::temporal::v1::TemporalInstruction {
+        request: Some(request),
+        hold_worker_polls,
+        not_found_read: Some(not_found_read),
+    }
+}
+
+/// Assemble the declared worker rows without choosing keys, responses or continuation domains.
+pub fn worker_program(
+    namespace: String,
+    task_queue: String,
+    rules: Vec<umpire_temporal_api::umpire::temporal::v1::Rule>,
+    continuation_domains: Vec<umpire_runtime::prost_types::Any>,
+) -> umpire_temporal_api::umpire::temporal::v1::WorkerProgram {
+    umpire_temporal_api::umpire::temporal::v1::WorkerProgram {
+        namespace,
+        task_queue,
+        rules,
+        continuation_domains,
+    }
+}

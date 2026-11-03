@@ -207,3 +207,69 @@ fn descriptor_controls() -> umpire_testing::TestResult {
     fs::remove_dir_all(&root)?;
     result
 }
+
+fn shared_entity_boundary(root: &Path) -> io::Result<Vec<Violation>> {
+    scan_with_exclusions(
+        root,
+        &["rs"],
+        &[
+            "crate::activity",
+            "crate::feature",
+            "super::activity",
+            "::feature::",
+            "activity::World",
+            "activity::Phase",
+            "feature/activity",
+            "SCENARIOS",
+            "SCENARIO_HEADER",
+            "RetryThenComplete",
+            "ModelSlice",
+        ],
+        &[],
+        |_, _, _, _| false,
+    )
+}
+
+#[test]
+fn shared_entity_modules_have_no_feature_imports_or_embedded_policy() -> umpire_testing::TestResult
+{
+    let shared = Path::new(env!("CARGO_MANIFEST_DIR")).join("../shared");
+    for owner in ["lens", "probes", "support"] {
+        let root = shared.join(owner);
+        assert!(root.is_dir(), "{}", root.display());
+        let violations = shared_entity_boundary(&root)?;
+        assert!(violations.is_empty(), "{owner}: {violations:?}");
+    }
+    Ok(())
+}
+
+#[test]
+fn shared_entity_boundary_refuses_planted_feature_coupling_but_allows_api_domain_names()
+-> umpire_testing::TestResult {
+    let root = std::env::temp_dir().join(format!("entity-lens-boundary-{}", std::process::id()));
+    fs::create_dir_all(&root)?;
+    let result = (|| -> umpire_testing::TestResult {
+        let planted = [
+            "use crate::activity_realization::Realization;",
+            "let world = activity::World::new(3);",
+            "let phase = activity::Phase::Scheduled;",
+            "let policy = SCENARIOS[0];",
+            "let scenario = \"RetryThenComplete\";",
+        ];
+        fs::write(root.join("coupled.rs"), planted.join("\n"))?;
+        fs::write(
+            root.join("allowed.rs"),
+            "use umpire_temporal_api::temporal::api::workflowservice::v1::DescribeActivityExecutionRequest;\nstruct ActivityEntity;\n",
+        )?;
+        let violations = shared_entity_boundary(&root)?;
+        assert_eq!(violations.len(), planted.len());
+        assert!(violations.iter().all(|violation| violation.path == Path::new("coupled.rs")));
+        assert_eq!(
+            violations.iter().map(|violation| violation.line).collect::<Vec<_>>(),
+            (1..=planted.len()).collect::<Vec<_>>()
+        );
+        Ok(())
+    })();
+    fs::remove_dir_all(&root)?;
+    result
+}

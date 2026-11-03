@@ -17,18 +17,10 @@ use umpire_catalog::{
 use umpire_runtime::prost_types::Duration;
 use umpire_temporal_api::{
     temporal::api::{
-        common::v1::{ActivityType, Payload, Payloads, RetryPolicy},
-        failure::v1::{
-            ActivityFailureInfo, ApplicationFailureInfo, ChildWorkflowExecutionFailureInfo,
-            Failure, NexusHandlerFailureInfo, TimeoutFailureInfo, failure::FailureInfo,
-        },
+        common::v1::{Payload, Payloads},
+        failure::v1::{ApplicationFailureInfo, Failure, failure::FailureInfo},
         taskqueue::v1::TaskQueue,
-        workflowservice::v1::{
-            DescribeActivityExecutionRequest, PollActivityExecutionRequest,
-            PollActivityTaskQueueRequest, RequestCancelActivityExecutionRequest,
-            RespondActivityTaskCanceledRequest, RespondActivityTaskCompletedRequest,
-            RespondActivityTaskFailedRequest, StartActivityExecutionRequest,
-        },
+        workflowservice::v1::{RespondActivityTaskFailedRequest, StartActivityExecutionRequest},
     },
     umpire::temporal::v1::{ProbeRequest, probe_request::Operation},
 };
@@ -37,8 +29,8 @@ mod dispositions;
 mod generic;
 mod report;
 
-type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
-const UUID: &str = "12345678-1234-4234-8234-123456789abc";
+pub(crate) type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
+pub(crate) const UUID: &str = "12345678-1234-4234-8234-123456789abc";
 
 fn cached<T>(cache: &OnceLock<T>, initialize: impl FnOnce() -> Result<T>) -> Result<&T> {
     if let Some(value) = cache.get() {
@@ -229,6 +221,11 @@ fn verify_inventory(entries: &[Entry]) -> Result<()> {
     }
     let mut declared = catalog::expected_probe_cases(&Limits::default())?;
     declared.extend(worker_failure_presence(&Limits::default())?.probe_cases());
+    let baselines = crate::activity_probe_fillers::baselines()?;
+    let methods: BTreeSet<_> = entries.iter().map(|entry| entry.method).collect();
+    if methods != baselines.methods().collect() {
+        return Err("probe inventory methods differ from registered baseline fillers".into());
+    }
     let registered: BTreeSet<_> = entries.iter().map(|entry| entry.target.id.clone()).collect();
     umpire_catalog::verify_probe_coverage(&declared, &registered.into_iter().collect::<Vec<_>>())?;
     Ok(())
@@ -298,10 +295,10 @@ impl Entry {
 fn method(name: &str) -> String {
     format!("/temporal.api.workflowservice.v1.WorkflowService/{name}")
 }
-fn duration(seconds: i64) -> Duration {
+pub(crate) fn duration(seconds: i64) -> Duration {
     Duration { seconds, nanos: 0 }
 }
-fn application() -> Failure {
+pub(crate) fn application() -> Failure {
     Failure {
         failure_info: Some(FailureInfo::ApplicationFailureInfo(ApplicationFailureInfo {
             r#type: "ProbeFailure".into(),
@@ -330,104 +327,7 @@ fn check_slots(name: &str, slots: &ProbeRequest) -> Result<()> {
 
 fn baseline(name: &str, slots: &ProbeRequest, context: &str) -> Result<Vec<u8>> {
     check_slots(name, slots)?;
-    let queue = TaskQueue { name: slots.task_queue.clone(), ..Default::default() };
-    Ok(match name {
-        "StartActivityExecution" => (StartActivityExecutionRequest {
-            namespace: slots.namespace.clone(),
-            activity_id: slots.activity_id.clone(),
-            request_id: UUID.into(),
-            identity: "umpire-probe".into(),
-            activity_type: Some(ActivityType { name: "ModelSlice".into() }),
-            task_queue: Some(queue),
-            schedule_to_close_timeout: Some(duration(60)),
-            start_to_close_timeout: Some(duration(20)),
-            schedule_to_start_timeout: Some(duration(30)),
-            heartbeat_timeout: Some(duration(10)),
-            retry_policy: Some(RetryPolicy {
-                maximum_attempts: 2,
-                initial_interval: Some(duration(1)),
-                maximum_interval: Some(duration(10)),
-                backoff_coefficient: 2.0,
-                ..Default::default()
-            }),
-            ..Default::default()
-        })
-        .encode_to_vec(),
-        "DescribeActivityExecution" => (DescribeActivityExecutionRequest {
-            namespace: slots.namespace.clone(),
-            activity_id: slots.activity_id.clone(),
-            run_id: slots.run_id.clone(),
-            ..Default::default()
-        })
-        .encode_to_vec(),
-        "PollActivityExecution" => (PollActivityExecutionRequest {
-            namespace: slots.namespace.clone(),
-            activity_id: slots.activity_id.clone(),
-            run_id: slots.run_id.clone(),
-        })
-        .encode_to_vec(),
-        "RequestCancelActivityExecution" => (RequestCancelActivityExecutionRequest {
-            namespace: slots.namespace.clone(),
-            activity_id: slots.activity_id.clone(),
-            run_id: slots.run_id.clone(),
-            request_id: UUID.into(),
-            identity: "umpire-probe".into(),
-            ..Default::default()
-        })
-        .encode_to_vec(),
-        "PollActivityTaskQueue" => (PollActivityTaskQueueRequest {
-            namespace: slots.namespace.clone(),
-            task_queue: Some(queue),
-            identity: "umpire-probe".into(),
-            ..Default::default()
-        })
-        .encode_to_vec(),
-        "RespondActivityTaskCompleted" => (RespondActivityTaskCompletedRequest {
-            namespace: slots.namespace.clone(),
-            task_token: slots.task_token.clone(),
-            identity: "umpire-probe".into(),
-            ..Default::default()
-        })
-        .encode_to_vec(),
-        "RespondActivityTaskFailed" => {
-            let mut failure = application();
-            let info = match context {
-                "failed.cause.activity" => {
-                    Some(FailureInfo::ActivityFailureInfo(ActivityFailureInfo::default()))
-                }
-                "failed.cause.child" => Some(FailureInfo::ChildWorkflowExecutionFailureInfo(
-                    ChildWorkflowExecutionFailureInfo::default(),
-                )),
-                "failed.cause.timeout" => {
-                    Some(FailureInfo::TimeoutFailureInfo(TimeoutFailureInfo::default()))
-                }
-                "failed.cause.nexus" => {
-                    Some(FailureInfo::NexusHandlerFailureInfo(NexusHandlerFailureInfo::default()))
-                }
-                _ => None,
-            };
-            if info.is_some() {
-                failure.cause =
-                    Some(Box::new(Failure { failure_info: info, ..Default::default() }));
-            }
-            (RespondActivityTaskFailedRequest {
-                namespace: slots.namespace.clone(),
-                task_token: slots.task_token.clone(),
-                identity: "umpire-probe".into(),
-                failure: Some(failure),
-                ..Default::default()
-            })
-            .encode_to_vec()
-        }
-        "RespondActivityTaskCanceled" => (RespondActivityTaskCanceledRequest {
-            namespace: slots.namespace.clone(),
-            task_token: slots.task_token.clone(),
-            identity: "umpire-probe".into(),
-            ..Default::default()
-        })
-        .encode_to_vec(),
-        _ => return Err("unknown prerequisite method".into()),
-    })
+    crate::activity_probe_fillers::fill(name, slots, context)
 }
 
 fn request_findings(name: &str, bytes: &[u8]) -> Result<Vec<Violation>> {
@@ -778,11 +678,14 @@ mod tests {
     #[test]
     fn generated_findings_preserve_contextual_intents_and_recursive_checks() -> Result<()> {
         use super::{
-            Failure, FailureInfo, ProbeRequest, RequestCancelActivityExecutionRequest,
-            RespondActivityTaskFailedRequest, StartActivityExecutionRequest, TimeoutFailureInfo,
-            UUID, application, baseline, duration, request_findings,
+            Failure, FailureInfo, ProbeRequest, RespondActivityTaskFailedRequest,
+            StartActivityExecutionRequest, UUID, application, baseline, duration, request_findings,
         };
         use prost::Message;
+        use umpire_temporal_api::temporal::api::{
+            failure::v1::TimeoutFailureInfo,
+            workflowservice::v1::RequestCancelActivityExecutionRequest,
+        };
         let slots = ProbeRequest {
             namespace: "namespace".into(),
             activity_id: "activity".into(),
@@ -926,3 +829,7 @@ mod tests {
         })
     }
 }
+
+#[cfg(test)]
+#[path = "../tests/entity_lens/probe_baseline.rs"]
+mod baseline_equivalence;

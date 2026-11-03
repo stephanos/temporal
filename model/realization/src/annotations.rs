@@ -12,7 +12,7 @@ pub type AnnotationRuntime =
 /// Creates one independently owned run with typed transport annotation support.
 pub fn annotation_runtime() -> AnnotationRuntime {
     umpire_runtime::AnnotationRuntime::with_probes(
-        live::LiveRuntime::new(),
+        live::runtime(),
         |request| {
             crate::probes::probe(request)
                 .map_err(|error| protocol::Refusal::malformed(error.to_string()))
