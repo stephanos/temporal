@@ -52,7 +52,14 @@ pub struct Field {
     pub reason: Option<&'static str>,
 }
 
+#[path = "../../shared/support/mod.rs"]
 pub mod support;
+
+#[path = "../../shared/lens/mod.rs"]
+pub mod lens;
+
+#[path = "../../shared/probes/mod.rs"]
+pub mod probe_fillers;
 
 pub mod registry;
 
@@ -65,6 +72,9 @@ pub mod activity_api;
 mod annotations;
 
 pub mod probes;
+
+#[path = "../../feature/activity/probes.rs"]
+mod activity_probe_fillers;
 
 #[path = "../../feature/activity/temporal.rs"]
 mod activity_realization;

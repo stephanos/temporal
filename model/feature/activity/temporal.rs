@@ -65,7 +65,7 @@ impl Realization {
         start: &StartActivityExecutionRequest,
         world: &activity::World,
     ) -> Result<Any, Refusal> {
-        use umpire_temporal_api::umpire::temporal::v1::{ActivityTaskKey, Rule, WorkerProgram};
+        use umpire_temporal_api::umpire::temporal::v1::{ActivityTaskKey, Rule};
         let maximum = start.retry_policy.as_ref().map_or(0, |policy| policy.maximum_attempts);
         if !(1..=3).contains(&maximum) {
             return Err(Refusal::unsupported(
@@ -117,12 +117,12 @@ impl Realization {
                 });
             }
         }
-        Ok(Any::pack(&WorkerProgram {
-            namespace: start.namespace.clone(),
-            task_queue: task_queue.name.clone(),
+        Ok(Any::pack(&crate::support::worker_program(
+            start.namespace.clone(),
+            task_queue.name.clone(),
             rules,
-            continuation_domains: Vec::new(),
-        }))
+            Vec::new(),
+        )))
     }
 }
 
@@ -147,12 +147,7 @@ impl Realization {
             include_last_failure: true,
             ..Default::default()
         });
-        let read = Any::pack(&umpire_temporal_api::umpire::temporal::v1::ObserveActivity {
-            request: Some(describe),
-            poll_interval_ms: 10,
-            read_timeout_ms: 30_000,
-            backoff_ms: 10,
-        });
+        let read = Any::pack(&crate::support::scheduled_read(describe, 10, 30_000, 10));
         if !umpire_dsl::Phase::closed(&state.phase) && seed % 2 == 1 {
             return Ok(Proposal::Read { request: read });
         }
@@ -694,18 +689,16 @@ impl umpire_runtime::capability::Fill<Action> for Realization {
                 if identity.activity_id.is_empty() || identity.run_id.is_empty() {
                     return Err(Refusal::malformed("cancellation identity is missing"));
                 }
-                Ok(FilledRequest::Cancel(
-                    umpire_temporal_api::umpire::temporal::v1::TemporalInstruction {
-                        request: Some(Any::pack(&RequestCancelActivityExecutionRequest {
-                            namespace: identity.namespace.clone(),
-                            activity_id: identity.activity_id.clone(),
-                            run_id: identity.run_id.clone(),
-                            ..Default::default()
-                        })),
-                        hold_worker_polls: *hold,
-                        not_found_read: Some(read.clone()),
-                    },
-                ))
+                Ok(FilledRequest::Cancel(crate::support::instruction(
+                    Any::pack(&RequestCancelActivityExecutionRequest {
+                        namespace: identity.namespace.clone(),
+                        activity_id: identity.activity_id.clone(),
+                        run_id: identity.run_id.clone(),
+                        ..Default::default()
+                    }),
+                    *hold,
+                    read.clone(),
+                )))
             }
             FillInputs::Worker { .. } if *action == Action::from(Worker::RespondCompleted) => {
                 Ok(FilledRequest::Completed(RespondActivityTaskCompletedRequest {
