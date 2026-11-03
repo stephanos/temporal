@@ -80,7 +80,7 @@ exec "$PATH_CONTROL_MISE" "$@"
     let metadata = format!(
         "{}|{}|{}|exec -- cargo metadata --locked --format-version 1",
         framework.display(),
-        root.join("build-output").display(),
+        target.display(),
         home.display()
     );
     assert!(calls.lines().any(|line| line.starts_with(&bootstrap)), "{calls}");

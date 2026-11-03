@@ -3,12 +3,12 @@
 resolver = "3"
 members = [
     "dev/xtask",
-    "temporal/api",
-    "temporal/annotate/syntax",
-    "temporal/realization",
-    "temporal/realization/macros",
-    "temporal/guest",
-    "temporal/testing",
+    "api",
+    "annotate/syntax",
+    "realization",
+    "realization/macros",
+    "guest",
+    "testing",
 ]
 exclude = ["umpire"]
 
@@ -32,10 +32,10 @@ umpire-front = { version = "0.0.1", path = "../../umpire/crates/umpire-front" }
 umpire-tla = { version = "0.0.1", path = "../../umpire/crates/umpire-tla" }
 umpire-tlc = { version = "0.0.1", path = "../../umpire/crates/umpire-tlc" }
 umpire-runtime = { version = "0.0.1", path = "../../umpire/crates/umpire-runtime" }
-umpire-temporal-api = { version = "0.0.1", path = "temporal/api" }
-umpire-temporal-annotate-syntax = { version = "0.0.1", path = "temporal/annotate/syntax" }
-umpire-temporal = { version = "0.0.1", path = "temporal/realization" }
-umpire-temporal-realization-macros = { version = "0.0.1", path = "temporal/realization/macros" }
+umpire-temporal-api = { version = "0.0.1", path = "api" }
+umpire-temporal-annotate-syntax = { version = "0.0.1", path = "annotate/syntax" }
+umpire-temporal = { version = "0.0.1", path = "realization" }
+umpire-temporal-realization-macros = { version = "0.0.1", path = "realization/macros" }
 
 # Admitted dependencies (fn-210 R18). Declared once here; a crate opts in with `name.workspace = true`.
 indexmap = "2.14"

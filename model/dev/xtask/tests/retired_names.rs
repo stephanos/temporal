@@ -121,7 +121,7 @@ fn active_spellings_and_historical_exclusions() {
     let history = [
         ".plans/archive/history.md",
         ".turbo/plans/history.md",
-        "model/temporal/feature/activity/compatibility/original/rows.snap",
+        "model/feature/activity/compatibility/original/rows.snap",
     ];
     for path in history {
         scratch.write(path, layout.join("\n"));

@@ -1,0 +1,267 @@
+---
+source: realization/macros/src/lib.rs
+expression: render(metadata)
+---
+impl Realization {
+    /// Declared coverage in each incoming and outgoing protobuf context.
+    pub const REALIZATION: &'static [::umpire_temporal::Context] = &[
+        ::umpire_temporal::Context {
+            kind: "observed response",
+            method: Some(
+                "/temporal.api.workflowservice.v1.WorkflowService/RequestCancelActivityExecution",
+            ),
+            message: "temporal.api.workflowservice.v1.RequestCancelActivityExecutionResponse",
+            fields: &[],
+        },
+        ::umpire_temporal::Context {
+            kind: "observed response",
+            method: Some(
+                "/temporal.api.workflowservice.v1.WorkflowService/DescribeActivityExecution",
+            ),
+            message: "temporal.api.workflowservice.v1.DescribeActivityExecutionResponse",
+            fields: &[
+                ::umpire_temporal::Field {
+                    path: "run_id",
+                    class: "ignored",
+                    reason: Some("Run identity is outside the lifecycle projection"),
+                },
+                ::umpire_temporal::Field {
+                    path: "info.activity_id",
+                    class: "ignored",
+                    reason: Some("Activity identity is bound by the owning run"),
+                },
+                ::umpire_temporal::Field {
+                    path: "info.run_id",
+                    class: "ignored",
+                    reason: Some("Run identity is outside the lifecycle projection"),
+                },
+                ::umpire_temporal::Field {
+                    path: "info.activity_type",
+                    class: "ignored",
+                    reason: Some("Activity type is outside the lifecycle projection"),
+                },
+                ::umpire_temporal::Field {
+                    path: "info.status",
+                    class: "mapped",
+                    reason: None,
+                },
+                ::umpire_temporal::Field {
+                    path: "info.run_state",
+                    class: "mapped",
+                    reason: None,
+                },
+                ::umpire_temporal::Field {
+                    path: "info.task_queue",
+                    class: "ignored",
+                    reason: Some("Queue routing is outside the lifecycle projection"),
+                },
+                ::umpire_temporal::Field {
+                    path: "info.schedule_to_close_timeout",
+                    class: "ignored",
+                    reason: Some("Timing policy is outside the lifecycle projection"),
+                },
+                ::umpire_temporal::Field {
+                    path: "info.schedule_to_start_timeout",
+                    class: "ignored",
+                    reason: Some("Timing policy is outside the lifecycle projection"),
+                },
+                ::umpire_temporal::Field {
+                    path: "info.start_to_close_timeout",
+                    class: "ignored",
+                    reason: Some("Timing policy is outside the lifecycle projection"),
+                },
+                ::umpire_temporal::Field {
+                    path: "info.heartbeat_timeout",
+                    class: "ignored",
+                    reason: Some("Heartbeat timing is outside the lifecycle projection"),
+                },
+                ::umpire_temporal::Field {
+                    path: "info.retry_policy",
+                    class: "ignored",
+                    reason: Some("Retry policy is outside the six-phase Model"),
+                },
+                ::umpire_temporal::Field {
+                    path: "info.heartbeat_details",
+                    class: "ignored",
+                    reason: Some(
+                        "Heartbeat payloads are outside the lifecycle projection",
+                    ),
+                },
+                ::umpire_temporal::Field {
+                    path: "info.last_heartbeat_time",
+                    class: "ignored",
+                    reason: Some(
+                        "Observed timestamps are outside the lifecycle projection",
+                    ),
+                },
+                ::umpire_temporal::Field {
+                    path: "info.last_started_time",
+                    class: "ignored",
+                    reason: Some(
+                        "Observed timestamps are outside the lifecycle projection",
+                    ),
+                },
+                ::umpire_temporal::Field {
+                    path: "info.attempt",
+                    class: "mapped",
+                    reason: None,
+                },
+                ::umpire_temporal::Field {
+                    path: "info.execution_duration",
+                    class: "ignored",
+                    reason: Some("Measured duration is outside the lifecycle projection"),
+                },
+                ::umpire_temporal::Field {
+                    path: "info.schedule_time",
+                    class: "ignored",
+                    reason: Some(
+                        "Observed timestamps are outside the lifecycle projection",
+                    ),
+                },
+                ::umpire_temporal::Field {
+                    path: "info.expiration_time",
+                    class: "ignored",
+                    reason: Some(
+                        "Observed timestamps are outside the lifecycle projection",
+                    ),
+                },
+                ::umpire_temporal::Field {
+                    path: "info.close_time",
+                    class: "ignored",
+                    reason: Some(
+                        "Observed timestamps are outside the lifecycle projection",
+                    ),
+                },
+                ::umpire_temporal::Field {
+                    path: "info.last_failure",
+                    class: "mapped",
+                    reason: None,
+                },
+                ::umpire_temporal::Field {
+                    path: "info.last_worker_identity",
+                    class: "ignored",
+                    reason: Some("Worker identity is outside the lifecycle projection"),
+                },
+                ::umpire_temporal::Field {
+                    path: "info.current_retry_interval",
+                    class: "ignored",
+                    reason: Some("Retry policy is outside the six-phase Model"),
+                },
+                ::umpire_temporal::Field {
+                    path: "info.last_attempt_complete_time",
+                    class: "ignored",
+                    reason: Some("Retry timing is outside the six-phase Model"),
+                },
+                ::umpire_temporal::Field {
+                    path: "info.next_attempt_schedule_time",
+                    class: "ignored",
+                    reason: Some("Retry timing is outside the six-phase Model"),
+                },
+                ::umpire_temporal::Field {
+                    path: "info.last_deployment_version",
+                    class: "ignored",
+                    reason: Some("Deployment routing is outside the Model"),
+                },
+                ::umpire_temporal::Field {
+                    path: "info.priority",
+                    class: "ignored",
+                    reason: Some("Scheduling priority is outside the Model"),
+                },
+                ::umpire_temporal::Field {
+                    path: "info.state_transition_count",
+                    class: "ignored",
+                    reason: Some("Server counters are outside the lifecycle projection"),
+                },
+                ::umpire_temporal::Field {
+                    path: "info.state_size_bytes",
+                    class: "ignored",
+                    reason: Some(
+                        "Server storage size is outside the lifecycle projection",
+                    ),
+                },
+                ::umpire_temporal::Field {
+                    path: "info.search_attributes",
+                    class: "ignored",
+                    reason: Some("Search indexing is outside the Model"),
+                },
+                ::umpire_temporal::Field {
+                    path: "info.header",
+                    class: "ignored",
+                    reason: Some(
+                        "Application headers are outside the lifecycle projection",
+                    ),
+                },
+                ::umpire_temporal::Field {
+                    path: "info.user_metadata",
+                    class: "ignored",
+                    reason: Some(
+                        "Application metadata is outside the lifecycle projection",
+                    ),
+                },
+                ::umpire_temporal::Field {
+                    path: "info.canceled_reason",
+                    class: "ignored",
+                    reason: Some(
+                        "Cancellation reasons are outside the lifecycle projection",
+                    ),
+                },
+                ::umpire_temporal::Field {
+                    path: "info.links",
+                    class: "ignored",
+                    reason: Some("Linked entities are outside the Model"),
+                },
+                ::umpire_temporal::Field {
+                    path: "info.total_heartbeat_count",
+                    class: "ignored",
+                    reason: Some(
+                        "Heartbeat counters are outside the lifecycle projection",
+                    ),
+                },
+                ::umpire_temporal::Field {
+                    path: "info.sdk_name",
+                    class: "ignored",
+                    reason: Some("SDK identity is outside the lifecycle projection"),
+                },
+                ::umpire_temporal::Field {
+                    path: "info.sdk_version",
+                    class: "ignored",
+                    reason: Some("SDK identity is outside the lifecycle projection"),
+                },
+                ::umpire_temporal::Field {
+                    path: "info.start_delay",
+                    class: "ignored",
+                    reason: Some("Timing policy is outside the lifecycle projection"),
+                },
+                ::umpire_temporal::Field {
+                    path: "info.execution_time",
+                    class: "ignored",
+                    reason: Some(
+                        "Observed timestamps are outside the lifecycle projection",
+                    ),
+                },
+                ::umpire_temporal::Field {
+                    path: "input",
+                    class: "ignored",
+                    reason: Some(
+                        "Application input is independent of the worker scenario",
+                    ),
+                },
+                ::umpire_temporal::Field {
+                    path: "outcome",
+                    class: "mapped",
+                    reason: None,
+                },
+                ::umpire_temporal::Field {
+                    path: "long_poll_token",
+                    class: "ignored",
+                    reason: Some("Transport polling state is outside the Model"),
+                },
+                ::umpire_temporal::Field {
+                    path: "callbacks",
+                    class: "ignored",
+                    reason: Some("Callback registration is outside the Model"),
+                },
+            ],
+        },
+    ];
+}

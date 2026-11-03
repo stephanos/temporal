@@ -457,7 +457,7 @@ umpire:
 .PHONY: umpire-guest umpire-check-model-slice umpire-check-model-gaps
 umpire-guest: $(API_BINPB)
 	@/bin/bash "$(CURDIR)/model/scripts/framework-root.sh" >/dev/null
-	@$(RUST_MODEL_CARGO) run --manifest-path "$(CURDIR)/model/Cargo.toml" --package temporal-xtask --bin temporal-xtask --profile dev -- guest umpire-temporal-guest "$(CURDIR)/model/temporal/hosts/go/umpire_temporal_guest.wasm"
+	@$(RUST_MODEL_CARGO) run --manifest-path "$(CURDIR)/model/Cargo.toml" --package temporal-xtask --bin temporal-xtask --profile dev -- guest umpire-temporal-guest "$(CURDIR)/model/hosts/go/umpire_temporal_guest.wasm"
 
 umpire-check-model-slice:
 	@set -eu; \

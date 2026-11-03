@@ -18,17 +18,14 @@ fn arguments(root: &Path, arguments: &[OsString]) -> io::Result<Vec<OsString>> {
         "--plugin-root".into(),
         repository.as_os_str().to_owned(),
         "--destination".into(),
-        "temporal/hosts/go".into(),
+        "hosts/go".into(),
         "--include".into(),
-        "temporal/proto".into(),
+        "proto".into(),
         "--include".into(),
         "../../umpire/protocol/proto".into(),
     ];
     for name in ["temporal", "probe", "activity"] {
-        result.extend([
-            "--input".into(),
-            format!("temporal/proto/umpire/temporal/v1/{name}.proto").into(),
-        ]);
+        result.extend(["--input".into(), format!("proto/umpire/temporal/v1/{name}.proto").into()]);
     }
     result.extend(["--check-subtree".into(), "umpire".into()]);
     if arguments.len() == 2 {
@@ -122,17 +119,17 @@ mod tests {
                         "--plugin-root",
                         "/repo with spaces",
                         "--destination",
-                        "temporal/hosts/go",
+                        "hosts/go",
                         "--include",
-                        "temporal/proto",
+                        "proto",
                         "--include",
                         "../../umpire/protocol/proto",
                         "--input",
-                        "temporal/proto/umpire/temporal/v1/temporal.proto",
+                        "proto/umpire/temporal/v1/temporal.proto",
                         "--input",
-                        "temporal/proto/umpire/temporal/v1/probe.proto",
+                        "proto/umpire/temporal/v1/probe.proto",
                         "--input",
-                        "temporal/proto/umpire/temporal/v1/activity.proto",
+                        "proto/umpire/temporal/v1/activity.proto",
                         "--check-subtree",
                         "umpire",
                     ]

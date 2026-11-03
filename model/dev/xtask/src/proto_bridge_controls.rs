@@ -70,7 +70,7 @@ printf 'generated\n' > "$output/umpire/generated.go"
     }
 
     fn destination(&self) -> PathBuf {
-        self.model.join("temporal/hosts/go")
+        self.model.join("hosts/go")
     }
 
     fn command(&self, input: &[&str]) -> io::Result<Command> {
@@ -113,11 +113,11 @@ fn temporal_spec_composes_with_native_generation_freshness_and_refusals() -> io:
     let arguments: Vec<_> =
         arguments.split(|byte| *byte == 0).filter(|arg| !arg.is_empty()).collect();
     for expected in [
-        b"--proto_path=temporal/proto".as_slice(),
+        b"--proto_path=proto".as_slice(),
         b"--proto_path=../../umpire/protocol/proto",
-        b"temporal/proto/umpire/temporal/v1/temporal.proto",
-        b"temporal/proto/umpire/temporal/v1/probe.proto",
-        b"temporal/proto/umpire/temporal/v1/activity.proto",
+        b"proto/umpire/temporal/v1/temporal.proto",
+        b"proto/umpire/temporal/v1/probe.proto",
+        b"proto/umpire/temporal/v1/activity.proto",
     ] {
         assert!(arguments.contains(&expected), "missing {expected:?}");
     }

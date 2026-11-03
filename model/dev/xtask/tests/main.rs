@@ -37,6 +37,42 @@ fn driver_binary() -> PathBuf {
 fn compiler_fixture() -> &'static str {
     env!("CARGO_BIN_EXE_identity-compiler-fixture")
 }
+
+#[test]
+fn public_timer_uses_consumer_supervision_before_the_full_gate() {
+    let fixture = Fixture::new();
+    support::executable(
+        &fixture.root.join("bin/make"),
+        r#"#!/bin/sh
+set -eu
+[ "$*" = "-C $CONTROL_REPOSITORY model-check" ]
+[ "$UMPIRE_TIME_STEPS" = 1 ]
+printf 'consumer timer reached\n' > "$CONTROL_MARKER"
+exit 37
+"#,
+    );
+    let model = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..").canonicalize().unwrap();
+    let marker = fixture.root.join("timer-reached");
+    let mut paths = vec![fixture.root.join("bin")];
+    paths.extend(std::env::split_paths(&std::env::var_os("PATH").unwrap_or_default()));
+    let output = Command::new(env!("CARGO_BIN_EXE_temporal-xtask"))
+        .arg("time")
+        .current_dir(&model)
+        .env("PATH", std::env::join_paths(paths).unwrap())
+        .env("CONTROL_REPOSITORY", model.parent().unwrap())
+        .env("CONTROL_MARKER", &marker)
+        .env_remove("UMPIRE_GATE_RECEIPTS")
+        .env_remove("UMPIRE_GATE_SCOPE")
+        .env_remove("UMPIRE_GATE_STAGE")
+        .env_remove("BASH_ENV")
+        .output()
+        .unwrap();
+    assert_eq!(output.status.code(), Some(37), "{output:?}");
+    assert_eq!(fs::read_to_string(marker).unwrap(), "consumer timer reached\n");
+    assert!(String::from_utf8_lossy(&output.stdout).contains("gate command:"));
+    assert!(!String::from_utf8_lossy(&output.stderr).contains("managed gate needs"));
+}
+
 #[test]
 fn public_fmt_finishes_while_host_lease_is_held() {
     let native = std::env::var_os("UMPIRE_CONTROL_FRAMEWORK_XTASK")
@@ -53,11 +89,7 @@ if [[ " $* " == *' cargo build '* ]]; then
     previous="$argument"
   done
   mkdir -p "$bootstrap/debug"
-  cat > "$bootstrap/debug/xtask" <<'WRAPPER'
-#!/bin/bash
-export UMPIRE_TOOL_ROOT="$CONTROL_FRAMEWORK"
-exec "$CONTROL_NATIVE" "$@"
-WRAPPER
+  printf '%s\n' '#!/bin/bash' 'export UMPIRE_TOOL_ROOT="$CONTROL_FRAMEWORK"' 'exec "$CONTROL_NATIVE" "$@"' > "$bootstrap/debug/xtask"
   chmod 755 "$bootstrap/debug/xtask"
   cp "$(type -P true)" "$bootstrap/debug/umpire-guest-driver"
   exit 0
@@ -128,7 +160,7 @@ fn actual_make_freshness_recipe_propagates_stale_failure() {
         format!("RUST_MODEL_CARGO := mise exec -- cargo\n.PHONY: freshness-control\nfreshness-control:\n{recipe}\n"),
     )
     .unwrap();
-    let output = f.model.join("temporal/hosts/go/umpire_temporal_guest.wasm");
+    let output = f.model.join("hosts/go/umpire_temporal_guest.wasm");
     fs::create_dir_all(output.parent().unwrap()).unwrap();
     fs::write(&output, b"keep").unwrap();
     fs::rename(f.root.join("bin/mise"), f.root.join("bin/real-mise")).unwrap();
@@ -138,7 +170,7 @@ fn actual_make_freshness_recipe_propagates_stale_failure() {
 set -euo pipefail
 if [[ "$*" == *'--bin temporal-xtask --profile dev -- gate' ]]; then
   printf 'temporal gate freshness delegation\n' >> "$FIXTURE/gate-called"
-  if "$NATIVE_DRIVER" guest-freshness umpire-temporal-guest "$PWD/model/temporal/hosts/go/umpire_temporal_guest.wasm"; then
+  if "$NATIVE_DRIVER" guest-freshness umpire-temporal-guest "$PWD/model/hosts/go/umpire_temporal_guest.wasm"; then
     exit 0
   fi
   exit 37
@@ -184,7 +216,7 @@ fn absent_embedded_guest_fails_go_compilation() {
     assert!(go.status.success(), "{}", String::from_utf8_lossy(&go.stderr));
     let module = f.root.join("isolated host");
     fs::create_dir_all(&module).unwrap();
-    fs::copy(source.join("temporal/hosts/go/guest.go"), module.join("guest.go")).unwrap();
+    fs::copy(source.join("hosts/go/guest.go"), module.join("guest.go")).unwrap();
     fs::write(module.join("go.mod"), "module embedded-guest-control\n\ngo 1.27.0\n").unwrap();
     let output = Command::new(String::from_utf8(go.stdout).unwrap().trim())
         .args(["test", "-tags", "test_dep", "./..."])

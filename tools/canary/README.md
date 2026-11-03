@@ -72,7 +72,7 @@ it true afterwards.
 
 `policy/production-canary.json` is the canary's one policy. It is embedded in the binary and
 decoded strictly. It pins the Model guest's hash (`modelHash`, the SHA-256 of the committed
-`model/temporal/hosts/go/umpire_temporal_guest.wasm`), the authority class (`protected-workflow`), the lease, the repository, the trusted ref, the workflow path and the Limits.
+`model/hosts/go/umpire_temporal_guest.wasm`), the authority class (`protected-workflow`), the lease, the repository, the trusted ref, the workflow path and the Limits.
 It is committed with every coordinate set to the literal `unconfigured`.
 
 To configure it, digest each coordinate's exact value as the environment holds it, with no

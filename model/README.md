@@ -2,7 +2,7 @@
 
 Two Cargo workspaces separate the independent framework in the sibling `../umpire/`
 checkout (relative to the Temporal repository root) from the Temporal extension under
-`model/temporal/`. Each owns its lockfile, configuration and build profiles.
+`model/`. Each owns its lockfile, configuration and build profiles.
 Place both repositories under one parent directory. Cargo path dependencies and the
 Model command bridges use that exact sibling checkout; missing source reports setup
 guidance. No Rust package publication is required for local edits. Current-pair
@@ -77,7 +77,7 @@ inherited cancellation/completion custody; its Darwin runtime proof remains open
 platforms refuse. Apalache remains opt-in with `UMPIRE_APALACHE=require`; TLC requires `UMPIRE_BACKENDS=require`.
 `crates/umpire/tests/consumer` proves authoring with one renamed facade dependency.
 `guests` contains stock/control guest packages; `reference/kettle/guest`
-contains the reference guest. The Temporal guest and extension remain under `model/temporal/`.
+contains the reference guest. The Temporal guest and extension remain under `model/`.
 
 The host-only `../../umpire/tools/xtask` command front door owns checker provisioning, native
 gate stages, timing, protobuf generation and retired-name filtering. Guest commands
@@ -141,14 +141,14 @@ the activity Model and goldens, generated upstream API closure, realization, gue
 its separate Go adapter module. Shared envelopes use `umpire.realization.v1` and
 `umpire.annotations.v1` in the framework protocol; the actual-request Observation field
 retains tag 4 and its absent-request encoding. The source scanner is generic; its deny policy and
-negative controls live in `temporal/testing/boundary.rs`, outside the scanned tree.
+negative controls live in `testing/boundary.rs`, outside the scanned tree.
 Every `.rs`, `.proto`, `.go` and `.toml` file is scanned, including comments and literals.
 Only the exact `temporalio` organization segment in a `github.com/temporalio/<module>`
 path is allowed. Offenses report deterministic relative file/line diagnostics.
 
 Cargo resolves framework crates through sibling `path` dependencies. The server's
 `go.mod` requires `github.com/temporalio/umpire/hosts/go` and `umpire.local/temporal`,
-replacing them with `../umpire/hosts/go` and `./model/temporal/hosts/go`. The Temporal
+replacing them with `../umpire/hosts/go` and `./model/hosts/go`. The Temporal
 extension also replaces the shared host with the sibling source. A parent `go.work`
 selects the server, shared host, Kettle and Temporal extension modules; preserve
 existing unrelated workspace entries. See [paired checkout setup](docs/paired-checkout.md).
@@ -169,7 +169,7 @@ make umpire-check-live-tests
 ```
 
 Slice and gaps use `temporal.Guest()` from the committed
-`temporal/hosts/go/umpire_temporal_guest.wasm`; they build no Rust guest.
+`hosts/go/umpire_temporal_guest.wasm`; they build no Rust guest.
 The slice requires Complete, Fail, HostRefusal, Cancellation, CancelAfterCompletion,
 CancelBeforeWorkerStart and RetryThenComplete to pass. The umbrella invokes both before its
 `^TestTestpilot` selector, which also runs the canary harness over the Runner; fn-228.6 retired the
@@ -229,7 +229,7 @@ Temporal's probe adapter suppresses inferred opaque mutations only when they car
 explicit catalog finding; `wire_cases` stays shape-only and Kettle admits its full inventory.
 Generated symbol names derive from the service and prefix. Descriptor acquisition stays
 with each consumer; Temporal's API build and realization macros share one definition in
-`temporal/api/system.rs`. The independent
+`api/system.rs`. The independent
 Kettle catalog fixture builds without an extension dependency; refusal fixtures retain
 missing-field and enum-variant checks alongside descriptor method/action controls.
 
@@ -509,8 +509,8 @@ comparison and capability boundaries.
 
 ## Annotating an API
 
-Author each feature's sidecar in `temporal/feature/<feature>/api.rs`, alongside its
-independent Model. Follow the [annotation guide](temporal/foundation/README.md) for
+Author each feature's sidecar in `feature/<feature>/api.rs`, alongside its
+independent Model. Follow the [annotation guide](foundation/README.md) for
 derive mirrors, typed projections, constraints, roles and exhaustive mappings;
 [Annotation catalog](DESIGN.md#annotation-catalog) explains admission and the API bump workflow.
 Use the activity catalog as the concrete example. Request constraints need an expectation
@@ -519,7 +519,7 @@ explicit with reasons and validate responses without rewriting their bytes.
 
 Verify with `make model-check`; activity transport/catalog changes also require
 `make umpire-check-model-slice` and `make umpire-check-model-gaps`. The latter compares
-actual live probes with `temporal/feature/activity/expected/gaps.txt.snap`. Review unexpected
+actual live probes with `feature/activity/expected/gaps.txt.snap`. Review unexpected
 Accepted/Mismatch/Unannotated rows and explicit mutation refusals before changing expectations
 or goldens. Its external live golden is checked by the gap gate, not regenerated by
 `make model-update`.
@@ -535,9 +535,9 @@ cancels, while global expiry times out; completion and nonretryable failure may 
 
 Exact Poll(1)..Poll(maximum_attempts) and RespondCompleted weak fairness establishes
 closure, including timeoutless Worlds. Registered countdown laws establish the spanning
-actual-Tick bound across arbitrary interleavings. The [activity guide](temporal/feature/activity/README.md)
+actual-Tick bound across arbitrary interleavings. The [activity guide](feature/activity/README.md)
 states arming/reset rules, cancellation boundaries, the induction and availability controls.
-Its [compatibility projection](temporal/feature/activity/compatibility/README.md) validates
+Its [compatibility projection](feature/activity/compatibility/README.md) validates
 one atomic attempt with one-tick waiting/running deadlines against all 15 original artifacts,
 retaining exactly one start, six states and eleven old visible edges.
 
@@ -559,7 +559,7 @@ realization proposes paths; the runtime validates those paths through actual Mod
 The activity realization uses Temporal-owned `#[realization]`, `#[observe]` and `#[answer]`
 attributes over typed handlers. Their declared field paths distinguish observed responses,
 incoming callbacks and produced partial SDK requests; omitted present fields refuse.
-See the [realization guide](temporal/realization/README.md) for explicit state projection,
+See the [realization guide](realization/README.md) for explicit state projection,
 `Step`/`Reply` returns and the raw typed request packing contract.
 The registered Temporal fixture consumer checks `expected/realization.txt.snap` against
 the generated runtime metadata. It distinguishes observed, callback and produced contexts,
@@ -621,7 +621,7 @@ schema, and reports comparable counts and actual gate timings. Temporal workers 
 follow a Model-issued program from Reset without callbacks; generic Answer remains for
 other systems. `umpire program --model <guest.wasm> --world <world.binpb> --out <program.binpb>`
 exports that table. The raw and Go SDK executors live in
-`temporal/hosts/go/reference/worker/{raw,sdk}`; `tools/umpire/temporaldriver` composes
+`hosts/go/reference/worker/{raw,sdk}`; `tools/umpire/temporaldriver` composes
 their Validate/Follow functions with the opaque transport Driver in Testpilot's `temporal/act`.
 The hold fault replaces the old worker gate; the proposed Shim was superseded.
 
@@ -823,7 +823,7 @@ every actual step. The literal adjacent form is retained as a refusal control. A
 21 explicit alternatives: for each attempt 1..=3, Cancel or ScheduleToStart from Scheduled,
 and Cancel, RespondCompleted, either RespondFailed payload or StartToClose from Started.
 The selected three-attempt World supplies the search graph; gaps reach each requested phase
-and attempt before the final action. `temporal/feature/activity/tests.rs` checks each exact
+and attempt before the final action. `feature/activity/tests.rs` checks each exact
 witness, including retries returning to Scheduled. Run it with
 `cd model && mise exec -- cargo test -p umpire-temporal-tests`.
 
@@ -877,7 +877,7 @@ surface does not admit, and why:
 updates, discovery and the consumer registry. Build scripts share its dependency-free discovery
 source, avoiding a checker dependency cycle. Fixtures are discovered in name order and must
 contain `model.rs`, `expected/`, and at least one consumer-owned expected file; shared fixture
-roots (`../../umpire/fixtures/umpire-fixtures/fixtures/`, `temporal/feature/`) also require `tests.rs`, while synthetic
+roots (`../../umpire/fixtures/umpire-fixtures/fixtures/`, `feature/`) also require `tests.rs`, while synthetic
 control roots keep the hook in `model.rs`. Expected files
 select consumers: the checker owns `report.txt`, `states.txt`, `rows.txt`, `negative_report.txt`
 and `paths/*.txt`; a selected consumer renders and checks its outputs twice for determinism.

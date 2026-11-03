@@ -4,6 +4,7 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 	"google.golang.org/protobuf/proto"
@@ -146,4 +147,81 @@ func TestLinkedModelDescriptorsKeepTheWholeSchemaClosureApart(t *testing.T) {
 		}
 	}
 	require.ErrorContains(t, checkCurrentInternal(linked, current), "current internal proto "+umpireSchemaDirectory+"v1/value.proto is absent")
+}
+
+func TestWriteLinkedDescriptors(t *testing.T) {
+	input := filepath.Join(t.TempDir(), "api.binpb")
+	seed, err := proto.Marshal(&descriptorpb.FileDescriptorSet{})
+	require.NoError(t, err)
+	require.NoError(t, os.WriteFile(input, seed, 0644))
+	first, _, err := linkedModelDescriptors(input)
+	require.NoError(t, err)
+	output := filepath.Join(t.TempDir(), "linked.binpb")
+
+	// Missing output is created with the complete linked descriptor set.
+	require.NoError(t, writeLinkedDescriptors(output, first))
+	actual, err := os.ReadFile(output)
+	require.NoError(t, err)
+	require.Equal(t, first, actual)
+	require.NoError(t, os.Chmod(output, 0600))
+	old := time.Unix(946684800, 0)
+	require.NoError(t, os.Chtimes(output, old, old))
+	before, err := os.Stat(output)
+	require.NoError(t, err)
+
+	require.NoError(t, writeLinkedDescriptors(output, first))
+	after, err := os.Stat(output)
+	require.NoError(t, err)
+	require.Equal(t, before.ModTime(), after.ModTime())
+	require.Equal(t, before.Mode(), after.Mode())
+	actual, err = os.ReadFile(output)
+	require.NoError(t, err)
+	require.Equal(t, first, actual)
+
+	changed, err := proto.Marshal(&descriptorpb.FileDescriptorSet{File: []*descriptorpb.FileDescriptorProto{{
+		Name: proto.String("extra.proto"), Syntax: proto.String("proto3"),
+	}}})
+	require.NoError(t, err)
+	require.NoError(t, os.WriteFile(input, changed, 0644))
+	second, _, err := linkedModelDescriptors(input)
+	require.NoError(t, err)
+	require.NotEqual(t, first, second)
+	require.NoError(t, writeLinkedDescriptors(output, second))
+	actual, err = os.ReadFile(output)
+	require.NoError(t, err)
+	require.Equal(t, second, actual)
+	after, err = os.Stat(output)
+	require.NoError(t, err)
+	require.True(t, after.ModTime().After(before.ModTime()))
+	require.Equal(t, before.Mode(), after.Mode())
+}
+
+func TestWriteLinkedDescriptorsPreservesWriteFileErrors(t *testing.T) {
+	directory := t.TempDir()
+	require.Error(t, writeLinkedDescriptors(directory, nil))
+	require.Error(t, writeLinkedDescriptors(filepath.Join(directory, "missing", "linked.binpb"), nil))
+}
+
+func TestWriteLinkedDescriptorsFollowsSymlink(t *testing.T) {
+	directory := t.TempDir()
+	target := filepath.Join(directory, "target.binpb")
+	output := filepath.Join(directory, "linked.binpb")
+	require.NoError(t, os.WriteFile(target, []byte("same"), 0600))
+	old := time.Unix(946684800, 0)
+	require.NoError(t, os.Chtimes(target, old, old))
+	require.NoError(t, os.Symlink(target, output))
+	require.NoError(t, writeLinkedDescriptors(output, []byte("same")))
+	info, err := os.Stat(target)
+	require.NoError(t, err)
+	require.True(t, info.ModTime().After(old))
+	info, err = os.Lstat(output)
+	require.NoError(t, err)
+	require.NotZero(t, info.Mode()&os.ModeSymlink)
+}
+
+func TestLinkedModelDescriptorsRejectInvalidSource(t *testing.T) {
+	input := filepath.Join(t.TempDir(), "api.binpb")
+	require.NoError(t, os.WriteFile(input, []byte{0xff}, 0644))
+	_, _, err := linkedModelDescriptors(input)
+	require.ErrorContains(t, err, "is invalid")
 }

@@ -17,7 +17,7 @@ Cargo dependencies resolve the sibling Umpire source directly. From the parent,
 create a Go workspace only if one does not already exist:
 
 ```sh
-go work init ./temporal ./umpire/hosts/go ./umpire/reference/kettle ./temporal/model/temporal/hosts/go
+go work init ./temporal ./umpire/hosts/go ./umpire/reference/kettle ./temporal/model/hosts/go
 ```
 
 For an existing workspace, add the four modules with `go work use` and preserve

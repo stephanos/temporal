@@ -16,7 +16,7 @@ pub(crate) fn arguments(root: &Path, supplied: Vec<OsString>) -> io::Result<Vec<
         "umpire-temporal-api",
         "umpire-temporal-realization-macros",
     ] {
-        let mut mapping = root.join("temporal/feature").into_os_string();
+        let mut mapping = root.join("feature").into_os_string();
         mapping.push(format!("={package}"));
         arguments.extend(["--map".into(), mapping]);
     }
@@ -58,7 +58,7 @@ mod tests {
         ]
         .into_iter()
         .map(|package| {
-            let mut mapping = root.join("temporal/feature").into_os_string();
+            let mut mapping = root.join("feature").into_os_string();
             mapping.push(format!("={package}"));
             mapping
         })

@@ -324,7 +324,7 @@ fn run_stage_with_tool(root: &Path, name: &str, tool: &Path) -> io::Result<i32> 
             Contract::not_applicable(NoWorkReason::GuestBuild).run(|| {
                 let command = {
                     let mut command = native(&["guest-freshness", "umpire-temporal-guest"]);
-                    command.arg(root.join("temporal/hosts/go/umpire_temporal_guest.wasm"));
+                    command.arg(root.join("hosts/go/umpire_temporal_guest.wasm"));
                     command
                 };
                 stage(root, name, command)
@@ -416,7 +416,7 @@ fn run_stage_with_tool(root: &Path, name: &str, tool: &Path) -> io::Result<i32> 
                 let mut command = Command::new("mise");
                 command
                     .args(["exec", "--", "go", "-C"])
-                    .arg(root.join("temporal/hosts/go"))
+                    .arg(root.join("hosts/go"))
                     .args(["test", "-tags", "test_dep", "-count=1", "./..."])
                     .env("CGO_ENABLED", "0");
                 command
@@ -667,7 +667,7 @@ esac
         ("temporal-go-host", "go-inventory"),
         (
             "temporal-go-host",
-            "exec -- go -C PLACEHOLDER/temporal/hosts/go test -json -tags test_dep -count=1 ./...",
+            "exec -- go -C PLACEHOLDER/hosts/go test -json -tags test_dep -count=1 ./...",
         ),
     ];
 
@@ -708,7 +708,7 @@ set -eu
 [ "$MISE_AUTO_INSTALL:$MISE_EXEC_AUTO_INSTALL:$MISE_TASK_PGID_MANAGED" = false:false:1 ] || exit 91
 case "$*" in
  'guest-freshness umpire-temporal-guest '*)
-   [ "$#" = 3 ] && [ "$3" = "$UMPIRE_GATE_CONTROL_ROOT/temporal/hosts/go/umpire_temporal_guest.wasm" ] || exit 92
+   [ "$#" = 3 ] && [ "$3" = "$UMPIRE_GATE_CONTROL_ROOT/hosts/go/umpire_temporal_guest.wasm" ] || exit 92
    label=guest ;;
  'retired-names') label=retired ;;
  'timing-controls') label=timing ;;

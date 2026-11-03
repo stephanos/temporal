@@ -709,7 +709,7 @@ steps. [Retained source receipts](../.flow/tasks/fn-227-parameterized-models-dec
 The default World reaches 18 states, emits 48 choices from 162 evaluations, refuses 114
 disabled actions and reaches depth 6 without a cut. Coverage is `Cases(3 * 7) = 21`: seven
 scheduled/started closing or retry alternatives per attempt, each with an exact witness.
-[Compatibility](temporal/feature/activity/compatibility/README.md) retains all 15 immutable
+[Compatibility](feature/activity/compatibility/README.md) retains all 15 immutable
 artifacts pinned at `af0ebafc571d33651fdf2c008d4415ad72467a0d`. The explicit one-attempt
 state/action/fact projection equals the original six-state/eleven-edge graph, including both
 deadlines and four rejected terminal Cancel loops; a changed deadline fails that comparison.
@@ -811,7 +811,7 @@ that need callbacks) Answer, and records a Run. The runtime and fixture crates a
 `umpire-runtime` and `umpire-fixtures`. Generic Go transport is
 `umpire.local/model/host`, the loop is `umpire.local/model/runner` at
 `umpire/hosts/go/runner`, and generated packages are under `umpire/hosts/go/gen/umpire`.
-The Temporal adapter is a separate module at `temporal/hosts/go`.
+The Temporal adapter is a separate module at `hosts/go`.
 
 ### Protocol and ownership
 
@@ -848,7 +848,7 @@ Temporal's transport Driver lives in `common/testing/testpilot/temporal/act`. It
 opaque program bytes and injected `ValidateProgram`/`Follow` functions. Composition in
 `tools/umpire/temporaldriver` supplies the raw or SDK executor, validates namespace and
 task queue against configuration, and uses the Driver-owned connection. Executors
-under `temporal/hosts/go/reference/worker/{raw,sdk}` follow exact first-match keys and
+under `hosts/go/reference/worker/{raw,sdk}` follow exact first-match keys and
 return programmed results/failures; an unknown key refuses startup and an unmatched
 task fails nonretryably as `umpire.unprogrammed`. No worker calls Umpire or embeds a
 Model. The hold fault contains worker polls until the proposed request is acknowledged;
@@ -1032,9 +1032,9 @@ The 87-line increase retains explicit field reasons; this source is longer. The 
 ## Annotation catalog
 
 Authors classify the API fields a feature uses in its typed sidecar,
-`temporal/feature/activity/api.rs`. Upstream protos remain unchanged. The catalog
+`feature/activity/api.rs`. Upstream protos remain unchanged. The catalog
 supplies generation, validation, consequences and expected server errors; the independent
-`model.rs` continues to own transitions. [Authoring syntax](temporal/foundation/README.md)
+`model.rs` continues to own transitions. [Authoring syntax](foundation/README.md)
 lives beside the `Catalog` derive.
 
 ### Layering and admission
@@ -1057,7 +1057,7 @@ Decided/Observed/Ignored borrow AIP vocabulary. Native sidecar checks need no CE
 | RPC methods | Generated service identities feed one exhaustive `family` match in `foundation/service.rs` that gives every RPC its resource family. Each feature's `classify` claims its RPCs as `Action` or `Observed` and defers the rest with `_ => RpcRole::OutOfScope(service::family(method))`; an unclaimed RPC's reason is its family. Stale, duplicate and missing declarations, a duplicate feature claim and a claim the table lacks fail. |
 | Model actions | Exhaustive outer actor and inner action matches bind each action to an RPC, an observation or `Environmental(reason)`. RPC mappings must agree with service classifications. |
 
-The current `proto/api.binpb` has no service descriptors. `temporal/api/build.rs` uses
+The current `proto/api.binpb` has no service descriptors. `api/build.rs` uses
 `getproto --linked-api` to add the actual linked WorkflowService descriptors in
 `OUT_DIR/annotation-api.binpb` for coverage checks, preserving upstream-owned files.
 Rust API generation still reads the upstream image. The build tracks that image and feature
@@ -1080,7 +1080,7 @@ Bounded recipes carry witnesses over 2 MiB within the 1 MiB individual/16 MiB li
 successful intentional Accepts are Confirmed. Mismatch/unexpected Accepted fail unless a reviewed
 AcceptedGap has a calendar date and nonblank reason. Activity's registry is empty.
 
-The original [golden](temporal/feature/activity/expected/gaps.txt) had 62 Confirmed (52 rejections, 10 acceptances) and zero Mismatch/Accepted/Unverifiable before descriptor mutations replaced
+The original [golden](feature/activity/expected/gaps.txt) had 62 Confirmed (52 rejections, 10 acceptances) and zero Mismatch/Accepted/Unverifiable before descriptor mutations replaced
 server-source mapping. Unknown Start id_reuse_policy/id_conflict_policy had incorrect Accepts;
 the server rejects both. Corrected expectations confirmed them without Model/server changes.
 

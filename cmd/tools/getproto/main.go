@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"flag"
 	"fmt"
 	"io/fs"
@@ -279,6 +280,17 @@ func checkCurrentInternal(linked []byte, current *descriptorpb.FileDescriptorSet
 	return nil
 }
 
+// Keep generated descriptor timestamps stable without changing WriteFile behavior for
+// symlinks, nonregular files or outputs that cannot be read.
+func writeLinkedDescriptors(path string, data []byte) error {
+	if info, err := os.Lstat(path); err == nil && info.Mode().IsRegular() {
+		if existing, err := os.ReadFile(path); err == nil && bytes.Equal(existing, data) {
+			return nil
+		}
+	}
+	return os.WriteFile(path, data, 0644)
+}
+
 func main() {
 	out := flag.String("out", "", "where to put the serialized FileDescriptorSet")
 	linkedAPI := flag.String("linked-api", "", "include linked service and Testpilot descriptors for the model")
@@ -299,7 +311,7 @@ func main() {
 			fatalIfErr(proto.Unmarshal(current, &set))
 			fatalIfErr(checkCurrentInternal(data, &set))
 		}
-		fatalIfErr(os.WriteFile(*out, data, 0644))
+		fatalIfErr(writeLinkedDescriptors(*out, data))
 		for _, name := range names {
 			fmt.Println(name)
 		}

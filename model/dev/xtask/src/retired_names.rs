@@ -15,11 +15,8 @@ const HISTORICAL: &[&str] = &[
     ":!.plans/umpire-migration-manifest.json",
     ":!model/design/rust-verdict-measurements.md",
 ];
-const LAYOUT_HISTORY: &[&str] = &[
-    ":!.plans/archive",
-    ":!.turbo/plans",
-    ":!model/temporal/feature/activity/compatibility/original",
-];
+const LAYOUT_HISTORY: &[&str] =
+    &[":!.plans/archive", ":!.turbo/plans", ":!model/feature/activity/compatibility/original"];
 const LEGACY: &str = r#"umpire[-_](wasm|tests)|umpire/(wasm|tests)(/|["`[:space:]]|$)"#;
 const LAYOUT: &str = r#"(^|[^[:alnum:]_])umpire[-_](lift|annotations)([^[:alnum:]_]|$)|umpire/(dsl|suite|checker|lift|runtime|proto|testing|fixtures|ir-derive|catalog-build)(/|["`[:space:]]|$)|umpire/annotations(/(src|tests|Cargo[.]toml|README[.]md|build[.]rs)(/|["`[:space:]]|$)|["`[:space:]]|$)"#;
 

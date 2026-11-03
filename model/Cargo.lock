@@ -932,6 +932,7 @@ dependencies = [
 name = "umpire-suite"
 version = "0.0.1"
 dependencies = [
+ "rustc-hash",
  "thiserror",
  "umpire-checker",
  "umpire-dsl",
@@ -1041,6 +1042,7 @@ name = "umpire-tla"
 version = "0.0.1"
 dependencies = [
  "proc-macro2",
+ "rustc-hash",
  "syn 3.0.9",
  "thiserror",
  "umpire-backend-process",

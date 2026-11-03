@@ -235,6 +235,6 @@ require (
 
 replace github.com/temporalio/umpire/hosts/go => ../umpire/hosts/go
 
-replace umpire.local/temporal => ./model/temporal/hosts/go
+replace umpire.local/temporal => ./model/hosts/go
 
 tool golang.org/x/perf/cmd/benchstat
