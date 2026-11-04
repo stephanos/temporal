@@ -1,9 +1,19 @@
 //! Activity registry rows, typed fillers and evidence predicates on the actual Model.
-use super::*;
+use super::{
+    Action, Any, Client, Failure, FillInputs, Payloads, PollActivityTaskQueueRequest,
+    PollActivityTaskQueueResponse, ProposalContext, Realization,
+    RecordActivityTaskHeartbeatRequest, RecordActivityTaskHeartbeatResponse,
+    RequestCancelActivityExecutionRequest, RequestCancelActivityExecutionResponse,
+    RespondActivityTaskCanceledRequest, RespondActivityTaskCanceledResponse,
+    RespondActivityTaskCompletedRequest, RespondActivityTaskCompletedResponse,
+    RespondActivityTaskFailedRequest, RespondActivityTaskFailedResponse, TaskQueue, Worker,
+    activity,
+};
 use crate::registry::{ActionKind, Direction, Registry};
+use crate::support::ApplicationFailure as _;
 use umpire_dsl::Machine as _;
 use umpire_runtime::{
-    Evidence, EvidenceMatch,
+    AnyMessage as _, Evidence, EvidenceMatch,
     capability::{Fill, Identity, Request as _},
     realization::{Observation, observation::Result as ResultValue},
 };
@@ -395,7 +405,7 @@ fn worker_evidence_maps_actual_results_and_correlates_delivery()
 #[test]
 fn evidence_ignores_unclaimed_fields_of_realistic_worker_traffic()
 -> Result<(), Box<dyn std::error::Error>> {
-    use umpire_temporal_api::temporal::api::common::v1::{Payload, Payloads, WorkflowExecution};
+    use umpire_temporal_api::temporal::api::common::v1::{Payload, WorkflowExecution};
     let binding = binding();
     let payloads =
         || Payloads { payloads: vec![Payload { data: b"x".to_vec(), ..Default::default() }] };

@@ -1,5 +1,8 @@
 //! Feature World adapter, Describe target decoder and full-state map controls.
-use super::*;
+use super::{
+    ActivityTarget, DescribeActivityExecutionResponse, Failure, FailureInfo, TimeoutType, Value,
+    View, activity, feature_state, protocol, world,
+};
 use crate::activity_protocol::{
     adapter,
     parameters::{Parameters, WorldSource, validate_effective_world},
@@ -7,6 +10,7 @@ use crate::activity_protocol::{
 };
 use std::collections::{HashSet, VecDeque};
 use umpire_dsl::Machine as _;
+use umpire_runtime::ReachTarget as _;
 use umpire_temporal_api::temporal::api::{
     activity::v1::{ActivityExecutionInfo, ActivityExecutionOutcome},
     failure::v1::{ApplicationFailureInfo, CanceledFailureInfo, TimeoutFailureInfo},
@@ -168,6 +172,30 @@ fn targets_never_distinguish_latent_budgets_or_authorize_a_tick_checks() -> Resu
     assert!(target.matches(&erased), "a view match is not budget evidence");
     assert_ne!(feature_state(&delivered), Some(erased));
     Ok(())
+}
+
+#[test]
+fn invariant_violating_protocol_states_have_no_feature_image() -> Result<(), Error> {
+    lifted(|| {
+        let exact = parameters(2, [Some(2), None, Some(3), Some(1)])?;
+        let protocol_world = adapter::world(exact)?;
+        let start = protocol_world.starts().remove(0);
+        assert!(feature_state(&start).is_some());
+        let mut open_with_outcome = start.clone();
+        open_with_outcome.terminal_outcome = protocol::Terminal::Completed;
+        assert_eq!(feature_state(&open_with_outcome), None);
+        let mut closed_without_outcome = start.clone();
+        closed_without_outcome.lifecycle = protocol::Lifecycle::Closed;
+        assert_eq!(feature_state(&closed_without_outcome), None);
+        let mut over_budget = start.clone();
+        over_budget.execution_budget = Some(protocol::Remaining { ticks: 4 });
+        assert_eq!(feature_state(&over_budget), None);
+        let mut zero = start;
+        zero.execution_budget = Some(protocol::Remaining { ticks: 0 });
+        let mapped = feature_state(&zero).ok_or("present zero has an image")?;
+        assert_eq!(mapped.schedule_to_close_remaining.map(|budget| budget.ticks), Some(0));
+        Ok(())
+    })
 }
 
 fn describe(status: i32, run_state: i32, attempt: i32) -> DescribeActivityExecutionResponse {

@@ -55,6 +55,13 @@ const OWNERS: &[(&str, Owner)] = &[
     ("annotate/", Owner::Shared),
     ("api/", Owner::Shared),
     ("testing/", Owner::Proof),
+    // Tests inside shared crates are proofs, like every other test tree.
+    ("annotate/syntax/tests/", Owner::Proof),
+    ("api/tests/", Owner::Proof),
+    ("realization/macros/tests/", Owner::Proof),
+    ("foundation/tests.rs", Owner::Proof),
+    // The activity worker-program executors interpret the feature's programmed responses.
+    ("hosts/go/reference/worker/", Owner::Mapping),
 ];
 
 /// Roots whose every Rust file must have an owner.
@@ -67,14 +74,21 @@ const ROOTS: &[&str] = &[
     "api",
     "guest",
     "testing",
+    "hosts/go/reference/worker",
 ];
 
 /// Model roots outside the Rust line inventory, with the reason each is excluded.
 const EXCLUDED: &[(&str, &str)] = &[
-    ("design", "prose and diagrams, no Rust sources"),
+    (
+        "design",
+        "design notes and the native-symbolic backend prototype crate, which has no activity code",
+    ),
     ("dev", "build and gate tooling, independent of any feature"),
     ("docs", "prose"),
-    ("hosts", "generic Go hosts, generated Go bindings and the committed guest binary"),
+    (
+        "hosts",
+        "generic Go hosts, generated Go bindings and the committed guest binary; the activity worker executors under hosts/go/reference/worker are counted",
+    ),
     ("proto", "protobuf schemas; their generated Rust lives in the build OUT_DIR"),
     ("scripts", "shell build helpers"),
 ];
@@ -170,7 +184,10 @@ fn parens(line: &str) -> i64 {
 fn sources(root: &Path, relative: &str, out: &mut Vec<String>) -> io::Result<()> {
     let path = root.join(relative);
     if path.is_file() {
-        if Path::new(relative).extension().is_some_and(|extension| extension == "rs") {
+        let extension = Path::new(relative).extension().and_then(|extension| extension.to_str());
+        // Go tests are proofs outside the inventory; Go has no in-file test items.
+        let go = extension == Some("go") && !relative.ends_with("_test.go");
+        if extension == Some("rs") || go {
             out.push(relative.to_owned());
         }
         return Ok(());
@@ -243,7 +260,7 @@ pub(crate) fn run(model: &Path) -> io::Result<i32> {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use super::{BTreeMap, Owner, Path, count, inventory, io, owner};
 
     #[test]
     fn comments_blank_lines_and_test_items_are_not_counted() {
@@ -273,6 +290,8 @@ mod tests {
         assert_eq!(owner("realization/src/live.rs"), Some(Owner::Mapping));
         assert_eq!(owner("foundation/views.rs"), Some(Owner::Mapping));
         assert_eq!(owner("foundation/claims.rs"), Some(Owner::Shared));
+        assert_eq!(owner("api/tests/codegen.rs"), Some(Owner::Proof));
+        assert_eq!(owner("hosts/go/reference/worker/program.go"), Some(Owner::Mapping));
         assert_eq!(owner("feature/workflow/model.rs"), None);
         assert_eq!(owner("realization/src/new_feature_adapter.rs"), None);
     }
@@ -282,6 +301,8 @@ mod tests {
         let model = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
         let inventory = inventory(&model)?;
         assert!(inventory.contains_key("feature/activity/model.rs"));
+        assert!(inventory.contains_key("hosts/go/reference/worker/program.go"));
+        assert!(!inventory.keys().any(|file| file.ends_with("_test.go")));
         assert!(inventory.values().any(|counts| counts.contains_key(&Owner::Mapping)));
         Ok(())
     }

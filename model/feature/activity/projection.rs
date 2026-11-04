@@ -20,7 +20,8 @@ use umpire_temporal_api::temporal::api::{
 /// Construct the feature World from exact neutral parameters, without defaults or clamping.
 ///
 /// # Errors
-/// Refuses invalid values and any disagreement with the feature's declared World schema.
+/// Refuses invalid values and, outside the wasm guest (which carries no source schema), any
+/// disagreement with the feature's declared World schema.
 pub fn world(parameters: Parameters) -> Result<activity::World, ParameterError> {
     let exact = Parameters::new(
         parameters.maximum_attempts,
@@ -47,27 +48,36 @@ pub fn world(parameters: Parameters) -> Result<activity::World, ParameterError> 
 ///
 /// Every budget maps exactly, absent stays absent and present zero stays present zero.
 /// `retained_failure` has no feature field: the feature Model abstracts last-attempt history.
-/// Only a Closed state without an outcome, which violates the protocol invariant, has no image.
+/// States violating a protocol invariant have no image: an open lifecycle with a terminal
+/// outcome, a Closed lifecycle without one, or a budget above the feature's three ticks.
 pub fn feature_state(state: &protocol::Model) -> Option<activity::Model> {
-    let remaining = |budget: Option<protocol::Remaining>| {
-        budget.map(|budget| Remaining { ticks: budget.ticks })
+    let remaining = |budget: Option<protocol::Remaining>| match budget {
+        None => Some(None),
+        Some(budget) if budget.ticks <= 3 => Some(Some(Remaining { ticks: budget.ticks })),
+        Some(_) => None,
     };
+    let open = state.terminal_outcome == protocol::Terminal::None;
     Some(activity::Model {
         phase: match (state.lifecycle, state.terminal_outcome) {
-            (protocol::Lifecycle::Queued, _) => Phase::Scheduled,
-            (protocol::Lifecycle::Executing, _) => Phase::Started,
+            (protocol::Lifecycle::Queued, _) if open => Phase::Scheduled,
+            (protocol::Lifecycle::Executing, _) if open => Phase::Started,
             (protocol::Lifecycle::Closed, protocol::Terminal::Completed) => Phase::Completed,
             (protocol::Lifecycle::Closed, protocol::Terminal::Failed) => Phase::Failed,
             (protocol::Lifecycle::Closed, protocol::Terminal::Canceled) => Phase::Canceled,
             (protocol::Lifecycle::Closed, protocol::Terminal::TimedOut) => Phase::TimedOut,
-            (protocol::Lifecycle::Closed, protocol::Terminal::None) => return None,
+            (
+                protocol::Lifecycle::Queued
+                | protocol::Lifecycle::Executing
+                | protocol::Lifecycle::Closed,
+                _,
+            ) => return None,
         },
         attempt: state.attempt,
         cancel_requested: state.cancellation_pending,
-        schedule_to_start_remaining: remaining(state.queued_budget),
-        start_to_close_remaining: remaining(state.attempt_budget),
-        schedule_to_close_remaining: remaining(state.execution_budget),
-        heartbeat_remaining: remaining(state.heartbeat_budget),
+        schedule_to_start_remaining: remaining(state.queued_budget)?,
+        start_to_close_remaining: remaining(state.attempt_budget)?,
+        schedule_to_close_remaining: remaining(state.execution_budget)?,
+        heartbeat_remaining: remaining(state.heartbeat_budget)?,
     })
 }
 

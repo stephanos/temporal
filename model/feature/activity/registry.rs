@@ -378,10 +378,11 @@ activity::action_metadata!(crate::registry; activity; {
             self.correlated(&request.namespace, None, None)?;
             let outcome = Self::outcome(&response);
             let delivered = if let Ok(task) = &response {
-                self.correlated(&request.namespace, Some(&task.activity_id), None)?;
+                // An empty long-poll delivers no task and evidences no Poll edge.
                 if task.task_token.is_empty() {
                     return Ok(umpire_runtime::EvidenceMatch::Reject);
                 }
+                self.correlated(&request.namespace, Some(&task.activity_id), None)?;
                 Some(task.attempt)
             } else {
                 None
