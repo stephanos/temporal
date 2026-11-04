@@ -603,7 +603,7 @@ mod tests {
                 }
             }
         }
-        assert_eq!(inventory.len(), 30);
+        assert_eq!(inventory.len(), 31);
         let tables = [
             xtask::gate::budgets::read_table(
                 &framework.join(xtask::gate::budgets::FRAMEWORK_TABLE_PATH),
