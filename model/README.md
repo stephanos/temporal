@@ -127,10 +127,12 @@ Every Temporal stage has a reviewed budget in
 [`dev/xtask/src/gate/budgets.toml`](dev/xtask/src/gate/budgets.toml); the delegated framework
 stages use the framework's table. Work counts are hard bounds, warm wall time is budgeted
 per tier with 25% tolerance and one drained retry, and an unbudgeted stage fails the gate.
-The consumer entry admits the paired framework and Model sources before gate work, so a
-retry or a completed gate refuses changed source (receipts record
+The consumer `gate` entry admits the paired framework and Model sources before gate work,
+so a retry or a completed gate refuses changed source (receipts record
 `source_custody = "verified"`). The timing parent admits nothing itself: each of its gate
 legs admits its own source, so its benchmark touch between legs is not a source change.
+`test-run` (which `model-update` uses to rewrite goldens) is not admitted, and bridged
+commands such as `validate` are admitted by the framework entry they hand off to.
 To add a Temporal stage, register it in `mise.toml` and add its entry in the same change; to
 change a budget, edit the entry and update its `reason` with the new evidence. The
 framework README section "Stage budgets" describes the rules.

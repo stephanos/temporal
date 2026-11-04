@@ -171,7 +171,10 @@ pub(crate) fn run(root: &Path) -> io::Result<i32> {
         )?);
     }
     tables.push(xtask::gate::budgets::read_table(&root.join(TEMPORAL_BUDGETS))?);
-    let tier = if std::env::var_os("UMPIRE_BACKENDS").is_some_and(|value| value == "require") {
+    // The tier follows the admitted resource profile, which Apalache alone also selects.
+    let tier = if std::env::var_os("UMPIRE_BACKENDS").is_some_and(|value| value == "require")
+        || std::env::var_os("UMPIRE_APALACHE").is_some_and(|value| value == "require")
+    {
         xtask::gate::budgets::Tier::Validate
     } else {
         xtask::gate::budgets::Tier::Check

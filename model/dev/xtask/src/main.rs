@@ -74,19 +74,25 @@ fn bridge(root: &Path, mut arguments: Vec<OsString>) -> io::Result<i32> {
     Err(command.exec())
 }
 
+/// Whether this consumer entry admits the paired source itself (see `run`).
+fn admits_source(supplied: &[OsString]) -> bool {
+    supplied
+        .iter()
+        .find(|argument| argument.as_os_str() != "__owned-command")
+        .is_some_and(|command| command == "gate")
+}
+
 fn run() -> io::Result<i32> {
     xtask::gate::controller_context::initialize()?;
     xtask::gate::work_counts::owns_controller()?;
     let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..").canonicalize()?;
     let mut supplied: Vec<_> = env::args_os().skip(1).collect();
-    // Freeze the paired source before gate work, so stage retries and completion can refuse
-    // changed inputs. The timing parent owns its benchmark touch between separately admitted
-    // gate legs, so it does not freeze the source it is about to touch.
-    let command = supplied
-        .iter()
-        .find(|argument| argument.as_os_str() != "__owned-command")
-        .map(OsString::as_os_str);
-    if command.is_some_and(|command| command != "time") {
+    // Freeze the paired source before the consumer's own gate work, so stage retries and
+    // completion can refuse changed inputs. Only `gate` is admitted here: the timing parent
+    // owns its benchmark touch between separately admitted gate legs, `test-run` may rewrite
+    // goldens under `model-update`, and bridged commands such as `validate` are admitted by
+    // the framework entry they hand off to, which owns its own benchmark touch.
+    if admits_source(&supplied) {
         xtask::gate::source_context::admit_consumer(&root, &supplied)?;
     }
     let _lease = if supplied.first().is_some_and(|arg| arg == "__owned-command") {
@@ -173,6 +179,8 @@ fn main() {
     let result = result.and_then(|status| {
         if status == 0 {
             custody?;
+        } else if let Err(error) = custody {
+            let _ = writeln!(io::stderr(), "temporal-xtask: source custody: {error}");
         }
         Ok(status)
     });
@@ -184,4 +192,33 @@ fn main() {
         }
     };
     std::process::exit(status);
+}
+
+#[cfg(test)]
+mod admission_selection_controls {
+    use super::admits_source;
+    use std::ffi::OsString;
+
+    fn arguments(values: &[&str]) -> Vec<OsString> {
+        values.iter().map(OsString::from).collect()
+    }
+
+    #[test]
+    fn only_consumer_gate_commands_admit_the_paired_source() {
+        assert!(admits_source(&arguments(&["gate"])));
+        assert!(admits_source(&arguments(&["__owned-command", "gate"])));
+        assert!(admits_source(&arguments(&["gate", "--scheduled-stage", "fmt"])));
+        for refused in [
+            &["time"][..],
+            &["__owned-command", "time"],
+            &["test-run"],
+            &["__owned-command", "test-run"],
+            &["validate"],
+            &["quick"],
+            &["update"],
+            &[],
+        ] {
+            assert!(!admits_source(&arguments(refused)), "{refused:?}");
+        }
+    }
 }
