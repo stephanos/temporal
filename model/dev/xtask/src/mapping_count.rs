@@ -64,7 +64,7 @@ const OWNERS: &[(&str, Owner)] = &[
     ("hosts/go/reference/worker/", Owner::Mapping),
 ];
 
-/// Roots whose every Rust file must have an owner.
+/// Roots whose every Rust file, and every non-test Go file, must have an owner.
 const ROOTS: &[&str] = &[
     "feature/activity",
     "realization",
@@ -87,7 +87,7 @@ const EXCLUDED: &[(&str, &str)] = &[
     ("docs", "prose"),
     (
         "hosts",
-        "generic Go hosts, generated Go bindings and the committed guest binary; the activity worker executors under hosts/go/reference/worker are counted",
+        "generic Go hosts and probe transport, Go tests, generated Go bindings and the committed guest binary; the activity worker executors under hosts/go/reference/worker are counted",
     ),
     ("proto", "protobuf schemas; their generated Rust lives in the build OUT_DIR"),
     ("scripts", "shell build helpers"),
@@ -239,7 +239,7 @@ pub(crate) fn run(model: &Path) -> io::Result<i32> {
     }
     writeln!(
         stdout,
-        "generated\tnot counted: descriptor-generated Rust lives only in the build OUT_DIR"
+        "generated\tnot counted: descriptor-generated Rust lives only in the build OUT_DIR; committed Go bindings under hosts/go/umpire are excluded"
     )?;
     for (root, reason) in EXCLUDED {
         writeln!(stdout, "excluded\t{root}\t{reason}")?;

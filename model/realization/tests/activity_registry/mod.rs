@@ -428,6 +428,10 @@ fn evidence_ignores_unclaimed_fields_of_realistic_worker_traffic()
         ..Default::default()
     };
     let delivered = edge(scheduled(), Worker::Poll(1).into())?;
+    // An empty long-poll delivers nothing: rejected, not refused as crossed identity.
+    let empty =
+        observed("PollActivityTaskQueue", &poll, Ok(&PollActivityTaskQueueResponse::default()));
+    assert!(matches!(binding.check_registered(&empty, &[&delivered]), Ok(EvidenceMatch::Reject)));
     let evidence = observed("PollActivityTaskQueue", &poll, Ok(&task));
     assert!(matches!(
         binding.check_registered(&evidence, &[&delivered]),

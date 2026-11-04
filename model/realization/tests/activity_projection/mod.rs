@@ -174,6 +174,10 @@ fn targets_never_distinguish_latent_budgets_or_authorize_a_tick_checks() -> Resu
     Ok(())
 }
 
+/// A protocol budget field and its feature image.
+type Budget = fn(&mut protocol::Model) -> &mut Option<protocol::Remaining>;
+type Image = fn(&activity::Model) -> Option<u8>;
+
 #[test]
 fn invariant_violating_protocol_states_have_no_feature_image() -> Result<(), Error> {
     lifted(|| {
@@ -187,13 +191,38 @@ fn invariant_violating_protocol_states_have_no_feature_image() -> Result<(), Err
         let mut closed_without_outcome = start.clone();
         closed_without_outcome.lifecycle = protocol::Lifecycle::Closed;
         assert_eq!(feature_state(&closed_without_outcome), None);
-        let mut over_budget = start.clone();
-        over_budget.execution_budget = Some(protocol::Remaining { ticks: 4 });
-        assert_eq!(feature_state(&over_budget), None);
-        let mut zero = start;
-        zero.execution_budget = Some(protocol::Remaining { ticks: 0 });
-        let mapped = feature_state(&zero).ok_or("present zero has an image")?;
-        assert_eq!(mapped.schedule_to_close_remaining.map(|budget| budget.ticks), Some(0));
+        let delivered =
+            protocol_world.checked_step(&start, protocol::Worker::Deliver(1).into())?.remove(0).2;
+        let mut executing_with_outcome = delivered;
+        executing_with_outcome.terminal_outcome = protocol::Terminal::Completed;
+        assert_eq!(feature_state(&executing_with_outcome), None);
+        let budgets: [(Budget, Image); 4] = [
+            (
+                |state| &mut state.queued_budget,
+                |state| state.schedule_to_start_remaining.map(|budget| budget.ticks),
+            ),
+            (
+                |state| &mut state.attempt_budget,
+                |state| state.start_to_close_remaining.map(|budget| budget.ticks),
+            ),
+            (
+                |state| &mut state.execution_budget,
+                |state| state.schedule_to_close_remaining.map(|budget| budget.ticks),
+            ),
+            (
+                |state| &mut state.heartbeat_budget,
+                |state| state.heartbeat_remaining.map(|budget| budget.ticks),
+            ),
+        ];
+        for (budget, image) in budgets {
+            let mut over = start.clone();
+            *budget(&mut over) = Some(protocol::Remaining { ticks: 4 });
+            assert_eq!(feature_state(&over), None);
+            let mut zero = start.clone();
+            *budget(&mut zero) = Some(protocol::Remaining { ticks: 0 });
+            let mapped = feature_state(&zero).ok_or("present zero has an image")?;
+            assert_eq!(image(&mapped), Some(0));
+        }
         Ok(())
     })
 }

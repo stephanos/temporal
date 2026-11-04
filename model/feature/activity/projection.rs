@@ -48,8 +48,9 @@ pub fn world(parameters: Parameters) -> Result<activity::World, ParameterError> 
 ///
 /// Every budget maps exactly, absent stays absent and present zero stays present zero.
 /// `retained_failure` has no feature field: the feature Model abstracts last-attempt history.
-/// States violating a protocol invariant have no image: an open lifecycle with a terminal
-/// outcome, a Closed lifecycle without one, or a budget above the feature's three ticks.
+/// States the feature type cannot represent have no image: an open lifecycle with a terminal
+/// outcome, a Closed lifecycle without one, or a budget outside 0..=3. Other protocol-invariant
+/// violations, such as an armed present-zero budget, map exactly so the refinement can reject them.
 pub fn feature_state(state: &protocol::Model) -> Option<activity::Model> {
     let remaining = |budget: Option<protocol::Remaining>| match budget {
         None => Some(None),
