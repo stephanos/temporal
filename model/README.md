@@ -111,7 +111,7 @@ The gate, from the repository root (`temporal/`):
 make model-validate # one TLC-required full gate, then one edited-checker benchmark
 make model-check   # same full gate, TLC skipped by default; no benchmark
 make model-fmt     # rustfmt both workspaces
-make model-time    # time the actual gate; note overruns of the table's 180 s gate / 60 s inner-loop targets (fn-254 R6)
+make model-time    # time the actual gate; note overruns of the table's gate (180 s check, 600 s required) / 60 s inner-loop targets (fn-254 R6)
 ```
 
 Root Make delegates the 17 primary framework stages once to the sibling Umpire checkout
