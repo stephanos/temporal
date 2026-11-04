@@ -78,6 +78,11 @@ mod tests {
         let required =
             read(&root.join(".config/nextest.toml"))?["nextest-version"]["required"].clone();
         assert!(pinned.is_str() && pinned == required, "{pinned:?} != {required:?}");
+        // mise orders PATH by its tool table and rust adds $CARGO_HOME/bin, so the nextest
+        // pin must precede rust or a host-wide cargo-nextest would shadow it.
+        let config = std::fs::read_to_string(root.join("../mise.toml"))?;
+        let position = |key: &str| config.find(key).ok_or_else(|| io::Error::other(key.to_owned()));
+        assert!(position("\"github:nextest-rs/nextest\" =")? < position("\nrust =")?);
         Ok(())
     }
 

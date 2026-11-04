@@ -33,11 +33,19 @@ pub(super) fn warnings(
     Ok(())
 }
 
-/// The Temporal table's check-tier and quick targets, the timing command's defaults.
+/// The Temporal table's tier and quick targets, the timing command's defaults. The timed
+/// `model-check` runs the validate tier when backends or Apalache are required.
 pub(super) fn targets(root: &Path) -> io::Result<(f64, f64)> {
+    let required = ["UMPIRE_BACKENDS", "UMPIRE_APALACHE"]
+        .iter()
+        .any(|key| env::var_os(key).is_some_and(|value| value == "require"));
     xtask::gate::budgets::timing_targets(
         &xtask::gate::budgets::read_table(&root.join(super::TEMPORAL_BUDGETS))?,
-        xtask::gate::budgets::Tier::Check,
+        if required {
+            xtask::gate::budgets::Tier::Validate
+        } else {
+            xtask::gate::budgets::Tier::Check
+        },
     )
 }
 

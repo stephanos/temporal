@@ -1143,8 +1143,10 @@ fi
             let inventory = control_inventory(&root, &[stage]);
             let path = root.join(TEMPORAL_BUDGETS);
             let table = fs::read_to_string(&path).unwrap();
-            let (head, section) =
-                table.split_once(&format!("[stages.\"temporal/{stage}\"]")).unwrap();
+            let (head, rest) = table.split_once(&format!("[stages.\"temporal/{stage}\"]")).unwrap();
+            // Plant only in this stage's section; any later section stays as written.
+            let end = rest.find("\n[stages.").unwrap_or(rest.len());
+            let (section, tail) = rest.split_at(end);
             let planted = section
                 .lines()
                 .map(|line| {
@@ -1156,7 +1158,8 @@ fi
                 })
                 .collect::<Vec<_>>()
                 .join("\n");
-            fs::write(&path, format!("{head}[stages.\"temporal/{stage}\"]{planted}\n")).unwrap();
+            fs::write(&path, format!("{head}[stages.\"temporal/{stage}\"]{planted}\n{tail}"))
+                .unwrap();
             let scheduler = format!(
                 r#"
 if [ "$*" = "tasks ls --json" ]; then
