@@ -478,7 +478,7 @@ func TestTestpilotModelGaps(t *testing.T) {
 	require.NoError(t, writeErr)
 	require.NoError(t, closeErr)
 	require.False(t, report.Fails, "catalog gap classification failed; value-free report:\n%s", report.Report)
-	golden, err := snapshot.Read(filepath.Join("..", "model", "temporal", "feature", "activity", "expected", "gaps.txt.snap"))
+	golden, err := snapshot.Read(filepath.Join("..", "model", "feature", "activity", "expected", "gaps.txt.snap"))
 	require.NoError(t, err, "gaps golden must be explicitly reviewed and created")
 	require.Equal(t, golden, report.Report, "stale gap golden; import the actual .flow/tmp/fn2174-live-gap-report.txt through the explicit Rust insta control")
 }
