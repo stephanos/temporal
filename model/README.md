@@ -539,7 +539,7 @@ or goldens. Its external live golden is checked by the gap gate, not regenerated
 ## Mini activity slice (fn-216)
 
 The independent activity Model carries retry maximum 1..=3, four optional bounded
-`Ticks` deadlines and atomic/cooperative cancellation. Its state records phase, attempt,
+`Ticks` deadlines and cooperative cancellation. Its state records phase, attempt,
 pending cancellation and four countdowns. One Tick decrements all live budgets and selects
 ScheduleToClose > StartToClose > Heartbeat > ScheduleToStart, emitting one exact expiry fact.
 Terminal transitions clear budgets and pending. Pending attempt expiry or retryable failure
@@ -565,6 +565,15 @@ shared closure laws. Fn-221 adds a rejected cancel self-loop at each of the four
 phases, giving both laws terminal edges to check. The controls also enumerate every
 terminal phase/action and prove that a hypothetical reopening, accepted closed step or
 wrong rejection refutes the corresponding law.
+
+Countdown laws follow the same delegation pattern. The World declares four optional
+`countdown::Ticks<3>` fields and the State four `countdown::Remaining<3>` fields;
+`countdowns_within_budget` delegates to `countdown::within`, `global_never_replenished`
+to `countdown::never_replenished`, and `tick_descends_and_expires`/`countdowns_decrement`
+to `countdown::descends` on the Tick transitions they select. The Model itself keeps
+arming, reset, retry rearming and expiry priority. The framework's
+[countdown section](../../umpire/README.md#bounded-optional-values) shows a minimal
+declaration and the exact law semantics.
 
 The reusable `umpire-runtime` library owns state, replay, first-Unexplained freezing,
 Reset, response-publication transactions and ABI buffers. A system-owned `Realize`
