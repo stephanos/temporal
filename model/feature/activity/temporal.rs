@@ -87,6 +87,7 @@ impl Realization {
     }
 
     /// The admitted Start receipt, absent before admission.
+    #[cfg(test)]
     pub(crate) fn context(&self) -> Option<&ProposalContext> {
         self.context.as_ref()
     }

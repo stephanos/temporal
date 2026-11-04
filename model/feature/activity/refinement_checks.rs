@@ -15,7 +15,11 @@ const BUDGET: usize = 4096;
 type TestResult = umpire_testing::TestResult;
 type Error = Box<dyn std::error::Error>;
 
-fn declared() -> umpire_temporal::registry::Refines<protocol::World, activity::World, umpire_temporal::ActivityTarget> {
+fn declared() -> umpire_temporal::registry::Refines<
+    protocol::World,
+    activity::World,
+    umpire_temporal::ActivityTarget,
+> {
     <Realization as Refined>::refines()
 }
 
@@ -31,12 +35,12 @@ fn relation() -> Relation<protocol::World, activity::World> {
     }
 }
 
-fn worlds(scope: (u8, [Option<u8>; 4])) -> Result<(protocol::World, activity::World), Error> {
+fn worlds(scope: Scope) -> Result<(protocol::World, activity::World), Error> {
     let exact = Parameters::new(scope.0, scope.1)?;
     Ok((adapter::world(exact)?, projection::world(exact)?))
 }
 
-fn label(scope: (u8, [Option<u8>; 4])) -> Result<String, Error> {
+fn label(scope: Scope) -> Result<String, Error> {
     Ok(format!("{:?}; bound={BUDGET}", Parameters::new(scope.0, scope.1)?))
 }
 
@@ -50,25 +54,30 @@ pub(crate) fn refinement() -> Result<String, Error> {
     Ok(render(&scopes))
 }
 
-type Edit = fn(
-    &protocol::Model,
-    &protocol::Action,
-    Steps<protocol::Model, Outcome, protocol::Expired>,
-) -> Steps<protocol::Model, Outcome, protocol::Expired>;
+type Edit = umpire_testing::refinement::Edit<protocol::World>;
+/// One selected scope as exact neutral parameters.
+type Scope = (u8, [Option<u8>; 4]);
 
 /// A protocol graph whose edges are edited independently of the authored source.
-fn edited(scope: (u8, [Option<u8>; 4]), step: Edit, relation: &Relation<protocol::World, activity::World>) -> Result<Report, Error> {
+fn edited(
+    scope: Scope,
+    step: Edit,
+    relation: &Relation<protocol::World, activity::World>,
+) -> Result<Report, Error> {
     let (concrete, feature) = worlds(scope)?;
     Ok(refine(&Mutant { inner: concrete, starts: None, step }, &feature, relation, BUDGET)?)
 }
 
-fn mapped(scope: (u8, [Option<u8>; 4]), relation: &Relation<protocol::World, activity::World>) -> Result<Report, Error> {
+fn mapped(
+    scope: Scope,
+    relation: &Relation<protocol::World, activity::World>,
+) -> Result<Report, Error> {
     edited(scope, |_, _, steps| steps, relation)
 }
 
-const ALL_TIMERS: (u8, [Option<u8>; 4]) = (3, [Some(3); 4]);
-const SPANNING: (u8, [Option<u8>; 4]) = (3, [Some(3), Some(1), Some(3), None]);
-const HEARTBEAT: (u8, [Option<u8>; 4]) = (3, [None, None, None, Some(2)]);
+const ALL_TIMERS: Scope = (3, [Some(3); 4]);
+const SPANNING: Scope = (3, [Some(3), Some(1), Some(3), None]);
+const HEARTBEAT: Scope = (3, [None, None, None, Some(2)]);
 
 #[test]
 fn every_selected_scope_refines_with_full_state_and_observable_compatibility() -> TestResult {
@@ -139,7 +148,7 @@ fn hidden_budget_controls_fail_even_where_public_views_match() -> TestResult {
 
 #[test]
 fn changed_timer_reset_spanning_priority_and_start_edges_fail() -> TestResult {
-    let edits: [(&str, (u8, [Option<u8>; 4]), Edit); 6] = [
+    let edits: [(&str, Scope, Edit); 6] = [
         ("countdown skips heartbeat", ALL_TIMERS, |before, action, mut steps| {
             if *action == protocol::Timer::Tick.into() {
                 for step in &mut steps {
@@ -201,15 +210,22 @@ fn changed_timer_reset_spanning_priority_and_start_edges_fail() -> TestResult {
     let started = Mutant {
         inner: concrete,
         starts: Some(|world| {
-            world.starts().into_iter().map(|mut start| {
-                start.attempt = 2;
-                start
-            }).collect()
+            world
+                .starts()
+                .into_iter()
+                .map(|mut start| {
+                    start.attempt = 2;
+                    start
+                })
+                .collect()
         }),
         step: |_, _, steps| steps,
     };
     let report = refine(&started, &feature, &relation(), BUDGET)?;
-    assert!(report.violations.iter().any(|violation| violation.starts_with("start 0:")), "{report}");
+    assert!(
+        report.violations.iter().any(|violation| violation.starts_with("start 0:")),
+        "{report}"
+    );
     let cut = refine(&worlds(ALL_TIMERS)?.0, &feature, &relation(), 4)?;
     assert_eq!(cut.verdict(), Verdict::Incomplete, "{cut}");
     Ok(())
