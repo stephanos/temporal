@@ -266,13 +266,17 @@ fn describe_target_decodes_only_actual_fields() -> Result<(), Error> {
         });
         response
     };
-    assert!(
-        ActivityTarget::decode(&canceled(Some(FailureInfo::CanceledFailureInfo(
-            CanceledFailureInfo::default()
-        ))))
-        .is_ok()
-    );
-    assert!(ActivityTarget::decode(&canceled(None)).is_err(), "Canceled without its cause");
+    let cause = canceled(Some(FailureInfo::CanceledFailureInfo(CanceledFailureInfo::default())));
+    assert!(ActivityTarget::decode(&cause).is_ok() && ActivityTarget::agrees(&cause));
+    // A contradicting outcome is in the Model's vocabulary: it decodes, withholds evidence and
+    // is judged Unexplained rather than refused.
+    let uncaused = canceled(None);
+    assert!(ActivityTarget::decode(&uncaused).is_ok(), "contradiction is not a refusal");
+    assert!(!ActivityTarget::agrees(&uncaused), "Canceled without its cause");
+    let mut completed_failure = describe(2, 0, 1);
+    completed_failure.outcome = uncaused.outcome.clone();
+    assert!(!ActivityTarget::agrees(&completed_failure));
+    assert!(ActivityTarget::agrees(&describe(1, 1, 1)), "an absent outcome contradicts nothing");
     for (status, run_state, attempt) in
         [(1, 0, 1), (2, 2, 1), (0, 0, 1), (1, 1, 0), (7, 0, 1), (1, 4, 1)]
     {

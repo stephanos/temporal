@@ -107,8 +107,21 @@ impl umpire_runtime::capability::Snapshot<activity::World> for LiveRealization {
         current: &activity::Model,
     ) -> Result<Projection<Action, umpire_dsl::Outcome, NoTarget>, Refusal> {
         let observed = crate::support::Observed::new(actual)?;
+        if observed.method == DESCRIBE {
+            let response: DescribeActivityExecutionResponse = observed.response()?;
+            return super::frozen::Frozen(&self.inner).describe(response, current, world);
+        }
+        if observed.method == CANCEL {
+            let response = if let Some(code) = observed.code()? {
+                Err(code)
+            } else {
+                let response: RequestCancelActivityExecutionResponse = observed.response()?;
+                Ok(response)
+            };
+            return Ok(super::frozen::cancel(response));
+        }
         if observed.method != START {
-            return Realize::observe(&self.inner, world, actual, current);
+            return Err(Refusal::unsupported("unsupported observation method"));
         }
         let observation: Observation = actual.unpack()?;
         let raw_request = observation

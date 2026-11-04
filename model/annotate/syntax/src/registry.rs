@@ -410,7 +410,9 @@ fn expand_scoped(
     let inputs: Type = options.required("inputs", item.span())?;
     let entity = take(item, "entity")?;
     let read = take(item, "read")?;
+    let refines = take(item, "refines")?;
     let observed = observed(item, schema)?;
+    let refinement = refinement(item, model, runtime, read.as_ref(), refines.as_ref())?;
     let configuration =
         configurations(item, model, runtime, schema, entity.as_ref(), read.as_ref())?;
     let rows = rows(&input.actors)?;
@@ -494,6 +496,45 @@ fn expand_scoped(
             }
         }
         #configuration
+        #refinement
+    })
+}
+
+/// The optional protocol refinement, typed against the read's observable target.
+fn refinement(
+    item: &ItemImpl,
+    model: &Path,
+    runtime: &Path,
+    read: Option<&Options>,
+    refines: Option<&Options>,
+) -> syn::Result<TokenStream> {
+    let Some(refines) = refines else {
+        return Ok(TokenStream::new());
+    };
+    let span = item.span();
+    refines.admit(&["protocol", "state", "action", "outcome", "fact", "view"], span)?;
+    let read = read.ok_or_else(|| {
+        syn::Error::new(span, "refines declaration requires the read's observable target")
+    })?;
+    let target: Type = read.required("target", span)?;
+    let protocol: Path = refines.required("protocol", span)?;
+    let hooks = ["state", "action", "outcome", "fact", "view"]
+        .into_iter()
+        .map(|key| refines.required::<Ident>(key, span).map(|name| hook(&name)))
+        .collect::<syn::Result<Vec<_>>>()?;
+    let [state, action, outcome, fact, view] = hooks.as_slice() else {
+        return Err(syn::Error::new(span, "refines declaration requires every map"));
+    };
+    let ty = &item.self_ty;
+    Ok(quote! {
+        impl #runtime::registry::Refined for #ty {
+            type Protocol = #protocol::World;
+            type Feature = #model::World;
+            type Target = #target;
+            fn refines() -> #runtime::registry::Refines<#protocol::World, #model::World, #target> {
+                #runtime::registry::Refines { state: #state, action: #action, outcome: #outcome, fact: #fact, view: #view }
+            }
+        }
     })
 }
 
@@ -798,6 +839,15 @@ mod tests {
             (
                 "#[registry(inputs = ())] #[entity()]",
                 "missing temporal declaration option: receipt",
+            ),
+            ("#[registry(inputs = ())] #[refines()] #[refines()]", "duplicate refines declaration"),
+            (
+                "#[registry(inputs = ())] #[refines(protocol = p, state = s, action = a, outcome = o, fact = f, view = v)]",
+                "refines declaration requires the read's observable target",
+            ),
+            (
+                "#[registry(inputs = ())] #[refines(protocol = p, target = t)]",
+                "unknown temporal action option",
             ),
         ] {
             let source =

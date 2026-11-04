@@ -209,21 +209,24 @@ fn protocol_local_adapter_and_feature_schema_share_exact_parameters_without_worl
     Ok(())
 }
 
+/// The selected protocol scopes as exact neutral parameters, shared with the feature refinement.
+pub(crate) const SELECTED: [(u8, [Option<u8>; 4]); 12] = [
+    (1, [Some(1), Some(1), None, None]),
+    (3, [Some(1), Some(1), None, None]),
+    (3, [None; 4]),
+    (2, [Some(1), Some(1), None, None]),
+    (1, [None, None, Some(3), None]),
+    (3, [None, None, None, Some(2)]),
+    (3, [Some(3); 4]),
+    (2, [Some(1); 4]),
+    (2, [None, Some(2), None, Some(2)]),
+    (3, [Some(3), Some(1), Some(3), None]),
+    (2, [None, Some(3), Some(3), Some(2)]),
+    (3, [Some(2), None, None, None]),
+];
+
 fn selected_worlds() -> Vec<World> {
-    vec![
-        configured(1, [Some(1), Some(1), None, None]),
-        configured(3, [Some(1), Some(1), None, None]),
-        configured(3, [None; 4]),
-        world(),
-        configured(1, [None, None, Some(3), None]),
-        configured(3, [None, None, None, Some(2)]),
-        configured(3, [Some(3); 4]),
-        configured(2, [Some(1); 4]),
-        configured(2, [None, Some(2), None, Some(2)]),
-        configured(3, [Some(3), Some(1), Some(3), None]),
-        configured(2, [None, Some(3), Some(3), Some(2)]),
-        configured(3, [Some(2), None, None, None]),
-    ]
+    SELECTED.into_iter().map(|(maximum, timeouts)| configured(maximum, timeouts)).collect()
 }
 
 fn scope(world: &World) -> Result<String, Box<dyn std::error::Error>> {

@@ -75,6 +75,7 @@ pub(crate) fn run() -> umpire_testing::RunResult {
     let covered = closings()?;
     files.insert("expansion/closings.txt".into(), covered.expansion().into());
     files.insert("coverage.txt".into(), covered.coverage().to_string());
+    files.insert("refinement.txt".into(), refinement_checks::refinement()?);
     Ok(files)
 }
 
@@ -533,3 +534,5 @@ mod proof_checks;
 mod policy_checks;
 
 mod deadline_frontier_mapping;
+
+mod refinement_checks;

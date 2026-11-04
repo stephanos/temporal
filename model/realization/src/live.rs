@@ -2,7 +2,7 @@ use prost::Message;
 use umpire_dsl::Machine;
 use umpire_runtime::AnyMessage as _;
 use umpire_runtime::{
-    Dispatch, NoTarget, Projection, Proposal, Realize, Runtime,
+    Dispatch, Projection, Proposal, Realize, Runtime,
     prost_types::Any,
     protocol::{self, Refusal, RefusalCode, response::Outcome},
     realization::{Observation, observation::Result as ResultValue},
@@ -16,7 +16,7 @@ use umpire_temporal_api::temporal::api::{
     },
 };
 
-use crate::{Realization, activity, activity_realization::ProposalContext};
+use crate::{ActivityTarget, Realization, activity, activity_realization::ProposalContext};
 
 const START: &str = "/temporal.api.workflowservice.v1.WorkflowService/StartActivityExecution";
 const DESCRIBE: &str = "/temporal.api.workflowservice.v1.WorkflowService/DescribeActivityExecution";
@@ -65,6 +65,13 @@ impl umpire_runtime::capability::Evidence<umpire_runtime::evidence::Rpc> for Liv
     fn admit_evidence(&self, actual: &Any) -> Result<Self::View, Refusal> {
         crate::support::Observed::new(actual)
     }
+    fn check_evidence(
+        &self,
+        view: &Self::View,
+        path: &[&umpire_runtime::Evidence<activity::World>],
+    ) -> umpire_runtime::EvidenceMatch {
+        umpire_runtime::capability::Evidence::check_evidence(&self.inner, view, path)
+    }
 }
 impl umpire_runtime::capability::ReplyPolicy<activity::World> for LiveRealization {
     fn program(&self) -> Result<Any, Refusal> {
@@ -95,13 +102,13 @@ impl umpire_runtime::capability::ReplyPolicy<activity::World> for LiveRealizatio
 }
 
 impl umpire_runtime::capability::Snapshot<activity::World> for LiveRealization {
-    type Target = NoTarget;
+    type Target = ActivityTarget;
     fn project(
         &self,
         world: &activity::World,
         actual: &Any,
         current: &activity::Model,
-    ) -> Result<Projection<Action, umpire_dsl::Outcome, NoTarget>, Refusal> {
+    ) -> Result<Projection<Action, umpire_dsl::Outcome, ActivityTarget>, Refusal> {
         let observed = crate::support::Observed::new(actual)?;
         if observed.method == CANCEL && current.phase == activity::Phase::Started {
             // The cooperative Model records a pending request here; live evidence of its

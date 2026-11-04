@@ -12,11 +12,14 @@ pub(super) const COVERAGE: Consumer = Consumer {
         if super::fixture_name(folder)? != "activity" {
             return Err("fixture has no registered realization".into());
         }
-        Ok(Files::from([("realization.txt".into(), render(Realization::REALIZATION)?)]))
+        Ok(Files::from([(
+            "realization.txt".into(),
+            render(Realization::REALIZATION, &Realization::REACH)?,
+        )]))
     },
 };
 
-fn render(contexts: &[Context]) -> Result<String, Box<dyn std::error::Error>> {
+fn render(contexts: &[Context], reach: &[&str]) -> Result<String, Box<dyn std::error::Error>> {
     let mut report = String::from(
         "Activity realization coverage\n\
          classifications: mapped | ignored (reason) | unsupported\n\
@@ -43,6 +46,23 @@ fn render(contexts: &[Context]) -> Result<String, Box<dyn std::error::Error>> {
             writeln!(report)?;
         }
     }
+    let read = Realization::read().rpc.method;
+    for method in reach {
+        writeln!(report, "\nobserved through Reach: {method}")?;
+        if *method == read {
+            writeln!(
+                report,
+                "  target: ActivityTarget, decoded only from supplied fields; unclaimed fields are Ignored"
+            )?;
+            writeln!(
+                report,
+                "  evidence: Describe snapshot reconciled with the Model-derived worker program"
+            )?;
+        } else {
+            writeln!(report, "  target: unobserved")?;
+            writeln!(report, "  evidence: registered RPC predicate for its one Model action")?;
+        }
+    }
     let actions = RPC_BINDINGS
         .iter()
         .filter(|(_, role, _)| *role == "Action")
@@ -54,7 +74,9 @@ fn render(contexts: &[Context]) -> Result<String, Box<dyn std::error::Error>> {
     writeln!(report, "\nModel-action RPCs without an observation handler:")?;
     for (rpc, action) in &actions {
         let bound: Vec<_> = contexts.iter().filter(|context| context.method == Some(rpc)).collect();
-        if !bound.iter().any(|context| context.kind == "observed response") {
+        if !reach.contains(&rpc.as_str())
+            && !bound.iter().any(|context| context.kind == "observed response")
+        {
             writeln!(report, "  {rpc} -> {action}")?;
             if bound.is_empty() {
                 writeln!(report, "    no realization context")?;
@@ -68,7 +90,10 @@ fn render(contexts: &[Context]) -> Result<String, Box<dyn std::error::Error>> {
     writeln!(report, "\nModel-action RPCs without any realization context:")?;
     let unhandled: Vec<_> = actions
         .iter()
-        .filter(|(rpc, _)| !contexts.iter().any(|context| context.method == Some(rpc)))
+        .filter(|(rpc, _)| {
+            !reach.contains(&rpc.as_str())
+                && !contexts.iter().any(|context| context.method == Some(rpc))
+        })
         .collect();
     if unhandled.is_empty() {
         writeln!(report, "  (none)")?;

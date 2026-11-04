@@ -71,7 +71,14 @@ fn fixtures() -> umpire_testing::TestResult {
     umpire_testing::run_at_skipping_with_external(
         &root,
         registered(),
-        &[umpire_testing::CHECKER, umpire_testing::SUITE, LIFT, TLC, realization::COVERAGE],
+        &[
+            umpire_testing::CHECKER,
+            umpire_testing::SUITE,
+            umpire_testing::REFINEMENT,
+            LIFT,
+            TLC,
+            realization::COVERAGE,
+        ],
         if required { &[] } else { &["tlc"] },
         &[GAPS],
     )
@@ -93,7 +100,7 @@ fn import_live_gap_candidate() -> umpire_testing::TestResult {
 
 mod protocol_fixtures {
     include!(concat!(env!("OUT_DIR"), "/protocol_fixtures.rs"));
-    pub(super) use activity_tests::{check, lifted, scopes};
+    pub(super) use activity_tests::{SELECTED, check, lifted, scopes};
 
     pub(super) fn fixtures() -> Vec<umpire_testing::Fixture> {
         registered()

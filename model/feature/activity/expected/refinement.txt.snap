@@ -1,0 +1,27 @@
+---
+source: crates/umpire-testing/src/runner.rs
+---
+scope Parameters { maximum_attempts: 1, schedule_to_start: Some(1), start_to_close: Some(1), schedule_to_close: None, heartbeat_timeout: None }; bound=4096
+verdict=refined complete=true depth=2 starts=1 states=9 edges=22 mapped=22 stutters=0 gaps=0 violations=0
+scope Parameters { maximum_attempts: 3, schedule_to_start: Some(1), start_to_close: Some(1), schedule_to_close: None, heartbeat_timeout: None }; bound=4096
+verdict=refined complete=true depth=6 starts=1 states=37 edges=162 mapped=162 stutters=0 gaps=0 violations=0
+scope Parameters { maximum_attempts: 3, schedule_to_start: None, start_to_close: None, schedule_to_close: None, heartbeat_timeout: None }; bound=4096
+verdict=refined complete=true depth=6 starts=1 states=21 edges=87 mapped=87 stutters=0 gaps=0 violations=0
+scope Parameters { maximum_attempts: 2, schedule_to_start: Some(1), start_to_close: Some(1), schedule_to_close: None, heartbeat_timeout: None }; bound=4096
+verdict=refined complete=true depth=4 starts=1 states=23 edges=80 mapped=80 stutters=0 gaps=0 violations=0
+scope Parameters { maximum_attempts: 1, schedule_to_start: None, start_to_close: None, schedule_to_close: Some(3), heartbeat_timeout: None }; bound=4096
+verdict=refined complete=true depth=4 starts=1 states=14 edges=53 mapped=53 stutters=0 gaps=0 violations=0
+scope Parameters { maximum_attempts: 3, schedule_to_start: None, start_to_close: None, schedule_to_close: None, heartbeat_timeout: Some(2) }; bound=4096
+verdict=refined complete=true depth=8 starts=1 states=44 edges=259 mapped=259 stutters=0 gaps=0 violations=0
+scope Parameters { maximum_attempts: 3, schedule_to_start: Some(3), start_to_close: Some(3), schedule_to_close: Some(3), heartbeat_timeout: Some(3) }; bound=4096
+verdict=refined complete=true depth=9 starts=1 states=90 edges=750 mapped=750 stutters=0 gaps=0 violations=0
+scope Parameters { maximum_attempts: 2, schedule_to_start: Some(1), start_to_close: Some(1), schedule_to_close: Some(1), heartbeat_timeout: Some(1) }; bound=4096
+verdict=refined complete=true depth=4 starts=1 states=16 edges=54 mapped=54 stutters=0 gaps=0 violations=0
+scope Parameters { maximum_attempts: 2, schedule_to_start: None, start_to_close: Some(2), schedule_to_close: None, heartbeat_timeout: Some(2) }; bound=4096
+verdict=refined complete=true depth=7 starts=1 states=33 edges=177 mapped=177 stutters=0 gaps=0 violations=0
+scope Parameters { maximum_attempts: 3, schedule_to_start: Some(3), start_to_close: Some(1), schedule_to_close: Some(3), heartbeat_timeout: None }; bound=4096
+verdict=refined complete=true depth=7 starts=1 states=69 edges=442 mapped=442 stutters=0 gaps=0 violations=0
+scope Parameters { maximum_attempts: 2, schedule_to_start: None, start_to_close: Some(3), schedule_to_close: Some(3), heartbeat_timeout: Some(2) }; bound=4096
+verdict=refined complete=true depth=8 starts=1 states=59 edges=372 mapped=372 stutters=0 gaps=0 violations=0
+scope Parameters { maximum_attempts: 3, schedule_to_start: Some(2), start_to_close: None, schedule_to_close: None, heartbeat_timeout: None }; bound=4096
+verdict=refined complete=true depth=6 starts=1 states=27 edges=114 mapped=114 stutters=0 gaps=0 violations=0

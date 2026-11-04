@@ -15,6 +15,8 @@ use umpire_temporal_api::temporal::api::workflowservice::v1::{
 mod baseline;
 #[path = "../common/mod.rs"]
 mod common;
+#[path = "frozen.rs"]
+mod frozen;
 
 struct Pair {
     before: Guest<baseline::LiveRuntime>,

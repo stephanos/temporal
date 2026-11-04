@@ -912,6 +912,46 @@ fn proposal_dispatch(model: &Path, handler: &ProposalHandler) -> TokenStream {
     }
 }
 
+/// A realization whose observations all project to typed Reach targets with positive evidence.
+struct ReachOptions {
+    target: Type,
+    project: Ident,
+    evidence: Ident,
+}
+
+fn reach_options(item: &mut ItemImpl) -> syn::Result<Option<ReachOptions>> {
+    let mut found = None;
+    for attribute in item.attrs.iter().filter(|attribute| attribute.path().is_ident("reach")) {
+        if found.is_some() {
+            return Err(syn::Error::new(attribute.span(), "duplicate reach declaration"));
+        }
+        let (mut target, mut project, mut evidence) = (None, None, None);
+        attribute.parse_nested_meta(|meta| {
+            let value = meta.value()?;
+            if meta.path.is_ident("target") && target.is_none() {
+                target = Some(value.parse::<Type>()?);
+            } else if meta.path.is_ident("project") && project.is_none() {
+                project = Some(value.parse::<Ident>()?);
+            } else if meta.path.is_ident("evidence") && evidence.is_none() {
+                evidence = Some(value.parse::<Ident>()?);
+            } else {
+                return Err(meta.error("unknown or duplicate reach option"));
+            }
+            Ok(())
+        })?;
+        let missing = |name: &str| {
+            syn::Error::new(attribute.span(), format!("reach declaration requires {name}"))
+        };
+        found = Some(ReachOptions {
+            target: target.ok_or_else(|| missing("target"))?,
+            project: project.ok_or_else(|| missing("project"))?,
+            evidence: evidence.ok_or_else(|| missing("evidence"))?,
+        });
+    }
+    item.attrs.retain(|attribute| !attribute.path().is_ident("reach"));
+    Ok(found)
+}
+
 fn admit_handlers(
     item: &mut ItemImpl,
     schema: &Schema,
@@ -978,7 +1018,14 @@ fn expand_scoped(
     if item.trait_.is_some() || !item.generics.params.is_empty() {
         return Err(syn::Error::new(item.span(), "realization requires a concrete inherent impl"));
     }
+    let reach = reach_options(&mut item)?;
     let (handlers, proposal) = admit_handlers(&mut item, schema)?;
+    if let (Some(_), Some(handler)) = (&reach, handlers.iter().find(|handler| !handler.answer)) {
+        return Err(syn::Error::new(
+            handler.declaration.target.span(),
+            "a Reach realization projects every observation through its hook; #[observe] handlers are not admitted",
+        ));
+    }
     check_enums(&item, schema, scope, model)?;
     let mut task_types = BTreeSet::new();
     for handler in handlers.iter().filter(|handler| handler.answer) {
@@ -1015,6 +1062,29 @@ fn expand_scoped(
                 Err(::umpire_runtime::protocol::Refusal::unsupported("unsupported Any type URL"))
             }
     });
+    let (target, project, check_evidence) = if let Some(reach) = &reach {
+        let (target, project, evidence) = (&reach.target, &reach.project, &reach.evidence);
+        (
+            quote!(#target),
+            quote!(self.#project(world, observation, state)),
+            quote! {
+                fn check_evidence(&self, view: &Self::View, path: &[&::umpire_runtime::Evidence<Self::World>]) -> ::umpire_runtime::EvidenceMatch {
+                    self.#evidence(view, path)
+                }
+            },
+        )
+    } else {
+        (
+            quote!(::umpire_runtime::NoTarget),
+            quote! {
+                let _ = (world, state);
+                let __observed = #runtime::support::Observed::new(observation)?;
+                #(#observations)*
+                Err(::umpire_runtime::protocol::Refusal::unsupported("unsupported observation method"))
+            },
+            TokenStream::new(),
+        )
+    };
     let ty = &item.self_ty;
     // Generated calls are fully qualified. This anonymous import only keeps hand-written
     // `Any::pack`/`unpack` in the realization module working without an author-side import,
@@ -1027,14 +1097,11 @@ fn expand_scoped(
             pub const REALIZATION: &'static [#runtime::Context] = &[#(#contexts),*];
         }
         impl ::umpire_runtime::capability::Snapshot<#model::World> for #ty {
-            type Target = ::umpire_runtime::NoTarget;
+            type Target = #target;
             #[allow(deprecated, reason = "descriptor admission validates deprecated wire fields")]
             fn project(&self, world: &#model::World, observation: &::umpire_runtime::prost_types::Any, state: &#model::Model)
                 -> Result<::umpire_runtime::Projection<<#model::World as ::umpire_dsl::Machine>::Action, <#model::World as ::umpire_dsl::Machine>::Outcome, Self::Target>, ::umpire_runtime::protocol::Refusal> {
-                let _ = (world, state);
-                let __observed = #runtime::support::Observed::new(observation)?;
-                #(#observations)*
-                Err(::umpire_runtime::protocol::Refusal::unsupported("unsupported observation method"))
+                #project
             }
         }
         impl ::umpire_runtime::capability::Evidence<::umpire_runtime::evidence::Rpc> for #ty {
@@ -1044,6 +1111,7 @@ fn expand_scoped(
                 -> Result<Self::View, ::umpire_runtime::protocol::Refusal> {
                 #runtime::support::Observed::new(observation)
             }
+            #check_evidence
         }
         impl ::umpire_runtime::capability::ReplyPolicy<#model::World> for #ty {
             #proposal

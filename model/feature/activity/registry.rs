@@ -2,7 +2,11 @@
 
 use super::{Action, ActivityTarget, ProposalContext, Realization, activity};
 use crate::support::{ApplicationFailure, rejection};
-use crate::{activity_api::catalog, foundation::dc::Limits};
+use crate::{
+    activity_api::catalog,
+    activity_protocol::{protocol, view::View},
+    foundation::dc::Limits,
+};
 use activity::{Client, Worker};
 use umpire_catalog::{Catalog, validate};
 use umpire_dsl::Outcome;
@@ -13,6 +17,7 @@ use umpire_runtime::{
 };
 use umpire_temporal_api::temporal::api::common::v1::link;
 use umpire_temporal_api::temporal::api::{
+    activity::v1::activity_execution_outcome::Value,
     common::v1::{Payload, Payloads},
     failure::v1::Failure,
     taskqueue::v1::TaskQueue,
@@ -127,6 +132,9 @@ activity::action_metadata!(crate::registry; activity; {
         target = ActivityTarget, fill = describe_request, project = describe_target,
         finality = is_final, continue_polling = polls, correlate = correlate_describe)]
     #[observed(rpc = WorkflowService::PollActivityExecution, reason = "SDK activity handle outcome")]
+    #[refines(protocol = crate::activity_protocol::protocol, state = refined_state,
+        action = refined_action, outcome = refined_outcome, fact = refined_fact,
+        view = refined_view)]
     #[allow(
         clippy::trivially_copy_pass_by_ref,
         reason = "registry fillers receive the actual action by reference"
@@ -209,6 +217,26 @@ activity::action_metadata!(crate::registry; activity; {
 
         fn describe_target(&self, response: &DescribeActivityExecutionResponse) -> Result<ActivityTarget, Refusal> {
             ActivityTarget::decode(response)
+        }
+
+        fn refined_state(state: &protocol::Model) -> Option<activity::Model> {
+            super::projection::feature_state(state)
+        }
+
+        fn refined_action(action: &protocol::Action) -> Action {
+            super::projection::feature_action(action)
+        }
+
+        fn refined_outcome(outcome: &Outcome) -> Outcome {
+            *outcome
+        }
+
+        fn refined_fact(fact: &protocol::Expired) -> activity::ExpiredDeadline {
+            super::projection::feature_fact(*fact)
+        }
+
+        fn refined_view(state: &protocol::Model) -> ActivityTarget {
+            ActivityTarget::observe(&View::from(state))
         }
 
         fn is_final(&self, target: &ActivityTarget) -> bool {
@@ -364,7 +392,7 @@ activity::action_metadata!(crate::registry; activity; {
             path: &Witness<'_>,
         ) -> Result<umpire_runtime::EvidenceMatch, Refusal> {
             self.correlated(&request.namespace, Some(&request.activity_id), Some(&request.run_id))?;
-            Ok(Self::edge(path, Self::outcome(&response), |action| {
+            Ok(Self::edge(path, Self::outcome(&response)?, |action| {
                 *action == Action::from(Client::Cancel)
             }))
         }
@@ -376,7 +404,7 @@ activity::action_metadata!(crate::registry; activity; {
             path: &Witness<'_>,
         ) -> Result<umpire_runtime::EvidenceMatch, Refusal> {
             self.correlated(&request.namespace, None, None)?;
-            let outcome = Self::outcome(&response);
+            let outcome = Self::outcome(&response)?;
             let delivered = if let Ok(task) = &response {
                 // An empty long-poll delivers no task and evidences no Poll edge.
                 if task.task_token.is_empty() {
@@ -400,7 +428,7 @@ activity::action_metadata!(crate::registry; activity; {
             path: &Witness<'_>,
         ) -> Result<umpire_runtime::EvidenceMatch, Refusal> {
             self.correlated(&request.namespace, None, None)?;
-            Ok(Self::edge(path, Self::outcome(&response), |action| {
+            Ok(Self::edge(path, Self::outcome(&response)?, |action| {
                 *action == Action::from(Worker::RespondCompleted)
             }))
         }
@@ -415,7 +443,7 @@ activity::action_metadata!(crate::registry; activity; {
             let Some(retryable) = request.failure.as_ref().and_then(Self::retryable) else {
                 return Ok(umpire_runtime::EvidenceMatch::Reject);
             };
-            Ok(Self::edge(path, Self::outcome(&response), |action| {
+            Ok(Self::edge(path, Self::outcome(&response)?, |action| {
                 *action == Action::from(Worker::RespondFailed { retryable })
             }))
         }
@@ -438,7 +466,7 @@ activity::action_metadata!(crate::registry; activity; {
             let consistent = path.last().is_some_and(|edge| {
                 reported.is_none_or(|pending| edge.target.cancel_requested == pending)
             });
-            Ok(Self::edge(path, Self::outcome(&response), |action| {
+            Ok(Self::edge(path, Self::outcome(&response)?, |action| {
                 consistent && *action == Action::from(Worker::Heartbeat)
             }))
         }
@@ -450,7 +478,7 @@ activity::action_metadata!(crate::registry; activity; {
             path: &Witness<'_>,
         ) -> Result<umpire_runtime::EvidenceMatch, Refusal> {
             self.correlated(&request.namespace, None, None)?;
-            Ok(Self::edge(path, Self::outcome(&response), |action| {
+            Ok(Self::edge(path, Self::outcome(&response)?, |action| {
                 matches!(action, Action::Worker(Worker::RespondCanceled(_)))
             }))
         }
@@ -466,6 +494,257 @@ activity::action_metadata!(crate::registry; activity; {
         }
     }
 });
+
+const CANCEL: &str =
+    "/temporal.api.workflowservice.v1.WorkflowService/RequestCancelActivityExecution";
+const DESCRIBE: &str = "/temporal.api.workflowservice.v1.WorkflowService/DescribeActivityExecution";
+
+/// The live Reach path: every observation projects to the read's typed target or an unobserved
+/// target, and only the registry's cancellation predicate or the Describe snapshot reconciled
+/// with the Model-derived worker program authorizes an edge.
+///
+/// Worker RPC predicates stay declared but off this path: the guest receives no worker RPC
+/// observations, and no receipt holds the polled task token they would need to correlate.
+impl Realization {
+    /// Methods this realization projects through Reach, in coverage order.
+    pub const REACH: [&'static str; 2] = [CANCEL, DESCRIBE];
+
+    pub(super) fn reach_projection(
+        &self,
+        _: &activity::World,
+        observation: &Any,
+        state: &activity::Model,
+    ) -> Result<umpire_runtime::Projection<Action, Outcome, ActivityTarget>, Refusal> {
+        let observed = crate::support::Observed::new(observation)?;
+        match observed.method.as_str() {
+            CANCEL => {
+                if let Some(context) = &self.context {
+                    let request: RequestCancelActivityExecutionRequest = observed
+                        .request()?
+                        .ok_or_else(|| Refusal::malformed("actual request is missing"))?;
+                    context.matches(&request.namespace, &request.activity_id, &request.run_id)?;
+                }
+                let response = if let Some(code) = observed.code()? {
+                    Err(code)
+                } else {
+                    let response: RequestCancelActivityExecutionResponse =
+                        observed.response().map_err(|error| Refusal::malformed(error.message))?;
+                    Ok(response)
+                };
+                Self::outcome(&response)?;
+                Ok(umpire_runtime::Projection::Reach(ActivityTarget::unobserved()))
+            }
+            DESCRIBE => {
+                let response: DescribeActivityExecutionResponse =
+                    observed.response().map_err(|error| Refusal::malformed(error.message))?;
+                let info = response
+                    .info
+                    .as_ref()
+                    .ok_or_else(|| Refusal::malformed("activity info is missing"))?;
+                activity::Phase::try_from(info.clone())?;
+                let attempt = u8::try_from(info.attempt).map_err(|_| {
+                    Refusal::unsupported("Describe attempt is outside maximum_attempts")
+                })?;
+                if !(state.attempt..=3).contains(&attempt) {
+                    return Err(state_refusal(
+                        "Describe attempt does not match the current attempt",
+                    ));
+                }
+                if let Some(context) = &self.context {
+                    Self::scenario(context)?;
+                    for failure in [info.last_failure.as_ref(), Self::outcome_failure(&response)]
+                        .into_iter()
+                        .flatten()
+                    {
+                        Self::programmed_failure(failure)?;
+                    }
+                }
+                Ok(umpire_runtime::Projection::Reach((Self::read().project)(self, &response)?))
+            }
+            _ => Err(Refusal::unsupported("unsupported observation method")),
+        }
+    }
+
+    pub(super) fn reach_evidence(
+        &self,
+        observed: &crate::support::Observed,
+        path: &Witness<'_>,
+    ) -> umpire_runtime::EvidenceMatch {
+        let evidence = match observed.method.as_str() {
+            CANCEL if path.is_empty() => Ok(umpire_runtime::EvidenceMatch::Continue { cursor: 0 }),
+            CANCEL => (|| {
+                let response: Result<RequestCancelActivityExecutionResponse, i32> =
+                    if let Some(code) = observed.code()? {
+                        Err(code)
+                    } else {
+                        Ok(observed.response()?)
+                    };
+                if self.context.is_none() {
+                    // An unadmitted run has no receipt to correlate with; the same edge rule holds.
+                    return Ok(Self::edge(path, Self::outcome(&response)?, |action| {
+                        *action == Action::from(Client::Cancel)
+                    }));
+                }
+                let request = observed
+                    .request()?
+                    .ok_or_else(|| Refusal::malformed("actual request is missing"))?;
+                self.cancel_evidence(request, response, path)
+            })(),
+            DESCRIBE => self.describe_evidence(observed, path),
+            _ => Ok(umpire_runtime::EvidenceMatch::Reject),
+        };
+        // Projection raised every admission refusal before search; a later failure is no evidence.
+        evidence.unwrap_or(umpire_runtime::EvidenceMatch::Reject)
+    }
+
+    /// Reconcile a Describe snapshot with the Model-derived worker program: each hidden worker
+    /// edge must be the programmed response for its attempt and be evidenced by the snapshot's
+    /// attempt, run state, outcome or retained failure.
+    fn describe_evidence(
+        &self,
+        observed: &crate::support::Observed,
+        path: &Witness<'_>,
+    ) -> Result<umpire_runtime::EvidenceMatch, Refusal> {
+        let reject = Ok(umpire_runtime::EvidenceMatch::Reject);
+        let response: DescribeActivityExecutionResponse = observed.response()?;
+        let info =
+            response.info.as_ref().ok_or_else(|| Refusal::malformed("activity info is missing"))?;
+        let phase = activity::Phase::try_from(info.clone())?;
+        let attempt = u8::try_from(info.attempt)
+            .map_err(|_| Refusal::unsupported("Describe attempt is outside maximum_attempts"))?;
+        let Some(context) = &self.context else {
+            return Ok(Self::snapshot_evidence(phase, attempt, path, false));
+        };
+        let maximum = context.maximum_attempts().ok_or_else(|| {
+            Refusal::unsupported("retry_policy.maximum_attempts is outside 1..=3")
+        })?;
+        let world = activity::World::new(maximum, None, None, None, None);
+        let scenario = Self::scenario(context)?;
+        if !ActivityTarget::agrees(&response) || !Self::consistent(phase, attempt, &response) {
+            return reject;
+        }
+        if attempt > 1 && phase != activity::Phase::Failed {
+            let (action, expected) = self.response(&world, scenario, i32::from(attempt - 1))?;
+            let expected: RespondActivityTaskFailedRequest = expected.unpack()?;
+            if action != (Worker::RespondFailed { retryable: true })
+                || !Self::same_failure(info.last_failure.as_ref(), expected.failure.as_ref())
+            {
+                return reject;
+            }
+        }
+        let (programmed, expected) = self.response(&world, scenario, info.attempt)?;
+        match phase {
+            activity::Phase::Completed => {
+                let expected: RespondActivityTaskCompletedRequest = expected.unpack()?;
+                let result = response.outcome.as_ref().and_then(|outcome| outcome.value.as_ref());
+                if programmed != Worker::RespondCompleted
+                    || !matches!(result, Some(Value::Result(result)) if expected.result.as_ref() == Some(result))
+                {
+                    return reject;
+                }
+            }
+            activity::Phase::Failed => {
+                let expected: RespondActivityTaskFailedRequest = expected.unpack()?;
+                if !matches!(programmed, Worker::RespondFailed { .. })
+                    || Self::outcome_failure(&response).is_none()
+                    || !Self::same_failure(
+                        Self::outcome_failure(&response),
+                        expected.failure.as_ref(),
+                    )
+                    || !Self::same_failure(info.last_failure.as_ref(), expected.failure.as_ref())
+                {
+                    return reject;
+                }
+            }
+            _ => {}
+        }
+        for edge in path {
+            if let Action::Worker(Worker::RespondFailed { retryable }) = edge.action
+                && self.response(&world, scenario, i32::from(edge.source.attempt))?.0
+                    != (Worker::RespondFailed { retryable })
+            {
+                return reject;
+            }
+        }
+        Ok(Self::snapshot_evidence(phase, attempt, path, true))
+    }
+
+    /// The snapshot alone evidences delivery of earlier attempts and of a running or closed
+    /// current attempt, a retry before each later attempt, and the terminal response its status
+    /// names. Without a program, a closing failure is the nonretryable one.
+    fn snapshot_evidence(
+        phase: activity::Phase,
+        attempt: u8,
+        path: &Witness<'_>,
+        programmed: bool,
+    ) -> umpire_runtime::EvidenceMatch {
+        let admitted = path.iter().all(|edge| {
+            let at = edge.source.attempt;
+            let delivered = at < attempt
+                || (at == attempt
+                    && matches!(
+                        phase,
+                        activity::Phase::Started
+                            | activity::Phase::Completed
+                            | activity::Phase::Failed
+                    ));
+            edge.outcome == Outcome::Accepted
+                && match edge.action {
+                    Action::Worker(Worker::Poll(polled)) => polled == at && delivered,
+                    Action::Worker(Worker::RespondFailed { retryable }) => {
+                        (at < attempt && retryable)
+                            || (at == attempt
+                                && phase == activity::Phase::Failed
+                                && (programmed || !retryable))
+                    }
+                    Action::Worker(Worker::RespondCompleted) => {
+                        at == attempt && phase == activity::Phase::Completed
+                    }
+                    Action::Client(_)
+                    | Action::Worker(Worker::Heartbeat | Worker::RespondCanceled(_))
+                    | Action::Deadline(_) => false,
+                }
+        });
+        if admitted {
+            umpire_runtime::EvidenceMatch::Match { cursor: path.len() }
+        } else {
+            umpire_runtime::EvidenceMatch::Reject
+        }
+    }
+
+    /// A retained failure at a first attempt that has not failed contradicts the snapshot.
+    fn consistent(
+        phase: activity::Phase,
+        attempt: u8,
+        response: &DescribeActivityExecutionResponse,
+    ) -> bool {
+        let retained = response.info.as_ref().is_some_and(|info| info.last_failure.is_some());
+        attempt > 1
+            || matches!(phase, activity::Phase::Failed | activity::Phase::TimedOut)
+            || !retained
+    }
+
+    fn outcome_failure(response: &DescribeActivityExecutionResponse) -> Option<&Failure> {
+        match response.outcome.as_ref().and_then(|outcome| outcome.value.as_ref()) {
+            Some(Value::Failure(failure)) => Some(failure),
+            _ => None,
+        }
+    }
+
+    fn scenario(context: &ProposalContext) -> Result<&str, Refusal> {
+        context
+            .start
+            .header
+            .as_ref()
+            .and_then(|header| header.fields.get(super::SCENARIO_HEADER))
+            .and_then(|payload| std::str::from_utf8(&payload.data).ok())
+            .ok_or_else(|| Refusal::malformed("Start scenario header is missing"))
+    }
+}
+
+fn state_refusal(message: &str) -> Refusal {
+    Refusal::new(RefusalCode::State, message)
+}
 
 impl Realization {
     fn admitted(identity: &ActivityIdentity) -> Result<(), Refusal> {
@@ -551,22 +830,32 @@ impl Realization {
         )
     }
 
-    /// The Model outcome evidenced by an RPC result; unmapped status codes have none.
-    fn outcome<T>(response: &Result<T, i32>) -> Option<Outcome> {
+    /// The Model outcome evidenced by an RPC result. A status code outside the Model's declared
+    /// rejections is evidence the Model cannot classify, so it refuses rather than judging.
+    fn outcome<T>(response: &Result<T, i32>) -> Result<Outcome, Refusal> {
         match response {
-            Ok(_) => Some(Outcome::Accepted),
-            Err(code) => rejection(*code).map(Outcome::Rejected),
+            Ok(_) => Ok(Outcome::Accepted),
+            Err(code) => rejection(*code).map(Outcome::Rejected).ok_or_else(|| {
+                Refusal::unsupported(format!(
+                    "status code {code} is outside the Model's declared rejections"
+                ))
+            }),
         }
     }
 
-    /// Match the complete witness prefix's last edge; RPC evidence never admits a root.
+    /// Match the complete witness prefix's last edge; RPC evidence never admits a root, and one
+    /// actual RPC evidences exactly one edge, so no earlier edge of the prefix may claim it.
     fn edge(
         path: &Witness<'_>,
-        outcome: Option<Outcome>,
+        outcome: Outcome,
         action: impl Fn(&Action) -> bool,
     ) -> umpire_runtime::EvidenceMatch {
-        match (path.last(), outcome) {
-            (Some(edge), Some(outcome)) if action(&edge.action) && edge.outcome == outcome => {
+        match path.split_last() {
+            Some((edge, earlier))
+                if action(&edge.action)
+                    && edge.outcome == outcome
+                    && !earlier.iter().any(|edge| action(&edge.action)) =>
+            {
                 umpire_runtime::EvidenceMatch::Match { cursor: path.len() }
             }
             _ => umpire_runtime::EvidenceMatch::Reject,

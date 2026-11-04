@@ -236,6 +236,30 @@ fn rpc_evidence_matches_only_the_actual_last_edge_and_outcome()
         Err(5),
     );
     assert!(matches!(binding.check_registered(&not_found, &[&pending]), Ok(EvidenceMatch::Reject)));
+    // One actual RPC evidences exactly one edge of a witness.
+    let closed = edge(started.clone(), Worker::RespondCompleted.into())?.target;
+    let rejected = edge(closed, Client::Cancel.into())?;
+    assert!(matches!(
+        binding.check_registered(&not_found, &[&rejected]),
+        Ok(EvidenceMatch::Match { cursor: 1 })
+    ));
+    assert!(matches!(
+        binding.check_registered(&not_found, &[&rejected, &rejected]),
+        Ok(EvidenceMatch::Reject)
+    ));
+    // A status outside the declared rejections refuses instead of rejecting the witness.
+    for code in [0, 1, 2, 4, 8, 13, 999] {
+        let unmapped = observed::<_, RequestCancelActivityExecutionResponse>(
+            "RequestCancelActivityExecution",
+            &cancel,
+            Err(code),
+        );
+        let refusal = binding
+            .check_registered(&unmapped, &[&pending])
+            .err()
+            .ok_or("unmapped status was judged")?;
+        assert_eq!(refusal.code(), umpire_runtime::protocol::RefusalCode::Unsupported, "{code}");
+    }
     let crossed = RequestCancelActivityExecutionRequest { run_id: "other".into(), ..cancel };
     let crossed = observed(
         "RequestCancelActivityExecution",
