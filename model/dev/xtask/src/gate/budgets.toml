@@ -8,7 +8,9 @@
 # derive from the fn-263 paired required run (TLC required, Apalache skipped): warm time
 # is about 1.3-1.5x the observed run with a 20 s floor; the check tier has no measured
 # paired run yet and reuses the validate value. Counts carry headroom for ordinary test
-# additions. Changing an entry is a reviewed edit that updates `reason`.
+# additions. TLC bounds are enforced against confirmed checker starts until observer
+# coverage is complete; stages bounded at 0 had no TLC starts in that run's receipts.
+# Changing an entry is a reviewed edit that updates `reason`.
 version = 2
 admitted = true
 scope = "temporal"
@@ -66,8 +68,8 @@ discovered = 80
 executed = 15
 ignored = 15
 skipped = 80
-tlc_launches = "unobserved"
-tlc_configurations = "unobserved"
+tlc_launches = 0
+tlc_configurations = 0
 
 [stages."temporal/source-boundary"]
 reason = "Temporal source-boundary tests; observed 19.4 s, 3 executed"
@@ -76,8 +78,8 @@ discovered = 10
 executed = 10
 ignored = 2
 skipped = 2
-tlc_launches = "unobserved"
-tlc_configurations = "unobserved"
+tlc_launches = 0
+tlc_configurations = 0
 
 [stages."temporal/protobuf-controls"]
 reason = "Filtered Temporal protobuf controls; observed 2.6 s, 52 discovered, 4 executed"
@@ -86,8 +88,8 @@ discovered = 80
 executed = 10
 ignored = 15
 skipped = 80
-tlc_launches = "unobserved"
-tlc_configurations = "unobserved"
+tlc_launches = 0
+tlc_configurations = 0
 
 [stages."temporal/temporal-protobuf-freshness"]
 reason = "Temporal protobuf generation freshness; observed 1.9 s"
@@ -130,14 +132,14 @@ tlc_launches = "not-applicable"
 tlc_configurations = "not-applicable"
 
 [stages."temporal/tests"]
-reason = "Temporal workspace tests; observed 943.2 s required, 293 discovered, 286 executed, 7 ignored, 0 skipped; TLC launches have no complete observer yet"
+reason = "Temporal workspace tests; observed 943.2 s required, 293 discovered, 286 executed, 7 ignored, 0 skipped; TLC (fn-263 paired required run) 924 confirmed launches, 779 distinct configurations"
 warm_seconds = { check = 1200.0, validate = 1200.0 }
 discovered = 350
 executed = 350
 ignored = 15
 skipped = 0
-tlc_launches = "unobserved"
-tlc_configurations = "unobserved"
+tlc_launches = 1150
+tlc_configurations = 1000
 
 [stages."temporal/wasm-guest"]
 reason = "Temporal guest build; observed 175.7 s"
@@ -156,5 +158,5 @@ discovered = 110
 executed = 110
 ignored = 5
 skipped = 5
-tlc_launches = "unobserved"
-tlc_configurations = "unobserved"
+tlc_launches = 0
+tlc_configurations = 0

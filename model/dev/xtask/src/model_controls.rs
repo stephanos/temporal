@@ -63,6 +63,10 @@ impl Fixture {
         symlink("physical home", fixture.root.join("relative-home"))?;
         symlink("physical target", fixture.root.join("relative-target"))?;
         fs::write(fixture.root.join("model/inner.rs"), "control source\n")?;
+        // The native timer reports against the committed table's targets.
+        let table = fixture.root.join("model/dev/xtask/src/gate/budgets.toml");
+        fs::create_dir_all(table.parent().ok_or_else(|| io::Error::other("table parent"))?)?;
+        fs::write(table, include_str!("gate/budgets.toml"))?;
         let section = shipping
             .split_once("##### model: Umpire in Rust")
             .ok_or_else(|| io::Error::other("missing shipping Model Make section"))?

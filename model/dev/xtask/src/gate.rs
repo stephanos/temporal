@@ -93,9 +93,17 @@ fn stage_with_inventory(
     Ok(code)
 }
 
+/// `cargo` for owned argument lists, choosing the pinned nextest runner the same way.
+fn cargo_owned(arguments: &[String]) -> Command {
+    cargo(&arguments.iter().map(String::as_str).collect::<Vec<_>>())
+}
+
 pub(crate) fn cargo(arguments: &[&str]) -> Command {
+    // Nextest runs as the mise-pinned `cargo-nextest` itself: `cargo nextest` would resolve
+    // `$CARGO_HOME/bin` first, where a stale host install could shadow the pin.
+    let program = if arguments.first() == Some(&"nextest") { "cargo-nextest" } else { "cargo" };
     let mut command = Command::new("mise");
-    command.args(["exec", "--", "cargo"]).args(arguments);
+    command.args(["exec", "--", program]).args(arguments);
     command
 }
 
@@ -294,8 +302,8 @@ pub(crate) fn control_tests(root: &Path, name: &str) -> io::Result<i32> {
         })
         .collect();
     let command = |arguments: &[String]| {
-        let mut command = cargo(&[]);
-        command.args(arguments).current_dir(root);
+        let mut command = cargo_owned(arguments);
+        command.current_dir(root);
         admit_command("tests", &mut command)?;
         Ok::<_, io::Error>(command)
     };
@@ -377,8 +385,8 @@ fn run_stage_with_tool(root: &Path, name: &str, tool: &Path) -> io::Result<i32> 
                 &[selection],
                 &BTreeSet::new(),
                 |args| {
-                    let mut command = cargo(&[]);
-                    command.args(args).current_dir(root);
+                    let mut command = cargo_owned(args);
+                    command.current_dir(root);
                     admit_command("source-boundary", &mut command)?;
                     let output = scheduler::execute(&command, false, false)?;
                     io::stderr().write_all(&output.stderr)?;
@@ -392,8 +400,7 @@ fn run_stage_with_tool(root: &Path, name: &str, tool: &Path) -> io::Result<i32> 
                     Ok((code, output.stdout))
                 },
                 |_, args, inventory| {
-                    let mut command = cargo(&[]);
-                    command.args(args);
+                    let command = cargo_owned(args);
                     stage_with_inventory(root, "source-boundary", command, inventory)
                         .map_err(Into::into)
                 },
@@ -746,10 +753,11 @@ mod tests {
                 scheduler::scheduled(name, || run_stage_with_tool(root, name, &tool)).unwrap();
             std::process::exit(status);
         }
-        assert_eq!(
-            run(Path::new(&root)).unwrap(),
-            std::env::var("UMPIRE_GATE_CONTROL_STATUS").unwrap().parse::<i32>().unwrap(),
-        );
+        let status = run(Path::new(&root)).unwrap();
+        match std::env::var("UMPIRE_GATE_CONTROL_STATUS").unwrap().as_str() {
+            "nonzero" => assert_ne!(status, 0),
+            expected => assert_eq!(status, expected.parse::<i32>().unwrap()),
+        }
     }
 
     const CONTROL_BODY: &str = r#"
@@ -759,7 +767,7 @@ mod tests {
 printf '%s\n' "$label" >> "$UMPIRE_GATE_CONTROL_LOG"
 [ "$label" != "${UMPIRE_GATE_CONTROL_FAILURE:-}" ] || exit 37
 case " $* " in
- *' cargo nextest run '*' --message-format '*) printf '%s\n' '{"type":"test","event":"ok","name":"umpire-temporal-tests::boundary$control"}' ;;
+ *' cargo-nextest nextest run '*' --message-format '*) printf '%s\n' '{"type":"test","event":"ok","name":"umpire-temporal-tests::boundary$control"}' ;;
  *' cargo test --doc '*) printf '%s\n' 'running 0 tests' 'test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.1s' ;;
  *' go -C '*' test -json -list . '*) ;;
  *' go -C '*' test -json '*) printf '%s\n' '{"Action":"start","Package":"control"}' '{"Action":"run","Package":"control","Test":"TestControl"}' '{"Action":"pass","Package":"control","Test":"TestControl"}' '{"Action":"pass","Package":"control"}' ;;
@@ -781,7 +789,7 @@ esac
         ("docs", "exec -- cargo doc --workspace --no-deps --quiet"),
         (
             "tests",
-            "exec -- cargo nextest run --workspace --locked --fail-fast --run-ignored default --status-level slow --final-status-level slow --success-output never --failure-output immediate-final --no-tests fail",
+            "exec -- cargo-nextest nextest run --workspace --locked --fail-fast --run-ignored default --status-level slow --final-status-level slow --success-output never --failure-output immediate-final --no-tests fail",
         ),
         ("tests", "exec -- cargo test --doc --workspace --locked --quiet"),
         ("wasm-guest", "guest-build"),
@@ -889,13 +897,13 @@ case "$*" in
    [ "$5" = "$(dirname "$UMPIRE_GATE_CONTROL_ROOT")" ] || exit 92
    [ -z "${MAKEFLAGS+x}${MFLAGS+x}" ] || exit 93
    label=prerequisites ;;
- 'exec -- cargo nextest list'*)
+ 'exec -- cargo-nextest nextest list'*)
    case " $* " in *' --workspace '*) label=work-inventory ;; *) label=boundary-inventory
    BODY
    ;; esac
    printf '%s\n' '{"test-count":1,"rust-suites":{"boundary":{"package-name":"umpire-temporal-tests","binary-name":"boundary","kind":"test","status":"listed","testcases":{"control":{"ignored":false,"filter-match":{"status":"matches"}}}}}}'
    exit 0 ;;
- 'exec -- cargo nextest run'*' -p umpire-temporal-tests '*) label=boundary-tests ;;
+ 'exec -- cargo-nextest nextest run'*' -p umpire-temporal-tests '*) label=boundary-tests ;;
  'exec -- go -C '*' env -json GOFLAGS')
    label=go-environment
    BODY
@@ -1115,5 +1123,87 @@ fi
             assert_eq!(actual.lines().collect::<Vec<_>>(), expected[..end]);
         }
         fs::remove_dir_all(root.parent().unwrap().parent().unwrap()).unwrap();
+    }
+
+    /// Real consumer stage leaves under the committed table: a planted count bound and a
+    /// planted warm budget that both attempts overrun each fail the gate by stage name.
+    #[test]
+    fn consumer_budget_overruns_fail_by_stage_name() {
+        use std::{fs, os::unix::fs::PermissionsExt};
+        for (stage, key, value, expected) in [
+            ("tests", "executed", "0", "stage temporal/tests budget: executed 1 exceeds 0"),
+            (
+                "fmt",
+                "warm_seconds",
+                "{ check = 0.0001, validate = 0.0001 }",
+                "stage temporal/fmt budget: second attempt",
+            ),
+        ] {
+            let root = control_directory();
+            let inventory = control_inventory(&root, &[stage]);
+            let path = root.join(TEMPORAL_BUDGETS);
+            let table = fs::read_to_string(&path).unwrap();
+            let (head, section) =
+                table.split_once(&format!("[stages.\"temporal/{stage}\"]")).unwrap();
+            let planted = section
+                .lines()
+                .map(|line| {
+                    if line.split_once(" = ").is_some_and(|(name, _)| name == key) {
+                        format!("{key} = {value}")
+                    } else {
+                        line.to_owned()
+                    }
+                })
+                .collect::<Vec<_>>()
+                .join("\n");
+            fs::write(&path, format!("{head}[stages.\"temporal/{stage}\"]{planted}\n")).unwrap();
+            let scheduler = format!(
+                r#"
+if [ "$*" = "tasks ls --json" ]; then
+  printf '%s\n' '{inventory}'
+  exit 0
+fi
+if [ "$*" = "run --force --skip-tools --task-cache off --jobs 4 model:all" ]; then
+  UMPIRE_GATE_STAGE={stage} UMPIRE_GATE_CONTROL_STAGE={stage} "$UMPIRE_TEMPORAL_GATE_EXECUTABLE" --exact gate::tests::run_control_child --nocapture || exit $?
+  exit 0
+fi
+"#
+            );
+            let mise = root.join("bin/mise");
+            fs::write(&mise, control_mise_script(&scheduler)).unwrap();
+            fs::set_permissions(&mise, fs::Permissions::from_mode(0o755)).unwrap();
+            let log = root.join("calls");
+            fs::write(&log, "").unwrap();
+            let output = Command::new(std::env::current_exe().unwrap())
+                .args(["--exact", "gate::tests::run_control_child", "--nocapture"])
+                .env("UMPIRE_GATE_CONTROL_ROOT", &root)
+                .env("UMPIRE_GATE_CONTROL_LOG", &log)
+                .env("UMPIRE_GATE_CONTROL_STATUS", "nonzero")
+                .env("UMPIRE_GATE_CONTROL_FAILURE", "")
+                .env("UMPIRE_QUICK_CACHE", "1")
+                .env("UMPIRE_CACHE_DISABLE", "0")
+                .env("CARGO_HOME", "control-relative-home")
+                .env("CARGO_TARGET_DIR", "control-relative-target")
+                .env("UMPIRE_GATE_CONTROL_CALLER", &root)
+                .env_remove("UMPIRE_GATE_SCOPE")
+                .env_remove("UMPIRE_BACKENDS")
+                .env_remove("UMPIRE_APALACHE")
+                .env("UMPIRE_TIME_STEPS", "0")
+                .current_dir(&root)
+                .env(
+                    "PATH",
+                    format!("{}:{}", root.join("bin").display(), std::env::var("PATH").unwrap()),
+                )
+                .output()
+                .unwrap();
+            let text = format!(
+                "{}{}",
+                String::from_utf8_lossy(&output.stdout),
+                String::from_utf8_lossy(&output.stderr)
+            );
+            assert!(output.status.success(), "{stage}: {text}");
+            assert!(text.contains(expected), "{stage}: {text}");
+            fs::remove_dir_all(root.parent().unwrap().parent().unwrap()).unwrap();
+        }
     }
 }

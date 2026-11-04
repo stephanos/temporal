@@ -13,22 +13,32 @@ fn touch_source(path: &Path) -> io::Result<()> {
     file.set_modified(std::time::SystemTime::now())
 }
 
+/// Report overruns of the gate and inner-loop targets. `defaults` are the reviewed table's
+/// check-tier and quick targets (fn-254 R6); the environment values override them.
 pub(super) fn warnings(
     writer: &mut impl Write,
-    total: f64,
-    inner: f64,
-    gate_budget: Option<&str>,
-    inner_budget: Option<&str>,
+    (total, inner): (f64, f64),
+    (gate_budget, inner_budget): (Option<&str>, Option<&str>),
+    (gate_default, inner_default): (f64, f64),
 ) -> io::Result<()> {
-    for (label, elapsed, value, default) in
-        [("gate", total, gate_budget, 60.0), ("inner loop", inner, inner_budget, 10.0)]
-    {
+    for (label, elapsed, value, default) in [
+        ("gate", total, gate_budget, gate_default),
+        ("inner loop", inner, inner_budget, inner_default),
+    ] {
         let budget = value.and_then(|value| value.parse::<f64>().ok()).unwrap_or(default);
         if elapsed > budget {
-            writeln!(writer, "note: {label} over soft target (fn-210 R30)")?;
+            writeln!(writer, "note: {label} over soft target (fn-254 R6)")?;
         }
     }
     Ok(())
+}
+
+/// The Temporal table's check-tier and quick targets, the timing command's defaults.
+pub(super) fn targets(root: &Path) -> io::Result<(f64, f64)> {
+    xtask::gate::budgets::timing_targets(
+        &xtask::gate::budgets::read_table(&root.join(super::TEMPORAL_BUDGETS))?,
+        xtask::gate::budgets::Tier::Check,
+    )
 }
 
 fn benchmark_command(
@@ -56,8 +66,6 @@ pub(crate) fn run(root: &Path) -> io::Result<i32> {
     let budget = |key, default: &str| {
         env::var(key).ok().filter(|value| !value.is_empty()).unwrap_or_else(|| default.into())
     };
-    let gate_budget = budget("UMPIRE_GATE_BUDGET", "60");
-    let inner_budget = budget("UMPIRE_INNER_BUDGET", "10");
     let package = budget("UMPIRE_INNER_CRATE", "umpire-checker");
     let source = env::var_os("UMPIRE_INNER_SOURCE").filter(|value| !value.is_empty()).map_or_else(
         || root.join("../../umpire/crates/umpire-checker/src/lib.rs"),
@@ -103,9 +111,18 @@ pub(crate) fn run(root: &Path) -> io::Result<i32> {
     if code != 0 {
         return Ok(code);
     }
+    // Targets are read only for the report, after both legs ran.
+    let (gate_default, inner_default) = targets(root)?;
+    let gate_budget = budget("UMPIRE_GATE_BUDGET", &gate_default.to_string());
+    let inner_budget = budget("UMPIRE_INNER_BUDGET", &inner_default.to_string());
     writeln!(io::stdout(), "{:<32} {:6.3}s  (soft target {}s)", "gate total", total, gate_budget)?;
     writeln!(io::stdout(), "{:<32} {:6.3}s  (soft target {}s)", "inner loop", inner, inner_budget)?;
-    warnings(&mut io::stdout(), total, inner, Some(&gate_budget), Some(&inner_budget))?;
+    warnings(
+        &mut io::stdout(),
+        (total, inner),
+        (Some(&gate_budget), Some(&inner_budget)),
+        (gate_default, inner_default),
+    )?;
     Ok(0)
 }
 

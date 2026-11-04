@@ -58,6 +58,29 @@ fn run_with(mut execute: impl FnMut(&[&str]) -> io::Result<i32>) -> io::Result<i
 mod tests {
     use super::*;
 
+    /// The runner is the mise pin, and nextest itself refuses any other version.
+    #[test]
+    fn nextest_runs_as_the_pinned_binary_and_requires_the_pinned_version() -> io::Result<()> {
+        let command = crate::gate::cargo(&["nextest", "run"]);
+        assert_eq!(
+            command.get_args().collect::<Vec<_>>(),
+            ["exec", "--", "cargo-nextest", "nextest", "run"]
+        );
+        let doc = crate::gate::cargo(&["test", "--doc"]);
+        assert_eq!(doc.get_args().nth(2), Some(OsStr::new("cargo")));
+        let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
+        let read = |path: &Path| -> io::Result<toml::Table> {
+            toml::from_str(&std::fs::read_to_string(path)?).map_err(io::Error::other)
+        };
+        let pinned =
+            read(&root.join("../mise.toml"))?["tools"]["github:nextest-rs/nextest"]["version"]
+                .clone();
+        let required =
+            read(&root.join(".config/nextest.toml"))?["nextest-version"]["required"].clone();
+        assert!(pinned.is_str() && pinned == required, "{pinned:?} != {required:?}");
+        Ok(())
+    }
+
     #[test]
     #[allow(clippy::unwrap_used)]
     fn required_backend_policy_caps_inherited_threads_and_preserves_skipped_defaults() {
