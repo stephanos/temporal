@@ -175,15 +175,14 @@ fn run() -> io::Result<i32> {
 fn main() {
     let result = run();
     // A completed gate also requires its admitted source to be unchanged.
-    let custody = xtask::gate::source_context::verify();
-    let result = result.and_then(|status| {
-        if status == 0 {
-            custody?;
-        } else if let Err(error) = custody {
+    let result = match (result, xtask::gate::source_context::verify()) {
+        (Ok(0), Err(error)) => Err(error),
+        (primary, Err(error)) => {
             let _ = writeln!(io::stderr(), "temporal-xtask: source custody: {error}");
+            primary
         }
-        Ok(status)
-    });
+        (primary, Ok(())) => primary,
+    };
     let status = match result {
         Ok(status) => status,
         Err(error) => {
