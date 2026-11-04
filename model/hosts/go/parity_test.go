@@ -88,7 +88,7 @@ func TestCancelSuccessAndRejectedSelfLoop(t *testing.T) {
 
 func TestCancelStatusContradictionFreezesAndMalformedEnvelopeRefuses(t *testing.T) {
 	for _, closed := range []bool{false, true} {
-		for _, code := range []int32{5, 6, 9, 3, 7, 14, 999} {
+		for _, code := range []int32{5, 6, 9, 3, 7, 14} {
 			if closed && code == 5 {
 				continue
 			}
@@ -105,6 +105,13 @@ func TestCancelStatusContradictionFreezesAndMalformedEnvelopeRefuses(t *testing.
 			reset(t, h)
 			explained(t, judge(t, h, cancelObservation(t, 0)), "Client::Cancel")
 		}
+	}
+	// A status outside the Model's declared rejections refuses without judging or freezing.
+	for _, code := range []int32{1, 2, 4, 8, 13, 999} {
+		h := guest(t)
+		_, err := h.Judge(context.Background(), &modelv1.JudgeRequest{Observation: cancelObservation(t, code)})
+		refusal(t, err, modelv1.RefusalCode_REFUSAL_CODE_UNSUPPORTED)
+		explained(t, judge(t, h, cancelObservation(t, 0)), "Client::Cancel")
 	}
 	for _, tc := range []struct {
 		value *realizationv1.Observation
