@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "modelHash": "f2524d20e2a216f275f0f03672ad8c4d9ac9c1915189798c112f9787cd37d8ef",
+  "modelHash": "125e82a9193d541ac2a9c74222fc872f05db7a508c62800e837ffe1ae1dce28d",
   "authorityClass": "protected-workflow",
   "coordinates": {
     "grpc": "unconfigured",
