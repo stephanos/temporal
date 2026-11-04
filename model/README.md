@@ -123,6 +123,16 @@ For framework-only feedback, run `mise exec -- cargo xtask gate` from
 the sibling Umpire root; see its README for gate commands. Both full gates disable
 quick-cache reads before starting stage children.
 
+Every Temporal stage has a reviewed budget in
+[`dev/xtask/src/gate/budgets.toml`](dev/xtask/src/gate/budgets.toml); the delegated framework
+stages use the framework's table. Work counts are hard bounds, warm wall time is budgeted
+per tier with 25% tolerance and one drained retry, and an unbudgeted stage fails the gate.
+This consumer entry does not admit a source context yet, so its retries do not recheck
+source custody (receipts record `source_custody = "not-admitted"`).
+To add a Temporal stage, register it in `mise.toml` and add its entry in the same change; to
+change a budget, edit the entry and update its `reason` with the new evidence. The
+framework README section "Stage budgets" describes the rules.
+
 The gate rejects retired crate names in active files, preserving archived source and historical
 evidence. It also checks resolved core capability restrictions and their negative controls,
 the generic source boundary, all three protobuf modules' freshness, the wasm32-wasip1 core

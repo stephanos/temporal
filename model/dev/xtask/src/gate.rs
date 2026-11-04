@@ -11,6 +11,9 @@ use xtask::gate::{
     work_counts,
 };
 
+/// The reviewed Temporal stage budget table, relative to the Model root.
+const TEMPORAL_BUDGETS: &str = "dev/xtask/src/gate/budgets.toml";
+
 pub(crate) mod timing;
 #[cfg(test)]
 pub(crate) mod timing_controls;
@@ -159,7 +162,27 @@ pub(crate) fn run(root: &Path) -> io::Result<i32> {
         .env("UMPIRE_TEMPORAL_GATE_EXECUTABLE", std::env::current_exe()?)
         .env("UMPIRE_GATE_CONTROLLER_EXECUTABLE", std::env::current_exe()?)
         .env("UMPIRE_GATE_EXECUTABLE", &framework);
-    let result = scheduler::run(command, "model:all", &records, &expected);
+    // Delegated framework stages are budgeted by the framework's own table.
+    let mut tables = Vec::new();
+    if expected.iter().any(|stage| stage.starts_with("framework/")) {
+        tables.push(xtask::gate::budgets::read_table(
+            &root.join("../../umpire").join(xtask::gate::budgets::FRAMEWORK_TABLE_PATH),
+        )?);
+    }
+    tables.push(xtask::gate::budgets::read_table(&root.join(TEMPORAL_BUDGETS))?);
+    let tier = if std::env::var_os("UMPIRE_BACKENDS").is_some_and(|value| value == "require") {
+        xtask::gate::budgets::Tier::Validate
+    } else {
+        xtask::gate::budgets::Tier::Check
+    };
+    let result = scheduler::run(
+        command,
+        "model:all",
+        &records,
+        &expected,
+        &tables.iter().map(String::as_str).collect::<Vec<_>>(),
+        Some(tier),
+    );
     if umpire_guest_driver::managed::enabled() {
         remove_if_present(Path::new(&framework))?;
     }
@@ -518,6 +541,95 @@ mod tests {
     }
 
     #[test]
+    fn committed_temporal_budgets_cover_exactly_the_registered_temporal_stages() {
+        let config: toml::Value = toml::from_str(include_str!("../../../../mise.toml")).unwrap();
+        let registered = config["tasks"]
+            .as_table()
+            .unwrap()
+            .values()
+            .filter(|task| {
+                task.get("env").and_then(|env| env.get("UMPIRE_GATE_SCOPE"))
+                    == Some(&toml::Value::String("temporal".into()))
+            })
+            .map(|task| format!("temporal/{}", task["env"]["UMPIRE_GATE_STAGE"].as_str().unwrap()))
+            .collect::<Vec<_>>();
+        assert_eq!(registered.len(), 13);
+        let table = include_str!("gate/budgets.toml");
+        xtask::gate::budgets::validate(table, &registered).unwrap();
+        let mut planted = registered.clone();
+        planted.push("temporal/planted-stage".into());
+        let error = xtask::gate::budgets::validate(table, &planted).unwrap_err().to_string();
+        assert!(error.contains("temporal/planted-stage"), "{error}");
+    }
+
+    #[test]
+    fn paired_inventory_admits_both_committed_tables_without_a_default_scope() {
+        let manifest = Path::new(env!("CARGO_MANIFEST_DIR"));
+        let framework = manifest.join("../../../../umpire");
+        let graph: toml::Value = toml::from_str(
+            &std::fs::read_to_string(framework.join("tools/xtask/src/gate/tasks.toml")).unwrap(),
+        )
+        .unwrap();
+        let config: toml::Value = toml::from_str(include_str!("../../../../mise.toml")).unwrap();
+        let mut inventory = Vec::new();
+        for (tasks, scope) in [(&graph, "framework"), (&config["tasks"], "temporal")] {
+            for task in tasks.as_table().unwrap().values() {
+                let env = task.get("env");
+                if env.and_then(|env| env.get("UMPIRE_GATE_SCOPE")).and_then(toml::Value::as_str)
+                    == Some(scope)
+                {
+                    inventory.push(format!(
+                        "{scope}/{}",
+                        env.unwrap()["UMPIRE_GATE_STAGE"].as_str().unwrap()
+                    ));
+                }
+            }
+        }
+        assert_eq!(inventory.len(), 30);
+        let tables = [
+            xtask::gate::budgets::read_table(
+                &framework.join(xtask::gate::budgets::FRAMEWORK_TABLE_PATH),
+            )
+            .unwrap(),
+            include_str!("gate/budgets.toml").to_owned(),
+        ];
+        let receipts = |label: &str| {
+            let path = std::env::temp_dir().join(format!(
+                "temporal-budget-{label}-{}-{}",
+                std::process::id(),
+                std::time::SystemTime::now()
+                    .duration_since(std::time::UNIX_EPOCH)
+                    .unwrap()
+                    .as_nanos()
+            ));
+            std::fs::create_dir(&path).unwrap();
+            path
+        };
+        let paired = receipts("paired");
+        xtask::gate::budget_runtime::admit(
+            &paired,
+            &inventory,
+            &[&tables[0], &tables[1]],
+            Some(xtask::gate::budgets::Tier::Validate),
+        )
+        .unwrap();
+        // Without a default scope, an unscoped stage is refused by name.
+        std::fs::remove_dir_all(paired).unwrap();
+        let unscoped = receipts("unscoped");
+        inventory.push("unscoped".into());
+        let error = xtask::gate::budget_runtime::admit(
+            &unscoped,
+            &inventory,
+            &[&tables[0], &tables[1]],
+            Some(xtask::gate::budgets::Tier::Validate),
+        )
+        .unwrap_err()
+        .to_string();
+        assert!(error.contains("unscoped"), "{error}");
+        std::fs::remove_dir_all(unscoped).unwrap();
+    }
+
+    #[test]
     fn paired_gate_waits_for_primary_framework_without_implicit_isolation() {
         let config: toml::Value = toml::from_str(include_str!("../../../../mise.toml")).unwrap();
         let dependencies = config["tasks"]["model:temporal-go-host"]["depends"].as_array().unwrap();
@@ -671,7 +783,42 @@ esac
         ),
     ];
 
-    fn control_inventory(stage_names: &[&str]) -> String {
+    /// Write the committed Temporal budgets for exactly these fixture stages, with bounds
+    /// that admit the synthetic leaves, and return their mise inventory.
+    fn control_inventory(root: &Path, stage_names: &[&str]) -> String {
+        let committed = include_str!("gate/budgets.toml");
+        let (header, sections) = committed.split_once("\n[stages.").unwrap();
+        let mut table = header.to_owned();
+        for section in sections.split("\n[stages.") {
+            let name = section.split('"').nth(1).unwrap().trim_start_matches("temporal/");
+            if !stage_names.contains(&name) {
+                continue;
+            }
+            table.push_str("\n[stages.");
+            for line in section.lines() {
+                let relaxed = match line.split_once(" = ") {
+                    Some(("warm_seconds", _)) => {
+                        "warm_seconds = { check = 600.0, validate = 600.0 }".to_owned()
+                    }
+                    // The synthetic control leaves run without test events.
+                    Some((key, _))
+                        if ["timing-controls", "protobuf-controls"].contains(&name)
+                            && ["discovered", "executed", "ignored", "skipped"].contains(&key) =>
+                    {
+                        format!("{key} = \"unobserved\"")
+                    }
+                    Some((key, value)) if key != "reason" && value.parse::<u64>().is_ok() => {
+                        format!("{key} = 100000")
+                    }
+                    _ => line.to_owned(),
+                };
+                table.push_str(&relaxed);
+                table.push('\n');
+            }
+        }
+        let path = root.join(TEMPORAL_BUDGETS);
+        std::fs::create_dir_all(path.parent().unwrap()).unwrap();
+        std::fs::write(path, table).unwrap();
         serde_json::to_string(
             &stage_names
                 .iter()
@@ -785,7 +932,7 @@ label=apalache
             ),
         )
         .unwrap();
-        let inventory = control_inventory(&["retired-names"]);
+        let inventory = control_inventory(&root, &["retired-names"]);
         let scheduler = format!(
             r#"
 if [ "$*" = "tasks ls --json" ]; then
@@ -894,7 +1041,7 @@ exit 94
                 stage_names.push(*name);
             }
         }
-        let inventory = control_inventory(&stage_names);
+        let inventory = control_inventory(&root, &stage_names);
         let scheduler = format!(
             r#"
 if [ "$*" = "tasks ls --json" ]; then
