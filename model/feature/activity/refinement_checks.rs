@@ -160,7 +160,7 @@ fn hidden_budget_controls_fail_even_where_public_views_match() -> TestResult {
 #[test]
 #[expect(clippy::too_many_lines, reason = "one independently specified protocol edit per control")]
 fn changed_timer_reset_spanning_priority_and_start_edges_fail() -> TestResult {
-    let edits: [(&str, Scope, Edit, &str); 6] = [
+    let edits: [(&str, Scope, Edit, &str); 7] = [
         (
             "countdown skips heartbeat",
             ALL_TIMERS,
@@ -231,6 +231,35 @@ fn changed_timer_reset_spanning_priority_and_start_edges_fail() -> TestResult {
                 steps
             },
             "emits different facts",
+        ),
+        (
+            "retry outranks spanning expiry with its fact kept",
+            ALL_TIMERS,
+            |before, action, mut steps| {
+                let one = Some(protocol::Remaining { ticks: 1 });
+                if *action == protocol::Timer::Tick.into()
+                    && before.execution_budget == one
+                    && before.attempt_budget == one
+                    && before.attempt < 3
+                {
+                    // The ScheduleToClose fact stays; only the destination reveals the retry.
+                    for step in &mut steps {
+                        step.2 = protocol::Model {
+                            lifecycle: protocol::Lifecycle::Queued,
+                            attempt: before.attempt + 1,
+                            cancellation_pending: false,
+                            terminal_outcome: protocol::Terminal::None,
+                            retained_failure: protocol::Failure::StartToClose,
+                            queued_budget: Some(protocol::Remaining { ticks: 3 }),
+                            attempt_budget: None,
+                            execution_budget: Some(protocol::Remaining { ticks: 0 }),
+                            heartbeat_budget: None,
+                        };
+                    }
+                }
+                steps
+            },
+            "reaches a different state",
         ),
         (
             "cancellation acknowledgement completes",

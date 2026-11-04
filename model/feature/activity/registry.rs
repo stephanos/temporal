@@ -130,7 +130,8 @@ activity::action_metadata!(crate::registry; activity; {
     #[read(rpc = WorkflowService::DescribeActivityExecution,
         request = DescribeActivityExecutionRequest, response = DescribeActivityExecutionResponse,
         target = ActivityTarget, fill = describe_request, project = describe_target,
-        finality = is_final, continue_polling = polls, correlate = correlate_describe)]
+        finality = is_final, continue_polling = polls, correlate = correlate_describe,
+        response_reads(info.status, info.run_state, info.attempt, info.last_failure, outcome))]
     #[observed(rpc = WorkflowService::PollActivityExecution, reason = "SDK activity handle outcome")]
     #[refines(protocol = crate::activity_protocol::protocol, state = refined_state,
         action = refined_action, outcome = refined_outcome, fact = refined_fact,
@@ -513,7 +514,7 @@ impl Realization {
 
     pub(super) fn reach_projection(
         &self,
-        world: &activity::World,
+        _: &activity::World,
         observation: &Any,
         state: &activity::Model,
     ) -> Result<umpire_runtime::Projection<Action, Outcome, ActivityTarget>, Refusal> {
@@ -565,7 +566,8 @@ impl Realization {
                     // search; evidence matching then cannot fail. An inconsistent snapshot is
                     // Unexplained before any response is selected.
                     if Self::consistent(phase, attempt, &response) {
-                        self.select_programmed(world, scenario, state.attempt, phase, &response)?;
+                        let world = Self::program_world(context)?;
+                        self.select_programmed(&world, scenario, state.attempt, phase, &response)?;
                     }
                 }
                 Ok(umpire_runtime::Projection::Reach((Self::read().project)(self, &response)?))
@@ -659,10 +661,7 @@ impl Realization {
         let Some(context) = &self.context else {
             return Ok(Self::snapshot_evidence(phase, attempt, path, false));
         };
-        let maximum = context.maximum_attempts().ok_or_else(|| {
-            Refusal::unsupported("retry_policy.maximum_attempts is outside 1..=3")
-        })?;
-        let world = activity::World::new(maximum, None, None, None, None);
+        let world = Self::program_world(context)?;
         let scenario = Self::scenario(context)?;
         if !ActivityTarget::agrees(&response) || !Self::consistent(phase, attempt, &response) {
             return reject;
@@ -793,6 +792,15 @@ impl Realization {
             }
             activity::Phase::Completed | activity::Phase::Failed => true,
         }
+    }
+
+    /// The World the worker program was derived from: the receipt's retry cap, no timeouts.
+    /// Projection and evidence both select programmed responses against this one World.
+    fn program_world(context: &ProposalContext) -> Result<activity::World, Refusal> {
+        let maximum = context.maximum_attempts().ok_or_else(|| {
+            Refusal::unsupported("retry_policy.maximum_attempts is outside 1..=3")
+        })?;
+        Ok(activity::World::new(maximum, None, None, None, None))
     }
 
     fn outcome_failure(response: &DescribeActivityExecutionResponse) -> Option<&Failure> {

@@ -50,10 +50,11 @@ fn render(contexts: &[Context], reach: &[&str]) -> Result<String, Box<dyn std::e
     for method in reach {
         writeln!(report, "\nobserved through Reach: {method}")?;
         if *method == read {
-            writeln!(
-                report,
-                "  target: ActivityTarget, decoded only from supplied fields; unclaimed fields are Ignored"
-            )?;
+            writeln!(report, "  target: ActivityTarget, decoded only from supplied fields")?;
+            for claim in Realization::read().claims {
+                writeln!(report, "  claimed {claim}")?;
+            }
+            writeln!(report, "  every other response field is Ignored")?;
             writeln!(
                 report,
                 "  evidence: Describe snapshot reconciled with the Model-derived worker program"

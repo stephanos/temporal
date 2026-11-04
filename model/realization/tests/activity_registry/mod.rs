@@ -602,3 +602,62 @@ fn non_application_worker_failure_refuses() -> Result<(), Box<dyn std::error::Er
     assert_eq!(refusal.code(), umpire_runtime::protocol::RefusalCode::Unsupported);
     Ok(())
 }
+
+/// Recorded R4 exception: a programmed retryable failure observed as the terminal Failed status
+/// at attempt one is explained only when the World's cap leaves no retry. The pre-Reach
+/// candidate replay explained it under every cap while landing in a queued retry.
+#[test]
+fn terminal_retryable_failure_is_explained_only_at_the_cap() {
+    use umpire_runtime::{
+        Guest, Runtime,
+        testing::{GuestExt as _, ResponseExt as _},
+    };
+    use umpire_temporal_api::temporal::api::{
+        activity::v1::{
+            ActivityExecutionInfo, ActivityExecutionOutcome, activity_execution_outcome::Value,
+        },
+        workflowservice::v1::{
+            DescribeActivityExecutionRequest, DescribeActivityExecutionResponse,
+        },
+    };
+    let retry = Failure::application("MiniActivityFailure", "Retry", false);
+    let failed = observed(
+        "DescribeActivityExecution",
+        &DescribeActivityExecutionRequest {
+            namespace: "ns".into(),
+            activity_id: "activity".into(),
+            run_id: RUN.into(),
+            ..Default::default()
+        },
+        Ok(&DescribeActivityExecutionResponse {
+            run_id: RUN.into(),
+            info: Some(ActivityExecutionInfo {
+                activity_id: "activity".into(),
+                run_id: RUN.into(),
+                status: 3,
+                attempt: 1,
+                last_failure: Some(retry.clone()),
+                ..Default::default()
+            }),
+            outcome: Some(ActivityExecutionOutcome {
+                value: Some(Value::Failure(retry)),
+                ..Default::default()
+            }),
+            ..Default::default()
+        }),
+    );
+    for maximum in [1_u8, 2, 3] {
+        let world = activity::World::new(maximum, None, None, None, None);
+        let mut guest =
+            Guest::new(Runtime::new(world, programmed("RetryThenComplete", i32::from(maximum))));
+        let response = guest.judge(failed.clone());
+        if maximum == 1 {
+            assert_eq!(
+                response.explanation().steps,
+                ["Worker::Poll(1)", "Worker::RespondFailed { retryable: true }"]
+            );
+        } else {
+            response.unexplained();
+        }
+    }
+}

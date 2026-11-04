@@ -732,7 +732,7 @@ fn configurations(
     let witnesses = entity_rpc.witnesses();
     let value = entity_rpc.configuration(runtime);
     let read = read.map(|options| -> syn::Result<_> {
-        options.admit(&["rpc", "request", "response", "target", "fill", "correlate", "project", "finality", "continue_polling"], span)?;
+        options.admit(&["rpc", "request", "response", "target", "fill", "correlate", "project", "finality", "continue_polling", "response_reads"], span)?;
         let rpc = rpc(options, schema, span)?;
         let request = &rpc.request;
         let response = &rpc.response;
@@ -749,11 +749,13 @@ fn configurations(
         let polling = hook(&polling);
         let witnesses = rpc.witnesses();
         let value = rpc.configuration(runtime);
+        // `rpc` already resolved these claims against the descriptor response.
+        let claims = options.reads.get("response_reads").map_or(&[][..], Vec::as_slice);
         Ok(quote! {
             /// The declared read: construction, correlation, projection and continuation hooks.
             pub fn read() -> #runtime::registry::Read<Self, #model::World, #receipt, #request, #response, #target> {
                 #witnesses
-                #runtime::registry::Read { rpc: #value, fill: #fill, correlate: #correlate, project: #project, finality: #finality, continue_polling: #polling }
+                #runtime::registry::Read { rpc: #value, claims: &[#(#claims),*], fill: #fill, correlate: #correlate, project: #project, finality: #finality, continue_polling: #polling }
             }
         })
     }).transpose()?;

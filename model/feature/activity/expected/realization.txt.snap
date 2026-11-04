@@ -12,7 +12,13 @@ observed through Reach: /temporal.api.workflowservice.v1.WorkflowService/Request
   evidence: registered RPC predicate for its one Model action
 
 observed through Reach: /temporal.api.workflowservice.v1.WorkflowService/DescribeActivityExecution
-  target: ActivityTarget, decoded only from supplied fields; unclaimed fields are Ignored
+  target: ActivityTarget, decoded only from supplied fields
+  claimed info.status
+  claimed info.run_state
+  claimed info.attempt
+  claimed info.last_failure
+  claimed outcome
+  every other response field is Ignored
   evidence: Describe snapshot reconciled with the Model-derived worker program
 
 Model-action RPCs without an observation handler:
