@@ -564,6 +564,13 @@ mod tests {
 
     #[test]
     fn paired_inventory_admits_both_committed_tables_without_a_default_scope() {
+        /// Removes its receipt directory even when an assertion fails first.
+        struct Receipts(std::path::PathBuf);
+        impl Drop for Receipts {
+            fn drop(&mut self) {
+                let _ = std::fs::remove_dir_all(&self.0);
+            }
+        }
         let manifest = Path::new(env!("CARGO_MANIFEST_DIR"));
         let framework = manifest.join("../../../../umpire");
         let graph: toml::Value = toml::from_str(
@@ -603,22 +610,22 @@ mod tests {
                     .as_nanos()
             ));
             std::fs::create_dir(&path).unwrap();
-            path
+            Receipts(path)
         };
         let paired = receipts("paired");
         xtask::gate::budget_runtime::admit(
-            &paired,
+            &paired.0,
             &inventory,
             &[&tables[0], &tables[1]],
             Some(xtask::gate::budgets::Tier::Validate),
         )
         .unwrap();
         // Without a default scope, an unscoped stage is refused by name.
-        std::fs::remove_dir_all(paired).unwrap();
+        drop(paired);
         let unscoped = receipts("unscoped");
         inventory.push("unscoped".into());
         let error = xtask::gate::budget_runtime::admit(
-            &unscoped,
+            &unscoped.0,
             &inventory,
             &[&tables[0], &tables[1]],
             Some(xtask::gate::budgets::Tier::Validate),
@@ -626,7 +633,6 @@ mod tests {
         .unwrap_err()
         .to_string();
         assert!(error.contains("unscoped"), "{error}");
-        std::fs::remove_dir_all(unscoped).unwrap();
     }
 
     #[test]
