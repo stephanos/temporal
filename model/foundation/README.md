@@ -105,10 +105,11 @@ both descriptors and wildcard-free Rust matches. Runtime enum validity alone is
 not an API-update admission check.
 
 The API build generates `WorkflowServiceMethod`, its name/type table and
-annotation dispatch from linked service descriptors. An ordinary exhaustive
-`classify(WorkflowServiceMethod) -> RpcRole` function binds each RPC to a Model
-action, observation or an OutOfScope reason. Reverse action mappings remain
-exhaustive. A newly added field, enum value, oneof alternative, RPC or Model action
+annotation dispatch from linked service descriptors. Each feature's action registry
+binds RPCs: registry metadata on a Model action claims an Action, and its `#[entity]`,
+`#[read]` and `#[observed(rpc = .., reason = "..")]` declarations claim Observed RPCs.
+Every other RPC is out of scope with its exhaustive `family` as the reason, and a
+duplicate claim fails. Reverse action mappings remain exhaustive. A newly added field, enum value, oneof alternative, RPC or Model action
 therefore fails until classified; no wildcard silently admits it.
 The retained `annotate!` grammar supports reviewed enum inventories and compile
 controls for custom-tag/action admission, not a parallel full-message catalog.

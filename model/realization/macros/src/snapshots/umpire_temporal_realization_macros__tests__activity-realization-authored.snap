@@ -14,16 +14,7 @@ impl Realization {
             .context
             .as_ref()
             .ok_or_else(|| Refusal::unsupported("proposal configuration required"))?;
-        let describe = Any::pack(
-            &DescribeActivityExecutionRequest {
-                namespace: context.start.namespace.clone(),
-                activity_id: context.start.activity_id.clone(),
-                run_id: context.run_id.clone(),
-                include_outcome: true,
-                include_last_failure: true,
-                ..Default::default()
-            },
-        );
+        let describe = Any::pack(&(Self::read().fill)(self, world, context)?);
         let read = Any::pack(&crate::support::scheduled_read(describe, 10, 30_000, 10));
         if !umpire_dsl::Phase::closed(&state.phase) && seed % 2 == 1 {
             return Ok(Proposal::Read { request: read });
@@ -45,12 +36,19 @@ impl Realization {
             self,
             &action,
             world,
-            &FillInputs::Cancel { hold, read },
+            &FillInputs::Cancel {
+                request_id: String::new(),
+            },
             &identity,
         )?;
+        let instruction = crate::support::instruction(
+            umpire_runtime::capability::Request::pack_request(&request),
+            hold,
+            read,
+        );
         Ok(Proposal::Action {
             action,
-            request: umpire_runtime::capability::Request::pack_request(&request),
+            request: Any::pack(&instruction),
         })
     }
     fn matches_proposal(&self, request: &Any, observation: &Any) -> Result<(), Refusal> {
@@ -157,17 +155,7 @@ impl Realization {
             );
         }
         let actual: DescribeActivityExecutionRequest = actual.unpack()?;
-        if actual.namespace != context.start.namespace
-            || actual.activity_id != context.start.activity_id
-            || actual.run_id != context.run_id
-        {
-            return Err(
-                Refusal::new(
-                    umpire_runtime::protocol::RefusalCode::State,
-                    "observation crosses proposal identity",
-                ),
-            );
-        }
+        context.matches(&actual.namespace, &actual.activity_id, &actual.run_id)?;
         if request.type_url
             == <umpire_temporal_api::umpire::temporal::v1::ObserveActivity as prost::Name>::type_url()
         {
@@ -509,13 +497,11 @@ impl Realization {
             self,
             &Action::from(action),
             world,
-            &FillInputs::Worker {
-                attempt: u8::try_from(attempt)
-                    .map_err(|_| Refusal::unsupported(
-                        "worker attempt is out of range",
-                    ))?,
-                details: None,
-            },
+            &Self::program_inputs(
+                action,
+                u8::try_from(attempt)
+                    .map_err(|_| Refusal::unsupported("worker attempt is out of range"))?,
+            )?,
             &identity,
         )?;
         Ok((action, umpire_runtime::capability::Request::pack_request(&request)))

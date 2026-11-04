@@ -368,6 +368,14 @@ mod tests {
         )?;
         let file = syn::parse2(expanded)?;
         insta::assert_snapshot!("typed-action-registry", prettyplease::unparse(&file));
+        // Unclaimed fields guard only the filled request; actual evidence ignores them.
+        let rendered = prettyplease::unparse(&file);
+        for field in ["identity", "reason"] {
+            let guard = format!(
+                "unsupported realization field: temporal.api.workflowservice.v1.RequestCancelActivityExecutionRequest.{field}"
+            );
+            assert_eq!(rendered.matches(&guard).count(), 1, "{field} is guarded on fill only");
+        }
         Ok(())
     }
 

@@ -2,18 +2,10 @@
 
 use umpire_temporal_api::WorkflowServiceMethod;
 
-/// A feature's relationship to one RPC.
-pub enum RpcRole<A> {
-    /// The RPC performs this Model action.
-    Action(A),
-    /// The RPC observes the Model without performing an action.
-    Observed(&'static str),
-    /// The feature does not claim the RPC; the reason is its resource family.
-    OutOfScope(&'static str),
-}
-
 /// The resource family of every RPC, in descriptor order. A new upstream RPC fails the
 /// build until it has a family; a feature reports the family of each RPC it does not claim.
+/// Features claim RPCs through registry metadata on their Model actions and registry
+/// `#[entity]`/`#[read]`/`#[observed]` declarations, so no shared role type remains.
 #[allow(
     clippy::match_same_arms,
     clippy::too_many_lines,

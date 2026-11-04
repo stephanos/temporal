@@ -4,6 +4,7 @@ expression: "prettyplease::unparse(&file)"
 ---
 impl Binding {}
 ///Typed requests constructed by this binding's admitted registry.
+#[allow(clippy::large_enum_variant, reason = "one transient request per filled action")]
 pub enum BindingRequest {
     ///Canonical descriptor request for Client::Cancel.
     Action0(
@@ -161,20 +162,6 @@ impl ::umpire_temporal::registry::Registry<specimen::Action> for Binding {
                     .ok_or_else(|| ::umpire_runtime::protocol::Refusal::malformed(
                         "registered RPC evidence requires its actual request",
                     ))?;
-                if !((__request).identity).is_empty() {
-                    return Err(
-                        ::umpire_runtime::protocol::Refusal::unsupported(
-                            "unsupported realization field: temporal.api.workflowservice.v1.RequestCancelActivityExecutionRequest.identity",
-                        ),
-                    );
-                }
-                if !((__request).reason).is_empty() {
-                    return Err(
-                        ::umpire_runtime::protocol::Refusal::unsupported(
-                            "unsupported realization field: temporal.api.workflowservice.v1.RequestCancelActivityExecutionRequest.reason",
-                        ),
-                    );
-                }
                 let __response: Result<
                     ::umpire_temporal_api::temporal::api::workflowservice::v1::RequestCancelActivityExecutionResponse,
                     i32,
@@ -225,6 +212,7 @@ impl ::umpire_temporal::registry::Registry<specimen::Action> for Binding {
     }
 }
 impl Binding {
+    /// The declared entity bootstrap: admission, receipt and correlation hooks.
     pub fn entity() -> ::umpire_temporal::registry::Entity<
         Self,
         Receipt,
@@ -251,6 +239,7 @@ impl Binding {
             correlate: Self::correlation,
         }
     }
+    /// The declared read: construction, correlation, projection and continuation hooks.
     pub fn read() -> ::umpire_temporal::registry::Read<
         Self,
         specimen::World,
