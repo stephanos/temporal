@@ -63,6 +63,11 @@ pub mod activity {
     #[derive(Action, Copy)]
     pub enum Client {
         /// A fresh distinct cancellation intent; request-ID replay is unspecified.
+        #[metadata(temporal(rpc = WorkflowService::RequestCancelActivityExecution,
+            direction = client, request = RequestCancelActivityExecutionRequest,
+            response = RequestCancelActivityExecutionResponse, fill = fill_cancel,
+            evidence = cancel_evidence,
+            request_reads(namespace, activity_id, run_id, identity, request_id)))]
         Cancel,
     }
 
@@ -70,17 +75,43 @@ pub mod activity {
     #[derive(Action, Copy)]
     pub enum Worker {
         /// Deliver the scheduled activity at the selected attempt.
+        #[metadata(temporal(rpc = WorkflowService::PollActivityTaskQueue,
+            direction = worker, request = PollActivityTaskQueueRequest,
+            response = PollActivityTaskQueueResponse, fill = fill_poll, evidence = poll_evidence,
+            request_reads(namespace, task_queue, identity),
+            response_reads(task_token, activity_id, attempt)))]
         Poll(#[domain(attempts)] u8),
         /// Complete a started activity.
+        #[metadata(temporal(rpc = WorkflowService::RespondActivityTaskCompleted,
+            direction = worker, request = RespondActivityTaskCompletedRequest,
+            response = RespondActivityTaskCompletedResponse, fill = fill_completed,
+            evidence = completed_evidence,
+            request_reads(namespace, task_token, identity, result)))]
         RespondCompleted,
         /// Fail a started activity, allowing retry when policy permits.
+        #[metadata(temporal(rpc = WorkflowService::RespondActivityTaskFailed,
+            direction = worker, request = RespondActivityTaskFailedRequest,
+            response = RespondActivityTaskFailedResponse, fill = fill_failed,
+            evidence = failed_evidence,
+            request_reads(namespace, task_token, identity, failure)))]
         RespondFailed {
             /// Whether this failure permits another attempt.
             retryable: bool,
         },
         /// Reset the heartbeat budget and report the existing pending bit.
+        #[metadata(temporal(rpc = WorkflowService::RecordActivityTaskHeartbeat,
+            direction = worker, request = RecordActivityTaskHeartbeatRequest,
+            response = RecordActivityTaskHeartbeatResponse, fill = fill_heartbeat,
+            evidence = heartbeat_evidence,
+            request_reads(namespace, task_token, identity, details),
+            response_reads(cancel_requested, activity_paused, activity_reset)))]
         Heartbeat,
         /// Acknowledge pending cancellation for this attempt.
+        #[metadata(temporal(rpc = WorkflowService::RespondActivityTaskCanceled,
+            direction = worker, request = RespondActivityTaskCanceledRequest,
+            response = RespondActivityTaskCanceledResponse, fill = fill_canceled,
+            evidence = canceled_evidence,
+            request_reads(namespace, task_token, identity, details)))]
         RespondCanceled(#[domain(attempts)] u8),
     }
 
@@ -89,6 +120,7 @@ pub mod activity {
     #[internal]
     pub enum Deadline {
         /// Decrement every live budget once and select the highest-priority expiry.
+        #[metadata(temporal(event = "abstract deadline tick", evidence = tick_evidence))]
         Tick,
     }
 

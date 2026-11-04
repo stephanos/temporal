@@ -14,11 +14,15 @@ use umpire_temporal_api::temporal::api::{
     activity::v1::{ActivityExecutionOutcome, activity_execution_outcome::Value},
     common::v1::{Payload, Payloads},
     failure::v1::Failure,
+    taskqueue::v1::TaskQueue,
     workflowservice::v1::{
         DescribeActivityExecutionRequest, DescribeActivityExecutionResponse,
-        RecordActivityTaskHeartbeatRequest, RequestCancelActivityExecutionRequest,
-        RequestCancelActivityExecutionResponse, RespondActivityTaskCanceledRequest,
-        RespondActivityTaskCompletedRequest, RespondActivityTaskFailedRequest,
+        PollActivityTaskQueueRequest, PollActivityTaskQueueResponse,
+        RecordActivityTaskHeartbeatRequest, RecordActivityTaskHeartbeatResponse,
+        RequestCancelActivityExecutionRequest, RequestCancelActivityExecutionResponse,
+        RespondActivityTaskCanceledRequest, RespondActivityTaskCanceledResponse,
+        RespondActivityTaskCompletedRequest, RespondActivityTaskCompletedResponse,
+        RespondActivityTaskFailedRequest, RespondActivityTaskFailedResponse,
         StartActivityExecutionRequest,
     },
 };
@@ -88,7 +92,8 @@ impl Realization {
         let mut rules = Vec::new();
         for scenario in SCENARIOS {
             for attempt in 1..=maximum {
-                let action = Action::from(Self::select_response(scenario, attempt)?);
+                let worker = Self::select_response(scenario, attempt)?;
+                let action = Action::from(worker);
                 let binding = Self::default();
                 let identity =
                     umpire_runtime::capability::Identity::identify(&binding, &Any::pack(start))?;
@@ -97,12 +102,12 @@ impl Realization {
                         &binding,
                         &action,
                         world,
-                        &FillInputs::Worker {
-                            attempt: u8::try_from(attempt).map_err(|_| {
+                        &Self::program_inputs(
+                            worker,
+                            u8::try_from(attempt).map_err(|_| {
                                 Refusal::unsupported("worker attempt is out of range")
                             })?,
-                            details: None,
-                        },
+                        )?,
                         &identity,
                     )?,
                 );
@@ -164,13 +169,15 @@ impl Realization {
             self,
             &action,
             world,
-            &FillInputs::Cancel { hold, read },
+            &FillInputs::Cancel { request_id: String::new() },
             &identity,
         )?;
-        Ok(Proposal::Action {
-            action,
-            request: umpire_runtime::capability::Request::pack_request(&request),
-        })
+        let instruction = crate::support::instruction(
+            umpire_runtime::capability::Request::pack_request(&request),
+            hold,
+            read,
+        );
+        Ok(Proposal::Action { action, request: Any::pack(&instruction) })
     }
 
     fn matches_proposal(&self, request: &Any, observation: &Any) -> Result<(), Refusal> {
@@ -570,11 +577,11 @@ impl Realization {
             self,
             &Action::from(action),
             world,
-            &FillInputs::Worker {
-                attempt: u8::try_from(attempt)
+            &Self::program_inputs(
+                action,
+                u8::try_from(attempt)
                     .map_err(|_| Refusal::unsupported("worker attempt is out of range"))?,
-                details: None,
-            },
+            )?,
             &identity,
         )?;
         Ok((action, umpire_runtime::capability::Request::pack_request(&request)))
@@ -586,50 +593,55 @@ pub struct ActivityIdentity {
     namespace: String,
     activity_id: String,
     run_id: String,
+    task_queue: String,
+    /// Actual worker task token; empty when the program executor assigns it.
+    task_token: Vec<u8>,
+    /// Actual caller identity; empty when the executing host assigns it.
+    caller: String,
+}
+
+impl ActivityIdentity {
+    /// An actual live task and caller identity, as captured by a probe prerequisite.
+    pub(crate) fn task(
+        namespace: String,
+        activity_id: String,
+        run_id: String,
+        task_queue: String,
+        task_token: Vec<u8>,
+        caller: String,
+    ) -> Self {
+        Self { namespace, activity_id, run_id, task_queue, task_token, caller }
+    }
 }
 
 /// Explicit action-specific request inputs selected by policy.
 pub enum FillInputs {
-    /// Cancellation instruction and its actual reconciliation read.
+    /// Client cancellation of the admitted run; hold and read belong to the proposal.
     Cancel {
-        /// Whether delivery polls are held for this instruction.
-        hold: bool,
-        /// Selected read instruction.
-        read: Any,
+        /// Caller-selected request ID; empty when host annotation fills it.
+        request_id: String,
     },
-    /// The declared programmed worker operation.
+    /// A worker poll, heartbeat or cancellation acknowledgment.
     Worker {
         /// Actual admitted attempt used by cancellation acknowledgment.
         attempt: u8,
         /// Opaque heartbeat or cancellation details selected by policy.
         details: Option<Payloads>,
     },
-}
-
-/// Typed requests produced by the activity filler.
-pub enum FilledRequest {
-    /// A client cancellation instruction.
-    Cancel(umpire_temporal_api::umpire::temporal::v1::TemporalInstruction),
-    /// Successful worker completion.
-    Completed(RespondActivityTaskCompletedRequest),
-    /// Retryable or terminal worker failure.
-    Failed(Box<RespondActivityTaskFailedRequest>),
-    /// One native heartbeat request.
-    Heartbeat(RecordActivityTaskHeartbeatRequest),
-    /// An explicit cancellation acknowledgment for the admitted attempt.
-    Canceled(RespondActivityTaskCanceledRequest),
-}
-
-impl umpire_runtime::capability::Request for FilledRequest {
-    fn pack_request(&self) -> Any {
-        match self {
-            Self::Cancel(request) => Any::pack(request),
-            Self::Completed(request) => Any::pack(request),
-            Self::Failed(request) => Any::pack(request.as_ref()),
-            Self::Heartbeat(request) => Any::pack(request),
-            Self::Canceled(request) => Any::pack(request),
-        }
-    }
+    /// A worker completion and its policy-selected result.
+    Completed {
+        /// Actual admitted attempt.
+        attempt: u8,
+        /// Opaque result selected by policy.
+        result: Option<Payloads>,
+    },
+    /// A worker failure whose retryability must agree with the action.
+    Failed {
+        /// Actual admitted attempt.
+        attempt: u8,
+        /// Application failure selected by policy.
+        failure: Box<Failure>,
+    },
 }
 
 impl umpire_runtime::capability::Identity for Realization {
@@ -651,101 +663,381 @@ impl umpire_runtime::capability::Identity for Realization {
             String::new()
         };
         Ok(ActivityIdentity {
+            task_queue: actual.task_queue.map(|queue| queue.name).unwrap_or_default(),
             namespace: actual.namespace,
             activity_id: actual.activity_id,
             run_id,
+            task_token: Vec::new(),
+            caller: String::new(),
         })
     }
 }
 
-impl umpire_runtime::capability::Fill<Action> for Realization {
-    type World = activity::World;
-    type Inputs = FillInputs;
-    type Request = FilledRequest;
-    fn fill(
-        &self,
-        action: &Action,
-        world: &activity::World,
-        inputs: &FillInputs,
-        identity: &ActivityIdentity,
-    ) -> Result<FilledRequest, Refusal> {
+/// A complete checked witness prefix, matched against its last edge.
+type Witness<'a> = [&'a umpire_runtime::Evidence<activity::World>];
+
+activity::action_metadata!(crate::registry; activity; {
+    #[registry(inputs = FillInputs)]
+    #[allow(
+        clippy::trivially_copy_pass_by_ref,
+        reason = "registry fillers receive the actual action by reference"
+    )]
+    impl Realization {
+        fn fill_cancel(
+            &self,
+            _: &Client,
+            _: &activity::World,
+            inputs: &FillInputs,
+            identity: &ActivityIdentity,
+        ) -> Result<RequestCancelActivityExecutionRequest, Refusal> {
+            Self::admitted(identity)?;
+            let FillInputs::Cancel { request_id } = inputs else {
+                return Err(Refusal::unsupported("action has no activity request for these inputs"));
+            };
+            if identity.activity_id.is_empty() || identity.run_id.is_empty() {
+                return Err(Refusal::malformed("cancellation identity is missing"));
+            }
+            Ok(RequestCancelActivityExecutionRequest {
+                namespace: identity.namespace.clone(),
+                activity_id: identity.activity_id.clone(),
+                run_id: identity.run_id.clone(),
+                identity: identity.caller.clone(),
+                request_id: request_id.clone(),
+                ..Default::default()
+            })
+        }
+
+        fn fill_poll(
+            &self,
+            action: &Worker,
+            world: &activity::World,
+            inputs: &FillInputs,
+            identity: &ActivityIdentity,
+        ) -> Result<PollActivityTaskQueueRequest, Refusal> {
+            let FillInputs::Worker { attempt, details: None } = inputs else {
+                return Err(Refusal::unsupported("action has no activity request for these inputs"));
+            };
+            Self::attempt(world, identity, *attempt)?;
+            if *action != Worker::Poll(*attempt) || identity.task_queue.is_empty() {
+                return Err(Refusal::unsupported("action has no activity request for these inputs"));
+            }
+            Ok(PollActivityTaskQueueRequest {
+                namespace: identity.namespace.clone(),
+                task_queue: Some(TaskQueue { name: identity.task_queue.clone(), ..Default::default() }),
+                identity: identity.caller.clone(),
+                ..Default::default()
+            })
+        }
+
+        fn fill_completed(
+            &self,
+            _: &Worker,
+            world: &activity::World,
+            inputs: &FillInputs,
+            identity: &ActivityIdentity,
+        ) -> Result<RespondActivityTaskCompletedRequest, Refusal> {
+            let FillInputs::Completed { attempt, result } = inputs else {
+                return Err(Refusal::unsupported("action has no activity request for these inputs"));
+            };
+            Self::attempt(world, identity, *attempt)?;
+            let (namespace, task_token) = Self::task(identity);
+            Ok(RespondActivityTaskCompletedRequest {
+                namespace,
+                task_token,
+                identity: identity.caller.clone(),
+                result: result.clone(),
+                ..Default::default()
+            })
+        }
+
+        fn fill_failed(
+            &self,
+            action: &Worker,
+            world: &activity::World,
+            inputs: &FillInputs,
+            identity: &ActivityIdentity,
+        ) -> Result<RespondActivityTaskFailedRequest, Refusal> {
+            let (FillInputs::Failed { attempt, failure }, Worker::RespondFailed { retryable }) =
+                (inputs, *action)
+            else {
+                return Err(Refusal::unsupported("action has no activity request for these inputs"));
+            };
+            Self::attempt(world, identity, *attempt)?;
+            if Self::retryable(failure) != Some(retryable) {
+                return Err(Refusal::unsupported("failure retryability contradicts the action"));
+            }
+            let (namespace, task_token) = Self::task(identity);
+            Ok(RespondActivityTaskFailedRequest {
+                namespace,
+                task_token,
+                identity: identity.caller.clone(),
+                failure: Some(failure.as_ref().clone()),
+                ..Default::default()
+            })
+        }
+
+        fn fill_heartbeat(
+            &self,
+            _: &Worker,
+            world: &activity::World,
+            inputs: &FillInputs,
+            identity: &ActivityIdentity,
+        ) -> Result<RecordActivityTaskHeartbeatRequest, Refusal> {
+            let FillInputs::Worker { attempt, details } = inputs else {
+                return Err(Refusal::unsupported("action has no activity request for these inputs"));
+            };
+            Self::attempt(world, identity, *attempt)?;
+            let (namespace, task_token) = Self::task(identity);
+            Ok(RecordActivityTaskHeartbeatRequest {
+                namespace,
+                task_token,
+                identity: identity.caller.clone(),
+                details: details.clone(),
+                ..Default::default()
+            })
+        }
+
+        fn fill_canceled(
+            &self,
+            action: &Worker,
+            world: &activity::World,
+            inputs: &FillInputs,
+            identity: &ActivityIdentity,
+        ) -> Result<RespondActivityTaskCanceledRequest, Refusal> {
+            let FillInputs::Worker { attempt, details } = inputs else {
+                return Err(Refusal::unsupported("action has no activity request for these inputs"));
+            };
+            Self::attempt(world, identity, *attempt)?;
+            if *action != Worker::RespondCanceled(*attempt) {
+                return Err(Refusal::unsupported("action has no activity request for these inputs"));
+            }
+            let (namespace, task_token) = Self::task(identity);
+            Ok(RespondActivityTaskCanceledRequest {
+                namespace,
+                task_token,
+                identity: identity.caller.clone(),
+                details: details.clone(),
+                ..Default::default()
+            })
+        }
+
+        fn cancel_evidence(
+            &self,
+            request: RequestCancelActivityExecutionRequest,
+            response: Result<RequestCancelActivityExecutionResponse, i32>,
+            path: &Witness<'_>,
+        ) -> Result<umpire_runtime::EvidenceMatch, Refusal> {
+            self.correlated(&request.namespace, Some(&request.activity_id), Some(&request.run_id))?;
+            Ok(Self::edge(path, Self::outcome(&response), |action| {
+                *action == Action::from(Client::Cancel)
+            }))
+        }
+
+        fn poll_evidence(
+            &self,
+            request: PollActivityTaskQueueRequest,
+            response: Result<PollActivityTaskQueueResponse, i32>,
+            path: &Witness<'_>,
+        ) -> Result<umpire_runtime::EvidenceMatch, Refusal> {
+            self.correlated(&request.namespace, None, None)?;
+            let outcome = Self::outcome(&response);
+            let delivered = if let Ok(task) = &response {
+                self.correlated(&request.namespace, Some(&task.activity_id), None)?;
+                if task.task_token.is_empty() {
+                    return Ok(umpire_runtime::EvidenceMatch::Reject);
+                }
+                Some(task.attempt)
+            } else {
+                None
+            };
+            Ok(Self::edge(path, outcome, |action| {
+                matches!(action, Action::Worker(Worker::Poll(attempt))
+                    if delivered.is_none_or(|delivered| i32::from(*attempt) == delivered))
+            }))
+        }
+
+        fn completed_evidence(
+            &self,
+            request: RespondActivityTaskCompletedRequest,
+            response: Result<RespondActivityTaskCompletedResponse, i32>,
+            path: &Witness<'_>,
+        ) -> Result<umpire_runtime::EvidenceMatch, Refusal> {
+            self.correlated(&request.namespace, None, None)?;
+            Ok(Self::edge(path, Self::outcome(&response), |action| {
+                *action == Action::from(Worker::RespondCompleted)
+            }))
+        }
+
+        fn failed_evidence(
+            &self,
+            request: RespondActivityTaskFailedRequest,
+            response: Result<RespondActivityTaskFailedResponse, i32>,
+            path: &Witness<'_>,
+        ) -> Result<umpire_runtime::EvidenceMatch, Refusal> {
+            self.correlated(&request.namespace, None, None)?;
+            let Some(retryable) = request.failure.as_ref().and_then(Self::retryable) else {
+                return Ok(umpire_runtime::EvidenceMatch::Reject);
+            };
+            Ok(Self::edge(path, Self::outcome(&response), |action| {
+                *action == Action::from(Worker::RespondFailed { retryable })
+            }))
+        }
+
+        fn heartbeat_evidence(
+            &self,
+            request: RecordActivityTaskHeartbeatRequest,
+            response: Result<RecordActivityTaskHeartbeatResponse, i32>,
+            path: &Witness<'_>,
+        ) -> Result<umpire_runtime::EvidenceMatch, Refusal> {
+            self.correlated(&request.namespace, None, None)?;
+            let reported = if let Ok(reply) = &response {
+                if reply.activity_paused || reply.activity_reset {
+                    return Err(Refusal::unsupported("paused or reset activity is outside the Model"));
+                }
+                Some(reply.cancel_requested)
+            } else {
+                None
+            };
+            let consistent = path.last().is_some_and(|edge| {
+                reported.is_none_or(|pending| edge.target.cancel_requested == pending)
+            });
+            Ok(Self::edge(path, Self::outcome(&response), |action| {
+                consistent && *action == Action::from(Worker::Heartbeat)
+            }))
+        }
+
+        fn canceled_evidence(
+            &self,
+            request: RespondActivityTaskCanceledRequest,
+            response: Result<RespondActivityTaskCanceledResponse, i32>,
+            path: &Witness<'_>,
+        ) -> Result<umpire_runtime::EvidenceMatch, Refusal> {
+            self.correlated(&request.namespace, None, None)?;
+            Ok(Self::edge(path, Self::outcome(&response), |action| {
+                matches!(action, Action::Worker(Worker::RespondCanceled(_)))
+            }))
+        }
+
+        /// No observation evidences a Tick directly; existential admission of unobserved
+        /// interleavings belongs to the declared refinement.
+        fn tick_evidence(
+            &self,
+            _: &crate::support::Observed,
+            _: &Witness<'_>,
+        ) -> Result<umpire_runtime::EvidenceMatch, Refusal> {
+            Ok(umpire_runtime::EvidenceMatch::Reject)
+        }
+    }
+});
+
+impl Realization {
+    fn admitted(identity: &ActivityIdentity) -> Result<(), Refusal> {
         if identity.namespace.is_empty() {
             return Err(Refusal::malformed("program namespace is required"));
         }
-        if let FillInputs::Worker { attempt, details } = inputs {
-            if !(1..=world.maximum_attempts).contains(attempt) {
-                return Err(Refusal::unsupported("worker attempt exceeds World.maximum_attempts"));
-            }
-            if details.is_some()
-                && !matches!(action, Action::Worker(Worker::Heartbeat | Worker::RespondCanceled(_)))
-            {
-                return Err(Refusal::unsupported(
-                    "worker details require heartbeat or cancellation",
-                ));
-            }
+        Ok(())
+    }
+
+    fn attempt(
+        world: &activity::World,
+        identity: &ActivityIdentity,
+        attempt: u8,
+    ) -> Result<(), Refusal> {
+        Self::admitted(identity)?;
+        if !(1..=world.maximum_attempts).contains(&attempt) {
+            return Err(Refusal::unsupported("worker attempt exceeds World.maximum_attempts"));
         }
-        match inputs {
-            FillInputs::Cancel { hold, read } if *action == Action::from(Client::Cancel) => {
-                if identity.activity_id.is_empty() || identity.run_id.is_empty() {
-                    return Err(Refusal::malformed("cancellation identity is missing"));
-                }
-                Ok(FilledRequest::Cancel(crate::support::instruction(
-                    Any::pack(&RequestCancelActivityExecutionRequest {
-                        namespace: identity.namespace.clone(),
-                        activity_id: identity.activity_id.clone(),
-                        run_id: identity.run_id.clone(),
+        Ok(())
+    }
+
+    /// An application failure's declared retryability; other failures have none.
+    fn retryable(failure: &Failure) -> Option<bool> {
+        use umpire_temporal_api::temporal::api::failure::v1::failure::FailureInfo;
+        match &failure.failure_info {
+            Some(FailureInfo::ApplicationFailureInfo(info)) => Some(!info.non_retryable),
+            _ => None,
+        }
+    }
+
+    /// Policy-selected inputs for one programmed worker response.
+    fn program_inputs(action: Worker, attempt: u8) -> Result<FillInputs, Refusal> {
+        Ok(match action {
+            Worker::RespondCompleted => FillInputs::Completed {
+                attempt,
+                result: Some(Payloads {
+                    payloads: vec![Payload {
+                        metadata: std::collections::BTreeMap::from([(
+                            "encoding".into(),
+                            b"binary/plain".to_vec(),
+                        )]),
+                        data: b"Complete".to_vec(),
                         ..Default::default()
-                    }),
-                    *hold,
-                    read.clone(),
-                )))
+                    }],
+                }),
+            },
+            Worker::RespondFailed { retryable } => FillInputs::Failed {
+                attempt,
+                failure: Box::new(if retryable {
+                    Failure::application("MiniActivityFailure", "Retry", false)
+                } else {
+                    Failure::application("MiniActivityFailure", "Fail", true)
+                }),
+            },
+            _ => return Err(Refusal::unsupported("unsupported programmed worker response")),
+        })
+    }
+
+    /// The actual task identity, or none when the program executor assigns it.
+    fn task(identity: &ActivityIdentity) -> (String, Vec<u8>) {
+        if identity.task_token.is_empty() {
+            (String::new(), Vec::new())
+        } else {
+            (identity.namespace.clone(), identity.task_token.clone())
+        }
+    }
+
+    /// Refuse evidence whose namespace, or any supplied activity or run, crosses the admitted Start.
+    fn correlated(
+        &self,
+        namespace: &str,
+        activity_id: Option<&str>,
+        run_id: Option<&str>,
+    ) -> Result<(), Refusal> {
+        let context = self
+            .context
+            .as_ref()
+            .ok_or_else(|| Refusal::unsupported("evidence correlation requires admitted Start"))?;
+        let crossed = namespace != context.start.namespace
+            || activity_id.is_some_and(|activity_id| activity_id != context.start.activity_id)
+            || run_id.is_some_and(|run_id| run_id != context.run_id);
+        if crossed {
+            return Err(Refusal::new(
+                umpire_runtime::protocol::RefusalCode::State,
+                "evidence crosses admitted activity identity",
+            ));
+        }
+        Ok(())
+    }
+
+    /// The Model outcome evidenced by an RPC result; unmapped status codes have none.
+    fn outcome<T>(response: &Result<T, i32>) -> Option<Outcome> {
+        match response {
+            Ok(_) => Some(Outcome::Accepted),
+            Err(code) => rejection(*code).map(Outcome::Rejected),
+        }
+    }
+
+    /// Match the complete witness prefix's last edge; RPC evidence never admits a root.
+    fn edge(
+        path: &Witness<'_>,
+        outcome: Option<Outcome>,
+        action: impl Fn(&Action) -> bool,
+    ) -> umpire_runtime::EvidenceMatch {
+        match (path.last(), outcome) {
+            (Some(edge), Some(outcome)) if action(&edge.action) && edge.outcome == outcome => {
+                umpire_runtime::EvidenceMatch::Match { cursor: path.len() }
             }
-            FillInputs::Worker { .. } if *action == Action::from(Worker::RespondCompleted) => {
-                Ok(FilledRequest::Completed(RespondActivityTaskCompletedRequest {
-                    result: Some(Payloads {
-                        payloads: vec![Payload {
-                            metadata: std::collections::BTreeMap::from([(
-                                "encoding".into(),
-                                b"binary/plain".to_vec(),
-                            )]),
-                            data: b"Complete".to_vec(),
-                            ..Default::default()
-                        }],
-                    }),
-                    ..Default::default()
-                }))
-            }
-            FillInputs::Worker { .. }
-                if *action == Action::from(Worker::RespondFailed { retryable: true }) =>
-            {
-                Ok(FilledRequest::Failed(Box::new(RespondActivityTaskFailedRequest {
-                    failure: Some(Failure::application("MiniActivityFailure", "Retry", false)),
-                    ..Default::default()
-                })))
-            }
-            FillInputs::Worker { .. }
-                if *action == Action::from(Worker::RespondFailed { retryable: false }) =>
-            {
-                Ok(FilledRequest::Failed(Box::new(RespondActivityTaskFailedRequest {
-                    failure: Some(Failure::application("MiniActivityFailure", "Fail", true)),
-                    ..Default::default()
-                })))
-            }
-            FillInputs::Worker { details, .. } if *action == Action::from(Worker::Heartbeat) => {
-                Ok(FilledRequest::Heartbeat(RecordActivityTaskHeartbeatRequest {
-                    details: details.clone(),
-                    ..Default::default()
-                }))
-            }
-            FillInputs::Worker { attempt, details }
-                if *action == Action::from(Worker::RespondCanceled(*attempt)) =>
-            {
-                Ok(FilledRequest::Canceled(RespondActivityTaskCanceledRequest {
-                    details: details.clone(),
-                    ..Default::default()
-                }))
-            }
-            _ => Err(Refusal::unsupported("action has no activity request for these inputs")),
+            _ => umpire_runtime::EvidenceMatch::Reject,
         }
     }
 }
@@ -914,3 +1206,7 @@ impl Realization {
         Refusal::unsupported(format!("heartbeat successor {error}"))
     }
 }
+
+#[cfg(test)]
+#[path = "../../realization/tests/activity_registry/mod.rs"]
+mod registry_controls;

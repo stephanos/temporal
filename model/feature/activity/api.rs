@@ -1,6 +1,6 @@
 //! Exhaustive activity API mirrors, independent of the Model's runtime state.
 #![allow(dead_code, reason = "Mirror fields describe the API and are not instantiated")]
-use crate::activity::{self, Client, Deadline, Worker};
+use crate::activity::{self, Client, Worker};
 use crate::foundation::dc;
 use umpire_catalog::{
     Catalog,
@@ -18,7 +18,6 @@ type ModelAction = <activity::World as umpire_dsl::Machine>::Action;
 mod transport;
 use crate::foundation::service::{self, RpcRole};
 pub use transport::{AnnotationResult, annotate};
-use umpire_catalog::Binding;
 use umpire_temporal_api::WorkflowServiceMethod;
 /// The RPCs this feature claims; every other RPC is out of scope with its resource family.
 fn classify(method: WorkflowServiceMethod) -> RpcRole<ModelAction> {
@@ -55,7 +54,7 @@ fn classify(method: WorkflowServiceMethod) -> RpcRole<ModelAction> {
 }
 /// Executable factories and exhaustive runtime bindings.
 pub mod catalog {
-    use super::{Binding, Client, Deadline, ModelAction, Worker, a, c, dc, f, q, w};
+    use super::{a, c, dc, f, q, w};
     use crate::foundation::api as foundation;
     pub use crate::foundation::enum_inventory::enum_inventory::*;
     use umpire_catalog::{AdmissionErrors, Catalog, ProbeCase};
@@ -108,19 +107,6 @@ pub mod catalog {
         RequestCancelActivityExecutionRequest =>
         request_cancel_activity_execution_request, RequestCancelActivityExecutionResponse
         => request_cancel_activity_execution_response,];
-    }
-    /// Binds every Model action, including explicitly environmental deadlines.
-    pub fn bind(action: &ModelAction) -> Binding {
-        umpire_temporal_api::bind_workflow_action!(
-            action,
-            ModelAction::Deadline(Deadline::Tick) | ModelAction::Worker(Worker::RespondCanceled(_)) => {
-                if matches!(action, ModelAction::Deadline(Deadline::Tick)) {
-                    Binding::Environmental("abstract deadline tick")
-                } else {
-                    Binding::Rpc("temporal.api.workflowservice.v1.WorkflowService.RespondActivityTaskCanceled")
-                }
-            }
-        )
     }
 }
 /// UUID intent for request IDs accepted without UUID syntax by the server.

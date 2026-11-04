@@ -221,9 +221,8 @@ fn verify_inventory(entries: &[Entry]) -> Result<()> {
     }
     let mut declared = catalog::expected_probe_cases(&Limits::default())?;
     declared.extend(worker_failure_presence(&Limits::default())?.probe_cases());
-    let baselines = crate::activity_probe_fillers::baselines()?;
     let methods: BTreeSet<_> = entries.iter().map(|entry| entry.method).collect();
-    if methods != baselines.methods().collect() {
+    if methods != crate::activity_probe_fillers::methods()? {
         return Err("probe inventory methods differ from registered baseline fillers".into());
     }
     let registered: BTreeSet<_> = entries.iter().map(|entry| entry.target.id.clone()).collect();

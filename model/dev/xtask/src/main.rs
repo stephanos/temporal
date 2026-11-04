@@ -15,6 +15,7 @@ use std::{
 mod build_guests;
 mod gate;
 mod guest_routes;
+mod mapping_count;
 #[cfg(test)]
 mod model_controls;
 mod proto;
@@ -126,6 +127,13 @@ fn run() -> io::Result<i32> {
             _ => Err(io::Error::other(
                 "usage: cargo xtask gate [--list | --stage NAME | --scheduled-stage NAME]",
             )),
+        };
+    }
+    if supplied.first().is_some_and(|command| command == "mapping-count") {
+        return match supplied.as_slice() {
+            [_] => mapping_count::run(&root),
+            [_, model] => mapping_count::run(Path::new(model)),
+            _ => Err(io::Error::other("usage: cargo xtask mapping-count [MODEL_DIR]")),
         };
     }
     if supplied.first().is_some_and(|command| command == "time" || command == "retired-names") {

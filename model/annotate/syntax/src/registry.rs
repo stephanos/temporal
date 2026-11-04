@@ -410,6 +410,7 @@ fn expand_scoped(
     Ok(quote! {
         #item
         #[doc = "Typed requests constructed by this binding's admitted registry."]
+        #[allow(clippy::large_enum_variant, reason = "one transient request per filled action")]
         #visibility enum #request_sum { #(#request_variants),* }
         impl ::umpire_runtime::capability::Request for #request_sum {
             fn pack_request(&self) -> ::umpire_runtime::prost_types::Any { #pack }
