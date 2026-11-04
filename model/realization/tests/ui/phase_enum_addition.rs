@@ -53,6 +53,10 @@ mod activity {
     pub use umpire_temporal::activity::Phase;
 }
 
+mod activity_protocol {
+    pub use umpire_temporal::activity_protocol::view;
+}
+
 mod phase {
     include!("../../../feature/activity/phase.rs");
 }

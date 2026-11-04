@@ -1,12 +1,14 @@
 //! Activity registry rows, typed fillers and evidence predicates on the actual Model.
 use super::*;
 use crate::registry::{ActionKind, Direction, Registry};
+use umpire_dsl::Machine as _;
 use umpire_runtime::{
-    AnyMessage as _, Evidence, EvidenceMatch,
+    Evidence, EvidenceMatch,
     capability::{Fill, Identity, Request as _},
     realization::{Observation, observation::Result as ResultValue},
 };
 use umpire_temporal_api::temporal::api::common::v1::{ActivityType, RetryPolicy};
+use umpire_temporal_api::temporal::api::workflowservice::v1::StartActivityExecutionRequest;
 
 const SERVICE: &str = "/temporal.api.workflowservice.v1.WorkflowService/";
 const RUN: &str = "run";
@@ -387,5 +389,56 @@ fn worker_evidence_maps_actual_results_and_correlates_delivery()
         binding.check_registered(&not_found, &[&stale]),
         Ok(EvidenceMatch::Match { cursor: 1 })
     ));
+    Ok(())
+}
+
+#[test]
+fn evidence_ignores_unclaimed_fields_of_realistic_worker_traffic()
+-> Result<(), Box<dyn std::error::Error>> {
+    use umpire_temporal_api::temporal::api::common::v1::{Payload, Payloads, WorkflowExecution};
+    let binding = binding();
+    let payloads =
+        || Payloads { payloads: vec![Payload { data: b"x".to_vec(), ..Default::default() }] };
+    let poll = PollActivityTaskQueueRequest {
+        namespace: "ns".into(),
+        task_queue: Some(TaskQueue { name: "queue".into(), ..Default::default() }),
+        identity: "worker".into(),
+        ..Default::default()
+    };
+    // A server delivery carries type, input, schedule and workflow fields the Model does not claim.
+    let task = PollActivityTaskQueueResponse {
+        task_token: vec![1],
+        activity_id: "activity".into(),
+        attempt: 1,
+        workflow_namespace: "ns".into(),
+        workflow_execution: Some(WorkflowExecution::default()),
+        activity_type: Some(ActivityType { name: "ModelSlice".into() }),
+        input: Some(payloads()),
+        heartbeat_timeout: Some(umpire_runtime::prost_types::Duration { seconds: 10, nanos: 0 }),
+        ..Default::default()
+    };
+    let delivered = edge(scheduled(), Worker::Poll(1).into())?;
+    let evidence = observed("PollActivityTaskQueue", &poll, Ok(&task));
+    assert!(matches!(
+        binding.check_registered(&evidence, &[&delivered]),
+        Ok(EvidenceMatch::Match { cursor: 1 })
+    ));
+    let heartbeat = RecordActivityTaskHeartbeatRequest {
+        namespace: "ns".into(),
+        task_token: vec![1],
+        details: Some(payloads()),
+        ..Default::default()
+    };
+    let beat = edge(started()?, Worker::Heartbeat.into())?;
+    let reply = RecordActivityTaskHeartbeatResponse::default();
+    let evidence = observed("RecordActivityTaskHeartbeat", &heartbeat, Ok(&reply));
+    assert!(matches!(
+        binding.check_registered(&evidence, &[&beat]),
+        Ok(EvidenceMatch::Match { cursor: 1 })
+    ));
+    // A claimed field still decides: a paused activity stays outside the Model.
+    let paused = RecordActivityTaskHeartbeatResponse { activity_paused: true, ..reply };
+    let evidence = observed("RecordActivityTaskHeartbeat", &heartbeat, Ok(&paused));
+    assert!(binding.check_registered(&evidence, &[&beat]).is_err());
     Ok(())
 }

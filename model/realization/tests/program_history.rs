@@ -888,3 +888,88 @@ fn successor_manifest_is_checked_independently_of_policy_rows()
     }
     Ok(())
 }
+
+#[test]
+fn same_describe_mutations_are_unexplained_or_refused_without_publishing() {
+    use umpire_temporal_api::temporal::api::common::v1::Payloads;
+    type Mutation = fn(&mut DescribeActivityExecutionResponse);
+    fn judge(runtime: &mut impl Dispatch, observation: &Observation) -> Outcome {
+        invoke(runtime, 4, &protocol::JudgeRequest { observation: Some(Any::pack(observation)) })
+    }
+    fn mutated(observation: &Observation, mutation: Mutation) -> Observation {
+        let mut observation = observation.clone();
+        let Some(ResultValue::Response(value)) = observation.result.take() else {
+            panic!("response")
+        };
+        let mut response: DescribeActivityExecutionResponse =
+            value.unpack().unwrap_or_else(|e| panic!("{e:?}"));
+        mutation(&mut response);
+        observation.result = Some(ResultValue::Response(Any::pack(&response)));
+        observation
+    }
+    fn info(
+        response: &mut DescribeActivityExecutionResponse,
+    ) -> &mut umpire_temporal_api::temporal::api::activity::v1::ActivityExecutionInfo {
+        response.info.as_mut().unwrap_or_else(|| panic!("info"))
+    }
+    fn result(response: &mut DescribeActivityExecutionResponse) -> &mut Payloads {
+        match response.outcome.as_mut().and_then(|outcome| outcome.value.as_mut()) {
+            Some(Value::Result(result)) => result,
+            _ => panic!("result"),
+        }
+    }
+    let unexplained: [(u64, &str, i32, &str, Mutation); 5] = [
+        (2, "Fail", 1, "terminal failure", |response| {
+            if let Some(Value::Failure(failure)) =
+                response.outcome.as_mut().and_then(|outcome| outcome.value.as_mut())
+            {
+                failure.message = "mutated".into();
+            }
+        }),
+        (1, "RetryThenComplete", 2, "retained last_failure", |response| {
+            if let Some(failure) = info(response).last_failure.as_mut() {
+                failure.message = "mutated".into();
+            }
+        }),
+        (0, "Complete", 1, "payload metadata", |response| {
+            result(response).payloads[0].metadata.insert("encoding".into(), b"json/plain".to_vec());
+        }),
+        (0, "Complete", 1, "payload data", |response| {
+            result(response).payloads[0].data = b"mutated".to_vec();
+        }),
+        (1, "RetryThenComplete", 2, "attempt", |response| info(response).attempt = 3),
+    ];
+    for (seed, scenario, attempt, name, mutation) in unexplained {
+        let (mut runtime, program) = setup(seed);
+        let base = terminal(&program, scenario, attempt, false);
+        let Outcome::Judge(judgment) = judge(&mut runtime, &mutated(&base, mutation)) else {
+            panic!("{name}: judge")
+        };
+        assert!(
+            matches!(judgment.judgment, Some(protocol::judge_response::Judgment::Unexplained(_))),
+            "{name}: {judgment:?}"
+        );
+    }
+    let refused: [(&str, Mutation); 4] = [
+        ("activity identity", |response| info(response).activity_id = "other".into()),
+        ("info run correlation", |response| info(response).run_id = "other".into()),
+        ("response run correlation", |response| response.run_id = "other".into()),
+        ("terminal with running state", |response| info(response).run_state = 2),
+    ];
+    for (seed, scenario, attempt) in [(0, "Complete", 1), (2, "Fail", 1)] {
+        let (mut runtime, program) = setup(seed);
+        let base = terminal(&program, scenario, attempt, false);
+        for (name, mutation) in refused {
+            assert!(
+                matches!(judge(&mut runtime, &mutated(&base, mutation)), Outcome::Refusal(_)),
+                "{scenario} {name}"
+            );
+        }
+        let Outcome::Judge(judgment) = judge(&mut runtime, &base) else { panic!("judge") };
+        let Some(protocol::judge_response::Judgment::Explained(explanation)) = judgment.judgment
+        else {
+            panic!("{scenario}: refused mutations must not publish: {judgment:?}")
+        };
+        assert_eq!(explanation.steps.len(), 2, "{scenario}");
+    }
+}

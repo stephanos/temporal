@@ -7,7 +7,9 @@
 use crate::activity_realization::{ActivityIdentity, FillInputs, Realization, activity};
 use crate::probe_fillers::{Baselines, Filler};
 use crate::probes::{Result, UUID, application, duration};
-use activity::{Client, Worker};
+use crate::registry::{ActionKind, Registry as _};
+use activity::Worker;
+use umpire_dsl::Machine as _;
 use umpire_runtime::{AnyMessage as _, prost_types::Any, protocol::Refusal};
 use umpire_temporal_api::{
     temporal::api::{
@@ -34,71 +36,99 @@ static FILLERS: &[Filler<ProbeRequest>] = &[
     Filler { method: "PollActivityExecution", fill: fill_poll_execution },
 ];
 
-/// Action baselines fill through the registered action filler with probe-selected inputs.
-const ACTIONS: &[&str] = &[
-    "RequestCancelActivityExecution",
-    "PollActivityTaskQueue",
-    "RespondActivityTaskCompleted",
-    "RespondActivityTaskFailed",
-    "RespondActivityTaskCanceled",
-];
-
 /// The admitted bootstrap/read baseline registry consumed by the probe inventory and its fills.
 fn baselines() -> Result<Baselines<'static, ProbeRequest>> {
     Ok(Baselines::new(FILLERS).map_err(|refusal| refusal.message)?)
 }
 
-/// Every probe baseline method: admitted bootstrap/read fillers and registered actions.
+/// Bootstrap/read filler methods, which every probe inventory must use.
+pub(crate) fn baseline_methods() -> Result<std::collections::BTreeSet<&'static str>> {
+    Ok(baselines()?.methods().collect())
+}
+
+/// Every fillable probe method: bootstrap/read fillers and registered RPC action rows.
 pub(crate) fn methods() -> Result<std::collections::BTreeSet<&'static str>> {
-    Ok(baselines()?.methods().chain(ACTIONS.iter().copied()).collect())
+    let mut methods = baseline_methods()?;
+    methods.extend(actions()?.into_iter().map(|(method, _)| method));
+    Ok(methods)
 }
 
 pub(crate) fn fill(name: &str, slots: &ProbeRequest, context: &str) -> Result<Vec<u8>> {
-    if ACTIONS.contains(&name) {
-        return Ok(registered(name, slots, context).map_err(|refusal| refusal.message)?.value);
+    if baseline_methods()?.contains(name) {
+        return Ok(baselines()?
+            .fill(name, slots, context)
+            .map_err(|refusal| refusal.message)?
+            .value);
     }
-    Ok(baselines()?.fill(name, slots, context).map_err(|refusal| refusal.message)?.value)
+    Ok(registered(name, slots, context).map_err(|refusal| refusal.message)?.value)
 }
 
+/// The probe World admits one attempt, so attempt-carrying actions appear once.
+fn world() -> activity::World {
+    activity::World::new(1, None, None, None, None)
+}
+
+/// Registered RPC action rows in catalog order, by descriptor method name.
+fn actions() -> Result<Vec<(&'static str, Action)>> {
+    let catalog = world().checked_catalog(umpire_dsl::CATALOG_LIMIT)?;
+    Ok(catalog
+        .actions()
+        .iter()
+        .filter_map(|action| match Realization::default().row(action).kind {
+            ActionKind::Rpc { method, .. } => {
+                method.rsplit('/').next().map(|name| (name, action.clone()))
+            }
+            ActionKind::Event { .. } => None,
+        })
+        .collect())
+}
+
+/// Fill the first registered action of `name` that admits the probe's inputs.
 fn registered(
     name: &str,
     slots: &ProbeRequest,
     context: &str,
 ) -> std::result::Result<Any, Refusal> {
-    const CALLER: &str = "umpire-probe";
     let identity = ActivityIdentity::task(
         slots.namespace.clone(),
         slots.activity_id.clone(),
         slots.run_id.clone(),
         slots.task_queue.clone(),
         slots.task_token.clone(),
-        CALLER.into(),
+        "umpire-probe".into(),
     );
-    let worker = |details| FillInputs::Worker { attempt: 1, details };
-    let (action, inputs) = match name {
-        "RequestCancelActivityExecution" => {
-            (Client::Cancel.into(), FillInputs::Cancel { request_id: UUID.into() })
+    let mut refusal = Refusal::unsupported("unknown prerequisite method");
+    for (method, action) in actions().map_err(|error| Refusal::unsupported(error.to_string()))? {
+        if method != name {
+            continue;
         }
-        "PollActivityTaskQueue" => (Worker::Poll(1).into(), worker(None)),
-        "RespondActivityTaskCompleted" => {
-            (Worker::RespondCompleted.into(), FillInputs::Completed { attempt: 1, result: None })
+        match crate::probe_fillers::registered(
+            &Realization::default(),
+            &format!("/temporal.api.workflowservice.v1.WorkflowService/{name}"),
+            &action,
+            &world(),
+            &inputs(&action, context),
+            &identity,
+        ) {
+            Ok(filled) => return Ok(filled),
+            Err(error) => refusal = error,
         }
-        "RespondActivityTaskFailed" => (
-            Worker::RespondFailed { retryable: true }.into(),
-            FillInputs::Failed { attempt: 1, failure: Box::new(failure(context)) },
-        ),
-        "RespondActivityTaskCanceled" => (Worker::RespondCanceled(1).into(), worker(None)),
-        _ => return Err(Refusal::unsupported("unknown prerequisite method")),
-    };
-    let action: Action = action;
-    crate::probe_fillers::registered(
-        &Realization::default(),
-        &format!("/temporal.api.workflowservice.v1.WorkflowService/{name}"),
-        &action,
-        &activity::World::new(1, None, None, None, None),
-        &inputs,
-        &identity,
-    )
+    }
+    Err(refusal)
+}
+
+/// Probe-selected inputs: the probe request ID, an empty result and the context's failure.
+fn inputs(action: &Action, context: &str) -> FillInputs {
+    match action {
+        Action::Client(_) => FillInputs::Cancel { request_id: UUID.into() },
+        Action::Worker(Worker::RespondCompleted) => {
+            FillInputs::Completed { attempt: 1, result: None }
+        }
+        Action::Worker(Worker::RespondFailed { .. }) => {
+            FillInputs::Failed { attempt: 1, failure: Box::new(failure(context)) }
+        }
+        Action::Worker(_) | Action::Deadline(_) => FillInputs::Worker { attempt: 1, details: None },
+    }
 }
 
 /// A retryable probe application failure with the context's declared cause.

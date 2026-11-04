@@ -1,6 +1,5 @@
 //! Exhaustive activity API mirrors, independent of the Model's runtime state.
 #![allow(dead_code, reason = "Mirror fields describe the API and are not instantiated")]
-use crate::activity::{self, Client, Worker};
 use crate::foundation::dc;
 use umpire_catalog::{
     Catalog,
@@ -13,45 +12,9 @@ use umpire_temporal_api::temporal::api::{
     activity::v1 as a, common::v1 as c, enums::v1 as e, failure::v1 as f, taskqueue::v1 as q,
     workflowservice::v1 as w,
 };
-type ModelAction = <activity::World as umpire_dsl::Machine>::Action;
 #[path = "api_transport.rs"]
 mod transport;
-use crate::foundation::service::{self, RpcRole};
 pub use transport::{AnnotationResult, annotate};
-use umpire_temporal_api::WorkflowServiceMethod;
-/// The RPCs this feature claims; every other RPC is out of scope with its resource family.
-fn classify(method: WorkflowServiceMethod) -> RpcRole<ModelAction> {
-    match method {
-        WorkflowServiceMethod::PollActivityTaskQueue => {
-            RpcRole::Action(ModelAction::Worker(Worker::Poll(1)))
-        }
-        WorkflowServiceMethod::RecordActivityTaskHeartbeat => {
-            RpcRole::Action(ModelAction::Worker(Worker::Heartbeat))
-        }
-        WorkflowServiceMethod::RespondActivityTaskCompleted => {
-            RpcRole::Action(ModelAction::Worker(Worker::RespondCompleted))
-        }
-        WorkflowServiceMethod::RespondActivityTaskFailed => {
-            RpcRole::Action(ModelAction::Worker(Worker::RespondFailed { retryable: false }))
-        }
-        WorkflowServiceMethod::RespondActivityTaskCanceled => {
-            RpcRole::Observed("worker acknowledges client cancellation")
-        }
-        WorkflowServiceMethod::StartActivityExecution => {
-            RpcRole::Observed("successful start establishes the Model initial state")
-        }
-        WorkflowServiceMethod::DescribeActivityExecution => {
-            RpcRole::Observed("activity lifecycle phase")
-        }
-        WorkflowServiceMethod::PollActivityExecution => {
-            RpcRole::Observed("SDK activity handle outcome")
-        }
-        WorkflowServiceMethod::RequestCancelActivityExecution => {
-            RpcRole::Action(ModelAction::Client(Client::Cancel))
-        }
-        _ => RpcRole::OutOfScope(service::family(method)),
-    }
-}
 /// Executable factories and exhaustive runtime bindings.
 pub mod catalog {
     use super::{a, c, dc, f, q, w};
