@@ -12,7 +12,9 @@
 version = 2
 admitted = true
 scope = "temporal"
-# Bound on waiting for admission or for running stages to drain before a retry.
+# Bound on waiting for admission or for running stages to drain before a retry. It must be
+# at least 2 x 1.25 x the slowest warm budget (temporal/tests, 1200 s): raise it together
+# with that budget.
 drain_seconds = 3000.0
 
 # Paired tier totals are reported against fn-254 R6's model-check and model-validate targets.
