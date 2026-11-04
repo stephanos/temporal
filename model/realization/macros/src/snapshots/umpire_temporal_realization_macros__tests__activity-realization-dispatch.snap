@@ -3,7 +3,7 @@ source: realization/macros/src/lib.rs
 expression: "prettyplease::unparse(&dispatch)"
 ---
 impl ::umpire_runtime::capability::Snapshot<activity::World> for Realization {
-    type Target = ::umpire_runtime::NoTarget;
+    type Target = ActivityTarget;
     #[allow(
         deprecated,
         reason = "descriptor admission validates deprecated wire fields"
@@ -21,44 +21,7 @@ impl ::umpire_runtime::capability::Snapshot<activity::World> for Realization {
         >,
         ::umpire_runtime::protocol::Refusal,
     > {
-        let _ = (world, state);
-        let __observed = ::umpire_temporal::support::Observed::new(observation)?;
-        if __observed.method
-            == "/temporal.api.workflowservice.v1.WorkflowService/RequestCancelActivityExecution"
-        {
-            let __response: Result<
-                ::umpire_temporal_api::temporal::api::workflowservice::v1::RequestCancelActivityExecutionResponse,
-                i32,
-            > = if let Some(code) = __observed.code()? {
-                Err(code)
-            } else {
-                let __response: ::umpire_temporal_api::temporal::api::workflowservice::v1::RequestCancelActivityExecutionResponse = __observed
-                    .response()
-                    .map_err(|error| ::umpire_runtime::protocol::Refusal::malformed(
-                        error.message,
-                    ))?;
-                Ok(__response)
-            };
-            let _: Option<
-                ::umpire_temporal_api::temporal::api::workflowservice::v1::RequestCancelActivityExecutionRequest,
-            > = __observed.request()?;
-            return Self::cancel(__response);
-        }
-        if __observed.method
-            == "/temporal.api.workflowservice.v1.WorkflowService/DescribeActivityExecution"
-        {
-            let __response: ::umpire_temporal_api::temporal::api::workflowservice::v1::DescribeActivityExecutionResponse = __observed
-                .response()?;
-            let _: Option<
-                ::umpire_temporal_api::temporal::api::workflowservice::v1::DescribeActivityExecutionRequest,
-            > = __observed.request()?;
-            return self.describe(__response, state, world);
-        }
-        Err(
-            ::umpire_runtime::protocol::Refusal::unsupported(
-                "unsupported observation method",
-            ),
-        )
+        self.reach_projection(world, observation, state)
     }
 }
 impl ::umpire_runtime::capability::Evidence<::umpire_runtime::evidence::Rpc>
@@ -70,6 +33,13 @@ for Realization {
         observation: &::umpire_runtime::prost_types::Any,
     ) -> Result<Self::View, ::umpire_runtime::protocol::Refusal> {
         ::umpire_temporal::support::Observed::new(observation)
+    }
+    fn check_evidence(
+        &self,
+        view: &Self::View,
+        path: &[&::umpire_runtime::Evidence<Self::World>],
+    ) -> ::umpire_runtime::EvidenceMatch {
+        self.reach_evidence(view, path)
     }
 }
 impl ::umpire_runtime::capability::ReplyPolicy<activity::World> for Realization {

@@ -12,7 +12,7 @@ use umpire_runtime::realization::observation::Result as ObservationResult;
 use prost::Message;
 use umpire_dsl::{Machine, Outcome as StepOutcome, Rejection};
 use umpire_runtime::{
-    Guest, Projection, Realize,
+    Evidence, EvidenceMatch, Guest, Projection, ReachTarget as _, Realize,
     prost_types::Any,
     protocol::{self, response::Outcome},
 };
@@ -136,36 +136,44 @@ fn cancel_projection_checks_the_actual_outcome_in_every_phase() {
             schedule_to_close_remaining: None,
             heartbeat_remaining: None,
         };
-        let Projection::Candidates(paths) = Realization::default()
+        let binding = Realization::default();
+        let Projection::Reach(target) = binding
             .observe(&world, &cancel(Some(5)), &before)
             .unwrap_or_else(|error| panic!("{error:?}"))
         else {
-            panic!("cancel must replay")
+            panic!("cancel must project through Reach")
         };
-        assert_eq!(paths.len(), 1);
-        assert_eq!(paths[0].path.len(), 1);
-        let (outcome, _, after) = activity::World::new(3, None, None, None, None)
-            .checked_step(&before, paths[0].path[0].action.clone())
+        assert!(target.matches(&before), "an RPC observes no snapshot field");
+        let (outcome, facts, after) = world
+            .checked_step(&before, activity::Client::Cancel.into())
             .unwrap_or_else(|error| panic!("{error:?}"))
             .into_iter()
             .next()
             .unwrap_or_else(|| panic!("cancel must be enabled"));
-        let closed = umpire_dsl::Phase::closed(&phase);
-        assert_eq!(paths[0].outcome.as_ref() == Some(&outcome), closed);
-        assert_eq!(paths[0].outcome, Some(StepOutcome::Rejected(Rejection::NotFound)));
-        let Projection::Candidates(success) = Realization::default()
-            .observe(&world, &cancel(None), &before)
-            .unwrap_or_else(|error| panic!("{error:?}"))
-        else {
-            panic!("cancel must replay")
+        let edge = Evidence {
+            source: before.clone(),
+            action: activity::Client::Cancel.into(),
+            choice: 0,
+            outcome,
+            facts,
+            target: after.clone(),
         };
-        assert_eq!(success[0].outcome.as_ref() == Some(&outcome), !closed);
-        assert_eq!(success[0].outcome, Some(StepOutcome::Accepted));
+        let closed = umpire_dsl::Phase::closed(&phase);
+        for (observation, evidenced) in [(cancel(Some(5)), closed), (cancel(None), !closed)] {
+            let evidence = |path: &[&Evidence<activity::World>]| {
+                binding
+                    .reach_evidence(&observation, path)
+                    .unwrap_or_else(|error| panic!("{error:?}"))
+            };
+            assert!(evidence(&[]) == EvidenceMatch::Continue { cursor: 0 }, "an RPC is no root");
+            assert_eq!(evidence(&[&edge]) == EvidenceMatch::Match { cursor: 1 }, evidenced);
+            assert!(evidence(&[&edge, &edge]) == EvidenceMatch::Reject, "one RPC, one edge");
+        }
         let pending = phase == activity::Phase::Started;
         assert_eq!(after.phase, if closed || pending { phase } else { activity::Phase::Canceled });
         assert_eq!(after.cancel_requested, pending);
         assert_eq!(
-            outcome,
+            edge.outcome,
             if closed { StepOutcome::Rejected(Rejection::NotFound) } else { StepOutcome::Accepted }
         );
     }
@@ -174,7 +182,7 @@ fn cancel_projection_checks_the_actual_outcome_in_every_phase() {
 #[test]
 fn contradictory_and_unknown_cancel_statuses_freeze_the_current_expected_actions() {
     for phase in [activity::Phase::Scheduled, activity::Phase::Started, activity::Phase::Canceled] {
-        for code in [5, 6, 9, 3, 7, 14, 0, 999] {
+        for code in [5, 6, 9, 3, 7, 14] {
             if phase == activity::Phase::Canceled && code == 5 {
                 continue;
             }
@@ -208,6 +216,13 @@ fn contradictory_and_unknown_cancel_statuses_freeze_the_current_expected_actions
             assert_eq!(guest.judge(cancel(Some(code))).unexplained(), expected);
             assert_eq!(guest.judge(cancel(None)).unexplained(), expected);
             guest.reset(None);
+            explained(guest.judge(cancel(None)), &["Client::Cancel"]);
+        }
+        // A status outside the Model's declared rejections is evidence the Model cannot
+        // classify: it refuses without judging or freezing.
+        for code in [0, 1, 2, 4, 8, 13, 999] {
+            let mut guest = Guest::new(runtime());
+            guest.judge(cancel(Some(code))).refusal(RefusalCode::Unsupported);
             explained(guest.judge(cancel(None)), &["Client::Cancel"]);
         }
     }
@@ -471,7 +486,6 @@ fn temporal_has_no_live_answer_policy() {
 
 #[test]
 fn skipped_retry_projection_never_accepts_a_path_that_stops_before_the_observed_phase() {
-    let world = activity::World::new(3, None, None, None, None);
     for status in [4, 6] {
         let mut observed: Observation =
             observation(status, 0).unpack().unwrap_or_else(|e| panic!("{e:?}"));
@@ -482,21 +496,23 @@ fn skipped_retry_projection_never_accepts_a_path_that_stops_before_the_observed_
             response.unpack().unwrap_or_else(|e| panic!("{e:?}"));
         response.info.as_mut().unwrap_or_else(|| panic!("info")).attempt = 2;
         observed.result = Some(ObservationResult::Response(Any::pack(&response)));
-        let state = activity::Model {
-            phase: activity::Phase::Scheduled,
-            attempt: 1,
-            cancel_requested: false,
-            schedule_to_start_remaining: None,
-            start_to_close_remaining: None,
-            schedule_to_close_remaining: None,
-            heartbeat_remaining: None,
-        };
-        let Projection::Candidates(paths) = Realization::default()
-            .observe(&world, &Any::pack(&observed), &state)
-            .unwrap_or_else(|e| panic!("{e:?}"))
-        else {
-            panic!("candidates")
-        };
-        assert_eq!(paths.len(), 0);
+        let mut guest = Guest::new(runtime());
+        guest.judge(Any::pack(&observed)).unexplained();
     }
+}
+
+/// With a pending cancellation a retryable failure ends the activity, so a later queued attempt
+/// is unexplained; the pre-Reach candidate replay explained it while landing in Failed.
+#[test]
+fn pending_cancellation_never_explains_a_retried_attempt() {
+    let mut guest = Guest::new(runtime());
+    explained(guest.judge(observation(1, 2)), &["Worker::Poll(1)"]);
+    explained(guest.judge(cancel(None)), &["Worker::Poll(1)", "Client::Cancel"]);
+    let mut retried: Observation = observation(1, 1).unpack().unwrap_or_else(|e| panic!("{e:?}"));
+    let Some(ObservationResult::Response(response)) = retried.result else { panic!("response") };
+    let mut response: DescribeActivityExecutionResponse =
+        response.unpack().unwrap_or_else(|e| panic!("{e:?}"));
+    response.info.as_mut().unwrap_or_else(|| panic!("info")).attempt = 2;
+    retried.result = Some(ObservationResult::Response(Any::pack(&response)));
+    guest.judge(Any::pack(&retried)).unexplained();
 }

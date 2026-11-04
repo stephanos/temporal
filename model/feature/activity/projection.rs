@@ -12,7 +12,7 @@ use crate::activity_protocol::{
 use umpire_runtime::{ReachTarget, protocol::Refusal};
 use umpire_temporal_api::temporal::api::{
     activity::v1::activity_execution_outcome::Value,
-    enums::v1::TimeoutType,
+    enums::v1::{ActivityExecutionStatus, TimeoutType},
     failure::v1::{Failure, failure::FailureInfo},
     workflowservice::v1::DescribeActivityExecutionResponse,
 };
@@ -82,15 +82,48 @@ pub fn feature_state(state: &protocol::Model) -> Option<activity::Model> {
     })
 }
 
+/// The feature action each protocol action reproduces.
+pub fn feature_action(action: &protocol::Action) -> activity::Action {
+    use activity::{Client, Deadline, Worker};
+    match *action {
+        protocol::Action::Client(protocol::Client::RequestCancel) => Client::Cancel.into(),
+        protocol::Action::Worker(protocol::Worker::Deliver(attempt)) => {
+            Worker::Poll(attempt).into()
+        }
+        protocol::Action::Worker(protocol::Worker::Complete) => Worker::RespondCompleted.into(),
+        protocol::Action::Worker(protocol::Worker::Fail { retryable }) => {
+            Worker::RespondFailed { retryable }.into()
+        }
+        protocol::Action::Worker(protocol::Worker::Heartbeat) => Worker::Heartbeat.into(),
+        protocol::Action::Worker(protocol::Worker::AcknowledgeCancel(attempt)) => {
+            Worker::RespondCanceled(attempt).into()
+        }
+        protocol::Action::Timer(protocol::Timer::Tick) => Deadline::Tick.into(),
+    }
+}
+
+/// The feature's exact expiry fact for each protocol expiry cause.
+pub fn feature_fact(fact: protocol::Expired) -> activity::ExpiredDeadline {
+    match fact {
+        protocol::Expired::ScheduleToStart => activity::ExpiredDeadline::ScheduleToStart,
+        protocol::Expired::StartToClose => activity::ExpiredDeadline::StartToClose,
+        protocol::Expired::ScheduleToClose => activity::ExpiredDeadline::ScheduleToClose,
+        protocol::Expired::Heartbeat => activity::ExpiredDeadline::Heartbeat,
+    }
+}
+
 /// The validated observable facts of one actual Describe response.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct ActivityTarget(pub Snapshot);
 
 impl ActivityTarget {
-    /// Decode only actually supplied fields; an omitted last failure stays unknown.
+    /// Decode only actually supplied fields; an omitted or unclassified last failure stays
+    /// unknown. An outcome that contradicts its status is in the Model's vocabulary, so it is no
+    /// refusal here: in a programmed run [`ActivityTarget::agrees`] withholds evidence and the
+    /// judgment is Unexplained.
     ///
     /// # Errors
-    /// Refuses missing info, unsupported statuses or run states and outcomes that contradict status.
+    /// Refuses missing info and unsupported statuses, run states or attempts.
     pub fn decode(response: &DescribeActivityExecutionResponse) -> Result<Self, Refusal> {
         let info =
             response.info.as_ref().ok_or_else(|| Refusal::malformed("activity info is missing"))?;
@@ -106,24 +139,10 @@ impl ActivityTarget {
             Status::Canceled => TerminalOutcome::Canceled,
             Status::TimedOut => TerminalOutcome::TimedOut,
         };
-        if let Some(value) = response.outcome.as_ref().and_then(|outcome| outcome.value.as_ref()) {
-            let agrees = match (terminal_outcome, value) {
-                (TerminalOutcome::Completed, Value::Result(_))
-                | (TerminalOutcome::Failed, Value::Failure(_)) => true,
-                (TerminalOutcome::Canceled, Value::Failure(failure)) => {
-                    matches!(failure.failure_info, Some(FailureInfo::CanceledFailureInfo(_)))
-                }
-                (TerminalOutcome::TimedOut, Value::Failure(failure)) => {
-                    matches!(failure.failure_info, Some(FailureInfo::TimeoutFailureInfo(_)))
-                }
-                _ => false,
-            };
-            if !agrees {
-                return Err(Refusal::malformed("activity outcome contradicts its status"));
-            }
-        }
         let retained_failure = match info.last_failure.as_ref() {
-            Some(failure) => Observed::Known(retained(failure)?),
+            // A failure kind the protocol view does not classify stays unknown: the feature
+            // does not represent retained failure, so it cannot refuse the snapshot.
+            Some(failure) => retained(failure).map_or(Observed::Unknown, Observed::Known),
             None => Observed::Unknown,
         };
         Ok(Self(Snapshot {
@@ -134,6 +153,48 @@ impl ActivityTarget {
             retained_failure,
             cancellation_pending: Observed::Known(run_state == Some(RunState::CancelRequested)),
         }))
+    }
+
+    /// Whether a supplied outcome agrees with the supplied status.
+    pub fn agrees(response: &DescribeActivityExecutionResponse) -> bool {
+        let status = response.info.as_ref().map(|info| info.status);
+        let Some(outcome) = response.outcome.as_ref() else {
+            return true;
+        };
+        let Some(status) = status.and_then(|status| ActivityExecutionStatus::try_from(status).ok())
+        else {
+            return false;
+        };
+        let Some(value) = outcome.value.as_ref() else {
+            // An empty outcome contradicts only an open or caused closing status.
+            return matches!(
+                status,
+                ActivityExecutionStatus::Completed | ActivityExecutionStatus::Failed
+            );
+        };
+        match (status, value) {
+            (ActivityExecutionStatus::Completed, Value::Result(_))
+            | (ActivityExecutionStatus::Failed, Value::Failure(_)) => true,
+            (ActivityExecutionStatus::Canceled, Value::Failure(failure)) => {
+                matches!(failure.failure_info, Some(FailureInfo::CanceledFailureInfo(_)))
+            }
+            (ActivityExecutionStatus::TimedOut, Value::Failure(failure)) => {
+                matches!(failure.failure_info, Some(FailureInfo::TimeoutFailureInfo(_)))
+            }
+            _ => false,
+        }
+    }
+
+    /// A target that observes no field, for an observation without a snapshot.
+    pub fn unobserved() -> Self {
+        Self(Snapshot {
+            status: Observed::Unknown,
+            run_state: Observed::Unknown,
+            attempt: Observed::Unknown,
+            terminal_outcome: Observed::Unknown,
+            retained_failure: Observed::Unknown,
+            cancellation_pending: Observed::Unknown,
+        })
     }
 
     /// Every fact of a complete protocol view, as the commuting offline control uses it.
@@ -189,8 +250,8 @@ impl ReachTarget<activity::Model> for ActivityTarget {
     }
 }
 
-fn retained(failure: &Failure) -> Result<RetainedFailure, Refusal> {
-    Ok(match &failure.failure_info {
+fn retained(failure: &Failure) -> Option<RetainedFailure> {
+    Some(match &failure.failure_info {
         Some(FailureInfo::ApplicationFailureInfo(info)) if info.non_retryable => {
             RetainedFailure::PermanentWorker
         }
@@ -201,12 +262,10 @@ fn retained(failure: &Failure) -> Result<RetainedFailure, Refusal> {
                 Ok(TimeoutType::StartToClose) => RetainedFailure::StartToClose,
                 Ok(TimeoutType::ScheduleToClose) => RetainedFailure::ScheduleToClose,
                 Ok(TimeoutType::Heartbeat) => RetainedFailure::Heartbeat,
-                Ok(TimeoutType::Unspecified) | Err(_) => {
-                    return Err(Refusal::malformed("timeout failure has no timeout type"));
-                }
+                Ok(TimeoutType::Unspecified) | Err(_) => return None,
             }
         }
-        _ => return Err(Refusal::unsupported("unsupported retained failure kind")),
+        _ => return None,
     })
 }
 

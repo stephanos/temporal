@@ -33,6 +33,7 @@ const OWNERS: &[(&str, Owner)] = &[
     ("feature/activity/policy_checks.rs", Owner::Proof),
     ("feature/activity/proof_checks.rs", Owner::Proof),
     ("feature/activity/deadline_frontier_mapping.rs", Owner::Proof),
+    ("feature/activity/refinement_checks.rs", Owner::Proof),
     ("feature/activity/compatibility/", Owner::Proof),
     ("realization/src/live.rs", Owner::Mapping),
     ("realization/src/annotations.rs", Owner::Mapping),

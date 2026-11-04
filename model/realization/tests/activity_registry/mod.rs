@@ -208,6 +208,51 @@ fn fillers_refuse_inputs_of_another_action_and_contradicting_failures()
 }
 
 #[test]
+fn one_rpc_evidences_one_edge_and_unmapped_statuses_refuse()
+-> Result<(), Box<dyn std::error::Error>> {
+    let binding = binding();
+    let cancel = RequestCancelActivityExecutionRequest {
+        namespace: "ns".into(),
+        activity_id: "activity".into(),
+        run_id: RUN.into(),
+        request_id: "cancel".into(),
+        ..Default::default()
+    };
+    let started = started()?;
+    let pending = edge(started.clone(), Client::Cancel.into())?;
+    let not_found = observed::<_, RequestCancelActivityExecutionResponse>(
+        "RequestCancelActivityExecution",
+        &cancel,
+        Err(5),
+    );
+    // One actual RPC evidences exactly one edge of a witness.
+    let closed = edge(started.clone(), Worker::RespondCompleted.into())?.target;
+    let rejected = edge(closed, Client::Cancel.into())?;
+    assert!(matches!(
+        binding.check_registered(&not_found, &[&rejected]),
+        Ok(EvidenceMatch::Match { cursor: 1 })
+    ));
+    assert!(matches!(
+        binding.check_registered(&not_found, &[&rejected, &rejected]),
+        Ok(EvidenceMatch::Reject)
+    ));
+    // A status outside the declared rejections refuses instead of rejecting the witness.
+    for code in [0, 1, 2, 4, 8, 13, 999] {
+        let unmapped = observed::<_, RequestCancelActivityExecutionResponse>(
+            "RequestCancelActivityExecution",
+            &cancel,
+            Err(code),
+        );
+        let refusal = binding
+            .check_registered(&unmapped, &[&pending])
+            .err()
+            .ok_or("unmapped status was judged")?;
+        assert_eq!(refusal.code(), umpire_runtime::protocol::RefusalCode::Unsupported, "{code}");
+    }
+    Ok(())
+}
+
+#[test]
 fn rpc_evidence_matches_only_the_actual_last_edge_and_outcome()
 -> Result<(), Box<dyn std::error::Error>> {
     let binding = binding();
@@ -455,4 +500,164 @@ fn evidence_ignores_unclaimed_fields_of_realistic_worker_traffic()
     let evidence = observed("RecordActivityTaskHeartbeat", &heartbeat, Ok(&paused));
     assert!(binding.check_registered(&evidence, &[&beat]).is_err());
     Ok(())
+}
+
+fn programmed(scenario: &str, maximum: i32) -> Realization {
+    use umpire_temporal_api::temporal::api::common::v1::{Header, Payload};
+    let mut start = start();
+    start.retry_policy = Some(RetryPolicy { maximum_attempts: maximum, ..Default::default() });
+    start.header = Some(Header {
+        fields: std::collections::BTreeMap::from([(
+            super::super::SCENARIO_HEADER.into(),
+            Payload { data: scenario.as_bytes().to_vec(), ..Default::default() },
+        )]),
+    });
+    Realization::configured(ProposalContext { start, run_id: RUN.into() })
+}
+
+fn describe(attempt: i32, status: i32, run_state: i32, last_failure: Option<Failure>) -> Any {
+    use umpire_temporal_api::temporal::api::{
+        activity::v1::ActivityExecutionInfo,
+        workflowservice::v1::{
+            DescribeActivityExecutionRequest, DescribeActivityExecutionResponse,
+        },
+    };
+    observed(
+        "DescribeActivityExecution",
+        &DescribeActivityExecutionRequest {
+            namespace: "ns".into(),
+            activity_id: "activity".into(),
+            run_id: RUN.into(),
+            include_outcome: true,
+            include_last_failure: true,
+            ..Default::default()
+        },
+        Ok(&DescribeActivityExecutionResponse {
+            run_id: RUN.into(),
+            info: Some(ActivityExecutionInfo {
+                activity_id: "activity".into(),
+                run_id: RUN.into(),
+                status,
+                run_state,
+                attempt,
+                last_failure,
+                ..Default::default()
+            }),
+            ..Default::default()
+        }),
+    )
+}
+
+/// A program the Describe evidence must consult refuses before search, as the pre-Reach
+/// projection did, instead of turning into an Unexplained judgment.
+#[test]
+fn describe_program_selection_refuses_before_search() {
+    use umpire_runtime::{Realize as _, protocol::RefusalCode};
+    let start = world().starts().remove(0);
+    let refused = |binding: &Realization, world: &activity::World, observation: &Any| {
+        binding.observe(world, observation, &start).err().map(|refusal| refusal.code())
+    };
+    let running = describe(1, 1, 1, None);
+    let retried = Some(Failure::application("MiniActivityFailure", "Retry", false));
+    assert_eq!(
+        refused(&programmed("Unknown", 3), &world(), &running),
+        Some(RefusalCode::Unsupported),
+        "an unknown scenario header refuses"
+    );
+    assert!(refused(&programmed("Complete", 3), &world(), &running).is_none());
+    let capped = activity::World::new(1, None, None, None, None);
+    assert_eq!(
+        refused(&programmed("RetryThenComplete", 1), &capped, &describe(2, 1, 1, retried.clone())),
+        Some(RefusalCode::Unsupported),
+        "an attempt beyond World.maximum_attempts refuses"
+    );
+    // A program contradicted before the over-cap attempt stays Unexplained, as before.
+    assert!(refused(&programmed("Complete", 1), &capped, &describe(2, 1, 1, retried)).is_none());
+    assert!(
+        refused(&programmed("RetryThenComplete", 1), &capped, &describe(2, 1, 1, None)).is_none()
+    );
+    assert!(
+        refused(&programmed("RetryThenComplete", 1), &capped, &describe(1, 1, 1, None)).is_none()
+    );
+}
+
+#[test]
+fn non_application_worker_failure_refuses() -> Result<(), Box<dyn std::error::Error>> {
+    let binding = binding();
+    let started = started()?;
+    let retried = edge(started, Worker::RespondFailed { retryable: true }.into())?;
+    let request = RespondActivityTaskFailedRequest {
+        namespace: "ns".into(),
+        task_token: vec![1],
+        failure: Some(Failure::default()),
+        ..Default::default()
+    };
+    let observation = observed(
+        "RespondActivityTaskFailed",
+        &request,
+        Ok(&RespondActivityTaskFailedResponse::default()),
+    );
+    let refusal =
+        binding.check_registered(&observation, &[&retried]).err().ok_or("failure was judged")?;
+    assert_eq!(refusal.code(), umpire_runtime::protocol::RefusalCode::Unsupported);
+    Ok(())
+}
+
+/// Recorded R4 exception: a programmed retryable failure observed as the terminal Failed status
+/// at attempt one is explained only when the World's cap leaves no retry. The pre-Reach
+/// candidate replay explained it under every cap while landing in a queued retry.
+#[test]
+fn terminal_retryable_failure_is_explained_only_at_the_cap() {
+    use umpire_runtime::{
+        Guest, Runtime,
+        testing::{GuestExt as _, ResponseExt as _},
+    };
+    use umpire_temporal_api::temporal::api::{
+        activity::v1::{
+            ActivityExecutionInfo, ActivityExecutionOutcome, activity_execution_outcome::Value,
+        },
+        workflowservice::v1::{
+            DescribeActivityExecutionRequest, DescribeActivityExecutionResponse,
+        },
+    };
+    let retry = Failure::application("MiniActivityFailure", "Retry", false);
+    let failed = observed(
+        "DescribeActivityExecution",
+        &DescribeActivityExecutionRequest {
+            namespace: "ns".into(),
+            activity_id: "activity".into(),
+            run_id: RUN.into(),
+            ..Default::default()
+        },
+        Ok(&DescribeActivityExecutionResponse {
+            run_id: RUN.into(),
+            info: Some(ActivityExecutionInfo {
+                activity_id: "activity".into(),
+                run_id: RUN.into(),
+                status: 3,
+                attempt: 1,
+                last_failure: Some(retry.clone()),
+                ..Default::default()
+            }),
+            outcome: Some(ActivityExecutionOutcome {
+                value: Some(Value::Failure(retry)),
+                ..Default::default()
+            }),
+            ..Default::default()
+        }),
+    );
+    for maximum in [1_u8, 2, 3] {
+        let world = activity::World::new(maximum, None, None, None, None);
+        let mut guest =
+            Guest::new(Runtime::new(world, programmed("RetryThenComplete", i32::from(maximum))));
+        let response = guest.judge(failed.clone());
+        if maximum == 1 {
+            assert_eq!(
+                response.explanation().steps,
+                ["Worker::Poll(1)", "Worker::RespondFailed { retryable: true }"]
+            );
+        } else {
+            response.unexplained();
+        }
+    }
 }

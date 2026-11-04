@@ -1,0 +1,9 @@
+error[E0308]: mismatched types
+  --> tests/ui/registry_refines_signature.rs:17:44
+   |
+17 |     #[refines(protocol = specimen, state = state, action = action, outcome = outcome,
+   |                                            ^^^^^ expected fn pointer, found fn item
+   |
+   = note: expected fn pointer `for<'a> fn(&'a Model) -> std::option::Option<Model>`
+                 found fn item `for<'a> fn(&'a Model) -> Model {<impl Binding>::state}`
+   = note: this error originates in the macro `umpire_temporal::registry` which comes from the expansion of the macro `specimen::action_metadata` (in Nightly builds, run with -Z macro-backtrace for more info)

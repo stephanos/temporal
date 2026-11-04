@@ -263,6 +263,7 @@ impl Binding {
                 method: "/temporal.api.workflowservice.v1.WorkflowService/DescribeActivityExecution",
                 types: ::core::marker::PhantomData,
             },
+            claims: &[],
             fill: Self::read_request,
             correlate: Self::read_correlation,
             project: Self::read_target,

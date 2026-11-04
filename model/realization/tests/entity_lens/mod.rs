@@ -15,6 +15,8 @@ use umpire_temporal_api::temporal::api::workflowservice::v1::{
 mod baseline;
 #[path = "../common/mod.rs"]
 mod common;
+#[path = "frozen.rs"]
+mod frozen;
 
 struct Pair {
     before: Guest<baseline::LiveRuntime>,
@@ -276,5 +278,78 @@ fn entity_lens_equivalence_oversized_publication_retains_admission_and_freeze() 
             publish(&mut before, &common::start(attempts)),
             publish(&mut after, &common::start(attempts))
         );
+    }
+}
+
+/// A bounded before/after sweep on configured programs: every scenario, retry cap and Describe
+/// shape (attempt, status, run state, outcome and retained failure) from a fresh admission.
+/// The one recorded R4 exception is skipped here and pinned by
+/// `terminal_retryable_failure_is_explained_only_at_the_cap`.
+#[test]
+fn entity_lens_equivalence_sweeps_configured_describe_shapes() {
+    use umpire_temporal::support::ApplicationFailure as _;
+    use umpire_temporal_api::temporal::api::{
+        activity::v1::{ActivityExecutionOutcome, activity_execution_outcome::Value},
+        failure::v1::Failure,
+        workflowservice::v1::DescribeActivityExecutionResponse,
+    };
+    let retry = || Failure::application("MiniActivityFailure", "Retry", false);
+    let fail = || Failure::application("MiniActivityFailure", "Fail", true);
+    for seed in 0..3_u64 {
+        let scenario =
+            ["Complete", "RetryThenComplete", "Fail"][usize::try_from(seed).unwrap_or(0)];
+        for maximum in 1..=3 {
+            for attempt in 1..=3 {
+                for (status, run_state) in [(1, 1), (1, 2), (2, 0), (3, 0)] {
+                    for (outcome, retained) in [
+                        (None, None),
+                        (Some(Value::Failure(retry())), Some(retry())),
+                        (Some(Value::Failure(fail())), Some(fail())),
+                        (None, Some(retry())),
+                    ] {
+                        let exception = scenario == "RetryThenComplete"
+                            && maximum > 1
+                            && attempt == 1
+                            && status == 3
+                            && matches!(&outcome, Some(Value::Failure(failure)) if *failure == retry());
+                        if exception {
+                            continue;
+                        }
+                        let mut pair = Pair::new();
+                        let reset = protocol::ResetRequest {
+                            configuration: common::start(maximum).request,
+                        }
+                        .encode_to_vec();
+                        pair.call(3, &reset, true);
+                        let response =
+                            pair.call(6, &protocol::ProposeRequest { seed }.encode_to_vec(), true);
+                        let Some(Outcome::Propose(proposal)) = response.outcome else {
+                            panic!("bootstrap proposal")
+                        };
+                        let mut start = common::start(maximum);
+                        start.request = proposal.request;
+                        pair.judge(&start, true);
+                        let mut describe = common::describe(attempt, status, run_state);
+                        let Some(ResultValue::Response(raw)) = describe.result else {
+                            panic!("describe response")
+                        };
+                        let mut response: DescribeActivityExecutionResponse =
+                            raw.unpack().unwrap_or_else(|error| panic!("{error:?}"));
+                        if status == 3 || outcome.is_some() {
+                            response.outcome =
+                                outcome.clone().map(|value| ActivityExecutionOutcome {
+                                    value: Some(value),
+                                    ..Default::default()
+                                });
+                        }
+                        if let Some(info) = response.info.as_mut() {
+                            info.last_failure = retained.clone();
+                        }
+                        describe.result = Some(ResultValue::Response(Any::pack(&response)));
+                        pair.judge(&describe, true);
+                    }
+                }
+            }
+        }
     }
 }

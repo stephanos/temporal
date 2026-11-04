@@ -266,13 +266,33 @@ fn describe_target_decodes_only_actual_fields() -> Result<(), Error> {
         });
         response
     };
-    assert!(
-        ActivityTarget::decode(&canceled(Some(FailureInfo::CanceledFailureInfo(
-            CanceledFailureInfo::default()
-        ))))
-        .is_ok()
-    );
-    assert!(ActivityTarget::decode(&canceled(None)).is_err(), "Canceled without its cause");
+    let cause = canceled(Some(FailureInfo::CanceledFailureInfo(CanceledFailureInfo::default())));
+    assert!(ActivityTarget::decode(&cause).is_ok() && ActivityTarget::agrees(&cause));
+    // A contradicting outcome is in the Model's vocabulary: it decodes, withholds evidence and
+    // is judged Unexplained rather than refused.
+    let uncaused = canceled(None);
+    assert!(ActivityTarget::decode(&uncaused).is_ok(), "contradiction is not a refusal");
+    assert!(!ActivityTarget::agrees(&uncaused), "Canceled without its cause");
+    let mut completed_failure = describe(2, 0, 1);
+    completed_failure.outcome = uncaused.outcome.clone();
+    assert!(!ActivityTarget::agrees(&completed_failure));
+    assert!(ActivityTarget::agrees(&describe(1, 1, 1)), "an absent outcome contradicts nothing");
+    for (status, agrees) in [(1, false), (2, true), (3, true), (4, false), (6, false)] {
+        let mut empty = describe(status, i32::from(status == 1), 1);
+        empty.outcome = Some(ActivityExecutionOutcome::default());
+        assert_eq!(ActivityTarget::agrees(&empty), agrees, "empty outcome at status {status}");
+    }
+    // Retained failures the protocol view does not classify stay unknown instead of refusing.
+    for info in [
+        FailureInfo::CanceledFailureInfo(CanceledFailureInfo::default()),
+        FailureInfo::TimeoutFailureInfo(TimeoutFailureInfo::default()),
+    ] {
+        let mut unclassified = describe(1, 1, 2);
+        unclassified.info.as_mut().ok_or("info")?.last_failure =
+            Some(Failure { failure_info: Some(info), ..Default::default() });
+        let target = ActivityTarget::decode(&unclassified).map_err(|refusal| refusal.message)?;
+        assert_eq!(target.0.retained_failure, Observed::Unknown);
+    }
     for (status, run_state, attempt) in
         [(1, 0, 1), (2, 2, 1), (0, 0, 1), (1, 1, 0), (7, 0, 1), (1, 4, 1)]
     {
@@ -282,5 +302,98 @@ fn describe_target_decodes_only_actual_fields() -> Result<(), Error> {
         );
     }
     assert!(ActivityTarget::decode(&DescribeActivityExecutionResponse::default()).is_err());
+    Ok(())
+}
+
+/// The live decoder and the offline observer agree on every reachable protocol view, once that
+/// view is written as the Describe response a server would return for it.
+#[test]
+fn describe_decoding_agrees_with_the_offline_view_on_every_reachable_state() -> Result<(), Error> {
+    lifted(describe_decoding_agrees_with_the_offline_view_on_every_reachable_state_checks)
+}
+
+fn describe_decoding_agrees_with_the_offline_view_on_every_reachable_state_checks()
+-> Result<(), Error> {
+    use crate::activity_protocol::view::{RunState, Status};
+    use umpire_temporal_api::temporal::api::enums::v1::{
+        ActivityExecutionStatus as Wire, PendingActivityState as Run,
+    };
+    let timeout = |kind: TimeoutType| Failure {
+        failure_info: Some(FailureInfo::TimeoutFailureInfo(TimeoutFailureInfo {
+            timeout_type: kind as i32,
+            ..Default::default()
+        })),
+        ..Default::default()
+    };
+    let application = |non_retryable| Failure {
+        failure_info: Some(FailureInfo::ApplicationFailureInfo(ApplicationFailureInfo {
+            non_retryable,
+            ..Default::default()
+        })),
+        ..Default::default()
+    };
+    for (maximum, timeouts) in WORLDS {
+        for state in reachable(&adapter::world(parameters(maximum, timeouts)?)?)? {
+            let view = View::from(&state);
+            let last_failure = match view.retained_failure {
+                RetainedFailure::None => None,
+                RetainedFailure::RetryableWorker => Some(application(false)),
+                RetainedFailure::PermanentWorker => Some(application(true)),
+                RetainedFailure::ScheduleToStart => Some(timeout(TimeoutType::ScheduleToStart)),
+                RetainedFailure::StartToClose => Some(timeout(TimeoutType::StartToClose)),
+                RetainedFailure::ScheduleToClose => Some(timeout(TimeoutType::ScheduleToClose)),
+                RetainedFailure::Heartbeat => Some(timeout(TimeoutType::Heartbeat)),
+            };
+            let (status, value) = match view.status {
+                Status::Running => (Wire::Running, None),
+                Status::Completed => (
+                    Wire::Completed,
+                    Some(Value::Result(
+                        umpire_temporal_api::temporal::api::common::v1::Payloads::default(),
+                    )),
+                ),
+                Status::Failed => (Wire::Failed, Some(Value::Failure(application(true)))),
+                Status::Canceled => (
+                    Wire::Canceled,
+                    Some(Value::Failure(Failure {
+                        failure_info: Some(FailureInfo::CanceledFailureInfo(
+                            CanceledFailureInfo::default(),
+                        )),
+                        ..Default::default()
+                    })),
+                ),
+                Status::TimedOut => {
+                    (Wire::TimedOut, Some(Value::Failure(timeout(TimeoutType::StartToClose))))
+                }
+            };
+            let run_state = match view.run_state {
+                Some(RunState::Scheduled) => Run::Scheduled,
+                Some(RunState::Started) => Run::Started,
+                Some(RunState::CancelRequested) => Run::CancelRequested,
+                None => Run::Unspecified,
+            };
+            let response = DescribeActivityExecutionResponse {
+                info: Some(ActivityExecutionInfo {
+                    status: status as i32,
+                    run_state: run_state as i32,
+                    attempt: i32::from(view.attempt),
+                    last_failure,
+                    ..Default::default()
+                }),
+                outcome: value.map(|value| ActivityExecutionOutcome {
+                    value: Some(value),
+                    ..Default::default()
+                }),
+                ..Default::default()
+            };
+            let decoded = ActivityTarget::decode(&response).map_err(|refusal| refusal.message)?;
+            let mut expected = ActivityTarget::observe(&view);
+            if view.retained_failure == RetainedFailure::None {
+                expected.0.retained_failure = Observed::Unknown;
+            }
+            assert_eq!(decoded, expected, "{state:?}");
+            assert!(ActivityTarget::agrees(&response), "{state:?}");
+        }
+    }
     Ok(())
 }

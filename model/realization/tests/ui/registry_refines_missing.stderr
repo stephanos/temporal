@@ -1,0 +1,32 @@
+error[E0277]: the trait bound `Binding: Refined` is not satisfied
+  --> tests/ui/registry_refines_missing.rs:30:15
+   |
+30 |     refined::<Binding>();
+   |               ^^^^^^^ unsatisfied trait bound
+   |
+help: the trait `Refined` is not implemented for `Binding`
+  --> tests/ui/../registry/signature_model.rs
+   |
+   | pub(crate) struct Binding;
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^
+help: the trait `Refined` is implemented for `Realization`
+  --> src/../../feature/activity/model.rs
+   |
+   |   #[machine]
+   |   ^^^^^^^^^^
+   |
+  ::: src/../../feature/activity/registry.rs
+   |
+   | / activity::action_metadata!(crate::registry; activity; {
+   | |     #[registry(inputs = FillInputs)]
+   | |     #[entity(rpc = WorkflowService::StartActivityExecution,
+   | |         request = StartActivityExecutionRequest, response = StartActivityExecutionResponse,
+...  |
+   | | });
+   | |__- in this macro invocation
+note: required by a bound in `refined`
+  --> tests/ui/registry_refines_missing.rs:28:15
+   |
+28 | fn refined<B: umpire_temporal::registry::Refined>() {}
+   |               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ required by this bound in `refined`
+   = note: this error originates in the macro `crate::registry` which comes from the expansion of the macro `activity::action_metadata` (in Nightly builds, run with -Z macro-backtrace for more info)

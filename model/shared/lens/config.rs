@@ -19,6 +19,8 @@ pub struct Entity<B: Identity, R, Q, S> {
 pub struct Read<B, W, R, Q, S, T> {
     /// Descriptor-admitted read method.
     pub rpc: Rpc<Q, S>,
+    /// Descriptor-checked response fields the projection claims; every other field is Ignored.
+    pub claims: &'static [&'static str],
     /// Construct from the current World and actual receipt.
     pub fill: fn(&B, &W, &R) -> Result<Q, Refusal>,
     /// Correlate the actual read request and response with their receipt.
