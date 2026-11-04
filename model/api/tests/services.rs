@@ -226,11 +226,14 @@ fn service_table_and_bindings_refuse_new_rpc_and_model_action()
     Ok(())
 }
 
-/// The reviewed service table and the activity feature's claims, as the API build reads them.
+/// The reviewed service table and the activity feature's registry claims, as the API build
+/// reads them.
 fn reviewed() -> Result<Declarations, Box<dyn std::error::Error>> {
     let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("..");
     let mut reviewed = declarations(&fs::read_to_string(root.join("foundation/service.rs"))?)?;
-    reviewed.extend(declarations(&fs::read_to_string(root.join("feature/activity/api.rs"))?)?);
+    for source in ["feature/activity/model.rs", "feature/activity/registry.rs"] {
+        reviewed.extend(declarations(&fs::read_to_string(root.join(source))?)?);
+    }
     Ok(reviewed)
 }
 
@@ -249,15 +252,15 @@ fn the_service_table_classifies_every_rpc_and_the_activity_feature_claims_nine()
     assert_eq!(
         claimed,
         [
+            "RequestCancelActivityExecution",
             "PollActivityTaskQueue",
-            "RecordActivityTaskHeartbeat",
             "RespondActivityTaskCompleted",
             "RespondActivityTaskFailed",
+            "RecordActivityTaskHeartbeat",
             "RespondActivityTaskCanceled",
             "StartActivityExecution",
             "DescribeActivityExecution",
             "PollActivityExecution",
-            "RequestCancelActivityExecution",
         ]
     );
     let resolved = resolve(reviewed)?;
@@ -298,12 +301,17 @@ fn a_dropped_claim_or_an_unclaimed_annotated_rpc_fails_generation()
     services::generate(bytes, &coverage, &resolve(reviewed()?)?)?;
     for dropped_method in ["DescribeActivityExecution", "RecordActivityTaskHeartbeat"] {
         let mut dropped = reviewed()?;
-        let claim = &mut dropped.claims[0];
-        let index = claim
-            .coverage
-            .methods
-            .iter()
-            .position(|method| method.name == dropped_method)
+        let (claim, index) = dropped
+            .claims
+            .iter_mut()
+            .find_map(|claim| {
+                let index = claim
+                    .coverage
+                    .methods
+                    .iter()
+                    .position(|method| method.name == dropped_method)?;
+                Some((claim, index))
+            })
             .ok_or("missing reviewed claim")?;
         claim.coverage.methods.remove(index);
         claim.bindings.remove(index);
