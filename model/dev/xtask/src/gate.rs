@@ -103,6 +103,14 @@ pub(crate) fn cargo(arguments: &[&str]) -> Command {
     // `$CARGO_HOME/bin` first, where a stale host install could shadow the pin.
     let program = if arguments.first() == Some(&"nextest") { "cargo-nextest" } else { "cargo" };
     let mut command = Command::new("mise");
+    // Give the directly run runner the `CARGO` that `cargo nextest` would have exported, so
+    // nested tools (trybuild) use the real toolchain Cargo rather than the managed shim.
+    if program == "cargo-nextest"
+        && let Some(real) =
+            std::env::var_os("BUILD_CACHE_REAL_CARGO").filter(|real| !real.is_empty())
+    {
+        command.env("CARGO", real);
+    }
     command.args(["exec", "--", program]).args(arguments);
     command
 }
