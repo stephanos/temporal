@@ -62,6 +62,7 @@ fn stage_with_inventory(
     mut command: Command,
     inventory: Option<&[u8]>,
 ) -> io::Result<i32> {
+    xtask::gate::source_context::verify_consumer(root)?;
     admit_command(name, &mut command)?;
     command.current_dir(root);
     let started = std::time::Instant::now();

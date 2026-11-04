@@ -24,6 +24,11 @@ target_seconds = 180.0
 [tiers.validate]
 target_seconds = 600.0
 
+# Required by the shared schema. The paired quick command bridges to the framework quick,
+# which reports its total against the framework table's quick target (R6's 60 s).
+[tiers.quick]
+target_seconds = 60.0
+
 [stages."temporal/temporal-prerequisites"]
 reason = "Temporal tool provisioning; observed 2.7 s"
 warm_seconds = { check = 20.0, validate = 20.0 }

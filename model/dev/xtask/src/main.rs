@@ -75,9 +75,20 @@ fn bridge(root: &Path, mut arguments: Vec<OsString>) -> io::Result<i32> {
 }
 
 fn run() -> io::Result<i32> {
+    xtask::gate::controller_context::initialize()?;
     xtask::gate::work_counts::owns_controller()?;
     let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..").canonicalize()?;
     let mut supplied: Vec<_> = env::args_os().skip(1).collect();
+    // Freeze the paired source before gate work, so stage retries and completion can refuse
+    // changed inputs. The timing parent owns its benchmark touch between separately admitted
+    // gate legs, so it does not freeze the source it is about to touch.
+    let command = supplied
+        .iter()
+        .find(|argument| argument.as_os_str() != "__owned-command")
+        .map(OsString::as_os_str);
+    if command.is_some_and(|command| command != "time") {
+        xtask::gate::source_context::admit_consumer(&root, &supplied)?;
+    }
     let _lease = if supplied.first().is_some_and(|arg| arg == "__owned-command") {
         supplied.remove(0);
         if env::var_os("UMPIRE_JVM_LEASE_FD").is_none() {
@@ -156,7 +167,16 @@ fn run() -> io::Result<i32> {
 }
 
 fn main() {
-    let status = match run() {
+    let result = run();
+    // A completed gate also requires its admitted source to be unchanged.
+    let custody = xtask::gate::source_context::verify();
+    let result = result.and_then(|status| {
+        if status == 0 {
+            custody?;
+        }
+        Ok(status)
+    });
+    let status = match result {
         Ok(status) => status,
         Err(error) => {
             let _ = writeln!(io::stderr(), "temporal-xtask: {error}");
