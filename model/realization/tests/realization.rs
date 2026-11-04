@@ -500,3 +500,19 @@ fn skipped_retry_projection_never_accepts_a_path_that_stops_before_the_observed_
         guest.judge(Any::pack(&observed)).unexplained();
     }
 }
+
+/// With a pending cancellation a retryable failure ends the activity, so a later queued attempt
+/// is unexplained; the pre-Reach candidate replay explained it while landing in Failed.
+#[test]
+fn pending_cancellation_never_explains_a_retried_attempt() {
+    let mut guest = Guest::new(runtime());
+    explained(guest.judge(observation(1, 2)), &["Worker::Poll(1)"]);
+    explained(guest.judge(cancel(None)), &["Worker::Poll(1)", "Client::Cancel"]);
+    let mut retried: Observation = observation(1, 1).unpack().unwrap_or_else(|e| panic!("{e:?}"));
+    let Some(ObservationResult::Response(response)) = retried.result else { panic!("response") };
+    let mut response: DescribeActivityExecutionResponse =
+        response.unpack().unwrap_or_else(|e| panic!("{e:?}"));
+    response.info.as_mut().unwrap_or_else(|| panic!("info")).attempt = 2;
+    retried.result = Some(ObservationResult::Response(Any::pack(&response)));
+    guest.judge(Any::pack(&retried)).unexplained();
+}

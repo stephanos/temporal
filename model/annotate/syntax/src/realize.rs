@@ -1122,6 +1122,41 @@ fn expand_scoped(
 }
 
 #[cfg(test)]
+mod reach_options_controls {
+    use super::*;
+
+    #[test]
+    fn reach_declarations_refuse_duplicates_missing_and_unknown_options() -> syn::Result<()> {
+        for (attributes, expected) in [
+            (
+                "#[reach(target = T, project = p, evidence = e)] #[reach(target = T, project = p, evidence = e)]",
+                "duplicate reach declaration",
+            ),
+            ("#[reach(target = T, project = p)]", "reach declaration requires evidence"),
+            ("#[reach(project = p, evidence = e)]", "reach declaration requires target"),
+            (
+                "#[reach(target = T, project = p, evidence = e, other = x)]",
+                "unknown or duplicate reach option",
+            ),
+            (
+                "#[reach(target = T, target = U, project = p, evidence = e)]",
+                "unknown or duplicate reach option",
+            ),
+        ] {
+            let mut item: ItemImpl = syn::parse_str(&format!("{attributes} impl Binding {{}}"))?;
+            let error = reach_options(&mut item)
+                .err()
+                .ok_or_else(|| syn::Error::new(Span::call_site(), attributes))?;
+            assert!(error.to_string().contains(expected), "{attributes}: {error}");
+        }
+        let mut item: ItemImpl =
+            syn::parse_str("#[reach(target = T, project = p, evidence = e)] impl Binding {}")?;
+        assert!(reach_options(&mut item)?.is_some() && item.attrs.is_empty());
+        Ok(())
+    }
+}
+
+#[cfg(test)]
 mod proposal_options_controls {
     use super::*;
 

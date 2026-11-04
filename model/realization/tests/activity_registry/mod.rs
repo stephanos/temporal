@@ -501,3 +501,104 @@ fn evidence_ignores_unclaimed_fields_of_realistic_worker_traffic()
     assert!(binding.check_registered(&evidence, &[&beat]).is_err());
     Ok(())
 }
+
+fn programmed(scenario: &str, maximum: i32) -> Realization {
+    use umpire_temporal_api::temporal::api::common::v1::{Header, Payload};
+    let mut start = start();
+    start.retry_policy = Some(RetryPolicy { maximum_attempts: maximum, ..Default::default() });
+    start.header = Some(Header {
+        fields: std::collections::BTreeMap::from([(
+            super::super::SCENARIO_HEADER.into(),
+            Payload { data: scenario.as_bytes().to_vec(), ..Default::default() },
+        )]),
+    });
+    Realization::configured(ProposalContext { start, run_id: RUN.into() })
+}
+
+fn describe(attempt: i32, status: i32, run_state: i32, last_failure: Option<Failure>) -> Any {
+    use umpire_temporal_api::temporal::api::{
+        activity::v1::ActivityExecutionInfo,
+        workflowservice::v1::{
+            DescribeActivityExecutionRequest, DescribeActivityExecutionResponse,
+        },
+    };
+    observed(
+        "DescribeActivityExecution",
+        &DescribeActivityExecutionRequest {
+            namespace: "ns".into(),
+            activity_id: "activity".into(),
+            run_id: RUN.into(),
+            include_outcome: true,
+            include_last_failure: true,
+            ..Default::default()
+        },
+        Ok(&DescribeActivityExecutionResponse {
+            run_id: RUN.into(),
+            info: Some(ActivityExecutionInfo {
+                activity_id: "activity".into(),
+                run_id: RUN.into(),
+                status,
+                run_state,
+                attempt,
+                last_failure,
+                ..Default::default()
+            }),
+            ..Default::default()
+        }),
+    )
+}
+
+/// A program the Describe evidence must consult refuses before search, as the pre-Reach
+/// projection did, instead of turning into an Unexplained judgment.
+#[test]
+fn describe_program_selection_refuses_before_search() {
+    use umpire_runtime::{Realize as _, protocol::RefusalCode};
+    let start = world().starts().remove(0);
+    let refused = |binding: &Realization, world: &activity::World, observation: &Any| {
+        binding.observe(world, observation, &start).err().map(|refusal| refusal.code())
+    };
+    let running = describe(1, 1, 1, None);
+    let retried = Some(Failure::application("MiniActivityFailure", "Retry", false));
+    assert_eq!(
+        refused(&programmed("Unknown", 3), &world(), &running),
+        Some(RefusalCode::Unsupported),
+        "an unknown scenario header refuses"
+    );
+    assert!(refused(&programmed("Complete", 3), &world(), &running).is_none());
+    let capped = activity::World::new(1, None, None, None, None);
+    assert_eq!(
+        refused(&programmed("RetryThenComplete", 1), &capped, &describe(2, 1, 1, retried.clone())),
+        Some(RefusalCode::Unsupported),
+        "an attempt beyond World.maximum_attempts refuses"
+    );
+    // A program contradicted before the over-cap attempt stays Unexplained, as before.
+    assert!(refused(&programmed("Complete", 1), &capped, &describe(2, 1, 1, retried)).is_none());
+    assert!(
+        refused(&programmed("RetryThenComplete", 1), &capped, &describe(2, 1, 1, None)).is_none()
+    );
+    assert!(
+        refused(&programmed("RetryThenComplete", 1), &capped, &describe(1, 1, 1, None)).is_none()
+    );
+}
+
+#[test]
+fn non_application_worker_failure_refuses() -> Result<(), Box<dyn std::error::Error>> {
+    let binding = binding();
+    let started = started()?;
+    let retried = edge(started, Worker::RespondFailed { retryable: true }.into())?;
+    let request = RespondActivityTaskFailedRequest {
+        namespace: "ns".into(),
+        task_token: vec![1],
+        failure: Some(Failure::default()),
+        ..Default::default()
+    };
+    let observation = observed(
+        "RespondActivityTaskFailed",
+        &request,
+        Ok(&RespondActivityTaskFailedResponse::default()),
+    );
+    let refusal =
+        binding.check_registered(&observation, &[&retried]).err().ok_or("failure was judged")?;
+    assert_eq!(refusal.code(), umpire_runtime::protocol::RefusalCode::Unsupported);
+    Ok(())
+}

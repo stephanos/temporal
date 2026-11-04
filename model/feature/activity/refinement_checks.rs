@@ -75,6 +75,11 @@ fn mapped(
     edited(scope, |_, _, steps| steps, relation)
 }
 
+/// Whether some offending edge is reported for exactly this reason.
+fn failed_because(report: &Report, reason: &str) -> bool {
+    report.violations.iter().any(|violation| violation.ends_with(reason))
+}
+
 const ALL_TIMERS: Scope = (3, [Some(3); 4]);
 const SPANNING: Scope = (3, [Some(3), Some(1), Some(3), None]);
 const HEARTBEAT: Scope = (3, [None, None, None, Some(2)]);
@@ -131,80 +136,136 @@ fn hidden_budget_controls_fail_even_where_public_views_match() -> TestResult {
     };
     let mut wrong_outcome = relation();
     wrong_outcome.outcome = |_| Outcome::Accepted;
-    for (name, scope, relation) in [
-        ("erased heartbeat budget", ALL_TIMERS, erased),
-        ("defaulted spanning budget", ALL_TIMERS, defaulted),
-        ("visible-equal Tick stutter", ALL_TIMERS, tick_stutter),
-        ("visible-equal Heartbeat stutter", ALL_TIMERS, heartbeat_stutter),
-        ("swapped expiry fact", HEARTBEAT, swapped_fact),
-        ("wrong action projection", ALL_TIMERS, wrong_action),
-        ("erased rejection outcome", ALL_TIMERS, wrong_outcome),
+    for (name, scope, relation, reason) in [
+        ("erased heartbeat budget", ALL_TIMERS, erased, "reaches a different state"),
+        ("defaulted spanning budget", ALL_TIMERS, defaulted, "reaches a different state"),
+        ("visible-equal Tick stutter", ALL_TIMERS, tick_stutter, "stutter changes abstract state"),
+        (
+            "visible-equal Heartbeat stutter",
+            ALL_TIMERS,
+            heartbeat_stutter,
+            "stutter changes abstract state",
+        ),
+        ("swapped expiry fact", HEARTBEAT, swapped_fact, "emits different facts"),
+        ("wrong action projection", ALL_TIMERS, wrong_action, "reaches a different state"),
+        ("erased rejection outcome", ALL_TIMERS, wrong_outcome, "has a different outcome"),
     ] {
         let report = mapped(scope, &relation)?;
         assert_eq!(report.verdict(), Verdict::Violated, "{name}: {report}");
+        assert!(failed_because(&report, reason), "{name}: {report}");
     }
     Ok(())
 }
 
 #[test]
+#[expect(clippy::too_many_lines, reason = "one independently specified protocol edit per control")]
 fn changed_timer_reset_spanning_priority_and_start_edges_fail() -> TestResult {
-    let edits: [(&str, Scope, Edit); 6] = [
-        ("countdown skips heartbeat", ALL_TIMERS, |before, action, mut steps| {
-            if *action == protocol::Timer::Tick.into() {
-                for step in &mut steps {
-                    if step.2.lifecycle == protocol::Lifecycle::Executing {
+    let edits: [(&str, Scope, Edit, &str); 6] = [
+        (
+            "countdown skips heartbeat",
+            ALL_TIMERS,
+            |before, action, mut steps| {
+                if *action == protocol::Timer::Tick.into() {
+                    for step in &mut steps {
+                        if step.2.lifecycle == protocol::Lifecycle::Executing {
+                            step.2.heartbeat_budget = before.heartbeat_budget;
+                        }
+                    }
+                }
+                steps
+            },
+            "reaches a different state",
+        ),
+        (
+            "heartbeat does not reset",
+            ALL_TIMERS,
+            |before, action, mut steps| {
+                if *action == protocol::Worker::Heartbeat.into() {
+                    for step in &mut steps {
                         step.2.heartbeat_budget = before.heartbeat_budget;
                     }
                 }
-            }
-            steps
-        }),
-        ("heartbeat does not reset", ALL_TIMERS, |before, action, mut steps| {
-            if *action == protocol::Worker::Heartbeat.into() {
+                steps
+            },
+            "reaches a different state",
+        ),
+        (
+            "retry replenishes spanning budget",
+            SPANNING,
+            |before, _, mut steps| {
                 for step in &mut steps {
-                    step.2.heartbeat_budget = before.heartbeat_budget;
-                }
-            }
-            steps
-        }),
-        ("retry replenishes spanning budget", SPANNING, |before, _, mut steps| {
-            for step in &mut steps {
-                if step.2.attempt != before.attempt && step.2.execution_budget.is_some() {
-                    step.2.execution_budget = Some(protocol::Remaining { ticks: 3 });
-                }
-            }
-            steps
-        }),
-        ("local expiry outranks spanning expiry", ALL_TIMERS, |_, _, mut steps| {
-            for step in &mut steps {
-                for fact in &mut step.1 {
-                    if *fact == protocol::Expired::ScheduleToClose {
-                        *fact = protocol::Expired::StartToClose;
+                    if step.2.attempt != before.attempt && step.2.execution_budget.is_some() {
+                        step.2.execution_budget = Some(protocol::Remaining { ticks: 3 });
                     }
                 }
-            }
-            steps
-        }),
-        ("cancellation acknowledgement completes", ALL_TIMERS, |_, action, mut steps| {
-            if matches!(action, protocol::Action::Worker(protocol::Worker::AcknowledgeCancel(_))) {
-                for step in &mut steps {
-                    if step.2.terminal_outcome == protocol::Terminal::Canceled {
-                        step.2.terminal_outcome = protocol::Terminal::Completed;
+                steps
+            },
+            "reaches a different state",
+        ),
+        (
+            "local expiry outranks spanning expiry",
+            ALL_TIMERS,
+            |before, action, mut steps| {
+                let one = Some(protocol::Remaining { ticks: 1 });
+                if *action == protocol::Timer::Tick.into()
+                    && before.execution_budget == one
+                    && before.attempt_budget == one
+                    && before.attempt < 3
+                {
+                    // Simultaneous expiry takes the attempt branch: a retry with its own cause.
+                    for step in &mut steps {
+                        step.1 = vec![protocol::Expired::StartToClose];
+                        step.2 = protocol::Model {
+                            lifecycle: protocol::Lifecycle::Queued,
+                            attempt: before.attempt + 1,
+                            cancellation_pending: false,
+                            terminal_outcome: protocol::Terminal::None,
+                            retained_failure: protocol::Failure::StartToClose,
+                            queued_budget: Some(protocol::Remaining { ticks: 3 }),
+                            attempt_budget: None,
+                            execution_budget: Some(protocol::Remaining { ticks: 0 }),
+                            heartbeat_budget: None,
+                        };
                     }
                 }
-            }
-            steps
-        }),
-        ("rejection becomes acceptance", ALL_TIMERS, |_, _, mut steps| {
-            for step in &mut steps {
-                step.0 = Outcome::Accepted;
-            }
-            steps
-        }),
+                steps
+            },
+            "emits different facts",
+        ),
+        (
+            "cancellation acknowledgement completes",
+            ALL_TIMERS,
+            |_, action, mut steps| {
+                if matches!(
+                    action,
+                    protocol::Action::Worker(protocol::Worker::AcknowledgeCancel(_))
+                ) {
+                    for step in &mut steps {
+                        if step.2.terminal_outcome == protocol::Terminal::Canceled {
+                            step.2.terminal_outcome = protocol::Terminal::Completed;
+                        }
+                    }
+                }
+                steps
+            },
+            "reaches a different state",
+        ),
+        (
+            "rejection becomes acceptance",
+            ALL_TIMERS,
+            |_, _, mut steps| {
+                for step in &mut steps {
+                    step.0 = Outcome::Accepted;
+                }
+                steps
+            },
+            "has a different outcome",
+        ),
     ];
-    for (name, scope, edit) in edits {
+    for (name, scope, edit, reason) in edits {
         let report = edited(scope, edit, &relation())?;
         assert_eq!(report.verdict(), Verdict::Violated, "{name}: {report}");
+        assert!(failed_because(&report, reason), "{name}: {report}");
     }
     let (concrete, feature) = worlds(ALL_TIMERS)?;
     let started = Mutant {

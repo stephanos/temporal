@@ -441,7 +441,9 @@ activity::action_metadata!(crate::registry; activity; {
         ) -> Result<umpire_runtime::EvidenceMatch, Refusal> {
             self.correlated(&request.namespace, None, None)?;
             let Some(retryable) = request.failure.as_ref().and_then(Self::retryable) else {
-                return Ok(umpire_runtime::EvidenceMatch::Reject);
+                return Err(Refusal::unsupported(
+                    "worker failure without application retryability is outside the Model",
+                ));
             };
             Ok(Self::edge(path, Self::outcome(&response)?, |action| {
                 *action == Action::from(Worker::RespondFailed { retryable })
@@ -511,7 +513,7 @@ impl Realization {
 
     pub(super) fn reach_projection(
         &self,
-        _: &activity::World,
+        world: &activity::World,
         observation: &Any,
         state: &activity::Model,
     ) -> Result<umpire_runtime::Projection<Action, Outcome, ActivityTarget>, Refusal> {
@@ -541,7 +543,7 @@ impl Realization {
                     .info
                     .as_ref()
                     .ok_or_else(|| Refusal::malformed("activity info is missing"))?;
-                activity::Phase::try_from(info.clone())?;
+                let phase = activity::Phase::try_from(info.clone())?;
                 let attempt = u8::try_from(info.attempt).map_err(|_| {
                     Refusal::unsupported("Describe attempt is outside maximum_attempts")
                 })?;
@@ -551,18 +553,59 @@ impl Realization {
                     ));
                 }
                 if let Some(context) = &self.context {
-                    Self::scenario(context)?;
+                    let scenario = Self::scenario(context)?;
                     for failure in [info.last_failure.as_ref(), Self::outcome_failure(&response)]
                         .into_iter()
                         .flatten()
                     {
                         Self::programmed_failure(failure)?;
                     }
+                    // Every programmed response the evidence consults is selected here, so an
+                    // unknown scenario or an attempt beyond the World's cap refuses before
+                    // search; evidence matching then cannot fail. An inconsistent snapshot is
+                    // Unexplained before any response is selected.
+                    if Self::consistent(phase, attempt, &response) {
+                        self.select_programmed(world, scenario, state.attempt, phase, &response)?;
+                    }
                 }
                 Ok(umpire_runtime::Projection::Reach((Self::read().project)(self, &response)?))
             }
             _ => Err(Refusal::unsupported("unsupported observation method")),
         }
+    }
+
+    /// Select, in the pre-Reach order, every programmed response a Describe's evidence
+    /// consults, stopping where that evidence is already contradicted.
+    fn select_programmed(
+        &self,
+        world: &activity::World,
+        scenario: &str,
+        current: u8,
+        phase: activity::Phase,
+        response: &DescribeActivityExecutionResponse,
+    ) -> Result<(), Refusal> {
+        let info =
+            response.info.as_ref().ok_or_else(|| Refusal::malformed("activity info is missing"))?;
+        let attempt = u8::try_from(info.attempt)
+            .map_err(|_| Refusal::unsupported("Describe attempt is outside maximum_attempts"))?;
+        let retry = Worker::RespondFailed { retryable: true };
+        if attempt > 1 && phase != activity::Phase::Failed {
+            let (action, expected) = self.response(world, scenario, i32::from(attempt - 1))?;
+            if action != retry {
+                return Ok(());
+            }
+            let expected: RespondActivityTaskFailedRequest = expected.unpack()?;
+            if !Self::same_failure(info.last_failure.as_ref(), expected.failure.as_ref()) {
+                return Ok(());
+            }
+        }
+        for skipped in current..attempt {
+            if self.response(world, scenario, i32::from(skipped))?.0 != retry {
+                return Ok(());
+            }
+        }
+        self.response(world, scenario, info.attempt)?;
+        Ok(())
     }
 
     pub(super) fn reach_evidence(
@@ -593,7 +636,8 @@ impl Realization {
             DESCRIBE => self.describe_evidence(observed, path),
             _ => Ok(umpire_runtime::EvidenceMatch::Reject),
         };
-        // Projection raised every admission refusal before search; a later failure is no evidence.
+        // Projection already raised every refusal these predicates can reach: correlation, the
+        // status code, the scenario and every programmed response. A failure here is no evidence.
         evidence.unwrap_or(umpire_runtime::EvidenceMatch::Reject)
     }
 
@@ -625,28 +669,33 @@ impl Realization {
         }
         if attempt > 1 && phase != activity::Phase::Failed {
             let (action, expected) = self.response(&world, scenario, i32::from(attempt - 1))?;
+            if action != (Worker::RespondFailed { retryable: true }) {
+                return reject;
+            }
             let expected: RespondActivityTaskFailedRequest = expected.unpack()?;
-            if action != (Worker::RespondFailed { retryable: true })
-                || !Self::same_failure(info.last_failure.as_ref(), expected.failure.as_ref())
-            {
+            if !Self::same_failure(info.last_failure.as_ref(), expected.failure.as_ref()) {
                 return reject;
             }
         }
         let (programmed, expected) = self.response(&world, scenario, info.attempt)?;
         match phase {
             activity::Phase::Completed => {
+                if programmed != Worker::RespondCompleted {
+                    return reject;
+                }
                 let expected: RespondActivityTaskCompletedRequest = expected.unpack()?;
                 let result = response.outcome.as_ref().and_then(|outcome| outcome.value.as_ref());
-                if programmed != Worker::RespondCompleted
-                    || !matches!(result, Some(Value::Result(result)) if expected.result.as_ref() == Some(result))
+                if !matches!(result, Some(Value::Result(result)) if expected.result.as_ref() == Some(result))
                 {
                     return reject;
                 }
             }
             activity::Phase::Failed => {
+                if !matches!(programmed, Worker::RespondFailed { .. }) {
+                    return reject;
+                }
                 let expected: RespondActivityTaskFailedRequest = expected.unpack()?;
-                if !matches!(programmed, Worker::RespondFailed { .. })
-                    || Self::outcome_failure(&response).is_none()
+                if Self::outcome_failure(&response).is_none()
                     || !Self::same_failure(
                         Self::outcome_failure(&response),
                         expected.failure.as_ref(),
@@ -712,16 +761,38 @@ impl Realization {
         }
     }
 
-    /// A retained failure at a first attempt that has not failed contradicts the snapshot.
+    /// The snapshot does not contradict itself: no retained failure at a first attempt that has
+    /// not failed, no outcome while open, and a closing cancellation or timeout carries its cause.
     fn consistent(
         phase: activity::Phase,
         attempt: u8,
         response: &DescribeActivityExecutionResponse,
     ) -> bool {
+        use umpire_temporal_api::temporal::api::failure::v1::failure::FailureInfo;
         let retained = response.info.as_ref().is_some_and(|info| info.last_failure.is_some());
-        attempt > 1
-            || matches!(phase, activity::Phase::Failed | activity::Phase::TimedOut)
-            || !retained
+        if attempt == 1
+            && !matches!(phase, activity::Phase::Failed | activity::Phase::TimedOut)
+            && retained
+        {
+            return false;
+        }
+        let Some(outcome) = response.outcome.as_ref() else {
+            return true;
+        };
+        let cause = |cause: fn(&FailureInfo) -> bool| {
+            matches!(&outcome.value, Some(Value::Failure(failure))
+                if failure.failure_info.as_ref().is_some_and(cause))
+        };
+        match phase {
+            activity::Phase::Scheduled | activity::Phase::Started => false,
+            activity::Phase::Canceled => {
+                cause(|info| matches!(info, FailureInfo::CanceledFailureInfo(_)))
+            }
+            activity::Phase::TimedOut => {
+                cause(|info| matches!(info, FailureInfo::TimeoutFailureInfo(_)))
+            }
+            activity::Phase::Completed | activity::Phase::Failed => true,
+        }
     }
 
     fn outcome_failure(response: &DescribeActivityExecutionResponse) -> Option<&Failure> {

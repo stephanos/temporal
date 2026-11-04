@@ -1,0 +1,25 @@
+error: a Reach realization projects every observation through its hook; #[observe] handlers are not admitted
+  --> tests/ui/realization_reach_observe.rs:10:15
+   |
+10 |     #[observe(WorkflowService::RequestCancelActivityExecution)]
+   |               ^^^^^^^^^^^^^^^
+
+warning: unused imports: `Step` and `activity`
+ --> tests/ui/realization_reach_observe.rs:1:23
+  |
+1 | use umpire_temporal::{Step, activity, realization};
+  |                       ^^^^  ^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused import: `umpire_runtime::protocol::Refusal`
+ --> tests/ui/realization_reach_observe.rs:2:5
+  |
+2 | use umpire_runtime::protocol::Refusal;
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `umpire_temporal_api::temporal::api::workflowservice::v1::RequestCancelActivityExecutionResponse`
+ --> tests/ui/realization_reach_observe.rs:3:5
+  |
+3 | use umpire_temporal_api::temporal::api::workflowservice::v1::RequestCancelActivityExecutionResponse;
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
