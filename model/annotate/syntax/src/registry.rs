@@ -218,10 +218,14 @@ struct Rpc {
     declared_request: Type,
     declared_response: Type,
     request_guards: TokenStream,
-    response_guards: TokenStream,
 }
 
-fn rpc(options: &Options, schema: &Schema, span: Span) -> syn::Result<Rpc> {
+/// Resolve a declared `Service::Method` to its descriptor service and method names.
+fn method_path(
+    options: &Options,
+    schema: &Schema,
+    span: Span,
+) -> syn::Result<(Path, String, String)> {
     let path: Path = options.required("rpc", span)?;
     let names: Vec<_> = path.segments.iter().map(|segment| segment.ident.to_string()).collect();
     if names.len() < 2 {
@@ -235,7 +239,13 @@ fn rpc(options: &Options, schema: &Schema, span: Span) -> syn::Result<Rpc> {
     } else {
         names[..names.len() - 1].join(".")
     };
-    let method = names.last().ok_or_else(|| syn::Error::new(span, "missing RPC method"))?;
+    let method = names.last().ok_or_else(|| syn::Error::new(span, "missing RPC method"))?.clone();
+    Ok((path, service, method))
+}
+
+fn rpc(options: &Options, schema: &Schema, span: Span) -> syn::Result<Rpc> {
+    let (path, service, method) = method_path(options, schema, span)?;
+    let method = &method;
     let node =
         schema.method(&service, method).map_err(|error| syn::Error::new(path.span(), error))?;
     let request =
@@ -248,6 +258,8 @@ fn rpc(options: &Options, schema: &Schema, span: Span) -> syn::Result<Rpc> {
             .map_err(|error| syn::Error::new(path.span(), error))?;
         schema.guards(name, &fields, &value).map_err(|error| syn::Error::new(path.span(), error))
     };
+    // Response reads are claims only: resolving them refuses unknown or opaque paths.
+    guards(&response.name, "response_reads", quote!(__response))?;
     Ok(Rpc {
         method: format!("/{service}/{method}"),
         request: syn::parse_str(&request.rust_type)?,
@@ -255,7 +267,6 @@ fn rpc(options: &Options, schema: &Schema, span: Span) -> syn::Result<Rpc> {
         declared_request: options.required("request", span)?,
         declared_response: options.required("response", span)?,
         request_guards: guards(&request.name, "request_reads", quote!(__request))?,
-        response_guards: guards(&response.name, "response_reads", quote!(__response))?,
     })
 }
 
@@ -275,6 +286,29 @@ impl Rpc {
         let method = &self.method;
         quote!(#runtime::registry::Rpc { method: #method, types: ::core::marker::PhantomData })
     }
+}
+
+/// Explicit Observed RPCs outside the action graph, each with its descriptor-checked reason.
+fn observed(item: &mut ItemImpl, schema: &Schema) -> syn::Result<Vec<TokenStream>> {
+    let mut result = Vec::new();
+    let mut seen = BTreeSet::new();
+    for attribute in item.attrs.iter().filter(|attribute| attribute.path().is_ident("observed")) {
+        let options: Options = attribute.parse_args()?;
+        options.admit(&["rpc", "reason"], attribute.span())?;
+        let reason: LitStr = options.required("reason", attribute.span())?;
+        if reason.value().trim().is_empty() {
+            return Err(syn::Error::new(reason.span(), "observed reason must not be empty"));
+        }
+        let (path, service, method) = method_path(&options, schema, attribute.span())?;
+        schema.method(&service, &method).map_err(|error| syn::Error::new(path.span(), error))?;
+        let method = format!("/{service}/{method}");
+        if !seen.insert(method.clone()) {
+            return Err(syn::Error::new(path.span(), "duplicate observed RPC"));
+        }
+        result.push(quote!((#method, #reason)));
+    }
+    item.attrs.retain(|attribute| !attribute.path().is_ident("observed"));
+    Ok(result)
 }
 
 fn take(item: &mut ItemImpl, name: &str) -> syn::Result<Option<Options>> {
@@ -376,6 +410,7 @@ fn expand_scoped(
     let inputs: Type = options.required("inputs", item.span())?;
     let entity = take(item, "entity")?;
     let read = take(item, "read")?;
+    let observed = observed(item, schema)?;
     let configuration =
         configurations(item, model, runtime, schema, entity.as_ref(), read.as_ref())?;
     let rows = rows(&input.actors)?;
@@ -407,9 +442,19 @@ fn expand_scoped(
         .map(|index| quote!(__predicates[#index](self, &__observed, path)))
         .collect();
     let check = action_dispatch(model, &input.actors, &rows, &selected);
+    let observed = (!observed.is_empty()).then(|| {
+        quote! {
+            impl #ty {
+                /// Observed RPCs outside the action graph and their declared reasons.
+                pub const OBSERVED: &'static [(&'static str, &'static str)] = &[#(#observed),*];
+            }
+        }
+    });
     Ok(quote! {
         #item
+        #observed
         #[doc = "Typed requests constructed by this binding's admitted registry."]
+        #[allow(clippy::large_enum_variant, reason = "one transient request per filled action")]
         #visibility enum #request_sum { #(#request_variants),* }
         impl ::umpire_runtime::capability::Request for #request_sum {
             fn pack_request(&self) -> ::umpire_runtime::prost_types::Any { #pack }
@@ -563,7 +608,7 @@ fn dispatches(
             let fill: Ident = row.options.required("fill", span)?;
             let sum_variant = format_ident!("Action{index}");
             let request_doc = format!("Canonical descriptor request for {actor}::{variant}.");
-            let Rpc { method, request, response, request_guards, response_guards, .. } = &rpc;
+            let Rpc { method, request, response, request_guards, .. } = &rpc;
             let witnesses = rpc.witnesses();
             if methods.insert(method.clone()) {
                 admission.push(quote! {
@@ -588,11 +633,11 @@ fn dispatches(
             evidence.push(quote! {
                 #witnesses
                 if __observed.method != #method { return Ok(::umpire_runtime::EvidenceMatch::Reject); }
+                // Actual evidence fields the declaration does not claim are Ignored; only the
+                // filled request is guarded against unclaimed fields.
                 let __request: #request = __observed.request()?.ok_or_else(|| ::umpire_runtime::protocol::Refusal::malformed("registered RPC evidence requires its actual request"))?;
-                #request_guards
                 let __response: Result<#response, i32> = if let Some(code) = __observed.code()? { Err(code) } else {
                     let __response: #response = __observed.response()?;
-                    #response_guards
                     Ok(__response)
                 };
                 #checked
@@ -664,6 +709,7 @@ fn configurations(
         let witnesses = rpc.witnesses();
         let value = rpc.configuration(runtime);
         Ok(quote! {
+            /// The declared read: construction, correlation, projection and continuation hooks.
             pub fn read() -> #runtime::registry::Read<Self, #model::World, #receipt, #request, #response, #target> {
                 #witnesses
                 #runtime::registry::Read { rpc: #value, fill: #fill, correlate: #correlate, project: #project, finality: #finality, continue_polling: #polling }
@@ -672,6 +718,7 @@ fn configurations(
     }).transpose()?;
     Ok(quote! {
         impl #ty {
+            /// The declared entity bootstrap: admission, receipt and correlation hooks.
             pub fn entity() -> #runtime::registry::Entity<Self, #receipt, #request, #response> {
                 #witnesses
                 #runtime::registry::Entity { bootstrap: #value, admit: #admit, receipt: #make_receipt, correlate: #correlate }
@@ -836,7 +883,6 @@ mod tests {
             declared_request: options.required("request", Span::call_site())?,
             declared_response: options.required("response", Span::call_site())?,
             request_guards: TokenStream::new(),
-            response_guards: TokenStream::new(),
         };
         let witnesses = rpc.witnesses();
         let block: syn::Block = syn::parse2(quote!({ #witnesses }))?;

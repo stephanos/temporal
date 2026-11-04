@@ -221,9 +221,10 @@ fn verify_inventory(entries: &[Entry]) -> Result<()> {
     }
     let mut declared = catalog::expected_probe_cases(&Limits::default())?;
     declared.extend(worker_failure_presence(&Limits::default())?.probe_cases());
-    let baselines = crate::activity_probe_fillers::baselines()?;
     let methods: BTreeSet<_> = entries.iter().map(|entry| entry.method).collect();
-    if methods != baselines.methods().collect() {
+    if !methods.is_subset(&crate::activity_probe_fillers::methods()?)
+        || !crate::activity_probe_fillers::baseline_methods()?.is_subset(&methods)
+    {
         return Err("probe inventory methods differ from registered baseline fillers".into());
     }
     let registered: BTreeSet<_> = entries.iter().map(|entry| entry.target.id.clone()).collect();
@@ -691,7 +692,7 @@ mod tests {
         let guard = "probe inventory methods differ from registered baseline fillers";
         let truncated: Vec<_> = current
             .iter()
-            .filter(|e| e.method != "RespondActivityTaskCanceled")
+            .filter(|e| e.method != "PollActivityExecution")
             .map(|e| copy(e, e.context, e.method))
             .collect();
         assert!(truncated.len() < full.len());

@@ -1,11 +1,15 @@
-//! Activity-owned baseline policy retained by the probe migration adapter.
+//! Activity-owned probe baselines: registered action fillers plus bootstrap/read fillers.
 #![expect(
     clippy::unnecessary_wraps,
     reason = "Activity baselines implement the declared refusable filler signature"
 )]
 
+use crate::activity_realization::{ActivityIdentity, FillInputs, Realization, activity};
 use crate::probe_fillers::{Baselines, Filler};
 use crate::probes::{Result, UUID, application, duration};
+use crate::registry::{ActionKind, Registry as _};
+use activity::Worker;
+use umpire_dsl::Machine as _;
 use umpire_runtime::{AnyMessage as _, prost_types::Any, protocol::Refusal};
 use umpire_temporal_api::{
     temporal::api::{
@@ -17,32 +21,138 @@ use umpire_temporal_api::{
         taskqueue::v1::TaskQueue,
         workflowservice::v1::{
             DescribeActivityExecutionRequest, PollActivityExecutionRequest,
-            PollActivityTaskQueueRequest, RequestCancelActivityExecutionRequest,
-            RespondActivityTaskCanceledRequest, RespondActivityTaskCompletedRequest,
-            RespondActivityTaskFailedRequest, StartActivityExecutionRequest,
+            StartActivityExecutionRequest,
         },
     },
     umpire::temporal::v1::ProbeRequest,
 };
 
+type Action = <activity::World as umpire_dsl::Machine>::Action;
+
+/// Bootstrap and read baselines outside the Model action graph.
 static FILLERS: &[Filler<ProbeRequest>] = &[
     Filler { method: "StartActivityExecution", fill: fill_start },
     Filler { method: "DescribeActivityExecution", fill: fill_describe },
     Filler { method: "PollActivityExecution", fill: fill_poll_execution },
-    Filler { method: "RequestCancelActivityExecution", fill: fill_cancel },
-    Filler { method: "PollActivityTaskQueue", fill: fill_poll_queue },
-    Filler { method: "RespondActivityTaskCompleted", fill: fill_complete },
-    Filler { method: "RespondActivityTaskFailed", fill: fill_fail },
-    Filler { method: "RespondActivityTaskCanceled", fill: fill_canceled },
 ];
 
-/// The admitted activity baseline registry consumed by the probe inventory and its fills.
-pub(crate) fn baselines() -> Result<Baselines<'static, ProbeRequest>> {
+/// The admitted bootstrap/read baseline registry consumed by the probe inventory and its fills.
+fn baselines() -> Result<Baselines<'static, ProbeRequest>> {
     Ok(Baselines::new(FILLERS).map_err(|refusal| refusal.message)?)
 }
 
+/// Bootstrap/read filler methods, which every probe inventory must use.
+pub(crate) fn baseline_methods() -> Result<std::collections::BTreeSet<&'static str>> {
+    Ok(baselines()?.methods().collect())
+}
+
+/// Every fillable probe method: bootstrap/read fillers and registered RPC action rows.
+pub(crate) fn methods() -> Result<std::collections::BTreeSet<&'static str>> {
+    let mut methods = baseline_methods()?;
+    methods.extend(actions()?.into_iter().map(|(method, _)| method));
+    Ok(methods)
+}
+
 pub(crate) fn fill(name: &str, slots: &ProbeRequest, context: &str) -> Result<Vec<u8>> {
-    Ok(baselines()?.fill(name, slots, context).map_err(|refusal| refusal.message)?.value)
+    if baseline_methods()?.contains(name) {
+        return Ok(baselines()?
+            .fill(name, slots, context)
+            .map_err(|refusal| refusal.message)?
+            .value);
+    }
+    Ok(registered(name, slots, context).map_err(|refusal| refusal.message)?.value)
+}
+
+/// The probe World admits one attempt, so attempt-carrying actions appear once.
+fn world() -> activity::World {
+    activity::World::new(1, None, None, None, None)
+}
+
+/// Registered RPC action rows in catalog order, by descriptor method name.
+fn actions() -> Result<Vec<(&'static str, Action)>> {
+    let catalog = world().checked_catalog(umpire_dsl::CATALOG_LIMIT)?;
+    Ok(catalog
+        .actions()
+        .iter()
+        .filter_map(|action| match Realization::default().row(action).kind {
+            ActionKind::Rpc { method, .. } => {
+                method.rsplit('/').next().map(|name| (name, action.clone()))
+            }
+            ActionKind::Event { .. } => None,
+        })
+        .collect())
+}
+
+/// Fill the first registered action of `name` that admits the probe's inputs.
+fn registered(
+    name: &str,
+    slots: &ProbeRequest,
+    context: &str,
+) -> std::result::Result<Any, Refusal> {
+    let identity = ActivityIdentity::task(
+        slots.namespace.clone(),
+        slots.activity_id.clone(),
+        slots.run_id.clone(),
+        slots.task_queue.clone(),
+        slots.task_token.clone(),
+        "umpire-probe".into(),
+    );
+    let mut refusal = Refusal::unsupported("unknown prerequisite method");
+    for (method, action) in actions().map_err(|error| Refusal::unsupported(error.to_string()))? {
+        if method != name {
+            continue;
+        }
+        match crate::probe_fillers::registered(
+            &Realization::default(),
+            &format!("/temporal.api.workflowservice.v1.WorkflowService/{name}"),
+            &action,
+            &world(),
+            &inputs(&action, context),
+            &identity,
+        ) {
+            Ok(filled) => return Ok(filled),
+            Err(error) => refusal = error,
+        }
+    }
+    Err(refusal)
+}
+
+/// Probe-selected inputs: the probe request ID, an empty result and the context's failure.
+fn inputs(action: &Action, context: &str) -> FillInputs {
+    match action {
+        Action::Client(_) => FillInputs::Cancel { request_id: UUID.into() },
+        Action::Worker(Worker::RespondCompleted) => {
+            FillInputs::Completed { attempt: 1, result: None }
+        }
+        Action::Worker(Worker::RespondFailed { .. }) => {
+            FillInputs::Failed { attempt: 1, failure: Box::new(failure(context)) }
+        }
+        Action::Worker(_) | Action::Deadline(_) => FillInputs::Worker { attempt: 1, details: None },
+    }
+}
+
+/// A retryable probe application failure with the context's declared cause.
+fn failure(context: &str) -> Failure {
+    let mut failure = application();
+    let info = match context {
+        "failed.cause.activity" => {
+            Some(FailureInfo::ActivityFailureInfo(ActivityFailureInfo::default()))
+        }
+        "failed.cause.child" => Some(FailureInfo::ChildWorkflowExecutionFailureInfo(
+            ChildWorkflowExecutionFailureInfo::default(),
+        )),
+        "failed.cause.timeout" => {
+            Some(FailureInfo::TimeoutFailureInfo(TimeoutFailureInfo::default()))
+        }
+        "failed.cause.nexus" => {
+            Some(FailureInfo::NexusHandlerFailureInfo(NexusHandlerFailureInfo::default()))
+        }
+        _ => None,
+    };
+    if info.is_some() {
+        failure.cause = Some(Box::new(Failure { failure_info: info, ..Default::default() }));
+    }
+    failure
 }
 
 fn fill_start(slots: &ProbeRequest, _context: &str) -> std::result::Result<Any, Refusal> {
@@ -83,75 +193,5 @@ fn fill_poll_execution(slots: &ProbeRequest, _context: &str) -> std::result::Res
         namespace: slots.namespace.clone(),
         activity_id: slots.activity_id.clone(),
         run_id: slots.run_id.clone(),
-    }))
-}
-
-fn fill_cancel(slots: &ProbeRequest, _context: &str) -> std::result::Result<Any, Refusal> {
-    Ok(Any::pack(&RequestCancelActivityExecutionRequest {
-        namespace: slots.namespace.clone(),
-        activity_id: slots.activity_id.clone(),
-        run_id: slots.run_id.clone(),
-        request_id: UUID.into(),
-        identity: "umpire-probe".into(),
-        ..Default::default()
-    }))
-}
-
-fn fill_poll_queue(slots: &ProbeRequest, _context: &str) -> std::result::Result<Any, Refusal> {
-    let queue = TaskQueue { name: slots.task_queue.clone(), ..Default::default() };
-    Ok(Any::pack(&PollActivityTaskQueueRequest {
-        namespace: slots.namespace.clone(),
-        task_queue: Some(queue),
-        identity: "umpire-probe".into(),
-        ..Default::default()
-    }))
-}
-
-fn fill_complete(slots: &ProbeRequest, _context: &str) -> std::result::Result<Any, Refusal> {
-    Ok(Any::pack(&RespondActivityTaskCompletedRequest {
-        namespace: slots.namespace.clone(),
-        task_token: slots.task_token.clone(),
-        identity: "umpire-probe".into(),
-        ..Default::default()
-    }))
-}
-
-fn fill_fail(slots: &ProbeRequest, context: &str) -> std::result::Result<Any, Refusal> {
-    Ok(Any::pack(&{
-        let mut failure = application();
-        let info = match context {
-            "failed.cause.activity" => {
-                Some(FailureInfo::ActivityFailureInfo(ActivityFailureInfo::default()))
-            }
-            "failed.cause.child" => Some(FailureInfo::ChildWorkflowExecutionFailureInfo(
-                ChildWorkflowExecutionFailureInfo::default(),
-            )),
-            "failed.cause.timeout" => {
-                Some(FailureInfo::TimeoutFailureInfo(TimeoutFailureInfo::default()))
-            }
-            "failed.cause.nexus" => {
-                Some(FailureInfo::NexusHandlerFailureInfo(NexusHandlerFailureInfo::default()))
-            }
-            _ => None,
-        };
-        if info.is_some() {
-            failure.cause = Some(Box::new(Failure { failure_info: info, ..Default::default() }));
-        }
-        RespondActivityTaskFailedRequest {
-            namespace: slots.namespace.clone(),
-            task_token: slots.task_token.clone(),
-            identity: "umpire-probe".into(),
-            failure: Some(failure),
-            ..Default::default()
-        }
-    }))
-}
-
-fn fill_canceled(slots: &ProbeRequest, _context: &str) -> std::result::Result<Any, Refusal> {
-    Ok(Any::pack(&RespondActivityTaskCanceledRequest {
-        namespace: slots.namespace.clone(),
-        task_token: slots.task_token.clone(),
-        identity: "umpire-probe".into(),
-        ..Default::default()
     }))
 }

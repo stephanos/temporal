@@ -389,7 +389,7 @@ func TestTestpilotModelSliceThroughUmpire(t *testing.T) {
 		testcore.WithDynamicConfig(dynamicconfig.TransferProcessorUpdateAckInterval, time.Second),
 		testcore.WithDynamicConfig(dynamicconfig.VisibilityProcessorUpdateAckInterval, time.Second),
 	)
-	guest, err := filepath.Abs(filepath.Join("..", "model", "temporal", "hosts", "go", "umpire_temporal_guest.wasm"))
+	guest, err := filepath.Abs(filepath.Join("..", "model", "hosts", "go", "umpire_temporal_guest.wasm"))
 	require.NoError(t, err)
 	committed, err := os.ReadFile(guest)
 	require.NoError(t, err)

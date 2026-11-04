@@ -1,8 +1,8 @@
 error[E0004]: non-exhaustive patterns: `temporal::api::enums::v1::ActivityExecutionStatus::AddedUpstream` not covered
   --> tests/ui/../../../feature/activity/phase.rs
    |
-   |         let terminal = match status {
-   |                              ^^^^^^ pattern `temporal::api::enums::v1::ActivityExecutionStatus::AddedUpstream` not covered
+   |     let terminal = match status {
+   |                          ^^^^^^ pattern `temporal::api::enums::v1::ActivityExecutionStatus::AddedUpstream` not covered
    |
 note: `temporal::api::enums::v1::ActivityExecutionStatus` defined here
   --> tests/ui/phase_enum_addition.rs:15:26
@@ -15,15 +15,15 @@ note: `temporal::api::enums::v1::ActivityExecutionStatus` defined here
    = note: the matched value is of type `temporal::api::enums::v1::ActivityExecutionStatus`
 help: ensure that all possible cases are being handled by adding a match arm with a wildcard pattern or an explicit pattern as shown
    |
-37 ~             },
-38 +             temporal::api::enums::v1::ActivityExecutionStatus::AddedUpstream => todo!()
+40 ~         },
+41 +         temporal::api::enums::v1::ActivityExecutionStatus::AddedUpstream => todo!()
    |
 
 error[E0004]: non-exhaustive patterns: `temporal::api::enums::v1::PendingActivityState::AddedUpstream` not covered
   --> tests/ui/../../../feature/activity/phase.rs
    |
-   |                 return match run_state {
-   |                              ^^^^^^^^^ pattern `temporal::api::enums::v1::PendingActivityState::AddedUpstream` not covered
+   |             let running = match run_state {
+   |                                 ^^^^^^^^^ pattern `temporal::api::enums::v1::PendingActivityState::AddedUpstream` not covered
    |
 note: `temporal::api::enums::v1::PendingActivityState` defined here
   --> tests/ui/phase_enum_addition.rs:32:26
@@ -36,15 +36,15 @@ note: `temporal::api::enums::v1::PendingActivityState` defined here
    = note: the matched value is of type `temporal::api::enums::v1::PendingActivityState`
 help: ensure that all possible cases are being handled by adding a match arm with a wildcard pattern or an explicit pattern as shown
    |
-28 ~                     },
-29 +                     temporal::api::enums::v1::PendingActivityState::AddedUpstream => todo!()
+30 ~                 },
+31 +                 temporal::api::enums::v1::PendingActivityState::AddedUpstream => todo!()
    |
 
 error[E0004]: non-exhaustive patterns: `temporal::api::enums::v1::PendingActivityState::AddedUpstream` not covered
   --> tests/ui/../../../feature/activity/phase.rs
    |
-   |         match run_state {
-   |               ^^^^^^^^^ pattern `temporal::api::enums::v1::PendingActivityState::AddedUpstream` not covered
+   |     match run_state {
+   |           ^^^^^^^^^ pattern `temporal::api::enums::v1::PendingActivityState::AddedUpstream` not covered
    |
 note: `temporal::api::enums::v1::PendingActivityState` defined here
   --> tests/ui/phase_enum_addition.rs:32:26
@@ -57,6 +57,6 @@ note: `temporal::api::enums::v1::PendingActivityState` defined here
    = note: the matched value is of type `temporal::api::enums::v1::PendingActivityState`
 help: ensure that all possible cases are being handled by adding a match arm with a wildcard pattern or an explicit pattern as shown
    |
-47 ~             },
-48 +             temporal::api::enums::v1::PendingActivityState::AddedUpstream => todo!()
+50 ~         },
+51 +         temporal::api::enums::v1::PendingActivityState::AddedUpstream => todo!()
    |

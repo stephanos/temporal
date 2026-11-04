@@ -209,9 +209,9 @@ func TestTemporalWorldTransactionsSurviveActualResponseExhaustion(t *testing.T) 
 				g.call(t, modelv1.Method_METHOD_JUDGE, start, false, modelv1.RefusalCode_REFUSAL_CODE_UNSUPPORTED)
 			}
 			exploration := g.call(t, modelv1.Method_METHOD_EXPLORE, &modelv1.ExploreRequest{Budget: 64}, false)
-			wantStates := uint32(15)
+			wantStates := uint32(18)
 			if operation == "reset live" {
-				wantStates = 5
+				wantStates = 6
 			}
 			if exploration.GetExplore().GetReached() != wantStates {
 				t.Fatalf("explored %d states; want %d", exploration.GetExplore().GetReached(), wantStates)
@@ -245,7 +245,7 @@ func TestTemporalWorldTransactionsSurviveActualResponseExhaustion(t *testing.T) 
 				explained(t, g.judge(t, start.Observation), "Worker::Poll(1)")
 				explained(t, g.judge(t, started(t)), "Worker::Poll(1)")
 				exploration = g.call(t, modelv1.Method_METHOD_EXPLORE, &modelv1.ExploreRequest{Budget: 64}, false)
-				if exploration.GetExplore().GetReached() != 5 {
+				if exploration.GetExplore().GetReached() != 6 {
 					t.Fatal("admission did not select the one-attempt World")
 				}
 			case "freeze":

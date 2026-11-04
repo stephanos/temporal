@@ -1,5 +1,4 @@
 use prost::Message;
-use umpire_catalog::{Catalog, validate};
 use umpire_dsl::Machine;
 use umpire_runtime::AnyMessage as _;
 use umpire_runtime::{
@@ -9,7 +8,7 @@ use umpire_runtime::{
     realization::{Observation, observation::Result as ResultValue},
 };
 use umpire_temporal_api::temporal::api::{
-    common::v1::{Header, Payload, link},
+    common::v1::{Header, Payload},
     workflowservice::v1::{
         DescribeActivityExecutionRequest, DescribeActivityExecutionResponse,
         RequestCancelActivityExecutionRequest, RequestCancelActivityExecutionResponse,
@@ -17,7 +16,7 @@ use umpire_temporal_api::temporal::api::{
     },
 };
 
-use crate::{Realization, activity, activity_api::catalog, foundation::dc::Limits};
+use crate::{Realization, activity, activity_realization::ProposalContext};
 
 const START: &str = "/temporal.api.workflowservice.v1.WorkflowService/StartActivityExecution";
 const DESCRIBE: &str = "/temporal.api.workflowservice.v1.WorkflowService/DescribeActivityExecution";
@@ -31,11 +30,7 @@ type Action = <activity::World as Machine>::Action;
 pub struct Receipt {
     request: Any,
     response: Any,
-    namespace: String,
-    activity_id: String,
-    request_id: String,
-    run_id: String,
-    maximum_attempts: Option<u8>,
+    entity: ProposalContext,
 }
 
 /// Activity projections around the existing independent Model runtime.
@@ -128,7 +123,6 @@ impl umpire_runtime::capability::Snapshot<activity::World> for LiveRealization {
             return Err(Refusal::malformed("successful Start response is required"));
         };
         let response: StartActivityExecutionResponse = raw_response.unpack()?;
-        validate_start(&request, &response)?;
         self.receipt
             .as_ref()
             .ok_or_else(|| state("live Start admission is required"))?
@@ -215,24 +209,14 @@ impl EntityBinding for ActivityEntity {
             return Err(Refusal::malformed("successful Start response is required"));
         };
         let response: StartActivityExecutionResponse = raw_response.unpack()?;
-        validate_start(&request, &response)?;
-        if !response.started {
-            return Err(state("initial Start must create a new run"));
-        }
-        let attempts = request.retry_policy.as_ref().map(|policy| policy.maximum_attempts);
-        let maximum_attempts = attempts
-            .filter(|attempts| (1..=3).contains(attempts))
-            .and_then(|attempts| u8::try_from(attempts).ok());
+        let (binding, entity) = (Realization::default(), Realization::entity());
+        let identity = (entity.admit)(&binding, &request, &response)?;
         let receipt = Receipt {
             request: raw_request.clone(),
             response: raw_response.clone(),
-            namespace: request.namespace,
-            activity_id: request.activity_id,
-            request_id: request.request_id,
-            run_id: response.run_id,
-            maximum_attempts,
+            entity: (entity.receipt)(&binding, &identity, &request, &response)?,
         };
-        let Some(maximum_attempts) = maximum_attempts else {
+        let Some(maximum_attempts) = receipt.entity.maximum_attempts() else {
             let refusal =
                 Refusal::unsupported("retry_policy.maximum_attempts must be explicitly in 1..=3");
             return Ok(Admission::Frozen { receipt, refusal });
@@ -271,7 +255,6 @@ impl EntityBinding for ActivityEntity {
             return Err(Refusal::malformed("successful Start response is required"));
         };
         let response: StartActivityExecutionResponse = raw_response.unpack()?;
-        validate_start(&request, &response)?;
         receipt.validate_replay(&request, &response, raw_request, raw_response)
     }
     fn validate(
@@ -283,21 +266,19 @@ impl EntityBinding for ActivityEntity {
         match observation.method.as_str() {
             DESCRIBE => {
                 let response: DescribeActivityExecutionResponse = observed.response()?;
-                let info =
-                    response.info.ok_or_else(|| Refusal::malformed("activity info is missing"))?;
-                let _ = activity::Phase::try_from(info.clone())?;
+                let info = response
+                    .info
+                    .clone()
+                    .ok_or_else(|| Refusal::malformed("activity info is missing"))?;
+                let _ = activity::Phase::try_from(info)?;
                 let request: DescribeActivityExecutionRequest = required_request(observation)?;
                 let receipt = receipt.ok_or_else(|| self.missing_receipt())?;
-                receipt.matches(&request.namespace, &request.activity_id, &request.run_id)?;
-                receipt.matches(&request.namespace, &info.activity_id, &info.run_id)?;
-                receipt.matches(&request.namespace, &request.activity_id, &response.run_id)?;
-                if info.attempt < 1
-                    || receipt
-                        .maximum_attempts
-                        .is_some_and(|maximum| info.attempt > i32::from(maximum))
-                {
-                    return Err(state("Describe attempt is outside the admitted attempts"));
-                }
+                (Realization::read().correlate)(
+                    &Realization::default(),
+                    &receipt.entity,
+                    &request,
+                    &response,
+                )?;
             }
             CANCEL => {
                 if observed.code()?.is_none() {
@@ -305,7 +286,7 @@ impl EntityBinding for ActivityEntity {
                         observed.response().map_err(|error| Refusal::malformed(error.message))?;
                 }
                 let request: RequestCancelActivityExecutionRequest = required_request(observation)?;
-                receipt.ok_or_else(|| self.missing_receipt())?.matches(
+                receipt.ok_or_else(|| self.missing_receipt())?.entity.matches(
                     &request.namespace,
                     &request.activity_id,
                     &request.run_id,
@@ -316,25 +297,20 @@ impl EntityBinding for ActivityEntity {
         Ok(())
     }
     fn ready(&self, receipt: &Receipt) -> Result<(), Refusal> {
-        if receipt.maximum_attempts.is_none() {
+        if receipt.entity.maximum_attempts().is_none() {
             return Err(state("live Start was not admitted"));
         }
         Ok(())
     }
     fn ready_replay(&self, receipt: &Receipt) -> Result<(), Refusal> {
-        if receipt.maximum_attempts.is_none() {
+        if receipt.entity.maximum_attempts().is_none() {
             return Err(state("rejected Start requires a fresh guest"));
         }
         Ok(())
     }
     fn install(&self, model: &mut ModelRuntime, receipt: &Receipt) {
-        let request: StartActivityExecutionRequest =
-            receipt.request.unpack().unwrap_or_else(|_| unreachable!("validated Start receipt"));
         model.replace_realization(LiveRealization {
-            inner: Realization::configured(crate::activity_realization::ProposalContext {
-                start: request,
-                run_id: receipt.run_id.clone(),
-            }),
+            inner: Realization::configured(receipt.entity.clone()),
             receipt: Some(receipt.clone()),
         });
     }
@@ -354,28 +330,20 @@ impl Receipt {
         raw_request: &Any,
         raw_response: &Any,
     ) -> Result<(), Refusal> {
-        self.matches(&request.namespace, &request.activity_id, &response.run_id)?;
-        if self.request_id != request.request_id || self.request != *raw_request {
+        (Realization::entity().correlate)(
+            &Realization::default(),
+            &self.entity,
+            request,
+            response,
+        )?;
+        if self.request != *raw_request {
             return Err(state("Start request contradicts the original receipt"));
         }
         if response.started && self.response != *raw_response {
             return Err(state("Start response contradicts the original receipt"));
         }
-        if !response.started && self.maximum_attempts.is_none() {
+        if !response.started && self.entity.maximum_attempts().is_none() {
             return Err(state("Start replay has no original admitted provenance"));
-        }
-        Ok(())
-    }
-
-    fn matches(&self, namespace: &str, activity: &str, run: &str) -> Result<(), Refusal> {
-        for (matches, component) in [
-            (!namespace.is_empty() && namespace == self.namespace, "namespace"),
-            (!activity.is_empty() && activity == self.activity_id, "activity_id"),
-            (!run.is_empty() && run == self.run_id, "run_id"),
-        ] {
-            if !matches {
-                return Err(state(format!("evidence {component} does not match Start receipt")));
-            }
         }
         Ok(())
     }
@@ -391,65 +359,6 @@ fn required_request<T: prost::Name + Default>(observation: &Observation) -> Resu
 fn state(message: impl Into<String>) -> Refusal {
     Refusal::new(RefusalCode::State, message)
 }
-fn checked<T: 'static>(
-    value: &T,
-    catalog: Result<Catalog<T>, umpire_catalog::AdmissionErrors>,
-) -> Result<(), Refusal> {
-    let catalog =
-        catalog.map_err(|_| Refusal::unsupported("Start validation catalog admission failed"))?;
-    if validate(value, &catalog).is_empty() {
-        Ok(())
-    } else {
-        Err(Refusal::malformed("Start captured evidence violates its catalog"))
-    }
-}
-fn validate_start(
-    request: &StartActivityExecutionRequest,
-    response: &StartActivityExecutionResponse,
-) -> Result<(), Refusal> {
-    for (present, field) in [
-        (!request.namespace.is_empty(), "namespace"),
-        (!request.activity_id.is_empty(), "activity_id"),
-        (!request.request_id.is_empty(), "request_id"),
-        (!response.run_id.is_empty(), "run_id"),
-    ] {
-        if !present {
-            return Err(Refusal::malformed(format!("Start {field} is missing")));
-        }
-    }
-    let limits = Limits::default();
-    checked(request, catalog::start_activity_execution_request(&limits))?;
-    checked(response, catalog::start_activity_execution_response(&limits))?;
-    if let Some(value) = &request.activity_type {
-        checked(value, catalog::activity_type(&limits))?;
-    }
-    if let Some(value) = &request.task_queue {
-        checked(value, catalog::task_queue(&limits))?;
-    }
-    if let Some(value) = &request.retry_policy {
-        let policy = catalog::retry_policy(&limits)
-            .map_err(|_| Refusal::unsupported("Start validation catalog admission failed"))?;
-        if validate(value, &policy)
-            .iter()
-            .any(|finding| !finding.path.ends_with(".maximum_attempts"))
-        {
-            return Err(Refusal::malformed("Start retry policy violates its catalog"));
-        }
-    }
-    if let Some(link) = &response.link {
-        let Some(link::Variant::Activity(link)) = &link.variant else {
-            return Err(Refusal::malformed("Start response Link is not an activity"));
-        };
-        if link.namespace != request.namespace
-            || link.activity_id != request.activity_id
-            || link.run_id != response.run_id
-        {
-            return Err(state("Start response Link contradicts captured identity"));
-        }
-    }
-    Ok(())
-}
-
 #[cfg(test)]
 #[path = "../tests/entity_lens/mod.rs"]
 mod equivalence;

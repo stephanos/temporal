@@ -79,7 +79,10 @@ mod activity_probe_fillers;
 #[path = "../../feature/activity/temporal.rs"]
 mod activity_realization;
 
-pub use activity_realization::{Realization, SCENARIO_HEADER, activity, runtime};
+pub use activity_realization::{
+    ActivityIdentity, ActivityTarget, FillInputs, ProposalContext, Realization, SCENARIO_HEADER,
+    activity, projection, runtime,
+};
 pub use annotations::{AnnotationRuntime, annotation_runtime};
 
 #[path = "../../shared/protocol/activity/mod.rs"]
