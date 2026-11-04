@@ -1050,7 +1050,9 @@ The 87-line increase retains explicit field reasons; this source is longer. The 
 ## Annotation catalog
 
 Authors classify the API fields a feature uses in its typed sidecar,
-`feature/activity/api.rs`. Upstream protos remain unchanged. The catalog
+`feature/activity/api.rs`, and claim RPCs in the action registry: `#[metadata(temporal(rpc = ..))]`
+on each Model action and `#[entity]`, `#[read]` and `#[observed(rpc = .., reason = "..")]` in
+`feature/activity/registry.rs`. Upstream protos remain unchanged. The catalog
 supplies generation, validation, consequences and expected server errors; the independent
 `model.rs` continues to own transitions. [Authoring syntax](foundation/README.md)
 lives beside the `Catalog` derive.
@@ -1072,7 +1074,7 @@ Decided/Observed/Ignored borrow AIP vocabulary. Native sidecar checks need no CE
 | --- | --- |
 | Fields | A struct pattern without `..` names every prost field; descriptor checking also names every source oneof alternative and requires nested coverage unless explicitly opaque. |
 | Enum values | A reviewed `foundation/enum_inventory.rs` lists variants; descriptor checks and wildcard-free matches reject additions. Runtime unknown integers return `UnknownEnum`. |
-| RPC methods | Generated service identities feed one exhaustive `family` match in `foundation/service.rs` that gives every RPC its resource family. Each feature's `classify` claims its RPCs as `Action` or `Observed` and defers the rest with `_ => RpcRole::OutOfScope(service::family(method))`; an unclaimed RPC's reason is its family. Stale, duplicate and missing declarations, a duplicate feature claim and a claim the table lacks fail. |
+| RPC methods | Generated service identities feed one exhaustive `family` match in `foundation/service.rs` that gives every RPC its resource family. Each feature claims its RPCs from its action registry: an RPC on a Model action's registry metadata is an `Action`, and the registry's entity, read and `observed` declarations (with their reason) are `Observed`. Every other RPC is out of scope with its family as the reason. Stale, duplicate and missing declarations, a duplicate feature claim and a claim the table lacks fail. |
 | Model actions | Exhaustive outer actor and inner action matches bind each action to an RPC, an observation or `Environmental(reason)`. RPC mappings must agree with service classifications. |
 
 The current `proto/api.binpb` has no service descriptors. `api/build.rs` uses
