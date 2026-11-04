@@ -714,6 +714,25 @@ artifacts pinned at `af0ebafc571d33651fdf2c008d4415ad72467a0d`. At this checkpoi
 one-attempt atomic projection equalled the original six-state/eleven-edge graph; fn-253.10
 retired that control with the cancellation-mode flag and keeps the artifacts as provenance.
 
+### Countdown abstraction and independent protocol
+
+The feature Model uses Umpire's pure `countdown` library for finite configured
+`Ticks<N>` and live `Remaining<N>` values. `arm` preserves absence, `tick`
+saturates at zero, and `expired` distinguishes armed zero from absence. Feature
+transitions own arming, reset, terminal clearing and timeout priority; the
+`within`, `descends` and `never_replenished` laws check their stated bounds and
+step relations without supplying fairness or wall-clock semantics.
+
+The activity protocol Model remains independently authored, with its own
+`Ticks`/`Remaining` wrappers and budget transitions; feature transitions are
+comparison inputs, never sources of protocol edges. By owner
+decision (2026-10-30) the protocol may share the generic `countdown` mechanics, but
+not the Temporal deadline layer (arming, reset, retry rearming, expiry priority and
+cancellation outcomes), so one misreading of Temporal semantics cannot pass both
+sides of the refinement check. Raw Start timeout defaults apply only at the
+protocol's separate `RawStart` admission boundary; live Worlds still carry absent
+timeouts.
+
 ### Live admission and retained verification
 
 The Temporal realization transports optional actual `Observation.request` at tag 4 with its
