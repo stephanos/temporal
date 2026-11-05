@@ -878,7 +878,14 @@ impl Realization {
                     Failure::application("MiniActivityFailure", "Fail", true)
                 }),
             },
-            _ => return Err(Refusal::unsupported("unsupported programmed worker response")),
+            Worker::Heartbeat | Worker::RespondCanceled(_) => {
+                FillInputs::Worker { attempt, details: None }
+            }
+            Worker::Poll(_) => {
+                return Err(Refusal::unsupported(
+                    "Poll is task delivery, not a programmed response",
+                ));
+            }
         })
     }
 

@@ -81,7 +81,7 @@ mod activity_realization;
 
 pub use activity_realization::{
     ActivityIdentity, ActivityTarget, FillInputs, ProposalContext, Realization, SCENARIO_HEADER,
-    activity, projection, runtime,
+    activity, policy, projection, runtime,
 };
 pub use annotations::{AnnotationRuntime, annotation_runtime};
 

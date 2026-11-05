@@ -4,6 +4,7 @@
 #[path = "model.rs"]
 mod included;
 mod phase;
+pub mod policy;
 pub mod projection;
 mod registry;
 
