@@ -31,6 +31,7 @@ pub struct Receipt {
     request: Any,
     response: Any,
     entity: ProposalContext,
+    manifest: Option<std::rc::Rc<crate::policy::Manifest>>,
 }
 
 /// Activity projections around the existing independent Model runtime.
@@ -168,12 +169,7 @@ impl EntityBinding for ActivityEntity {
     }
     fn configure(&self, configuration: &Any) -> Result<Any, Refusal> {
         let start: StartActivityExecutionRequest = configuration.unpack()?;
-        let maximum = start.retry_policy.as_ref().map_or(0, |policy| policy.maximum_attempts);
-        let maximum = u8::try_from(maximum).map_err(|_| {
-            Refusal::unsupported("retry_policy.maximum_attempts must be explicitly in 1..=3")
-        })?;
-        let world = activity::World::new(maximum, None, None, None, None);
-        Realization::worker_program(&start, &world)
+        crate::policy::Manifest::production(&start)?.issued(&start)
     }
     fn bootstrap(&self, configuration: &Any, seed: u64) -> Result<Any, Refusal> {
         let start: StartActivityExecutionRequest = configuration.unpack()?;
@@ -183,7 +179,8 @@ impl EntityBinding for ActivityEntity {
         }
         let mut start = StartActivityExecutionRequest::decode(filled.bytes.as_slice())
             .map_err(|_| Refusal::malformed("filled Start is malformed"))?;
-        let scenario = crate::activity_realization::SCENARIOS[(seed % 3) as usize];
+        let manifest = crate::policy::Manifest::production(&start)?;
+        let scenario = manifest.selected(seed)?.name();
         start.header.get_or_insert_with(Header::default).fields.insert(
             crate::activity_realization::SCENARIO_HEADER.into(),
             Payload {
@@ -218,17 +215,28 @@ impl EntityBinding for ActivityEntity {
         let response: StartActivityExecutionResponse = raw_response.unpack()?;
         let (binding, entity) = (Realization::default(), Realization::entity());
         let identity = (entity.admit)(&binding, &request, &response)?;
-        let receipt = Receipt {
+        let mut receipt = Receipt {
             request: raw_request.clone(),
             response: raw_response.clone(),
             entity: (entity.receipt)(&binding, &identity, &request, &response)?,
+            manifest: None,
         };
-        let Some(maximum_attempts) = receipt.entity.maximum_attempts() else {
+        let Some(_) = receipt.entity.maximum_attempts() else {
             let refusal =
                 Refusal::unsupported("retry_policy.maximum_attempts must be explicitly in 1..=3");
             return Ok(Admission::Frozen { receipt, refusal });
         };
-        let world = activity::World::new(maximum_attempts, None, None, None, None);
+        let manifest = std::rc::Rc::new(crate::policy::Manifest::production(&request)?);
+        let _ = manifest.issued(&request)?;
+        let selected = request
+            .header
+            .as_ref()
+            .and_then(|header| header.fields.get(crate::SCENARIO_HEADER))
+            .and_then(|payload| std::str::from_utf8(&payload.data).ok())
+            .ok_or_else(|| Refusal::malformed("Start canonical policy header is missing"))?;
+        manifest.admit_name(selected)?;
+        let world = manifest.world().clone();
+        receipt.manifest = Some(manifest);
         let starts = world.starts();
         let [initial] = starts.as_slice() else {
             return Err(state("admitted World requires exactly one start"));
@@ -304,20 +312,20 @@ impl EntityBinding for ActivityEntity {
         Ok(())
     }
     fn ready(&self, receipt: &Receipt) -> Result<(), Refusal> {
-        if receipt.entity.maximum_attempts().is_none() {
+        if receipt.entity.maximum_attempts().is_none() || receipt.manifest.is_none() {
             return Err(state("live Start was not admitted"));
         }
         Ok(())
     }
     fn ready_replay(&self, receipt: &Receipt) -> Result<(), Refusal> {
-        if receipt.entity.maximum_attempts().is_none() {
+        if receipt.entity.maximum_attempts().is_none() || receipt.manifest.is_none() {
             return Err(state("rejected Start requires a fresh guest"));
         }
         Ok(())
     }
     fn install(&self, model: &mut ModelRuntime, receipt: &Receipt) {
         model.replace_realization(LiveRealization {
-            inner: Realization::configured(receipt.entity.clone()),
+            inner: Realization::configured(receipt.entity.clone(), receipt.manifest.clone()),
             receipt: Some(receipt.clone()),
         });
     }

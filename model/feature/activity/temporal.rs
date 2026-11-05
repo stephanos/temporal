@@ -37,6 +37,7 @@ pub fn runtime() -> umpire_runtime::Runtime<activity::World, Realization> {
 #[derive(Default)]
 pub struct Realization {
     context: Option<ProposalContext>,
+    manifest: Option<std::rc::Rc<policy::Manifest>>,
 }
 
 /// The admitted Start receipt: the actual bootstrap request and its run.
@@ -83,8 +84,11 @@ impl ProposalContext {
 }
 
 impl Realization {
-    pub(crate) fn configured(context: ProposalContext) -> Self {
-        Self { context: Some(context) }
+    pub(crate) fn configured(
+        context: ProposalContext,
+        manifest: Option<std::rc::Rc<policy::Manifest>>,
+    ) -> Self {
+        Self { context: Some(context), manifest }
     }
 
     /// The admitted Start receipt, absent before admission.
@@ -96,75 +100,6 @@ impl Realization {
 
 /// Header carrying the worker's scenario independently of application input.
 pub const SCENARIO_HEADER: &str = "umpire-scenario";
-
-pub(crate) const SCENARIOS: [&str; 3] = ["Complete", "RetryThenComplete", "Fail"];
-
-impl Realization {
-    pub(crate) fn worker_program(
-        start: &StartActivityExecutionRequest,
-        world: &activity::World,
-    ) -> Result<Any, Refusal> {
-        use umpire_temporal_api::umpire::temporal::v1::{ActivityTaskKey, Rule};
-        let maximum = start.retry_policy.as_ref().map_or(0, |policy| policy.maximum_attempts);
-        if !(1..=3).contains(&maximum) {
-            return Err(Refusal::unsupported(
-                "retry_policy.maximum_attempts must be explicitly in 1..=3",
-            ));
-        }
-        let activity_type = start
-            .activity_type
-            .as_ref()
-            .filter(|value| !value.name.is_empty())
-            .ok_or_else(|| Refusal::malformed("program activity_type is required"))?;
-        let task_queue = start
-            .task_queue
-            .as_ref()
-            .filter(|value| !value.name.is_empty())
-            .ok_or_else(|| Refusal::malformed("program task_queue is required"))?;
-        if start.namespace.is_empty() {
-            return Err(Refusal::malformed("program namespace is required"));
-        }
-        let mut rules = Vec::new();
-        for scenario in SCENARIOS {
-            for attempt in 1..=maximum {
-                let worker = Self::select_response(scenario, attempt)?;
-                let action = Action::from(worker);
-                let binding = Self::default();
-                let identity =
-                    umpire_runtime::capability::Identity::identify(&binding, &Any::pack(start))?;
-                let response = umpire_runtime::capability::Request::pack_request(
-                    &umpire_runtime::capability::Fill::fill(
-                        &binding,
-                        &action,
-                        world,
-                        &Self::program_inputs(
-                            worker,
-                            u8::try_from(attempt).map_err(|_| {
-                                Refusal::unsupported("worker attempt is out of range")
-                            })?,
-                        )?,
-                        &identity,
-                    )?,
-                );
-                rules.push(Rule {
-                    key: Some(Any::pack(&ActivityTaskKey {
-                        scenario: scenario.into(),
-                        attempt,
-                        activity_type: activity_type.name.clone(),
-                        heartbeat_history: Vec::new(),
-                    })),
-                    respond: vec![response],
-                });
-            }
-        }
-        Ok(Any::pack(&crate::support::worker_program(
-            start.namespace.clone(),
-            task_queue.name.clone(),
-            rules,
-            Vec::new(),
-        )))
-    }
-}
 
 #[realization(activity)]
 #[reach(target = ActivityTarget, project = reach_projection, evidence = reach_evidence)]
@@ -322,40 +257,27 @@ impl Realization {
         observed.map(content) == expected.map(content)
     }
 
-    fn select_response(scenario: &str, attempt: i32) -> Result<Worker, Refusal> {
-        match scenario {
-            "RetryThenComplete" if attempt == 1 => Ok(Worker::RespondFailed { retryable: true }),
-            "Complete" | "RetryThenComplete" => Ok(Worker::RespondCompleted),
-            "Fail" => Ok(Worker::RespondFailed { retryable: false }),
-            _ => Err(Refusal::unsupported("unsupported worker scenario")),
-        }
-    }
-
-    pub(crate) fn response(
+    pub(crate) fn resolve_response(
         &self,
-        world: &activity::World,
         scenario: &str,
-        attempt: i32,
-    ) -> Result<(Worker, Any), Refusal> {
-        let action = Self::select_response(scenario, attempt)?;
+        key: &policy::TaskKey,
+    ) -> Result<Option<(Worker, Any)>, Refusal> {
+        let manifest = self
+            .manifest
+            .as_ref()
+            .ok_or_else(|| Refusal::unsupported("admitted policy manifest is required"))?;
+        manifest.admit_name(scenario)?;
+        if !(1..=manifest.world().maximum_attempts).contains(&key.attempt) {
+            return Err(Refusal::unsupported("worker attempt exceeds World.maximum_attempts"));
+        }
+        let Some(choice) = manifest.resolve(scenario, key) else {
+            return Ok(None);
+        };
         let context = self
             .context
             .as_ref()
             .ok_or_else(|| Refusal::unsupported("proposal configuration required"))?;
-        let identity =
-            umpire_runtime::capability::Identity::identify(self, &Any::pack(&context.start))?;
-        let request = umpire_runtime::capability::Fill::fill(
-            self,
-            &Action::from(action),
-            world,
-            &Self::program_inputs(
-                action,
-                u8::try_from(attempt)
-                    .map_err(|_| Refusal::unsupported("worker attempt is out of range"))?,
-            )?,
-            &identity,
-        )?;
-        Ok((action, umpire_runtime::capability::Request::pack_request(&request)))
+        Ok(Some((choice.action(key.attempt), choice.fill(manifest.world(), &context.start, key)?)))
     }
 }
 

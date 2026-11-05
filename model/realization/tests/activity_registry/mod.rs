@@ -36,7 +36,7 @@ fn start() -> StartActivityExecutionRequest {
 }
 
 fn binding() -> Realization {
-    Realization::configured(ProposalContext { start: start(), run_id: RUN.into() })
+    Realization::configured(ProposalContext { start: start(), run_id: RUN.into() }, None)
 }
 
 fn world() -> activity::World {
@@ -506,13 +506,115 @@ fn programmed(scenario: &str, maximum: i32) -> Realization {
     use umpire_temporal_api::temporal::api::common::v1::{Header, Payload};
     let mut start = start();
     start.retry_policy = Some(RetryPolicy { maximum_attempts: maximum, ..Default::default() });
+    let manifest = std::rc::Rc::new(
+        crate::policy::Manifest::production(&start).unwrap_or_else(|error| panic!("{error:?}")),
+    );
+    let name = if scenario == "Unknown" {
+        "activity-v1_1h=c_2h=c"
+    } else if scenario == "LegacyComplete" {
+        "Complete"
+    } else {
+        use crate::policy::{Choice, TaskKey};
+        let choices: &[Choice] = match scenario {
+            "Complete" => &[Choice::Complete],
+            "Fail" => &[Choice::Fail],
+            "HeartbeatThenComplete" => &[Choice::Heartbeat],
+            "RetryThenComplete" if maximum == 1 => &[Choice::Retry],
+            "RetryThenComplete" => &[Choice::Retry, Choice::Complete],
+            _ => panic!("unknown witness"),
+        };
+        let mut rows: Vec<_> = choices
+            .iter()
+            .enumerate()
+            .map(|(index, choice)| {
+                (
+                    TaskKey {
+                        attempt: u8::try_from(index + 1).unwrap_or_else(|_| panic!("attempt")),
+                        heartbeat_history: vec![],
+                    },
+                    *choice,
+                )
+            })
+            .collect();
+        if scenario == "HeartbeatThenComplete" {
+            rows.extend([false, true].map(|bit| {
+                (TaskKey { attempt: 1, heartbeat_history: vec![bit] }, Choice::Complete)
+            }));
+        }
+        manifest
+            .policies()
+            .iter()
+            .find(|policy| policy.rows() == rows)
+            .unwrap_or_else(|| panic!("exact policy witness"))
+            .name()
+    };
     start.header = Some(Header {
         fields: std::collections::BTreeMap::from([(
             super::super::SCENARIO_HEADER.into(),
-            Payload { data: scenario.as_bytes().to_vec(), ..Default::default() },
+            Payload { data: name.as_bytes().to_vec(), ..Default::default() },
         )]),
     });
-    Realization::configured(ProposalContext { start, run_id: RUN.into() })
+    Realization::configured(ProposalContext { start, run_id: RUN.into() }, Some(manifest))
+}
+
+#[test]
+fn a_pruned_exact_attempt_key_is_unexplained_without_fabricating_a_row() {
+    use umpire_runtime::{
+        Guest, Runtime,
+        testing::{GuestExt as _, ResponseExt as _},
+    };
+    let mut guest = Guest::new(Runtime::new(world(), programmed("Complete", 3)));
+    guest
+        .judge(describe(2, 1, 1, Some(Failure::application("MiniActivityFailure", "Retry", false))))
+        .unexplained();
+}
+
+#[test]
+fn snapshot_completion_cannot_supply_unobserved_heartbeat_history() {
+    use umpire_runtime::{
+        Guest, Runtime,
+        testing::{GuestExt as _, ResponseExt as _},
+    };
+    use umpire_temporal_api::temporal::api::{
+        activity::v1::{
+            ActivityExecutionInfo, ActivityExecutionOutcome, activity_execution_outcome::Value,
+        },
+        workflowservice::v1::{
+            DescribeActivityExecutionRequest, DescribeActivityExecutionResponse,
+        },
+    };
+    let start = start();
+    let completed: RespondActivityTaskCompletedRequest = crate::policy::Choice::Complete
+        .fill(&world(), &start, &crate::policy::TaskKey { attempt: 1, heartbeat_history: vec![] })
+        .unwrap_or_else(|e| panic!("{e:?}"))
+        .unpack()
+        .unwrap_or_else(|e| panic!("{e:?}"));
+    let observation = observed(
+        "DescribeActivityExecution",
+        &DescribeActivityExecutionRequest {
+            namespace: "ns".into(),
+            activity_id: "activity".into(),
+            run_id: RUN.into(),
+            ..Default::default()
+        },
+        Ok(&DescribeActivityExecutionResponse {
+            run_id: RUN.into(),
+            info: Some(ActivityExecutionInfo {
+                activity_id: "activity".into(),
+                run_id: RUN.into(),
+                status: 2,
+                attempt: 1,
+                ..Default::default()
+            }),
+            outcome: Some(ActivityExecutionOutcome {
+                value: Some(Value::Result(completed.result.unwrap_or_else(|| panic!("result")))),
+                ..Default::default()
+            }),
+            ..Default::default()
+        }),
+    );
+    let mut guest = Guest::new(Runtime::new(world(), programmed("HeartbeatThenComplete", 3)));
+    guest.judge(observation).unexplained();
 }
 
 fn describe(attempt: i32, status: i32, run_state: i32, last_failure: Option<Failure>) -> Any {
@@ -563,6 +665,11 @@ fn describe_program_selection_refuses_before_search() {
         refused(&programmed("Unknown", 3), &world(), &running),
         Some(RefusalCode::Unsupported),
         "an unknown scenario header refuses"
+    );
+    assert_eq!(
+        refused(&programmed("LegacyComplete", 3), &world(), &running),
+        Some(RefusalCode::Unsupported),
+        "a legacy alias is not a canonical policy identity"
     );
     assert!(refused(&programmed("Complete", 3), &world(), &running).is_none());
     let capped = activity::World::new(1, None, None, None, None);

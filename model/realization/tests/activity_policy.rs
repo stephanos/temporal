@@ -186,6 +186,12 @@ fn derived_policy_families_have_independent_complete_edge_coverage() {
             .unwrap_or_else(|e| panic!("{e}"))
             .complete()
     );
+    let refused = Manifest::derive(&world, Domain { heartbeats_per_task: 0 }, limits())
+        .err()
+        .unwrap_or_else(|| panic!("missing heartbeat coverage must refuse"));
+    for diagnostic in ["source=", "action=", "choice=", "outcome=", "facts=", "target="] {
+        assert!(refused.message.contains(diagnostic), "{}", refused.message);
+    }
 }
 
 #[test]
@@ -358,6 +364,16 @@ fn retry_and_timer_world_matrix_keeps_independent_required_coverage() {
                 .coverage(enumeration.policies(), limits.work)
                 .unwrap_or_else(|e| panic!("{e}"));
             assert!(coverage.complete());
+            let aliases = manifest.task_reset_aliases().unwrap_or_else(|e| panic!("{e:?}"));
+            assert_eq!(aliases.len(), usize::from(maximum - 1));
+            for alias in aliases {
+                assert_ne!(alias.prior_histories[0], alias.prior_histories[1]);
+                assert_eq!(alias.next_key.heartbeat_history, []);
+                assert_ne!(alias.incompatible_choices[0], alias.incompatible_choices[1]);
+                let left = alias.paths[0].last().unwrap_or_else(|| panic!("left alias path"));
+                let right = alias.paths[1].last().unwrap_or_else(|| panic!("right alias path"));
+                assert_eq!(left.target, right.target);
+            }
             if maximum == 3 {
                 assert!(manifest.policies().iter().any(|policy| {
                     [1, 2].into_iter().all(|attempt| {

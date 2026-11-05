@@ -37,11 +37,20 @@ pub(super) fn cancel(
 pub(super) struct Frozen<'a>(pub(super) &'a Realization);
 
 impl Frozen<'_> {
+    fn response(
+        &self,
+        name: &str,
+        attempt: u8,
+    ) -> Result<Option<(Worker, umpire_runtime::prost_types::Any)>, Refusal> {
+        self.0
+            .resolve_response(name, &crate::policy::TaskKey { attempt, heartbeat_history: vec![] })
+    }
+
     pub(super) fn describe(
         &self,
         response: DescribeActivityExecutionResponse,
         state: &activity::Model,
-        world: &activity::World,
+        _world: &activity::World,
     ) -> Result<Projection<Action>, Refusal> {
         let info = response.info.ok_or_else(|| Refusal::malformed("activity info is missing"))?;
         let raw_attempt = info.attempt;
@@ -80,8 +89,9 @@ impl Frozen<'_> {
                 return Ok(Projection::steps([]));
             }
             if attempt > 1 && phase != Phase::Failed {
-                let (action, expected) =
-                    self.0.response(world, scenario, i32::from(attempt - 1))?;
+                let Some((action, expected)) = self.response(scenario, attempt - 1)? else {
+                    return Ok(Projection::steps([]));
+                };
                 if !matches!(action, Worker::RespondFailed { retryable: true }) {
                     return Ok(Projection::steps([]));
                 }
@@ -92,12 +102,16 @@ impl Frozen<'_> {
                 }
             }
             for skipped in state.attempt..attempt {
-                let (action, _) = self.0.response(world, scenario, i32::from(skipped))?;
+                let Some((action, _)) = self.response(scenario, skipped)? else {
+                    return Ok(Projection::steps([]));
+                };
                 if !matches!(action, Worker::RespondFailed { retryable: true }) {
                     return Ok(Projection::steps([]));
                 }
             }
-            let (action, expected) = self.0.response(world, scenario, raw_attempt)?;
+            let Some((action, expected)) = self.response(scenario, attempt)? else {
+                return Ok(Projection::steps([]));
+            };
             match phase {
                 Phase::Completed => {
                     let Some(Value::Result(result)) =

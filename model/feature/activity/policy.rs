@@ -340,6 +340,107 @@ pub struct Manifest {
 }
 
 impl Manifest {
+    /// Derives the complete production class from the explicit retry cap, without deadlines.
+    pub(crate) fn production(
+        start: &umpire_temporal_api::temporal::api::workflowservice::v1::StartActivityExecutionRequest,
+    ) -> Result<Self, Refusal> {
+        let maximum = start.retry_policy.as_ref().map_or(0, |policy| policy.maximum_attempts);
+        let maximum = u8::try_from(maximum)
+            .ok()
+            .filter(|maximum| (1..=3).contains(maximum))
+            .ok_or_else(|| {
+                Refusal::unsupported("retry_policy.maximum_attempts must be explicitly in 1..=3")
+            })?;
+        Self::derive(
+            &activity::World::new(maximum, None, None, None, None),
+            Domain { heartbeats_per_task: 1 },
+            umpire_runtime::policy::Limits {
+                depth: 32,
+                work: 300_000_000,
+                assignments: 150_000,
+                catalog: umpire_dsl::CATALOG_LIMIT,
+            },
+        )
+    }
+
+    /// The exact World retained at derivation.
+    pub(crate) fn world(&self) -> &activity::World {
+        &self.world
+    }
+
+    /// Selects over the entire canonical manifest in structural order.
+    ///
+    /// # Errors
+    /// Refuses an empty manifest or an index outside the supported integer range.
+    pub fn selected(&self, seed: u64) -> Result<&NamedPolicy, Refusal> {
+        let count =
+            u64::try_from(self.policies.len()).ok().filter(|count| *count != 0).ok_or_else(
+                || Refusal::unsupported("canonical policy manifest is empty or oversized"),
+            )?;
+        let index = usize::try_from(seed % count)
+            .map_err(|_| Refusal::unsupported("canonical policy index is out of range"))?;
+        Ok(&self.policies[index])
+    }
+
+    /// Admits an actual immutable selected header before installing its receipt.
+    pub(crate) fn admit_name(&self, name: &str) -> Result<(), Refusal> {
+        if self.policies.iter().any(|policy| policy.name == name) {
+            Ok(())
+        } else {
+            Err(Refusal::unsupported("unknown canonical worker policy"))
+        }
+    }
+
+    /// Issues all canonical policies and checks the complete existing Reset ABI envelope.
+    pub(crate) fn issued(
+        &self,
+        start: &umpire_temporal_api::temporal::api::workflowservice::v1::StartActivityExecutionRequest,
+    ) -> Result<Any, Refusal> {
+        use prost::Message as _;
+        let (expected_policies, rows, continuations) =
+            production_counts(self.world.maximum_attempts)?;
+        if self.policies.len() != expected_policies {
+            return Err(Refusal::unsupported(
+                "production manifest differs from independent finite-class count",
+            ));
+        }
+        let activity_type_bytes = start.activity_type.as_ref().map_or(0, |kind| kind.name.len());
+        let repeated_type_bytes = rows
+            .checked_add(continuations)
+            .and_then(|keys| keys.checked_mul(activity_type_bytes))
+            .ok_or_else(|| Refusal::unsupported("production encoded-size lower bound overflow"))?;
+        if repeated_type_bytes > 1 << 20 {
+            return Err(Refusal::unsupported(format!(
+                "complete policy Reset exceeds ABI before wire assembly: repeated_activity_type_bytes={repeated_type_bytes} rows={rows} domains={continuations} limit={}",
+                1 << 20
+            )));
+        }
+        let program = self.wire_program(start, AssemblyLimits { rows, continuations })?;
+        if program.rules.len() != rows || program.continuation_domains.len() != continuations {
+            return Err(Refusal::unsupported(
+                "production rows/domains differ from independent finite-class count",
+            ));
+        }
+        let packed = Any::pack(&program);
+        let envelope = umpire_runtime::protocol::Response {
+            outcome: Some(umpire_runtime::protocol::response::Outcome::Reset(
+                umpire_runtime::protocol::ResetResponse::current(Some(packed.clone())),
+            )),
+        };
+        let bytes = envelope.encoded_len();
+        if bytes > 1 << 20 {
+            return Err(Refusal::unsupported(format!(
+                "complete policy Reset exceeds ABI: policies={} rows={} domains={} program_bytes={} envelope_bytes={bytes} limit={}",
+                self.policies.len(),
+                program.rules.len(),
+                program.continuation_domains.len(),
+                program.encoded_len(),
+                1 << 20
+            )));
+        }
+        Ok(packed)
+    }
+
     /// Enumerates the finite declared class and requires independent complete coverage.
     ///
     /// # Errors
@@ -356,9 +457,23 @@ impl Manifest {
         let coverage =
             enumeration.coverage(enumeration.policies(), limits.work).map_err(engine_error)?;
         if !coverage.complete() {
+            let mut details = Vec::new();
+            details.try_reserve(coverage.missing.len()).map_err(|_| allocation())?;
+            for id in &coverage.missing {
+                let edge = &enumeration.inventory()[*id].edge;
+                let limitations: Vec<_> = enumeration
+                    .unrepresentable()
+                    .iter()
+                    .filter(|finding| finding.edge == *id)
+                    .map(|finding| format!("key={:?}: {}", finding.key, finding.reason))
+                    .collect();
+                details.push(format!(
+                    "edge={id} source={} action={} choice={} outcome={:?} facts={:?} target={} limitations={limitations:?}",
+                    edge.source, edge.action, edge.choice, edge.outcome, edge.facts, edge.target));
+            }
             return Err(Refusal::unsupported(format!(
-                "policy coverage missing full emitted edge ids {:?}",
-                coverage.missing,
+                "policy coverage missing full emitted edges: {}",
+                details.join("; "),
             )));
         }
         let mut policies = Vec::new();
@@ -520,6 +635,28 @@ impl Manifest {
     }
 }
 
+fn production_counts(maximum: u8) -> Result<(usize, usize, usize), Refusal> {
+    let (mut policies, mut rows, mut domains) = (1usize, 0usize, 0usize);
+    let overflow = || Refusal::unsupported("production finite-class count overflow");
+    for _ in 0..maximum {
+        let next_rows = policies
+            .checked_mul(13)
+            .and_then(|count| count.checked_add(26))
+            .and_then(|count| rows.checked_mul(5).and_then(|rows| count.checked_add(rows)))
+            .ok_or_else(overflow)?;
+        let next_domains = policies
+            .checked_mul(4)
+            .and_then(|count| count.checked_add(8))
+            .and_then(|count| domains.checked_mul(5).and_then(|domains| count.checked_add(domains)))
+            .ok_or_else(overflow)?;
+        policies =
+            policies.checked_mul(5).and_then(|count| count.checked_add(10)).ok_or_else(overflow)?;
+        rows = next_rows;
+        domains = next_domains;
+    }
+    Ok((policies, rows, domains))
+}
+
 /// Explicit output table ceilings, independent of the policy horizon and search limits.
 #[derive(Clone, Copy, Debug)]
 pub struct AssemblyLimits {
@@ -527,6 +664,86 @@ pub struct AssemblyLimits {
     pub rows: usize,
     /// Maximum total independent heartbeat continuation domains.
     pub continuations: usize,
+}
+
+/// A raw history policy collision caused by the executor's deliberate per-task reset.
+pub struct TaskResetAlias {
+    /// Complete typed checked edges witnessing both aliased task suffixes.
+    pub paths: [Vec<Evidence<activity::World>>; 2],
+    /// Different prior-task observations, before a successful retry and fresh delivery.
+    pub prior_histories: [Vec<bool>; 2],
+    /// The single actual next-task key shared by both histories.
+    pub next_key: TaskKey,
+    /// An example pair of incompatible raw-history assignments at that key.
+    pub incompatible_choices: [Choice; 2],
+}
+
+impl Manifest {
+    /// Reports exact cross-task memory collisions independently of stamped policy names.
+    ///
+    /// # Errors
+    /// Refuses if the declared checked World cannot supply either concrete alias path.
+    pub fn task_reset_aliases(&self) -> Result<Vec<TaskResetAlias>, Refusal> {
+        let mut aliases = Vec::new();
+        let mut state = self
+            .world
+            .starts()
+            .into_iter()
+            .next()
+            .ok_or_else(|| Refusal::unsupported("policy World has no start"))?;
+        for next_attempt in 2..=self.world.maximum_attempts {
+            let delivery = alias_edge(&self.world, &state, Worker::Poll(next_attempt - 1))?;
+            let owned = History::default().advance(&delivery)?;
+            let heartbeat = alias_edge(&self.world, &delivery.target, Worker::Heartbeat)?;
+            let observed = owned.advance(&heartbeat)?;
+            let retry = Worker::RespondFailed { retryable: true };
+            let direct_retry = alias_edge(&self.world, &delivery.target, retry)?;
+            let heartbeat_retry = alias_edge(&self.world, &heartbeat.target, retry)?;
+            let direct_delivery =
+                alias_edge(&self.world, &direct_retry.target, Worker::Poll(next_attempt))?;
+            let heartbeat_delivery =
+                alias_edge(&self.world, &heartbeat_retry.target, Worker::Poll(next_attempt))?;
+            let left = owned.advance(&direct_retry)?.advance(&direct_delivery)?.task;
+            let right = observed.advance(&heartbeat_retry)?.advance(&heartbeat_delivery)?.task;
+            if left != right {
+                return Err(Refusal::unsupported(
+                    "retry delivery did not share an exact observable key",
+                ));
+            }
+            let next_key =
+                left.ok_or_else(|| Refusal::unsupported("retry delivery has no owned task"))?;
+            aliases.try_reserve(1).map_err(|_| allocation())?;
+            state = direct_retry.target.clone();
+            let second_delivery =
+                alias_edge(&self.world, &delivery.source, Worker::Poll(next_attempt - 1))?;
+            aliases.push(TaskResetAlias {
+                paths: [
+                    vec![delivery, direct_retry, direct_delivery],
+                    vec![second_delivery, heartbeat, heartbeat_retry, heartbeat_delivery],
+                ],
+                prior_histories: [vec![], vec![false]],
+                next_key,
+                incompatible_choices: [Choice::Complete, Choice::Fail],
+            });
+        }
+        Ok(aliases)
+    }
+}
+
+fn alias_edge(
+    world: &activity::World,
+    source: &activity::Model,
+    worker: Worker,
+) -> Result<Evidence<activity::World>, Refusal> {
+    let action = Action::from(worker);
+    let (choice, (outcome, facts, target)) = world
+        .checked_step(source, action.clone())
+        .map_err(|error| Refusal::unsupported(format!("task-reset alias Model step: {error}")))?
+        .into_iter()
+        .enumerate()
+        .find(|(_, (outcome, _, _))| *outcome == Outcome::Accepted)
+        .ok_or_else(|| Refusal::unsupported("task-reset alias path is disabled"))?;
+    Ok(Evidence { source: source.clone(), action, choice, outcome, facts, target })
 }
 
 fn canonical_name(

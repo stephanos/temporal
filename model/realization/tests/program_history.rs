@@ -28,7 +28,7 @@ fn invoke(runtime: &mut impl Dispatch, method: u32, request: &impl Message) -> O
     }
     response.outcome.unwrap_or_else(|| panic!("outcome"))
 }
-fn setup(seed: u64) -> (impl Dispatch, WorkerProgram) {
+fn setup(witness: &str) -> (impl Dispatch, WorkerProgram) {
     let mut runtime = annotation_runtime();
     let Outcome::Reset(reset) = invoke(
         &mut runtime,
@@ -42,6 +42,7 @@ fn setup(seed: u64) -> (impl Dispatch, WorkerProgram) {
         .unwrap_or_else(|| panic!("program"))
         .unpack()
         .unwrap_or_else(|e| panic!("{e:?}"));
+    let (_, seed) = common::terminal_witness(&program, witness);
     let Outcome::Propose(bootstrap) = invoke(&mut runtime, 6, &protocol::ProposeRequest { seed })
     else {
         panic!("bootstrap")
@@ -54,7 +55,8 @@ fn setup(seed: u64) -> (impl Dispatch, WorkerProgram) {
     ));
     (runtime, program)
 }
-fn row(program: &WorkerProgram, scenario: &str, attempt: i32) -> Any {
+fn row(program: &WorkerProgram, witness: &str, attempt: i32) -> Any {
+    let (scenario, _) = common::terminal_witness(program, witness);
     program
         .rules
         .iter()
@@ -65,30 +67,36 @@ fn row(program: &WorkerProgram, scenario: &str, attempt: i32) -> Any {
                 .unwrap_or_else(|| panic!("key"))
                 .unpack()
                 .unwrap_or_else(|e| panic!("{e:?}"));
-            key.scenario == scenario && key.attempt == attempt
+            key.scenario == scenario && key.attempt == attempt && key.heartbeat_history.is_empty()
         })
         .unwrap_or_else(|| panic!("row"))
         .respond[0]
         .clone()
 }
 fn terminal(program: &WorkerProgram, scenario: &str, attempt: i32, wrong: bool) -> Observation {
-    let mut observation = common::describe(attempt, if scenario == "Fail" { 3 } else { 2 }, 0);
+    let failed = matches!(scenario, "Fail" | "RetryAtCap");
+    let mut observation = common::describe(attempt, if failed { 3 } else { 2 }, 0);
     let mut response: DescribeActivityExecutionResponse = match observation.result.take() {
         Some(ResultValue::Response(value)) => value.unpack().unwrap_or_else(|e| panic!("{e:?}")),
         _ => panic!("response"),
     };
-    let value = if scenario == "Fail" && !wrong {
+    let value = if failed && !wrong {
         let failed: RespondActivityTaskFailedRequest =
             row(program, scenario, attempt).unpack().unwrap_or_else(|e| panic!("{e:?}"));
         Value::Failure(failed.failure.unwrap_or_else(|| panic!("failure")))
     } else {
-        let completed: RespondActivityTaskCompletedRequest =
-            row(program, "Complete", attempt).unpack().unwrap_or_else(|e| panic!("{e:?}"));
+        let completed: RespondActivityTaskCompletedRequest = row(
+            program,
+            if failed { "Complete" } else { scenario },
+            if failed { 1 } else { attempt },
+        )
+        .unpack()
+        .unwrap_or_else(|e| panic!("{e:?}"));
         let mut result = completed.result.unwrap_or_else(|| panic!("result"));
-        if wrong && scenario != "Fail" {
+        if wrong && !failed {
             result.payloads[0].data = b"wrong".to_vec();
         }
-        if scenario == "Fail" {
+        if failed {
             response.info.as_mut().unwrap_or_else(|| panic!("info")).status = 2;
         }
         Value::Result(result)
@@ -101,9 +109,7 @@ fn terminal(program: &WorkerProgram, scenario: &str, attempt: i32, wrong: bool) 
             Some(failure.clone());
     } else if attempt > 1 {
         let failed: RespondActivityTaskFailedRequest =
-            row(program, "RetryThenComplete", attempt - 1)
-                .unpack()
-                .unwrap_or_else(|e| panic!("{e:?}"));
+            row(program, scenario, attempt - 1).unpack().unwrap_or_else(|e| panic!("{e:?}"));
         response.info.as_mut().unwrap_or_else(|| panic!("info")).last_failure = failed.failure;
     }
     observation.result = Some(ResultValue::Response(Any::pack(&response)));
@@ -111,7 +117,7 @@ fn terminal(program: &WorkerProgram, scenario: &str, attempt: i32, wrong: bool) 
 }
 #[test]
 fn describe_requests_result_and_last_failure() {
-    let (mut runtime, _) = setup(0);
+    let (mut runtime, _) = setup("Complete");
     let Outcome::Propose(proposal) = invoke(&mut runtime, 6, &protocol::ProposeRequest { seed: 1 })
     else {
         panic!("read")
@@ -131,14 +137,16 @@ fn describe_requests_result_and_last_failure() {
 }
 #[test]
 fn program_content_gates_fast_terminal_paths_and_both_wrong_completion_controls() {
-    for (seed, scenario, attempt, wrong) in [
+    for (_seed, scenario, attempt, wrong) in [
         (0, "Complete", 1, false),
         (1, "RetryThenComplete", 2, false),
+        (0, "RetryTwiceThenComplete", 3, false),
+        (0, "RetryAtCap", 3, false),
         (2, "Fail", 1, false),
         (0, "Complete", 1, true),
         (2, "Fail", 1, true),
     ] {
-        let (mut runtime, program) = setup(seed);
+        let (mut runtime, program) = setup(scenario);
         let observation = terminal(&program, scenario, attempt, wrong);
         let Outcome::Judge(judgment) = invoke(
             &mut runtime,
@@ -158,7 +166,10 @@ fn program_content_gates_fast_terminal_paths_and_both_wrong_completion_controls(
             else {
                 panic!("explained")
             };
-            assert_eq!(explanation.steps.len(), if attempt == 2 { 4 } else { 2 });
+            assert_eq!(
+                explanation.steps.len(),
+                usize::try_from(attempt * 2).unwrap_or_else(|_| panic!("attempt"))
+            );
         }
     }
 }
@@ -166,7 +177,7 @@ fn program_content_gates_fast_terminal_paths_and_both_wrong_completion_controls(
 fn retry_history_requires_the_programmed_failure_and_unprogrammed_is_refused() {
     use umpire_temporal_api::temporal::api::failure::v1::failure::FailureInfo;
     for unprogrammed in [false, true] {
-        let (mut runtime, program) = setup(1);
+        let (mut runtime, program) = setup("RetryThenComplete");
         let mut observation = terminal(&program, "RetryThenComplete", 2, false);
         let Some(ResultValue::Response(value)) = observation.result.take() else {
             panic!("response")
@@ -210,7 +221,7 @@ fn retry_history_requires_the_programmed_failure_and_unprogrammed_is_refused() {
 #[test]
 fn failure_contents_are_checked_while_sdk_diagnostics_are_not_program_fields() {
     for wrong in [false, true] {
-        let (mut runtime, program) = setup(2);
+        let (mut runtime, program) = setup("Fail");
         let mut observation = terminal(&program, "Fail", 1, false);
         let Some(ResultValue::Response(value)) = observation.result.take() else {
             panic!("response")
@@ -306,10 +317,10 @@ fn read_terminal(runtime: &mut impl Dispatch, program: &WorkerProgram, scenario:
 
 #[test]
 fn cancel_not_found_reconciles_only_programmed_terminal_server_evidence() {
-    for (seed, scenario, wrong) in
+    for (_seed, scenario, wrong) in
         [(0, "Complete", false), (2, "Fail", false), (0, "Complete", true), (2, "Fail", true)]
     {
-        let (mut runtime, program) = setup(seed);
+        let (mut runtime, program) = setup(scenario);
         read_terminal(&mut runtime, &program, scenario);
         let Outcome::Propose(cancel) =
             invoke(&mut runtime, 6, &protocol::ProposeRequest { seed: 0 })
@@ -399,7 +410,7 @@ fn cancel_not_found_reconciles_only_programmed_terminal_server_evidence() {
 #[test]
 fn cancel_reconciliation_describe_must_match_the_exact_instruction_request() {
     for field in ["include_outcome", "include_last_failure", "namespace", "activity_id", "run_id"] {
-        let (mut runtime, program) = setup(0);
+        let (mut runtime, program) = setup("Complete");
         let instruction = cancellation(&mut runtime);
         let mut observation = terminal(&program, "Complete", 1, false);
         let mut request: DescribeActivityExecutionRequest = observation
@@ -435,7 +446,7 @@ fn cancel_reconciliation_describe_must_match_the_exact_instruction_request() {
 
 #[test]
 fn cancel_reconciliation_requires_the_actual_not_found_acknowledgment() {
-    let (mut runtime, program) = setup(0);
+    let (mut runtime, program) = setup("Complete");
     assert!(matches!(
         invoke(&mut runtime, 6, &protocol::ProposeRequest { seed: 2 }),
         Outcome::Propose(_)
@@ -477,7 +488,7 @@ fn compound_reconciliation_rejects_wrong_acknowledgments_and_non_cancel_contexts
         "read_pending",
         "reset",
     ] {
-        let (mut runtime, program) = setup(0);
+        let (mut runtime, program) = setup("Complete");
         let instruction = cancellation(&mut runtime);
         let mut ack = cancel_ack(instruction.request);
         let mut current = terminal(&program, "Complete", 1, false);
@@ -495,8 +506,8 @@ fn compound_reconciliation_rejects_wrong_acknowledgments_and_non_cancel_contexts
                 if case == "invalid_status" { info.status = 999; } else { info.run_state = 999; }
                 current.result = Some(ResultValue::Response(Any::pack(&response)));
             }
-            "no_pending" => { let (fresh, _) = setup(0); runtime = fresh; },
-            "read_pending" => { let (fresh, _) = setup(0); runtime = fresh; assert!(matches!(invoke(&mut runtime, 6, &protocol::ProposeRequest { seed: 1 }), Outcome::Propose(_))); },
+            "no_pending" => { let (fresh, _) = setup("Complete"); runtime = fresh; },
+            "read_pending" => { let (fresh, _) = setup("Complete"); runtime = fresh; assert!(matches!(invoke(&mut runtime, 6, &protocol::ProposeRequest { seed: 1 }), Outcome::Propose(_))); },
             "reset" => { let _ = invoke(&mut runtime, 3, &protocol::ResetRequest::default()); },
             _ => {}
         }
@@ -532,7 +543,7 @@ fn compound_reconciliation_rejects_wrong_acknowledgments_and_non_cancel_contexts
 
 #[test]
 fn reconciliation_context_changes_only_after_publication_and_clears_on_final_ack() {
-    let (mut runtime, program) = setup(0);
+    let (mut runtime, program) = setup("Complete");
     let (proposal, transaction) =
         runtime.prepare(6, &protocol::ProposeRequest { seed: 2 }.encode_to_vec());
     let Some(Outcome::Propose(proposal)) = proposal.outcome else { panic!("cancel") };
@@ -574,7 +585,7 @@ fn reconciliation_context_changes_only_after_publication_and_clears_on_final_ack
 fn terminal_failure_validates_current_last_failure_against_the_program() {
     use umpire_temporal_api::temporal::api::failure::v1::failure::FailureInfo;
     for variation in ["matching", "wrong_message", "wrong_type", "missing"] {
-        let (mut runtime, program) = setup(2);
+        let (mut runtime, program) = setup("Fail");
         let mut observation = terminal(&program, "Fail", 1, false);
         let Some(ResultValue::Response(value)) = observation.result.take() else {
             panic!("response")
@@ -656,7 +667,8 @@ fn describe_rejects_failure_history_and_outcomes_that_contradict_the_observed_ph
         (Phase::Canceled, "canceled_failure", false),
         (Phase::Completed, "retry_history", false),
     ] {
-        let (mut runtime, program) = setup(u64::from(variation == "retry_history"));
+        let (mut runtime, program) =
+            setup(if variation == "retry_history" { "RetryThenComplete" } else { "Complete" });
         if phase == Phase::Canceled {
             accept_cancellation(&mut runtime);
         }
@@ -743,7 +755,7 @@ fn describe_rejects_failure_history_and_outcomes_that_contradict_the_observed_ph
 #[test]
 fn unheld_open_cancellation_is_refused_before_a_proposal_becomes_pending() {
     for (started, seed) in [(true, 18), (false, 0)] {
-        let (mut runtime, program) = setup(0);
+        let (mut runtime, program) = setup("Complete");
         if started {
             let Outcome::Judge(judgment) = invoke(
                 &mut runtime,
@@ -939,8 +951,8 @@ fn same_describe_mutations_are_unexplained_or_refused_without_publishing() {
         }),
         (1, "RetryThenComplete", 2, "attempt", |response| info(response).attempt = 3),
     ];
-    for (seed, scenario, attempt, name, mutation) in unexplained {
-        let (mut runtime, program) = setup(seed);
+    for (_seed, scenario, attempt, name, mutation) in unexplained {
+        let (mut runtime, program) = setup(scenario);
         let base = terminal(&program, scenario, attempt, false);
         let Outcome::Judge(judgment) = judge(&mut runtime, &mutated(&base, mutation)) else {
             panic!("{name}: judge")
@@ -956,8 +968,8 @@ fn same_describe_mutations_are_unexplained_or_refused_without_publishing() {
         ("response run correlation", |response| response.run_id = "other".into()),
         ("terminal with running state", |response| info(response).run_state = 2),
     ];
-    for (seed, scenario, attempt) in [(0, "Complete", 1), (2, "Fail", 1)] {
-        let (mut runtime, program) = setup(seed);
+    for (_seed, scenario, attempt) in [(0, "Complete", 1), (2, "Fail", 1)] {
+        let (mut runtime, program) = setup(scenario);
         let base = terminal(&program, scenario, attempt, false);
         for (name, mutation) in refused {
             assert!(

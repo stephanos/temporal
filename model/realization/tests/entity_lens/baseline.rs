@@ -36,6 +36,7 @@ struct Receipt {
     request_id: String,
     run_id: String,
     maximum_attempts: Option<u8>,
+    manifest: Option<std::rc::Rc<crate::policy::Manifest>>,
 }
 
 struct LiveRealization {
@@ -196,15 +197,8 @@ impl LiveRuntime {
                 let configuration = request.configuration.or_else(|| self.configuration.clone());
                 if let Some(configuration) = configuration {
                     let start: StartActivityExecutionRequest = configuration.unpack()?;
-                    let maximum =
-                        start.retry_policy.as_ref().map_or(0, |policy| policy.maximum_attempts);
-                    let maximum = u8::try_from(maximum).map_err(|_| {
-                        Refusal::unsupported(
-                            "retry_policy.maximum_attempts must be explicitly in 1..=3",
-                        )
-                    })?;
-                    let world = activity::World::new(maximum, None, None, None, None);
-                    let program = Realization::worker_program(&start, &world)?;
+                    let manifest = crate::policy::Manifest::production(&start)?;
+                    let program = manifest.issued(&start)?;
                     return Ok((
                         Outcome::Reset(protocol::ResetResponse::current(Some(program))),
                         Some(LiveTransaction { change: Change::Configure(configuration) }),
@@ -313,7 +307,8 @@ impl LiveRuntime {
         }
         let mut start = StartActivityExecutionRequest::decode(filled.bytes.as_slice())
             .map_err(|_| Refusal::malformed("filled Start is malformed"))?;
-        let scenario = crate::activity_realization::SCENARIOS[(request.seed % 3) as usize];
+        let manifest = crate::policy::Manifest::production(&start)?;
+        let scenario = manifest.selected(request.seed)?.name();
         start.header.get_or_insert_with(Header::default).fields.insert(
             crate::activity_realization::SCENARIO_HEADER.into(),
             Payload {
@@ -394,6 +389,19 @@ impl LiveRuntime {
         let maximum_attempts = attempts
             .filter(|attempts| (1..=3).contains(attempts))
             .and_then(|attempts| u8::try_from(attempts).ok());
+        let manifest = if maximum_attempts.is_some() {
+            let manifest = crate::policy::Manifest::production(&request)?;
+            let name = request
+                .header
+                .as_ref()
+                .and_then(|header| header.fields.get(crate::activity_realization::SCENARIO_HEADER))
+                .and_then(|payload| std::str::from_utf8(&payload.data).ok())
+                .ok_or_else(|| Refusal::malformed("Start scenario header is missing"))?;
+            manifest.admit_name(name)?;
+            Some(std::rc::Rc::new(manifest))
+        } else {
+            None
+        };
         let receipt = Receipt {
             request: raw_request.clone(),
             response: raw_response.clone(),
@@ -402,6 +410,7 @@ impl LiveRuntime {
             request_id: request.request_id,
             run_id: response.run_id,
             maximum_attempts,
+            manifest,
         };
         let Some(maximum_attempts) = maximum_attempts else {
             let refusal =
@@ -441,18 +450,19 @@ impl LiveRuntime {
 
 impl LiveRuntime {
     fn install_context(&mut self) {
-        if self.configuration.is_some()
-            && let Some(receipt) = &self.receipt
-        {
+        if let Some(receipt) = &self.receipt {
             let request: StartActivityExecutionRequest = receipt
                 .request
                 .unpack()
                 .unwrap_or_else(|_| unreachable!("validated Start receipt"));
             self.model.replace_realization(LiveRealization {
-                inner: Realization::configured(crate::activity_realization::ProposalContext {
-                    start: request,
-                    run_id: receipt.run_id.clone(),
-                }),
+                inner: Realization::configured(
+                    crate::activity_realization::ProposalContext {
+                        start: request,
+                        run_id: receipt.run_id.clone(),
+                    },
+                    receipt.manifest.clone(),
+                ),
                 receipt: Some(receipt.clone()),
             });
         }

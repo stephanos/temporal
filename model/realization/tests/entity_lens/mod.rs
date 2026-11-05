@@ -295,10 +295,30 @@ fn entity_lens_equivalence_sweeps_configured_describe_shapes() {
     };
     let retry = || Failure::application("MiniActivityFailure", "Retry", false);
     let fail = || Failure::application("MiniActivityFailure", "Fail", true);
-    for seed in 0..3_u64 {
-        let scenario =
-            ["Complete", "RetryThenComplete", "Fail"][usize::try_from(seed).unwrap_or(0)];
+    for scenario in ["Complete", "RetryThenComplete", "Fail"] {
         for maximum in 1..=3 {
+            let mut pair = Pair::new();
+            let reset = protocol::ResetRequest { configuration: common::start(maximum).request }
+                .encode_to_vec();
+            let response = pair.call(3, &reset, true);
+            let Some(Outcome::Reset(issued)) = response.outcome else { panic!("reset") };
+            let program: umpire_temporal_api::umpire::temporal::v1::WorkerProgram = issued
+                .program
+                .unwrap_or_else(|| panic!("program"))
+                .unpack()
+                .unwrap_or_else(|e| panic!("{e:?}"));
+            let (_, seed) = if maximum == 1 && scenario == "RetryThenComplete" {
+                common::policy_witness(&program, &[crate::policy::Choice::Retry])
+            } else {
+                common::terminal_witness(&program, scenario)
+            };
+            let response = pair.call(6, &protocol::ProposeRequest { seed }.encode_to_vec(), true);
+            let Some(Outcome::Propose(proposal)) = response.outcome else {
+                panic!("bootstrap proposal")
+            };
+            let mut start = common::start(maximum);
+            start.request = proposal.request;
+            pair.judge(&start, true);
             for attempt in 1..=3 {
                 for (status, run_state) in [(1, 1), (1, 2), (2, 0), (3, 0)] {
                     for (outcome, retained) in [
@@ -315,20 +335,6 @@ fn entity_lens_equivalence_sweeps_configured_describe_shapes() {
                         if exception {
                             continue;
                         }
-                        let mut pair = Pair::new();
-                        let reset = protocol::ResetRequest {
-                            configuration: common::start(maximum).request,
-                        }
-                        .encode_to_vec();
-                        pair.call(3, &reset, true);
-                        let response =
-                            pair.call(6, &protocol::ProposeRequest { seed }.encode_to_vec(), true);
-                        let Some(Outcome::Propose(proposal)) = response.outcome else {
-                            panic!("bootstrap proposal")
-                        };
-                        let mut start = common::start(maximum);
-                        start.request = proposal.request;
-                        pair.judge(&start, true);
                         let mut describe = common::describe(attempt, status, run_state);
                         let Some(ResultValue::Response(raw)) = describe.result else {
                             panic!("describe response")
@@ -346,7 +352,7 @@ fn entity_lens_equivalence_sweeps_configured_describe_shapes() {
                             info.last_failure = retained.clone();
                         }
                         describe.result = Some(ResultValue::Response(Any::pack(&response)));
-                        pair.judge(&describe, true);
+                        pair.judge(&describe, false);
                     }
                 }
             }

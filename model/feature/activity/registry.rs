@@ -555,6 +555,12 @@ impl Realization {
                 }
                 if let Some(context) = &self.context {
                     let scenario = Self::scenario(context)?;
+                    self.manifest
+                        .as_ref()
+                        .ok_or_else(|| {
+                            Refusal::unsupported("admitted policy manifest is required")
+                        })?
+                        .admit_name(scenario)?;
                     for failure in [info.last_failure.as_ref(), Self::outcome_failure(&response)]
                         .into_iter()
                         .flatten()
@@ -566,8 +572,7 @@ impl Realization {
                     // search; evidence matching then cannot fail. An inconsistent snapshot is
                     // Unexplained before any response is selected.
                     if Self::consistent(phase, attempt, &response) {
-                        let world = Self::program_world(context)?;
-                        self.select_programmed(&world, scenario, state.attempt, phase, &response)?;
+                        self.select_programmed(scenario, state.attempt, phase, &response)?;
                     }
                 }
                 Ok(umpire_runtime::Projection::Reach((Self::read().project)(self, &response)?))
@@ -580,7 +585,6 @@ impl Realization {
     /// consults, stopping where that evidence is already contradicted.
     fn select_programmed(
         &self,
-        world: &activity::World,
         scenario: &str,
         current: u8,
         phase: activity::Phase,
@@ -592,7 +596,9 @@ impl Realization {
             .map_err(|_| Refusal::unsupported("Describe attempt is outside maximum_attempts"))?;
         let retry = Worker::RespondFailed { retryable: true };
         if attempt > 1 && phase != activity::Phase::Failed {
-            let (action, expected) = self.response(world, scenario, i32::from(attempt - 1))?;
+            let Some((action, expected)) = self.snapshot_response(scenario, attempt - 1)? else {
+                return Ok(());
+            };
             if action != retry {
                 return Ok(());
             }
@@ -602,11 +608,12 @@ impl Realization {
             }
         }
         for skipped in current..attempt {
-            if self.response(world, scenario, i32::from(skipped))?.0 != retry {
+            if self.snapshot_response(scenario, skipped)?.is_none_or(|(action, _)| action != retry)
+            {
                 return Ok(());
             }
         }
-        self.response(world, scenario, info.attempt)?;
+        let _ = self.snapshot_response(scenario, attempt)?;
         Ok(())
     }
 
@@ -661,13 +668,14 @@ impl Realization {
         let Some(context) = &self.context else {
             return Ok(Self::snapshot_evidence(phase, attempt, path, false));
         };
-        let world = Self::program_world(context)?;
         let scenario = Self::scenario(context)?;
         if !ActivityTarget::agrees(&response) || !Self::consistent(phase, attempt, &response) {
             return reject;
         }
         if attempt > 1 && phase != activity::Phase::Failed {
-            let (action, expected) = self.response(&world, scenario, i32::from(attempt - 1))?;
+            let Some((action, expected)) = self.snapshot_response(scenario, attempt - 1)? else {
+                return reject;
+            };
             if action != (Worker::RespondFailed { retryable: true }) {
                 return reject;
             }
@@ -676,7 +684,9 @@ impl Realization {
                 return reject;
             }
         }
-        let (programmed, expected) = self.response(&world, scenario, info.attempt)?;
+        let Some((programmed, expected)) = self.snapshot_response(scenario, attempt)? else {
+            return reject;
+        };
         match phase {
             activity::Phase::Completed => {
                 if programmed != Worker::RespondCompleted {
@@ -708,8 +718,9 @@ impl Realization {
         }
         for edge in path {
             if let Action::Worker(Worker::RespondFailed { retryable }) = edge.action
-                && self.response(&world, scenario, i32::from(edge.source.attempt))?.0
-                    != (Worker::RespondFailed { retryable })
+                && self
+                    .snapshot_response(scenario, edge.source.attempt)?
+                    .is_none_or(|(action, _)| action != (Worker::RespondFailed { retryable }))
             {
                 return reject;
             }
@@ -794,13 +805,17 @@ impl Realization {
         }
     }
 
-    /// The World the worker program was derived from: the receipt's retry cap, no timeouts.
-    /// Projection and evidence both select programmed responses against this one World.
-    fn program_world(context: &ProposalContext) -> Result<activity::World, Refusal> {
-        let maximum = context.maximum_attempts().ok_or_else(|| {
-            Refusal::unsupported("retry_policy.maximum_attempts is outside 1..=3")
-        })?;
-        Ok(activity::World::new(maximum, None, None, None, None))
+    /// Snapshot evidence excludes heartbeat and acknowledgment edges, so only the
+    /// exact empty history for each delivered task is admissible here.
+    fn snapshot_response(
+        &self,
+        scenario: &str,
+        attempt: u8,
+    ) -> Result<Option<(Worker, Any)>, Refusal> {
+        self.resolve_response(
+            scenario,
+            &super::policy::TaskKey { attempt, heartbeat_history: Vec::new() },
+        )
     }
 
     fn outcome_failure(response: &DescribeActivityExecutionResponse) -> Option<&Failure> {
