@@ -9,6 +9,7 @@ import (
 	"sync"
 	"time"
 
+	genericworker "github.com/temporalio/umpire/hosts/go/worker"
 	failurepb "go.temporal.io/api/failure/v1"
 	"go.temporal.io/api/workflowservice/v1"
 	"go.temporal.io/sdk/activity"
@@ -83,8 +84,7 @@ func validateTable(table *worker.Program) error {
 }
 
 type terminalExpectation struct {
-	wait     *worker.TerminalWait
-	expected *anypb.Any
+	ticket   *worker.ActivityTicket
 	deadline time.Time
 }
 
@@ -222,13 +222,10 @@ func coordinateTerminals(run, owner context.Context, bridge *worker.Bridge, term
 				return
 			}
 			terminalCtx, terminalCancel := context.WithDeadline(run, terminal.deadline)
-			completion, err := terminal.wait.Wait(terminalCtx)
+			err := terminal.ticket.Wait(terminalCtx)
 			terminalCancel()
 			if err != nil && shutdownCancellation(run, owner, err) {
 				continue
-			}
-			if err == nil {
-				err = worker.TerminalResult(terminal.expected, completion.RPC())
 			}
 			if err != nil {
 				fail(fmt.Errorf("SDK terminal completion: %w", err))
@@ -253,13 +250,13 @@ type taskLifetime struct {
 	cause                   error
 }
 
-func newTaskLifetime(run, activityCtx context.Context, assignment *worker.Assignment, fail func(error)) (*taskLifetime, error) {
+func newTaskLifetime(run, activityCtx context.Context, fail func(error)) (*taskLifetime, error) {
 	deadline, ok := activityCtx.Deadline()
 	if !ok {
 		return nil, errors.New("SDK activity deadline is missing")
 	}
 	heartbeatCtx, cancel := context.WithDeadline(context.WithoutCancel(activityCtx), deadline)
-	lifetime := &taskLifetime{ctx: assignment.HeartbeatContext(heartbeatCtx), cancel: cancel, runJoined: make(chan struct{}), originalDone: make(chan struct{})}
+	lifetime := &taskLifetime{ctx: heartbeatCtx, cancel: cancel, runJoined: make(chan struct{}), originalDone: make(chan struct{})}
 	lifetime.stopRun = context.AfterFunc(run, func() { cancel(); close(lifetime.runJoined) })
 	lifetime.stopOriginal = context.AfterFunc(activityCtx, func() {
 		defer close(lifetime.originalDone)
@@ -287,52 +284,42 @@ func followTask(run, activityCtx context.Context, table *worker.Program, bridge 
 	if !ok {
 		return delivery{}, errors.New("SDK task scenario context is missing")
 	}
-	assignment, err := bridge.Bind(worker.TaskIdentity{
-		Namespace: info.Namespace, TaskQueue: info.TaskQueue, ActivityID: info.ActivityID, ActivityRunID: info.ActivityRunID,
-		WorkflowID: info.WorkflowExecution.ID, WorkflowRunID: info.WorkflowExecution.RunID,
-		ActivityType: info.ActivityType.Name, Scenario: scenario, Attempt: info.Attempt, Token: info.TaskToken,
-	})
-	if err != nil {
-		return delivery{}, err
-	}
-	lifetime, err := newTaskLifetime(run, activityCtx, assignment, fail)
+	lifetime, err := newTaskLifetime(run, activityCtx, fail)
 	if err != nil {
 		return delivery{}, err
 	}
 	defer lifetime.close()
+	session, err := table.NewSession(bridge, worker.TaskIdentity{
+		Namespace: info.Namespace, TaskQueue: info.TaskQueue, ActivityID: info.ActivityID, ActivityRunID: info.ActivityRunID,
+		WorkflowID: info.WorkflowExecution.ID, WorkflowRunID: info.WorkflowExecution.RunID,
+		ActivityType: info.ActivityType.Name, Scenario: scenario, Attempt: info.Attempt, Token: info.TaskToken,
+	}, "", func(ctx context.Context, bit bool) error {
+		if !bit {
+			return nil
+		}
+		return awaitSDKCancellation(ctx, bridge, lifetime.originalDone, &lifetime.cause)
+	})
+	if err != nil {
+		return delivery{}, err
+	}
+	lifetime.ctx = session.Context(lifetime.ctx)
 	heartbeatCtx := lifetime.ctx
-	history := make([]bool, 0, table.MaxHeartbeats())
-	for decisions := 0; decisions <= table.MaxHeartbeats(); decisions++ {
+	for {
 		if err := heartbeatCtx.Err(); err != nil {
 			return delivery{}, err
 		}
-		response := table.Match(scenario, info.Attempt, info.ActivityType.Name, history...)
-		if response == nil {
-			if len(history) != 0 {
-				return delivery{}, errors.New("SDK task has no exact observable-history row")
-			}
-			response, err = anypb.New(&workflowservice.RespondActivityTaskFailedRequest{Failure: worker.UnprogrammedFailure()})
-			if err != nil {
-				return delivery{}, err
-			}
+		ticket, err := session.Begin()
+		if err != nil {
+			return delivery{}, err
 		}
-		if response.MessageIs(&workflowservice.RecordActivityTaskHeartbeatRequest{}) {
-			bit, err := nativeHeartbeat(heartbeatCtx, assignment, response, info.Namespace, info.TaskToken)
-			if err != nil {
+		if ticket.Role() == genericworker.Continue {
+			if err := nativeHeartbeat(heartbeatCtx, ticket); err != nil {
 				return delivery{}, err
 			}
-			if bit {
-				err = awaitSDKCancellation(heartbeatCtx, bridge, lifetime.originalDone, &lifetime.cause)
-			}
-			if err != nil {
-				return delivery{}, err
-			}
-			history = append(history, bit)
 			continue
 		}
-		return enqueueTerminal(heartbeatCtx, bridge, assignment, response, info.Namespace, info.TaskToken, terminals)
+		return enqueueTerminal(heartbeatCtx, bridge, ticket, terminals)
 	}
-	return delivery{}, errors.New("SDK task exhausted its admitted heartbeat depth")
 }
 
 func awaitSDKCancellation(ctx context.Context, bridge *worker.Bridge, canceled <-chan struct{}, cause *error) error {
@@ -351,16 +338,11 @@ func awaitSDKCancellation(ctx context.Context, bridge *worker.Bridge, canceled <
 	}
 }
 
-func enqueueTerminal(ctx context.Context, bridge *worker.Bridge, assignment *worker.Assignment, response *anypb.Any, namespace string, token []byte, terminals chan<- terminalExpectation) (delivery, error) {
-	result, err := convert(response)
-	if err != nil {
-		return delivery{}, err
+func enqueueTerminal(ctx context.Context, bridge *worker.Bridge, ticket *worker.ActivityTicket, terminals chan<- terminalExpectation) (delivery, error) {
+	if ticket.Role() != genericworker.Finish {
+		return delivery{}, errors.New("SDK terminal requires a Finish ticket")
 	}
-	expected, method, err := terminalRequest(response, namespace, token)
-	if err != nil {
-		return delivery{}, err
-	}
-	wait, err := assignment.BeginTerminal(method)
+	result, err := convert(ticket.Template())
 	if err != nil {
 		return delivery{}, err
 	}
@@ -369,7 +351,7 @@ func enqueueTerminal(ctx context.Context, bridge *worker.Bridge, assignment *wor
 		return delivery{}, errors.New("SDK terminal deadline is missing")
 	}
 	select {
-	case terminals <- terminalExpectation{wait: wait, expected: expected, deadline: deadline}:
+	case terminals <- terminalExpectation{ticket: ticket, deadline: deadline}:
 		return result, nil
 	case <-ctx.Done():
 		return delivery{}, ctx.Err()
@@ -380,62 +362,20 @@ func enqueueTerminal(ctx context.Context, bridge *worker.Bridge, assignment *wor
 	}
 }
 
-func nativeHeartbeat(ctx context.Context, assignment *worker.Assignment, response *anypb.Any, namespace string, token []byte) (bool, error) {
+func nativeHeartbeat(ctx context.Context, ticket *worker.ActivityTicket) error {
+	if ticket.Role() != genericworker.Continue {
+		return errors.New("SDK heartbeat requires a Continue ticket")
+	}
 	heartbeat := new(workflowservice.RecordActivityTaskHeartbeatRequest)
-	if err := response.UnmarshalTo(heartbeat); err != nil {
-		return false, err
-	}
-	heartbeat.Namespace, heartbeat.TaskToken = namespace, append([]byte(nil), token...)
-	expected, err := anypb.New(heartbeat)
-	if err != nil {
-		return false, err
-	}
-	wait, err := assignment.BeginHeartbeat()
-	if err != nil {
-		return false, err
+	if err := ticket.Request().UnmarshalTo(heartbeat); err != nil {
+		return err
 	}
 	details := make([]any, 0, len(heartbeat.GetDetails().GetPayloads()))
 	for _, payload := range heartbeat.GetDetails().GetPayloads() {
 		details = append(details, converter.NewRawValue(payload))
 	}
 	activity.RecordHeartbeat(ctx, details...)
-	completion, err := wait.Wait(ctx)
-	if err != nil {
-		return false, err
-	}
-	return worker.HeartbeatResult(expected, completion.RPC())
-}
-
-func terminalRequest(response *anypb.Any, namespace string, token []byte) (*anypb.Any, string, error) {
-	var message proto.Message
-	var method string
-	switch {
-	case response.MessageIs(&workflowservice.RespondActivityTaskCompletedRequest{}):
-		request := new(workflowservice.RespondActivityTaskCompletedRequest)
-		if err := response.UnmarshalTo(request); err != nil {
-			return nil, "", err
-		}
-		request.Namespace, request.TaskToken = namespace, append([]byte(nil), token...)
-		message, method = request, workflowservice.WorkflowService_RespondActivityTaskCompleted_FullMethodName
-	case response.MessageIs(&workflowservice.RespondActivityTaskFailedRequest{}):
-		request := new(workflowservice.RespondActivityTaskFailedRequest)
-		if err := response.UnmarshalTo(request); err != nil {
-			return nil, "", err
-		}
-		request.Namespace, request.TaskToken = namespace, append([]byte(nil), token...)
-		message, method = request, workflowservice.WorkflowService_RespondActivityTaskFailed_FullMethodName
-	case response.MessageIs(&workflowservice.RespondActivityTaskCanceledRequest{}):
-		request := new(workflowservice.RespondActivityTaskCanceledRequest)
-		if err := response.UnmarshalTo(request); err != nil {
-			return nil, "", err
-		}
-		request.Namespace, request.TaskToken = namespace, append([]byte(nil), token...)
-		message, method = request, workflowservice.WorkflowService_RespondActivityTaskCanceled_FullMethodName
-	default:
-		return nil, "", errors.New("SDK terminal response kind is unsupported")
-	}
-	packed, err := anypb.New(message)
-	return packed, method, err
+	return ticket.Wait(ctx)
 }
 
 type delivery struct {

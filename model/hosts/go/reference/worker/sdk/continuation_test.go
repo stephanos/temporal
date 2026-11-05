@@ -480,6 +480,7 @@ func TestProductionSDKCancelOutstandingHeartbeatJoins(t *testing.T) {
 type sdkActivityProbe struct {
 	interceptor.InterceptorBase
 	started          chan struct{}
+	handlerReturned  chan struct{}
 	returned         chan int
 	canceled         chan error
 	calls            atomic.Int32
@@ -489,7 +490,7 @@ type sdkActivityProbe struct {
 }
 
 func newSDKActivityProbe() *sdkActivityProbe {
-	return &sdkActivityProbe{started: make(chan struct{}, 16), returned: make(chan int, 16), canceled: make(chan error, 16), release: make(chan struct{})}
+	return &sdkActivityProbe{started: make(chan struct{}, 16), handlerReturned: make(chan struct{}, 16), returned: make(chan int, 16), canceled: make(chan error, 16), release: make(chan struct{})}
 }
 func (p *sdkActivityProbe) InterceptActivity(_ context.Context, next interceptor.ActivityInboundInterceptor) interceptor.ActivityInboundInterceptor {
 	return &sdkActivityInbound{ActivityInboundInterceptorBase: interceptor.ActivityInboundInterceptorBase{Next: next}, probe: p}
@@ -521,7 +522,9 @@ func (i *sdkActivityInbound) ExecuteActivity(ctx context.Context, input *interce
 			return nil, i.probe.run.Err()
 		}
 	}
-	return i.Next.ExecuteActivity(ctx, input)
+	result, err := i.Next.ExecuteActivity(ctx, input)
+	i.probe.handlerReturned <- struct{}{}
+	return result, err
 }
 
 type sdkActivityOutbound struct {
@@ -948,18 +951,19 @@ func TestTerminalEnqueueBackpressureJoinsWithoutPublishing(t *testing.T) {
 			require.NoError(t, err)
 			require.NoError(t, bridge.Observe(ctx, worker.RPC{Invocation: 1, Sequence: 1, Stage: worker.RPCStarted, Method: workflowservice.WorkflowService_PollActivityTaskQueue_FullMethodName, Request: request}))
 			require.NoError(t, bridge.Observe(ctx, worker.RPC{Invocation: 1, Sequence: 2, Stage: worker.RPCCompleted, Method: workflowservice.WorkflowService_PollActivityTaskQueue_FullMethodName, Request: request, Response: response, Sent: true, Answered: true}))
-			assignment, err := bridge.Bind(worker.IdentityFromPoll(heartbeatNamespace, "production-queue", task))
-			require.NoError(t, err)
 			payloads, err := converter.GetDefaultDataConverter().ToPayloads("proof-completed")
 			require.NoError(t, err)
 			terminal, err := anypb.New(&workflowservice.RespondActivityTaskCompletedRequest{Result: payloads})
+			require.NoError(t, err)
+			session := terminalTicketSession(t, bridge, task, terminal)
+			ticket, err := session.Begin()
 			require.NoError(t, err)
 			queue := make(chan terminalExpectation, 1)
 			queue <- terminalExpectation{}
 			registered := make(chan struct{}, 1)
 			finished := make(chan error, 1)
 			go func() {
-				_, err := enqueueTerminal(terminalQueueContext{Context: ctx, registered: registered}, bridge, assignment, terminal, heartbeatNamespace, heartbeatToken, queue)
+				_, err := enqueueTerminal(terminalQueueContext{Context: ctx, registered: registered}, bridge, ticket, queue)
 				finished <- err
 			}()
 			heartbeatReceive(ctx, t, registered)
@@ -983,7 +987,7 @@ func TestTerminalEnqueueBackpressureJoinsWithoutPublishing(t *testing.T) {
 				require.ErrorContains(t, err, "closed")
 			}
 			require.Len(t, queue, 1)
-			require.Nil(t, (<-queue).wait)
+			require.Nil(t, (<-queue).ticket)
 			cancel()
 			if ending == "run-cancel" {
 				require.NoError(t, bridge.Close())
@@ -1024,8 +1028,6 @@ func TestTerminalCoordinatorValidatesCapturedResultsDuringShutdown(t *testing.T)
 					task.WorkflowNamespace = heartbeatNamespace
 					require.NoError(t, bridge.Observe(run, worker.RPC{Invocation: 1, Sequence: 1, Stage: worker.RPCStarted, Method: workflowservice.WorkflowService_PollActivityTaskQueue_FullMethodName, Request: pack(poll)}))
 					require.NoError(t, bridge.Observe(run, worker.RPC{Invocation: 1, Sequence: 2, Stage: worker.RPCCompleted, Method: workflowservice.WorkflowService_PollActivityTaskQueue_FullMethodName, Request: pack(poll), Response: pack(task), Sent: true, Answered: true}))
-					assignment, err := bridge.Bind(worker.IdentityFromPoll(heartbeatNamespace, "production-queue", task))
-					require.NoError(t, err)
 					method := workflowservice.WorkflowService_RespondActivityTaskCompleted_FullMethodName
 					expected := pack(&workflowservice.RespondActivityTaskCompletedRequest{Namespace: heartbeatNamespace, TaskToken: heartbeatToken})
 					actual := proto.CloneOf(expected)
@@ -1039,8 +1041,10 @@ func TestTerminalCoordinatorValidatesCapturedResultsDuringShutdown(t *testing.T)
 						actual = proto.CloneOf(expected)
 						response = pack(&workflowservice.RespondActivityTaskFailedResponse{Failures: []*failurepb.Failure{{Message: "rejected"}}})
 					}
-					wait, err := assignment.BeginTerminal(method)
+					session := terminalTicketSession(t, bridge, task, expected)
+					ticket, err := session.Begin()
 					require.NoError(t, err)
+					require.Equal(t, method, ticket.Method())
 					require.NoError(t, bridge.Observe(callCtx, worker.RPC{Invocation: 2, Sequence: 3, Stage: worker.RPCStarted, Method: method, Request: actual}))
 					completed := worker.RPC{Invocation: 2, Sequence: 4, Stage: worker.RPCCompleted, Method: method, Request: actual, Response: response, Sent: true, Answered: true}
 					switch outcome {
@@ -1081,7 +1085,7 @@ func TestTerminalCoordinatorValidatesCapturedResultsDuringShutdown(t *testing.T)
 					if ending == "active-deadline" {
 						deadline = time.Now().Add(-time.Second)
 					}
-					queue <- terminalExpectation{wait: wait, expected: expected, deadline: deadline}
+					queue <- terminalExpectation{ticket: ticket, deadline: deadline}
 					resume, joined := make(chan struct{}), make(chan struct{})
 					var failures []error
 					go func() {

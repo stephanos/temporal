@@ -45,8 +45,13 @@ binds the complete actual task identity through the Bridge and prepares independ
 namespace/token-bearing requests. Raw execution registers each ticket before
 dispatch and waits for the validated captured completion before following its
 successor. An unmatched initial task uses the existing nonretryable unprogrammed
-failure. The SDK retains the Program's immutable Match/Rows/Responses interface
-and its existing conversion, notification and shutdown contracts.
+failure. The SDK follows the same Session with its native conversion and transport.
+It waits for actual cancellation notification before advancing a true heartbeat
+edge and registers a terminal ticket before the handler returns; a separate waiter
+validates the captured terminal result afterward. Startup checks every row's SDK
+sendability. Shutdown joins handlers, closes and drains the bounded terminal queue,
+and joins its coordinator before closing the bound client. Program's immutable
+Match/Rows/Responses helpers remain available to callers.
 
 Temporal protobuf schemas stay in `model/proto`, with generic imports
 resolved from the sibling Umpire `protocol/proto`. From the Temporal root,
