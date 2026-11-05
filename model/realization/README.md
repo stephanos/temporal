@@ -8,16 +8,24 @@ inside the shared stateless annotation wrapper.
 Generated `prost::Name` implementations supply canonical Any URLs through the
 generic `Any::pack`/`unpack` helpers; no hand-maintained type URL registry is needed.
 
-`#[realization(activity)]` on an inherent impl generates the `Realize<activity::World>`
-dispatch. `#[observe(WorkflowService::Method, reads(path), ignores(path = "reason"))]`
+The activity action metadata and entity/read registry declare RPCs, typed fillers,
+claimed response fields and evidence predicates. `#[reach]` routes Describe and Cancel
+through `Projection::Reach`. Describe decodes an `ActivityTarget` without constructing
+latent state; snapshot fields reconciled with the Model-derived worker program authorize
+hidden worker steps. The registry `cancel_evidence` predicate authorizes exactly one
+Cancel edge per actual RPC. Worker RPC predicates stay off the live path until a receipt
+holds the polled task token and the binding refuses evidence with a crossed token.
+
+The generic `#[realization(activity)]` attribute on an inherent impl generates typed
+dispatch for handlers outside this Reach path.
+`#[observe(WorkflowService::Method, reads(path), ignores(path = "reason"))]`
 selects an RPC before decoding its response. The handler receives that typed response,
 or `Result<Response, i32>` when it handles raw gRPC error codes. A `Projection` is used
 directly; `Step<A> { action, expected }` proposes one action. A state-valued handler must
 declare `project(Self::mapping)`, where the Realization-owned function takes the current
-Model state and returned value and constructs a `Projection`. The activity mapping
-checks the observed attempt, matches the current phase/attempt, and proposes Completed,
-nonretryable Failed, or retryable Failed when actual Describe reports the next Scheduled
-attempt. It never infers Poll from Started.
+Model state and returned value and constructs a `Projection`. The activity Reach path
+uses its registry projection and evidence predicates instead of handwritten Describe
+and Cancel handlers.
 
 `#[answer(Task, reads(path), ignores(path = "reason"),
 produces(Request, fields(path), ignores(path = "reason")))]` declares incoming callback
@@ -62,10 +70,12 @@ the Temporal facade owns the immutable Start receipt and admission refusal.
 Judge accepts `umpire.realization.v1.Observation` containing the exact Describe RPC
 method `/temporal.api.workflowservice.v1.WorkflowService/DescribeActivityExecution`
 and a `temporal.api.workflowservice.v1.DescribeActivityExecutionResponse` Any.
-Running status requires Scheduled or Started run state and the current attempt, or
-the next Scheduled attempt after a retryable failure. Terminal statuses use
-Unspecified run state, as emitted by the server. Judge never manufactures Poll;
-only a validated callback supplies delivery evidence.
+The current Judge path admits Running with Scheduled or Started run state and refuses
+CancelRequested as Unsupported before target projection. Terminal statuses use
+Unspecified run state, as emitted by the server. Reach checks complete candidate
+witnesses against the target and evidence; a snapshot alone does not authorize an edge.
+The current live path reconciles the snapshot with the admitted worker program, while
+actual worker RPC evidence production remains downstream work.
 
 Observation carries a result oneof, with response Any at tag 2 or error at tag 3.
 The local `umpire.realization.v1.Error` has code and message because `google.rpc.Status`
@@ -89,8 +99,9 @@ For `/temporal.api.workflowservice.v1.WorkflowService/RequestCancelActivityExecu
 the actual `RequestCancelActivityExecutionResponse` proposes one `Client::Cancel` and
 matches only `Accepted`. An actual error with NotFound code 5 proposes the same step and
 matches only `Rejected(NotFound)`, leaving the closed phase unchanged. The realization maps
-the recognized status vocabulary and compares the replayed outcome; contradictory or
-unknown codes are Unexplained and freeze the run. An unknown method is Unsupported.
+the declared rejection vocabulary and compares the replayed outcome. A declared code
+that contradicts the Model is Unexplained and freezes the run; a code outside that
+vocabulary refuses Unsupported. An unknown method is Unsupported.
 Explanations carry parallel steps/outcomes for the complete retained witness from Reset.
 Repeated current Describe and validated Start replay return that full witness; initial
 Start admission retains its actual observation anchor with an empty path.
@@ -98,10 +109,14 @@ Start admission retains its actual observation anchor with an empty path.
 The live SDK slice proves successful cancellation while the worker remains stopped and
 NotFound after completion, using fresh request IDs and actual RPC results. The client
 returns service errors, converted with `serviceerror.ToStatus` to preserve code/message.
-It also mutates a copy of the observed NotFound code to FailedPrecondition and checks
-Unexplained plus freezing on later genuine observations. Live cancellation in Started
-is excluded because the real server passes through CancelRequested, which the independent
-six-phase Model omits. Repeated request IDs, repeated cancel and late replies are unmodeled.
+A FailedPrecondition code in place of NotFound after closure remains within the declared
+vocabulary but contradicts the Model, yielding Unexplained and freezing later judgments.
+Live cancellation in Started
+refuses as `cancel_requested` Unsupported because the live binding does not yet evidence
+pending heartbeat and acknowledgement, although the independent Model represents pending
+cancellation. This refusal supplies no live cancellation proof. Same-request-ID replay
+has no outcome promise; the Model separately specifies a fresh repeated pending Cancel
+as FailedPrecondition. Late replies remain outside this live scope.
 
 Answer accepts `umpire.realization.v1.Callback` with a partial
 `temporal.api.workflowservice.v1.PollActivityTaskQueueResponse`. The input must

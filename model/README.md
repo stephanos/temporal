@@ -544,8 +544,9 @@ The independent activity Model carries retry maximum 1..=3, four optional bounde
 `Ticks` deadlines and cooperative cancellation. Its state records phase, attempt,
 pending cancellation and four countdowns. One Tick decrements all live budgets and selects
 ScheduleToClose > StartToClose > Heartbeat > ScheduleToStart, emitting one exact expiry fact.
-Terminal transitions clear budgets and pending. Pending attempt expiry or retryable failure
-cancels, while global expiry times out; completion and nonretryable failure may win.
+Terminal transitions clear budgets and pending. Pending attempt expiry closes TimedOut,
+and pending worker failure closes Failed without retry. Scheduled Cancel and explicit
+worker acknowledgement close Canceled; completion may still win.
 
 Exact Poll(1)..Poll(maximum_attempts) and RespondCompleted weak fairness establishes
 closure, including timeoutless Worlds. Registered countdown laws establish the spanning
@@ -580,11 +581,13 @@ declaration and the exact law semantics.
 The reusable `umpire-runtime` library owns state, replay, first-Unexplained freezing,
 Reset, response-publication transactions and ABI buffers. A system-owned `Realize`
 realization proposes paths; the runtime validates those paths through actual Model steps.
-The activity realization uses Temporal-owned `#[realization]`, `#[observe]` and `#[answer]`
-attributes over typed handlers. Their declared field paths distinguish observed responses,
-incoming callbacks and produced partial SDK requests; omitted present fields refuse.
-See the [realization guide](realization/README.md) for explicit state projection,
-`Step`/`Reply` returns and the raw typed request packing contract.
+The activity realization declares typed action metadata and an entity/read registry, with
+`#[reach]` routing Describe and Cancel through `Projection::Reach`. Describe decodes an
+`ActivityTarget`; snapshot fields reconciled with the worker program authorize hidden
+steps, and the registry cancellation predicate authorizes one actual Cancel edge. Worker
+RPC predicates remain off the live path pending receipt-held task-token evidence.
+See the [realization guide](realization/README.md) for the registry, target and typed
+request packing contracts.
 The registered Temporal fixture consumer checks `expected/realization.txt.snap` against
 the generated runtime metadata. It distinguishes observed, callback and produced contexts,
 lists every classified path and ignore reason, and derives unhandled Model-action RPCs from
@@ -595,7 +598,7 @@ checkpoint, run its real added-catalog-field control from `model/` with
 It rebuilds in a disposable worktree and preserves the existing coverage baseline.
 For public states without declared constants, `#[machine]` exports `World` and `Action`,
 and `world()` returns `World`. Non-public states retain the opaque interface with generated types following
-the state's visibility. The declared activity World uses an explicit six-field `World::new` and removes
+the state's visibility. The declared activity World uses an explicit five-field `World::new` and removes
 the realization's duplicate action carrier, delegating machine and claim-index re-wrap.
 Generic Any helpers derive canonical type URLs from generated `prost::Name`; only the
 Describe and cancel RPC method paths are realization constants. The policy parser and reply constructor
