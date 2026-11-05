@@ -461,7 +461,7 @@ umpire-guest: $(API_BINPB)
 
 umpire-check-model-slice:
 	@set -eu; \
-		temporary=$$(mktemp); \
+		temporary=$$(mktemp "$${TMPDIR:-/tmp}/umpire-model-slice.XXXXXXXXXX"); \
 		trap 'rm -f "$$temporary"' EXIT HUP INT TERM; \
 		status=0; \
 		CGO_ENABLED=0 \
