@@ -7,12 +7,11 @@ import (
 	"fmt"
 	"time"
 
+	genericworker "github.com/temporalio/umpire/hosts/go/worker"
 	taskqueuepb "go.temporal.io/api/taskqueue/v1"
 	"go.temporal.io/api/workflowservice/v1"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-	"google.golang.org/protobuf/proto"
-	"google.golang.org/protobuf/types/known/anypb"
 	"google.golang.org/protobuf/types/known/durationpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 	"umpire.local/temporal/reference/worker"
@@ -80,7 +79,7 @@ func followPolls(ctx, run context.Context, conn workflowservice.WorkflowServiceC
 
 func runAssignment(ctx context.Context, conn workflowservice.WorkflowServiceClient, table *worker.Program, bridge *worker.Bridge, task *workflowservice.PollActivityTaskQueueResponse) error {
 	identity := worker.IdentityFromPoll(table.Namespace, table.TaskQueue, task)
-	assignment, err := bridge.Bind(identity)
+	session, err := table.NewSession(bridge, identity, "umpire-raw", nil)
 	if err != nil {
 		return err
 	}
@@ -89,7 +88,7 @@ func runAssignment(ctx context.Context, conn workflowservice.WorkflowServiceClie
 		return err
 	}
 	defer taskCancel()
-	return followAssignment(assignment.HeartbeatContext(taskCtx), conn, table, assignment, identity)
+	return followAssignment(session.Context(taskCtx), conn, session)
 }
 
 func assignmentContext(ctx context.Context, task *workflowservice.PollActivityTaskQueueResponse) (context.Context, context.CancelFunc, error) {
@@ -130,96 +129,41 @@ func assignmentContext(ctx context.Context, task *workflowservice.PollActivityTa
 	return child, cancel, nil
 }
 
-func followAssignment(ctx context.Context, conn workflowservice.WorkflowServiceClient, table *worker.Program, assignment *worker.Assignment, identity worker.TaskIdentity) error {
-	history := make([]bool, 0, table.MaxHeartbeats())
-	for step := 0; step <= table.MaxHeartbeats(); step++ {
+func followAssignment(ctx context.Context, conn workflowservice.WorkflowServiceClient, session *worker.ActivitySession) error {
+	for {
 		if err := ctx.Err(); err != nil {
 			return err
 		}
-		message, err := selectedResponse(table, identity, history)
+		ticket, err := session.Begin()
 		if err != nil {
 			return err
 		}
-		switch request := message.(type) {
-		case *workflowservice.RecordActivityTaskHeartbeatRequest:
-			if len(history) >= table.MaxHeartbeats() {
-				return errors.New("worker heartbeat depth exhausted")
-			}
-			bit, err := heartbeat(ctx, conn, assignment, identity, request)
-			if err != nil {
-				return err
-			}
-			history = append(history, bit)
-		default:
-			return respond(ctx, conn, assignment, identity, message)
+		if err := dispatch(ctx, conn, ticket); err != nil {
+			return err
+		}
+		if err := ticket.Wait(ctx); err != nil {
+			return err
+		}
+		if ticket.Role() == genericworker.Finish {
+			return nil
 		}
 	}
-	return errors.New("worker decision work exhausted")
 }
 
-func selectedResponse(table *worker.Program, identity worker.TaskIdentity, history []bool) (proto.Message, error) {
-	response := table.Match(identity.Scenario, identity.Attempt, identity.ActivityType, history...)
-	if response == nil {
-		if len(history) != 0 {
-			return nil, errors.New("actual heartbeat history is outside the declared program domain")
-		}
-		var err error
-		response, err = anypb.New(&workflowservice.RespondActivityTaskFailedRequest{Failure: worker.UnprogrammedFailure()})
+func dispatch(ctx context.Context, conn workflowservice.WorkflowServiceClient, ticket *worker.ActivityTicket) error {
+	message, err := worker.ResponseMessage(ticket.Request())
+	if err != nil {
+		return err
+	}
+	switch request := message.(type) {
+	case *workflowservice.RecordActivityTaskHeartbeatRequest:
+		response, err := conn.RecordActivityTaskHeartbeat(ctx, request)
 		if err != nil {
-			return nil, err
+			return err
 		}
-	}
-	return worker.ResponseMessage(response)
-}
-
-func heartbeat(ctx context.Context, conn workflowservice.WorkflowServiceClient, assignment *worker.Assignment, identity worker.TaskIdentity, request *workflowservice.RecordActivityTaskHeartbeatRequest) (bool, error) {
-	request.Namespace, request.TaskToken, request.Identity = identity.Namespace, identity.Token, "umpire-raw"
-	expected, err := anypb.New(request)
-	if err != nil {
-		return false, err
-	}
-	wait, err := assignment.BeginHeartbeat()
-	if err != nil {
-		return false, err
-	}
-	actual, err := conn.RecordActivityTaskHeartbeat(ctx, request)
-	if err != nil {
-		return false, err
-	}
-	if actual == nil {
-		return false, errors.New("missing heartbeat acknowledgment")
-	}
-	completed, err := wait.Wait(ctx)
-	if err != nil {
-		return false, err
-	}
-	return worker.HeartbeatResult(expected, completed.RPC())
-}
-
-func respond(ctx context.Context, conn workflowservice.WorkflowServiceClient, assignment *worker.Assignment, identity worker.TaskIdentity, message proto.Message) error {
-	var method string
-	switch request := message.(type) {
-	case *workflowservice.RespondActivityTaskCompletedRequest:
-		request.Namespace, request.TaskToken, request.Identity = identity.Namespace, identity.Token, "umpire-raw"
-		method = workflowservice.WorkflowService_RespondActivityTaskCompleted_FullMethodName
-	case *workflowservice.RespondActivityTaskFailedRequest:
-		request.Namespace, request.TaskToken, request.Identity = identity.Namespace, identity.Token, "umpire-raw"
-		method = workflowservice.WorkflowService_RespondActivityTaskFailed_FullMethodName
-	case *workflowservice.RespondActivityTaskCanceledRequest:
-		request.Namespace, request.TaskToken, request.Identity = identity.Namespace, identity.Token, "umpire-raw"
-		method = workflowservice.WorkflowService_RespondActivityTaskCanceled_FullMethodName
-	default:
-		return fmt.Errorf("unsupported terminal response %T", message)
-	}
-	expected, err := anypb.New(message)
-	if err != nil {
-		return err
-	}
-	wait, err := assignment.BeginTerminal(method)
-	if err != nil {
-		return err
-	}
-	switch request := message.(type) {
+		if response == nil {
+			return errors.New("missing heartbeat acknowledgment")
+		}
 	case *workflowservice.RespondActivityTaskCompletedRequest:
 		response, err := conn.RespondActivityTaskCompleted(ctx, request)
 		if err != nil {
@@ -245,11 +189,7 @@ func respond(ctx context.Context, conn workflowservice.WorkflowServiceClient, as
 			return errors.New("missing canceled acknowledgment")
 		}
 	default:
-		return errors.New("unsupported terminal response")
+		return fmt.Errorf("unsupported worker response %T", message)
 	}
-	completed, err := wait.Wait(ctx)
-	if err != nil {
-		return err
-	}
-	return worker.TerminalResult(expected, completed.RPC())
+	return nil
 }

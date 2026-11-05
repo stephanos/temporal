@@ -39,6 +39,15 @@ ownership. The generic coordinator does not replace the Model's policy coverage
 or supply a Run-owned heartbeat journal. See the framework's
 [worker capture contract](../../../../umpire/hosts/go/README.md#worker-capture-and-finite-tables).
 
+`Program.Decode` admits exact Activity roots, heartbeat histories and declared
+boolean successor domains through the generic finite Table. `Program.NewSession`
+binds the complete actual task identity through the Bridge and prepares independent
+namespace/token-bearing requests. Raw execution registers each ticket before
+dispatch and waits for the validated captured completion before following its
+successor. An unmatched initial task uses the existing nonretryable unprogrammed
+failure. The SDK retains the Program's immutable Match/Rows/Responses interface
+and its existing conversion, notification and shutdown contracts.
+
 Temporal protobuf schemas stay in `model/proto`, with generic imports
 resolved from the sibling Umpire `protocol/proto`. From the Temporal root,
 `(cd model && mise exec -- cargo xtask proto-go temporal)` regenerates this module's three protobuf

@@ -12,6 +12,7 @@ import (
 	realizationv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/realization/v1"
 	commonpb "go.temporal.io/api/common/v1"
 	failurepb "go.temporal.io/api/failure/v1"
+	taskqueuepb "go.temporal.io/api/taskqueue/v1"
 	"go.temporal.io/api/workflowservice/v1"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -585,4 +586,69 @@ func TestFollowIssuedManifestDoesNotAliasAttempts(t *testing.T) {
 	failed, ok := fixture.service.terminals[0].(*workflowservice.RespondActivityTaskFailedRequest)
 	require.True(t, ok)
 	require.Equal(t, worker.Unprogrammed, failed.GetFailure().GetApplicationFailureInfo().GetType())
+}
+
+type nilAcknowledgmentClient struct {
+	workflowservice.WorkflowServiceClient
+}
+
+func (nilAcknowledgmentClient) RecordActivityTaskHeartbeat(context.Context, *workflowservice.RecordActivityTaskHeartbeatRequest, ...grpc.CallOption) (*workflowservice.RecordActivityTaskHeartbeatResponse, error) {
+	return nil, nil
+}
+func (nilAcknowledgmentClient) RespondActivityTaskCompleted(context.Context, *workflowservice.RespondActivityTaskCompletedRequest, ...grpc.CallOption) (*workflowservice.RespondActivityTaskCompletedResponse, error) {
+	return nil, nil
+}
+func (nilAcknowledgmentClient) RespondActivityTaskFailed(context.Context, *workflowservice.RespondActivityTaskFailedRequest, ...grpc.CallOption) (*workflowservice.RespondActivityTaskFailedResponse, error) {
+	return nil, nil
+}
+func (nilAcknowledgmentClient) RespondActivityTaskCanceled(context.Context, *workflowservice.RespondActivityTaskCanceledRequest, ...grpc.CallOption) (*workflowservice.RespondActivityTaskCanceledResponse, error) {
+	return nil, nil
+}
+
+func TestTicketDispatchRejectsEveryNilAcknowledgment(t *testing.T) {
+	for _, kind := range []string{"heartbeat", "completed", "failed", "canceled"} {
+		t.Run(kind, func(t *testing.T) {
+			ctx, cancel := context.WithCancel(t.Context())
+			defer cancel()
+			bridge := worker.NewBridge(ctx)
+			terminal := kind
+			var bits []bool
+			if kind == "heartbeat" {
+				terminal = "completed"
+				bits = []bool{false}
+			}
+			p, err := worker.Decode(rawProgram(t, bits, terminal, true))
+			require.NoError(t, err)
+			poll := &workflowservice.PollActivityTaskQueueRequest{Namespace: "ns", TaskQueue: &taskqueuepb.TaskQueue{Name: "q"}}
+			task := &workflowservice.PollActivityTaskQueueResponse{TaskToken: []byte("token"), Attempt: 2, ActivityType: &commonpb.ActivityType{Name: "activity"}, Header: &commonpb.Header{Fields: map[string]*commonpb.Payload{worker.ScenarioHeader: {Metadata: map[string][]byte{"encoding": []byte("binary/plain")}, Data: []byte("history")}}}}
+			start := worker.RPC{Invocation: 1, Sequence: 1, Stage: worker.RPCStarted, Method: workflowservice.WorkflowService_PollActivityTaskQueue_FullMethodName, Request: rawPack(t, poll)}
+			require.NoError(t, bridge.Observe(ctx, start))
+			start.Sequence = 2
+			start.Stage = worker.RPCCompleted
+			start.Response = rawPack(t, task)
+			start.Sent = true
+			start.Answered = true
+			require.NoError(t, bridge.Observe(ctx, start))
+			s, err := p.NewSession(bridge, worker.IdentityFromPoll("ns", "q", task), "umpire-raw", nil)
+			require.NoError(t, err)
+			ticket, err := s.Begin()
+			require.NoError(t, err)
+			require.EqualError(t, dispatch(s.Context(ctx), nilAcknowledgmentClient{}, ticket), "missing "+kind+" acknowledgment")
+			cancel()
+			require.ErrorIs(t, ticket.Wait(ctx), context.Canceled)
+			require.NoError(t, bridge.Close())
+		})
+	}
+}
+
+func TestFollowTicketDepthAndRootCanceled(t *testing.T) {
+	for _, bits := range [][]bool{nil, {false, true, false, true, true, false, true, false}} {
+		f := newRawFixture(t, rawProgram(t, bits, "canceled", true), func(service *rawService) { service.bits = bits })
+		require.NoError(t, f.wait(t))
+		f.service.mu.Lock()
+		require.Len(t, f.service.heartbeats, len(bits))
+		require.Len(t, f.service.terminals, 1)
+		require.IsType(t, &workflowservice.RespondActivityTaskCanceledRequest{}, f.service.terminals[0])
+		f.service.mu.Unlock()
+	}
 }

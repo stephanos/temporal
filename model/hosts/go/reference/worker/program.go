@@ -4,7 +4,8 @@ package worker
 import (
 	"errors"
 	"fmt"
-	"slices"
+
+	genericworker "github.com/temporalio/umpire/hosts/go/worker"
 
 	commonpb "go.temporal.io/api/common/v1"
 	failurepb "go.temporal.io/api/failure/v1"
@@ -46,11 +47,11 @@ func historyKey(history []bool) string {
 
 // Program is an immutable, validated finite activity table.
 type Program struct {
-	Namespace     string
-	TaskQueue     string
-	rows          []Row
-	index         map[taskKey]*anypb.Any
-	maxHeartbeats int
+	Namespace string
+	TaskQueue string
+	rows      []Row
+	index     map[taskKey]*anypb.Any
+	table     *genericworker.Table[activityRoot, bool, *anypb.Any]
 }
 
 // Decode refuses incomplete observable domains before any task is polled.
@@ -80,7 +81,12 @@ func Decode(data []byte) (*Program, error) {
 	if err != nil {
 		return nil, err
 	}
-	if err := table.validateClosure(domains); err != nil {
+	rows := make([]genericworker.Row[activityRoot, bool, *anypb.Any], 0, len(table.rows))
+	for _, row := range table.rows {
+		rows = append(rows, genericworker.Row[activityRoot, bool, *anypb.Any]{Key: activityKey(row.Key), Action: row.Response})
+	}
+	table.table, err = genericworker.NewTable(rows, domains, activityCodec())
+	if err != nil {
 		return nil, err
 	}
 	return table, nil
@@ -110,13 +116,12 @@ func decodeRows(p *temporalv1.WorkerProgram) (*Program, error) {
 		response = proto.CloneOf(response)
 		table.rows = append(table.rows, Row{Key: key, Response: response})
 		table.index[k] = response
-		table.maxHeartbeats = max(table.maxHeartbeats, len(key.GetHeartbeatHistory()))
 	}
 	return table, nil
 }
 
-func (table *Program) decodeDomains(packedDomains []*anypb.Any) (map[taskKey][]bool, error) {
-	domains := make(map[taskKey][]bool, len(packedDomains))
+func (table *Program) decodeDomains(packedDomains []*anypb.Any) ([]genericworker.Domain[activityRoot, bool], error) {
+	domains := make([]genericworker.Domain[activityRoot, bool], 0, len(packedDomains))
 	for i, packed := range packedDomains {
 		domain := new(temporalv1.ActivityTaskSuccessors)
 		if err := noUnknownFields(packed); err != nil {
@@ -131,56 +136,9 @@ func (table *Program) decodeDomains(packedDomains []*anypb.Any) (map[taskKey][]b
 		if err := validKey(domain.GetKey()); err != nil {
 			return nil, fmt.Errorf("successor %d key: %w", i, err)
 		}
-		k := exactKey(domain.GetKey())
-		if _, exists := domains[k]; exists {
-			return nil, fmt.Errorf("successor %d: duplicate declared domain", i)
-		}
-		if len(domain.GetCancelRequested()) == 0 || len(domain.GetCancelRequested()) > 2 {
-			return nil, fmt.Errorf("successor %d: nonempty unique bool domain required", i)
-		}
-		if len(domain.GetCancelRequested()) == 2 && domain.GetCancelRequested()[0] == domain.GetCancelRequested()[1] {
-			return nil, fmt.Errorf("successor %d: duplicate declared bit", i)
-		}
-		response := table.index[k]
-		if response == nil || !response.MessageIs(&workflowservice.RecordActivityTaskHeartbeatRequest{}) {
-			return nil, fmt.Errorf("successor %d: domain requires an exact heartbeat row", i)
-		}
-		domains[k] = slices.Clone(domain.GetCancelRequested())
+		domains = append(domains, genericworker.Domain[activityRoot, bool]{Key: activityKey(domain.GetKey()), Symbols: domain.GetCancelRequested()})
 	}
 	return domains, nil
-}
-
-func (table *Program) validateClosure(domains map[taskKey][]bool) error {
-	for _, row := range table.rows {
-		k := exactKey(row.Key)
-		if row.Response.MessageIs(&workflowservice.RecordActivityTaskHeartbeatRequest{}) {
-			domain, exists := domains[k]
-			if !exists {
-				return errors.New("heartbeat row has no declared successor domain")
-			}
-			for _, bit := range domain {
-				child := k
-				child.history += historyKey([]bool{bit})
-				if table.index[child] == nil {
-					return errors.New("declared heartbeat successor has no response row")
-				}
-			}
-		}
-		history := row.Key.GetHeartbeatHistory()
-		if len(history) == 0 {
-			continue
-		}
-		parent := k
-		parent.history = parent.history[:len(parent.history)-1]
-		response := table.index[parent]
-		if response == nil || !response.MessageIs(&workflowservice.RecordActivityTaskHeartbeatRequest{}) {
-			return errors.New("activity history has no heartbeat parent")
-		}
-		if !slices.Contains(domains[parent], history[len(history)-1]) {
-			return errors.New("activity history is outside its declared successor domain")
-		}
-	}
-	return nil
 }
 
 func validKey(key *temporalv1.ActivityTaskKey) error {
@@ -200,7 +158,7 @@ func (table *Program) Match(scenario string, attempt int32, activityType string,
 }
 
 // MaxHeartbeats is the finite depth proved by admission of all declared children.
-func (table *Program) MaxHeartbeats() int { return table.maxHeartbeats }
+func (table *Program) MaxHeartbeats() int { return table.table.MaxDepth() }
 
 // Rows returns independent copies of the admitted key/response pairs.
 func (table *Program) Rows() []Row {

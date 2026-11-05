@@ -83,25 +83,25 @@ func TestProgramRejectsIncompleteOrAmbiguousHistory(t *testing.T) {
 		want string
 	}{
 		{name: "duplicate-key", edit: func(p *temporalv1.WorkerProgram) { p.Rules = append(p.Rules, p.Rules[0]) }, want: "duplicate exact"},
-		{name: "missing-domain", edit: func(p *temporalv1.WorkerProgram) { p.ContinuationDomains = p.ContinuationDomains[1:] }, want: "no declared"},
+		{name: "missing-domain", edit: func(p *temporalv1.WorkerProgram) { p.ContinuationDomains = p.ContinuationDomains[1:] }, want: "has no domain"},
 		{name: "empty-domain", edit: func(p *temporalv1.WorkerProgram) {
 			changeDomain(t, p, 0, func(domain *temporalv1.ActivityTaskSuccessors) { domain.CancelRequested = nil })
-		}, want: "nonempty unique"},
+		}, want: "empty worker domain"},
 		{name: "duplicate-bit", edit: func(p *temporalv1.WorkerProgram) {
 			changeDomain(t, p, 0, func(domain *temporalv1.ActivityTaskSuccessors) { domain.CancelRequested = []bool{true, true} })
-		}, want: "duplicate declared bit"},
+		}, want: "duplicate worker domain symbol"},
 		{name: "duplicate-domain", edit: func(p *temporalv1.WorkerProgram) {
 			p.ContinuationDomains = append(p.ContinuationDomains, p.ContinuationDomains[0])
-		}, want: "duplicate declared domain"},
-		{name: "missing-declared-row", edit: func(p *temporalv1.WorkerProgram) { p.Rules = p.Rules[:len(p.Rules)-1] }, want: "has no response row"},
+		}, want: "duplicate worker domain"},
+		{name: "missing-declared-row", edit: func(p *temporalv1.WorkerProgram) { p.Rules = p.Rules[:len(p.Rules)-1] }, want: "children do not match declared domain"},
 		{name: "orphan-parent", edit: func(p *temporalv1.WorkerProgram) {
 			p.Rules = p.Rules[1:]
 			p.ContinuationDomains = p.ContinuationDomains[1:]
-		}, want: "no heartbeat parent"},
-		{name: "terminal-domain", edit: func(p *temporalv1.WorkerProgram) { p.Rules[0].Respond = p.Rules[2].Respond }, want: "requires an exact heartbeat"},
+		}, want: "missing parent"},
+		{name: "terminal-domain", edit: func(p *temporalv1.WorkerProgram) { p.Rules[0].Respond = p.Rules[2].Respond }, want: "terminal row"},
 		{name: "undeclared-child", edit: func(p *temporalv1.WorkerProgram) {
 			changeDomain(t, p, 0, func(domain *temporalv1.ActivityTaskSuccessors) { domain.CancelRequested = []bool{true} })
-		}, want: "outside its declared"},
+		}, want: "children do not match declared domain"},
 		{name: "unknown-domain-type", edit: func(p *temporalv1.WorkerProgram) {
 			p.ContinuationDomains[0] = historyAny(t, &workflowservice.RespondActivityTaskCompletedRequest{})
 		}, want: "successor 0 domain"},
