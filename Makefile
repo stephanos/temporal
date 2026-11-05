@@ -477,7 +477,7 @@ umpire-check-model-slice:
 
 umpire-check-model-gaps:
 	@set -eu; \
-		temporary=$$(mktemp); \
+		temporary=$$(mktemp "$${TMPDIR:-/tmp}/umpire-model-gaps.XXXXXXXXXX"); \
 		trap 'rm -f "$$temporary"' EXIT HUP INT TERM; \
 		status=0; \
 		CGO_ENABLED=0 \
