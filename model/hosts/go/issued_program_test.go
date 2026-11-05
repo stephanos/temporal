@@ -44,6 +44,8 @@ func TestIssuedProgramAdmissionControls(t *testing.T) {
 					require.NoError(t, row.GetRespond()[0].UnmarshalTo(response))
 					response.Result.Payloads = append(response.Result.Payloads, proto.CloneOf(response.Result.Payloads[0]))
 					row.Respond = []*anypb.Any{pack(t, response)}
+				default:
+					t.Fatalf("unexpected admission control %q", control)
 				}
 				changed = true
 				break

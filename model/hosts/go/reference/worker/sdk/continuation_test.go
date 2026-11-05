@@ -1188,6 +1188,8 @@ func TestProductionSDKIssuedManifestActualHeartbeatValidation(t *testing.T) {
 				response.ProtoReflect().SetUnknown([]byte{0x20, 1})
 			case "malformed":
 				response.ProtoReflect().SetUnknown([]byte{0xff})
+			default:
+				t.Fatalf("unexpected heartbeat mutation %q", bad)
 			}
 			call.reply <- heartbeatReply{response: response}
 			heartbeatReceive(fixture.ctx, t, fixture.done)

@@ -14,7 +14,7 @@ import (
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/anypb"
 	"google.golang.org/protobuf/types/known/durationpb"
-	temporal "umpire.local/temporal"
+	"umpire.local/temporal"
 	"umpire.local/temporal/reference/worker"
 )
 
