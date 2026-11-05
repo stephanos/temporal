@@ -31,6 +31,14 @@ The checked-in guest is exposed by `temporal.Guest()`. Ordinary Go tests use it
 without Rust; Model changes require `make umpire-guest` from the Temporal root.
 `make model-check` checks that guest's freshness.
 
+The reference worker Bridge delegates actual invocation correlation to the sibling
+generic `worker.Coordinator`. Temporal owns its five method bindings, complete
+task identity, namespace and token extraction, request copies and response
+validation. Raw and native SDK executors keep their existing transport and shutdown
+ownership. The generic coordinator does not replace the Model's policy coverage
+or supply a Run-owned heartbeat journal. See the framework's
+[worker capture contract](../../../../umpire/hosts/go/README.md#worker-capture-and-finite-tables).
+
 Temporal protobuf schemas stay in `model/proto`, with generic imports
 resolved from the sibling Umpire `protocol/proto`. From the Temporal root,
 `(cd model && mise exec -- cargo xtask proto-go temporal)` regenerates this module's three protobuf

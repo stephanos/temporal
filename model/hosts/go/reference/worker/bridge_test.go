@@ -335,3 +335,25 @@ func TestBridgeShutdownRetainsTerminalButCannotAdvanceHeartbeat(t *testing.T) {
 		})
 	}
 }
+
+func TestBridgeInvalidContextFailsClosed(t *testing.T) {
+	bridge := NewBridge(nil) //nolint:staticcheck // SA1012: this constructor-refusal control intentionally supplies a nil context.
+	err := bridge.Err()
+	require.Error(t, err)
+	require.ErrorIs(t, bridge.Observe(t.Context(), RPC{}), err)
+	assignment, bindErr := bridge.Bind(TaskIdentity{})
+	require.Nil(t, assignment)
+	require.ErrorIs(t, bindErr, err)
+	select {
+	case <-bridge.Failed():
+	default:
+		t.Fatal("invalid bridge did not close Failed")
+	}
+	select {
+	case <-bridge.Done():
+	default:
+		t.Fatal("invalid bridge did not close Done")
+	}
+	require.ErrorIs(t, bridge.Close(), err)
+	require.ErrorIs(t, bridge.Close(), err)
+}
