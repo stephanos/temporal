@@ -5,14 +5,141 @@
 use prost::Message;
 use umpire_runtime::AnyMessage as _;
 use umpire_runtime::{
-    Dispatch,
+    Dispatch, Guest,
     prost_types::Any,
     protocol::{self, response::Outcome},
+    realization::Observation,
 };
 use umpire_temporal::annotation_runtime;
 use umpire_temporal_api::temporal::api::workflowservice::v1::StartActivityExecutionRequest;
 
 mod common;
+
+fn admission_judge(
+    guest: &mut Guest<impl Dispatch>,
+    actual: &Observation,
+    publish: bool,
+) -> Outcome {
+    let mut response = None;
+    let published = guest.dispatch_to(
+        4,
+        &protocol::JudgeRequest { observation: Some(Any::pack(actual)) }.encode_to_vec(),
+        |bytes| {
+            response =
+                Some(protocol::Response::decode(bytes).unwrap_or_else(|error| panic!("{error}")));
+            publish
+        },
+    );
+    assert_eq!(published, publish);
+    response.and_then(|response| response.outcome).unwrap_or_else(|| panic!("Judge response"))
+}
+fn assert_no_admitted_receipt(guest: &mut Guest<impl Dispatch>) {
+    let Outcome::Refusal(refusal) = admission_judge(guest, &common::describe(1, 1, 1), true) else {
+        panic!("a prepared or refused Start must not install a receipt");
+    };
+    assert_eq!(refusal.code(), protocol::RefusalCode::State);
+    assert!(refusal.message.contains("live Start admission is required"));
+}
+fn assert_admission_explained(outcome: &Outcome, label: &str) {
+    assert!(
+        matches!(
+            outcome,
+            Outcome::Judge(protocol::JudgeResponse {
+                judgment: Some(protocol::judge_response::Judgment::Explained(_)),
+                ..
+            })
+        ),
+        "{label}: {outcome:?}"
+    );
+}
+
+#[test]
+fn actual_start_admission_checks_policy_header_before_publishing_a_receipt() {
+    use umpire_temporal_api::umpire::temporal::v1::WorkerProgram;
+
+    fn request(maximum: i32) -> StartActivityExecutionRequest {
+        common::start(maximum)
+            .request
+            .unwrap_or_else(|| panic!("Start request"))
+            .unpack()
+            .unwrap_or_else(|error| panic!("{error:?}"))
+    }
+    fn header_data(
+        mut request: StartActivityExecutionRequest,
+        data: Vec<u8>,
+    ) -> StartActivityExecutionRequest {
+        request
+            .header
+            .as_mut()
+            .unwrap_or_else(|| panic!("header"))
+            .fields
+            .get_mut("umpire-scenario")
+            .unwrap_or_else(|| panic!("policy field"))
+            .data = data;
+        request
+    }
+
+    let runtime = annotation_runtime();
+    let (issued, _) = runtime.prepare(
+        3,
+        &protocol::ResetRequest { configuration: common::start(2).request }.encode_to_vec(),
+    );
+    let Some(Outcome::Reset(issued)) = issued.outcome else { panic!("cap-two program") };
+    let program: WorkerProgram = issued
+        .program
+        .unwrap_or_else(|| panic!("program"))
+        .unpack()
+        .unwrap_or_else(|error| panic!("{error:?}"));
+    let (cap_two_name, _) = common::terminal_witness(&program, "RetryThenComplete");
+    let base = request(1);
+    let mut no_header = base.clone();
+    no_header.header = None;
+    let mut no_field = base.clone();
+    no_field.header.as_mut().unwrap_or_else(|| panic!("header")).fields.clear();
+    let cases = [
+        ("valid cap-one identity", base.clone(), None),
+        ("valid cap-two identity", header_data(request(2), cap_two_name.as_bytes().to_vec()), None),
+        ("missing header", no_header, Some(protocol::RefusalCode::MalformedRequest)),
+        ("missing field", no_field, Some(protocol::RefusalCode::MalformedRequest)),
+        ("empty data", header_data(base.clone(), vec![]), Some(protocol::RefusalCode::Unsupported)),
+        (
+            "invalid UTF-8",
+            header_data(base.clone(), vec![0xff]),
+            Some(protocol::RefusalCode::MalformedRequest),
+        ),
+        (
+            "valid identity from different cap",
+            header_data(base, cap_two_name.into_bytes()),
+            Some(protocol::RefusalCode::Unsupported),
+        ),
+    ];
+    for (label, request, refusal) in cases {
+        let mut guest = Guest::new(annotation_runtime());
+        let mut actual = common::start(1);
+        actual.request = Some(Any::pack(&request));
+        let valid = if refusal.is_none() { actual.clone() } else { common::start(1) };
+        let outcome = admission_judge(&mut guest, &actual, false);
+        if let Some(expected) = refusal {
+            let Outcome::Refusal(refused) = outcome else { panic!("{label}: Start must refuse") };
+            assert_eq!(refused.code(), expected, "{label}");
+            assert_no_admitted_receipt(&mut guest);
+            let Outcome::Refusal(refused) = admission_judge(&mut guest, &actual, true) else {
+                panic!("{label}: publishing a refusal must not admit Start");
+            };
+            assert_eq!(refused.code(), expected, "{label}");
+        } else {
+            assert_admission_explained(&outcome, label);
+        }
+        assert_no_admitted_receipt(&mut guest);
+        assert_admission_explained(&admission_judge(&mut guest, &valid, false), label);
+        assert_no_admitted_receipt(&mut guest);
+        assert_admission_explained(&admission_judge(&mut guest, &valid, true), label);
+        assert_admission_explained(
+            &admission_judge(&mut guest, &common::describe(1, 1, 1), true),
+            label,
+        );
+    }
+}
 
 #[test]
 fn configured_reset_issues_a_deterministic_program_and_unconfigured_reset_does_not() {
