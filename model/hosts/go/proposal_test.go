@@ -3,6 +3,7 @@ package temporal_test
 import (
 	"context"
 	"errors"
+	"slices"
 	"testing"
 
 	modelv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/model/v1"
@@ -31,6 +32,13 @@ func configuredGuest(t *testing.T, seed uint64) (*model.Host, *modelv1.ProposeRe
 	if err := reset.GetProgram().UnmarshalTo(program); err != nil {
 		t.Fatal(err)
 	}
+	label := []string{"Complete", "RetryThenComplete", "Fail"}[seed]
+	names := programPolicyNames(t, program)
+	index := slices.Index(names, witnessName(label))
+	if index < 0 {
+		t.Fatalf("missing witness %s", label)
+	}
+	seed = uint64(index)
 	bootstrap, err := h.Propose(context.Background(), &modelv1.ProposeRequest{Seed: seed})
 	if err != nil || bootstrap.GetKind() != modelv1.ProposalKind_PROPOSAL_KIND_BOOTSTRAP || bootstrap.GetAction() != "" {
 		t.Fatalf("bootstrap: %v %v", bootstrap, err)
@@ -47,7 +55,7 @@ func programResponse(t *testing.T, program *temporalv1.WorkerProgram, scenario s
 		if err := rule.GetKey().UnmarshalTo(key); err != nil {
 			t.Fatal(err)
 		}
-		if key.GetScenario() == scenario && key.GetAttempt() == attempt {
+		if key.GetScenario() == witnessName(scenario) && key.GetAttempt() == attempt && len(key.GetHeartbeatHistory()) == 0 {
 			if len(rule.GetRespond()) != 1 {
 				t.Fatalf("program row: %v", rule)
 			}
@@ -138,7 +146,7 @@ func TestConfiguredProposalNativeWasmParity(t *testing.T) {
 	if _, err := h.Reset(ctx, &modelv1.ResetRequest{}); err != nil {
 		t.Fatal(err)
 	}
-	again, err := h.Propose(ctx, &modelv1.ProposeRequest{Seed: 0})
+	again, err := h.Propose(ctx, &modelv1.ProposeRequest{Seed: uint64(slices.Index(programPolicyNames(t, program), witnessName("Complete")))})
 	if err != nil || !proto.Equal(again, bootstrap) {
 		t.Fatalf("reused configuration: %v %v", again, err)
 	}

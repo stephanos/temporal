@@ -5,6 +5,7 @@ package tests
 import (
 	"context"
 	"fmt"
+	"slices"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -34,20 +35,46 @@ import (
 	temporalv1 "umpire.local/temporal/umpire/temporal/v1"
 )
 
-func reconciliationSeed(scenario uint64) uint64 {
-	for seed := uint64(1); ; seed++ {
-		if runner.ProposalSeed(seed, 1)%3 == scenario && runner.ProposalSeed(seed, 2)%4 == 0 {
+func modelSliceManifestSeed(t *testing.T, program *temporalv1.WorkerProgram, label string, read bool) uint64 {
+	t.Helper()
+	names := []string{}
+	name := sliceWitnessName(label)
+	count := 0
+	for _, rule := range program.GetRules() {
+		key := new(temporalv1.ActivityTaskKey)
+		require.NoError(t, rule.GetKey().UnmarshalTo(key))
+		if !slices.Contains(names, key.GetScenario()) {
+			names = append(names, key.GetScenario())
+		}
+		if key.GetScenario() == name {
+			count++
+			require.Equal(t, int32(1), key.GetAttempt())
+			require.Empty(t, key.GetHeartbeatHistory())
+			require.Len(t, rule.GetRespond(), 1)
+			if label != "Fail" {
+				require.True(t, rule.GetRespond()[0].MessageIs(new(workflowservice.RespondActivityTaskCompletedRequest)))
+			} else {
+				failed := new(workflowservice.RespondActivityTaskFailedRequest)
+				require.NoError(t, rule.GetRespond()[0].UnmarshalTo(failed))
+				require.True(t, failed.GetFailure().GetApplicationFailureInfo().GetNonRetryable())
+			}
+		}
+	}
+	require.Equal(t, 1, count)
+	index := slices.Index(names, name)
+	require.GreaterOrEqual(t, index, 0)
+	for seed := uint64(1); seed <= 1000000; seed++ {
+		if runner.ProposalSeed(seed, 1)%uint64(len(names)) != uint64(index) {
+			continue
+		}
+		next := runner.ProposalSeed(seed, 2)
+		if label == "CancelBeforeWorkerStart" && next%4 == 2 || label != "CancelBeforeWorkerStart" && (read && next%2 == 1 || !read && next%4 == 0) {
+			t.Logf("exact manifest witness %s index=%d/%d seed=%d read=%v", name, index, len(names), seed, read)
 			return seed
 		}
 	}
-}
-
-func terminalReconciliationSeed(scenario uint64) uint64 {
-	for seed := uint64(1); ; seed++ {
-		if runner.ProposalSeed(seed, 1)%3 == scenario && runner.ProposalSeed(seed, 2)%2 == 1 {
-			return seed
-		}
-	}
+	t.Fatalf("no bounded controller seed for %s", name)
+	return 0
 }
 
 func reconciliationObservation(method string, request, response any, rpcErr error, options []grpc.CallOption) (*realizationv1.Observation, error) {
@@ -109,27 +136,28 @@ func modelSliceReconciliation(t *testing.T) {
 				annotations := &modelSliceAnnotations{host: host}
 				program := new(temporalv1.WorkerProgram)
 				require.NoError(t, reset.Program.UnmarshalTo(program))
-				scenario := uint64(2)
+				scenario := "Fail"
 				if control == "Complete" || control == "wrong-result" || control == "response-mutated-history" {
-					scenario = 0
+					scenario = "Complete"
 				}
+				seed := modelSliceManifestSeed(t, program, scenario, terminal)
 				for _, rule := range program.Rules {
 					key := new(temporalv1.ActivityTaskKey)
 					require.NoError(t, rule.Key.UnmarshalTo(key))
 					switch control {
 					case "wrong-result":
-						if key.Scenario == "Complete" {
+						if key.Scenario == sliceWitnessName("Complete") && len(key.GetHeartbeatHistory()) == 0 {
 							rule.Respond = []*anypb.Any{modelSliceAny(t, &workflowservice.RespondActivityTaskCompletedRequest{Result: &commonpb.Payloads{Payloads: []*commonpb.Payload{{Metadata: map[string][]byte{"encoding": []byte("binary/plain")}, Data: []byte("Different")}}}})}
 						}
 					case "wrong-failure":
-						if key.Scenario == "Fail" {
+						if key.Scenario == sliceWitnessName("Fail") && len(key.GetHeartbeatHistory()) == 0 {
 							failure := new(workflowservice.RespondActivityTaskFailedRequest)
 							require.NoError(t, rule.Respond[0].UnmarshalTo(failure))
 							failure.Failure.Message = "Different"
 							rule.Respond[0] = modelSliceAny(t, failure)
 						}
 					case "complete-instead-of-fail":
-						if key.Scenario == "Fail" {
+						if key.Scenario == sliceWitnessName("Fail") && len(key.GetHeartbeatHistory()) == 0 {
 							rule.Respond = []*anypb.Any{modelSliceAny(t, &workflowservice.RespondActivityTaskCompletedRequest{Result: &commonpb.Payloads{Payloads: []*commonpb.Payload{{Metadata: map[string][]byte{"encoding": []byte("binary/plain")}, Data: []byte("Complete")}}}})}
 						}
 					}
@@ -196,17 +224,13 @@ func modelSliceReconciliation(t *testing.T) {
 					}
 					return err
 				}
-				seed, budget := reconciliationSeed(scenario), 2
+				budget := 2
 				if terminal {
-					seed, budget = terminalReconciliationSeed(scenario), 3
+					budget = 3
 				}
-				var iteration uint64
 				newDriver := func(ctx context.Context) (runner.Driver, error) {
-					iteration++
 					opts := act.Options{Address: env.FrontendGRPCAddress(), Namespace: env.Namespace().String(), TaskQueue: queue, ExecutorKind: kind, Program: bytes}
-					if iteration == seed {
-						opts.Transport = act.Transport{DialOptions: []grpc.DialOption{grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithChainUnaryInterceptor(intercept)}}
-					}
+					opts.Transport = act.Transport{DialOptions: []grpc.DialOption{grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithChainUnaryInterceptor(intercept)}}
 					factory, err := temporaldriver.NewFactory(opts)
 					if err != nil {
 						return nil, err
@@ -214,7 +238,7 @@ func modelSliceReconciliation(t *testing.T) {
 					return factory.New(ctx)
 				}
 				var run *runner.Run
-				_, err = runner.New(temporalmodel.Guest(), newDriver).Run(ctx, runner.ModeExplore, runner.Options{World: world, Seed: seed, Budget: budget, RunTimeout: 20 * time.Second, Record: func(_ context.Context, recorded *runner.Run) error {
+				_, err = runner.New(temporalmodel.Guest(), newDriver).Run(ctx, runner.ModeExplore, runner.Options{World: world, FirstSeed: seed, Seed: seed, Budget: budget, RunTimeout: 20 * time.Second, Record: func(_ context.Context, recorded *runner.Run) error {
 					if recorded.Seed == seed {
 						run = recorded
 					}

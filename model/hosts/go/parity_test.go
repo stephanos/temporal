@@ -14,6 +14,7 @@ import (
 	activitypb "go.temporal.io/api/activity/v1"
 	commonpb "go.temporal.io/api/common/v1"
 	enumspb "go.temporal.io/api/enums/v1"
+	failurepb "go.temporal.io/api/failure/v1"
 	taskqueuepb "go.temporal.io/api/taskqueue/v1"
 	"go.temporal.io/api/workflowservice/v1"
 	"google.golang.org/protobuf/proto"
@@ -51,7 +52,11 @@ func TestCancelSuccessAndRejectedSelfLoop(t *testing.T) {
 		{"", enumspb.ACTIVITY_EXECUTION_STATUS_CANCELED},
 	} {
 		t.Run(tc.status.String(), func(t *testing.T) {
-			h := guest(t)
+			label := tc.policy
+			if label == "" {
+				label = "Complete"
+			}
+			h := guest(t, label)
 			steps := []string{"Client::Cancel"}
 			if tc.policy == "" {
 				explained(t, judge(t, h, cancelObservation(t, 0)), steps...)
@@ -170,11 +175,17 @@ func TestActualRequestIsRequiredForLiveBinding(t *testing.T) {
 	explained(t, judge(t, h, value))
 }
 
-func startObservation(t *testing.T, attempts int32) *anypb.Any {
+func startObservation(t *testing.T, attempts int32, labels ...string) *anypb.Any {
 	t.Helper()
+	label := "Complete"
+	if len(labels) > 0 {
+		label = labels[0]
+	}
+
 	return pack(t, &realizationv1.Observation{Method: startMethod,
 		Request: pack(t, &workflowservice.StartActivityExecutionRequest{
 			Namespace: receiptNamespace, ActivityId: receiptActivity, RequestId: "11111111-1111-4111-8111-111111111111",
+			Header:       &commonpb.Header{Fields: map[string]*commonpb.Payload{"umpire-scenario": {Metadata: map[string][]byte{"encoding": []byte("binary/plain")}, Data: []byte(witnessName(label))}}},
 			ActivityType: &commonpb.ActivityType{Name: "ModelSlice"}, TaskQueue: &taskqueuepb.TaskQueue{Name: "queue"},
 			StartToCloseTimeout: durationpb.New(20 * time.Second), RetryPolicy: &commonpb.RetryPolicy{MaximumAttempts: attempts},
 		}), Result: &realizationv1.Observation_Response{Response: pack(t, &workflowservice.StartActivityExecutionResponse{RunId: receiptRun, Started: true})}})
@@ -194,10 +205,10 @@ func unboundGuest(t *testing.T) *model.Host {
 	return h
 }
 
-func guest(t *testing.T) *model.Host {
+func guest(t *testing.T, labels ...string) *model.Host {
 	t.Helper()
 	h := unboundGuest(t)
-	explained(t, judge(t, h, startObservation(t, 3)))
+	explained(t, judge(t, h, startObservation(t, 3, labels...)))
 	return h
 }
 
@@ -212,13 +223,15 @@ func pack(t *testing.T, message proto.Message) *anypb.Any {
 
 func observation(t *testing.T, status enumspb.ActivityExecutionStatus, run enumspb.PendingActivityState) *anypb.Any {
 	t.Helper()
-	return pack(t, &realizationv1.Observation{
-		Method:  describeMethod,
-		Request: pack(t, &workflowservice.DescribeActivityExecutionRequest{Namespace: receiptNamespace, ActivityId: receiptActivity, RunId: receiptRun, IncludeLastFailure: true}),
-		Result: &realizationv1.Observation_Response{Response: pack(t, &workflowservice.DescribeActivityExecutionResponse{RunId: receiptRun, Info: &activitypb.ActivityExecutionInfo{
-			ActivityId: receiptActivity, RunId: receiptRun, Attempt: 1, Status: status, RunState: run,
-		}})},
-	})
+	response := &workflowservice.DescribeActivityExecutionResponse{RunId: receiptRun, Info: &activitypb.ActivityExecutionInfo{ActivityId: receiptActivity, RunId: receiptRun, Attempt: 1, Status: status, RunState: run}}
+	if status == enumspb.ACTIVITY_EXECUTION_STATUS_COMPLETED {
+		response.Outcome = &activitypb.ActivityExecutionOutcome{Value: &activitypb.ActivityExecutionOutcome_Result{Result: &commonpb.Payloads{Payloads: []*commonpb.Payload{{Metadata: map[string][]byte{"encoding": []byte("binary/plain")}, Data: []byte("Complete")}}}}}
+	}
+	if status == enumspb.ACTIVITY_EXECUTION_STATUS_FAILED {
+		response.Info.LastFailure = &failurepb.Failure{Message: "Fail", FailureInfo: &failurepb.Failure_ApplicationFailureInfo{ApplicationFailureInfo: &failurepb.ApplicationFailureInfo{Type: "MiniActivityFailure", NonRetryable: true}}}
+		response.Outcome = &activitypb.ActivityExecutionOutcome{Value: &activitypb.ActivityExecutionOutcome_Failure{Failure: proto.CloneOf(response.Info.LastFailure)}}
+	}
+	return pack(t, &realizationv1.Observation{Method: describeMethod, Request: pack(t, &workflowservice.DescribeActivityExecutionRequest{Namespace: receiptNamespace, ActivityId: receiptActivity, RunId: receiptRun, IncludeLastFailure: true, IncludeOutcome: true}), Result: &realizationv1.Observation_Response{Response: pack(t, response)}})
 }
 
 func scheduled(t *testing.T) *anypb.Any {
@@ -303,7 +316,7 @@ func TestObservedDeliveryAndTerminal(t *testing.T) {
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			for _, skipStarted := range []bool{false, true} {
-				h := guest(t)
+				h := guest(t, tc.name)
 				explained(t, judge(t, h, scheduled(t)))
 				explained(t, judge(t, h, scheduled(t)))
 				want := []string{"Worker::Poll(1)", tc.step}
@@ -436,7 +449,7 @@ func TestCancelAndTimeoutDoNotInventEvidence(t *testing.T) {
 }
 
 func TestRepeatedDeliveryAndInstanceIsolation(t *testing.T) {
-	first, second := guest(t), guest(t)
+	first, second := guest(t), guest(t, "Fail")
 	deliver(t, first)
 	_, err := first.Answer(context.Background(), &modelv1.AnswerRequest{Callback: callback(t, "Fail")})
 	refusal(t, err, modelv1.RefusalCode_REFUSAL_CODE_UNSUPPORTED)

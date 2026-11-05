@@ -24,6 +24,7 @@ import (
 	"google.golang.org/protobuf/types/known/anypb"
 	"google.golang.org/protobuf/types/known/durationpb"
 	temporalmodel "umpire.local/temporal"
+	temporalv1 "umpire.local/temporal/umpire/temporal/v1"
 )
 
 func modelSliceAny(t *testing.T, message proto.Message) *anypb.Any {
@@ -55,7 +56,7 @@ func modelSliceProgrammedTransport(t *testing.T) {
 	require.NoError(t, err)
 	defer func() { require.NoError(t, conn.Close()) }()
 	for _, kind := range []string{"raw", "sdk"} {
-		for _, seed := range []uint64{1, 3, 19} {
+		for _, label := range []string{"Complete", "Fail", "CancelBeforeWorkerStart"} {
 			start := &workflowservice.StartActivityExecutionRequest{
 				Namespace: env.Namespace().String(), ActivityId: uuid.NewString(), ActivityType: &commonpb.ActivityType{Name: "ModelSlice"},
 				TaskQueue: &taskqueuepb.TaskQueue{Name: "transport-" + uuid.NewString()}, StartToCloseTimeout: durationpb.New(20 * time.Second),
@@ -65,6 +66,9 @@ func modelSliceProgrammedTransport(t *testing.T) {
 			world := modelSliceAny(t, start)
 			reset, err := host.Reset(t.Context(), &modelv1.ResetRequest{Configuration: world})
 			require.NoError(t, err)
+			decoded := new(temporalv1.WorkerProgram)
+			require.NoError(t, reset.GetProgram().UnmarshalTo(decoded))
+			seed := modelSliceManifestSeed(t, decoded, label, true)
 			program, err := proto.Marshal(reset.GetProgram())
 			require.NoError(t, err)
 			factory, err := temporaldriver.NewFactory(act.Options{Address: env.FrontendGRPCAddress(), Namespace: start.Namespace, TaskQueue: start.TaskQueue.Name, ExecutorKind: kind, Program: program,
@@ -73,7 +77,7 @@ func modelSliceProgrammedTransport(t *testing.T) {
 			require.NoError(t, err)
 			var run *runner.Run
 			var recorded uint64
-			_, err = runner.New(temporalmodel.Guest(), factory.New).Run(t.Context(), runner.ModeExplore, runner.Options{World: world, Seed: seed, Budget: 7, RunTimeout: time.Minute, Record: func(_ context.Context, current *runner.Run) error {
+			_, err = runner.New(temporalmodel.Guest(), factory.New).Run(t.Context(), runner.ModeExplore, runner.Options{World: world, FirstSeed: seed, Seed: seed, Budget: 7, RunTimeout: time.Minute, Record: func(_ context.Context, current *runner.Run) error {
 				recorded++
 				if current.GetVerdict().GetRefused() != nil {
 					require.True(t, isUnheldCancelScopeRefusal(current), "unexpected transport refusal: %v", current.GetVerdict())
@@ -97,7 +101,7 @@ func modelSliceProgrammedTransport(t *testing.T) {
 				return nil
 			}})
 			require.NoError(t, err)
-			require.Equal(t, seed, recorded)
+			require.Equal(t, uint64(1), recorded)
 			require.NotNil(t, run, "the selected supported scenario must be recorded")
 			require.NotNil(t, run.GetVerdict().GetExplained(), "kind=%s seed=%d verdict=%v", kind, seed, run.GetVerdict())
 			require.NoError(t, factory.Close(t.Context()))

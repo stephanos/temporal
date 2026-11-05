@@ -13,6 +13,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"slices"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -298,6 +299,112 @@ func (s *umpireSlice) program(world string) string {
 	return output
 }
 
+func sliceWitnessName(label string) string {
+	switch label {
+	case "Fail":
+		return "activity-v1_1h=f"
+	case "RetryThenComplete":
+		return "activity-v1_1h=r_2h=c"
+	default:
+		return "activity-v1_1h=c"
+	}
+}
+
+func sliceProgram(t *testing.T, path string) *temporalv1.WorkerProgram {
+	t.Helper()
+	data, err := os.ReadFile(path)
+	require.NoError(t, err)
+	envelope := new(anypb.Any)
+	require.NoError(t, proto.Unmarshal(data, envelope))
+	program := new(temporalv1.WorkerProgram)
+	require.NoError(t, envelope.UnmarshalTo(program))
+	return program
+}
+
+func sliceWitnessSeeds(t *testing.T, path string) map[string]uint64 {
+	t.Helper()
+	program := sliceProgram(t, path)
+	names := []string{}
+	groups := map[string][]*temporalv1.ActivityTaskKey{}
+	responses := map[string][]*anypb.Any{}
+	for _, rule := range program.GetRules() {
+		key := new(temporalv1.ActivityTaskKey)
+		require.NoError(t, rule.GetKey().UnmarshalTo(key))
+		if !slices.Contains(names, key.GetScenario()) {
+			names = append(names, key.GetScenario())
+		}
+		groups[key.GetScenario()] = append(groups[key.GetScenario()], key)
+		require.Len(t, rule.GetRespond(), 1)
+		responses[key.GetScenario()] = append(responses[key.GetScenario()], rule.GetRespond()[0])
+	}
+	require.Len(t, names, 85)
+	seeds := map[string]uint64{}
+	for _, label := range []string{"Complete", "Fail", "RetryThenComplete", "UnheldCancelScope", "CancelBeforeWorkerStart"} {
+		name := sliceWitnessName(label)
+		rows := groups[name]
+		want := 1
+		if label == "RetryThenComplete" {
+			want = 2
+		}
+		require.Len(t, rows, want)
+		for i, key := range rows {
+			require.Equal(t, int32(i+1), key.GetAttempt())
+			require.Empty(t, key.GetHeartbeatHistory())
+			response := responses[name][i]
+			if label == "Fail" || label == "RetryThenComplete" && i == 0 {
+				failed := new(workflowservice.RespondActivityTaskFailedRequest)
+				require.NoError(t, response.UnmarshalTo(failed))
+				require.Equal(t, label == "Fail", failed.GetFailure().GetApplicationFailureInfo().GetNonRetryable())
+			} else {
+				require.True(t, response.MessageIs(new(workflowservice.RespondActivityTaskCompletedRequest)))
+			}
+		}
+		index := slices.Index(names, name)
+		require.GreaterOrEqual(t, index, 0)
+		for seed := uint64(1); seed <= 1000000; seed++ {
+			if runner.ProposalSeed(seed, 1)%uint64(len(names)) != uint64(index) {
+				continue
+			}
+			next := runner.ProposalSeed(seed, 2)
+			if label == "UnheldCancelScope" {
+				if next%4 != 0 {
+					continue
+				}
+			} else if label == "CancelBeforeWorkerStart" {
+				if next%4 != 2 {
+					continue
+				}
+			} else if next%2 != 1 {
+				continue
+			}
+			seeds[label] = seed
+			break
+		}
+		require.NotZero(t, seeds[label], "bounded seed search: %s", label)
+		t.Logf("manifest witness %s: canonical=%s index=%d seed=%d", label, name, index, seeds[label])
+	}
+	return seeds
+}
+
+func (s *umpireSlice) runWitnesses(driverEnv map[string]string, world string, observe func(<-chan struct{}) error) umpireInvocation {
+	seeds := sliceWitnessSeeds(s.t, driverEnv[act.EnvProgram])
+	combined := umpireInvocation{code: runner.ExitExplained, runs: map[string]*runner.Run{}}
+	for _, label := range []string{"Complete", "Fail", "RetryThenComplete", "UnheldCancelScope", "CancelBeforeWorkerStart"} {
+		seed := strconv.FormatUint(seeds[label], 10)
+		invocation := s.runObserved(driverEnv, observe, "explore", "--world", world, "--first-seed", seed, "--seed", seed, "--budget", "7", "--event-timeout", "60s", "--run-timeout", "2m")
+		observe = nil
+		if invocation.code > combined.code {
+			combined.code = invocation.code
+		}
+		combined.stdout += invocation.stdout
+		combined.stderr += invocation.stderr
+		for path, run := range invocation.runs {
+			combined.runs[path] = run
+		}
+	}
+	return combined
+}
+
 func (s *umpireSlice) mutateProgram(path, mutation string) string {
 	t := s.t
 	t.Helper()
@@ -309,12 +416,13 @@ func (s *umpireSlice) mutateProgram(path, mutation string) string {
 	require.NoError(t, envelope.UnmarshalTo(program))
 	if mutation == "empty" {
 		program.Rules = nil
+		program.ContinuationDomains = nil
 	} else {
 		var completion *anypb.Any
 		for _, rule := range program.GetRules() {
 			key := new(temporalv1.ActivityTaskKey)
 			require.NoError(t, rule.GetKey().UnmarshalTo(key))
-			if key.GetScenario() == "Complete" {
+			if key.GetScenario() == sliceWitnessName("Complete") && len(key.GetHeartbeatHistory()) == 0 {
 				completion = proto.CloneOf(rule.GetRespond()[0])
 				break
 			}
@@ -325,10 +433,10 @@ func (s *umpireSlice) mutateProgram(path, mutation string) string {
 			key := new(temporalv1.ActivityTaskKey)
 			require.NoError(t, rule.GetKey().UnmarshalTo(key))
 			switch {
-			case mutation == "complete-instead-of-fail" && key.GetScenario() == "Fail":
+			case mutation == "complete-instead-of-fail" && key.GetScenario() == sliceWitnessName("Fail") && len(key.GetHeartbeatHistory()) == 0:
 				rule.Respond = []*anypb.Any{proto.CloneOf(completion)}
 				changed = true
-			case mutation == "wrong-result" && key.GetScenario() == "Complete":
+			case mutation == "wrong-result" && key.GetScenario() == sliceWitnessName("Complete") && len(key.GetHeartbeatHistory()) == 0:
 				response := new(workflowservice.RespondActivityTaskCompletedRequest)
 				require.NoError(t, completion.UnmarshalTo(response))
 				response.Result.Payloads[0].Data = []byte("Different")
@@ -366,7 +474,7 @@ func requireWorkerRun(t *testing.T, run *runner.Run, kind, namespace, queue stri
 	start := new(workflowservice.StartActivityExecutionRequest)
 	require.NoError(t, run.GetEvents()[1].GetProposal().GetResponse().GetRequest().UnmarshalTo(start))
 	require.Equal(t, "application-input", string(start.GetInput().GetPayloads()[0].GetData()))
-	require.Contains(t, []string{"Complete", "RetryThenComplete", "Fail"}, string(start.GetHeader().GetFields()["umpire-scenario"].GetData()))
+	require.True(t, strings.HasPrefix(string(start.GetHeader().GetFields()["umpire-scenario"].GetData()), "activity-v1_"))
 	for _, event := range run.GetEvents() {
 		require.Nil(t, event.GetAnswer(), "programmed workers never call Answer")
 		if proposal := event.GetProposal().GetResponse(); proposal != nil {
@@ -406,14 +514,15 @@ func TestTestpilotModelSliceThroughUmpire(t *testing.T) {
 			world := s.world(namespace, queue, "application-input", 2)
 			driverEnv := s.driverEnv(namespace, queue)
 			driverEnv[act.EnvExecutorKind], driverEnv[act.EnvProgram] = kind, s.program(world)
-			invocation := s.run(driverEnv, "explore", "--world", world, "--seed", "21", "--budget", "7", "--event-timeout", "60s", "--run-timeout", "2m")
+			seeds := sliceWitnessSeeds(t, driverEnv[act.EnvProgram])
+			invocation := s.runWitnesses(driverEnv, world, nil)
 			requireSupportedActivityRuns(t, invocation)
-			require.Len(t, invocation.runs, 21)
+			require.Len(t, invocation.runs, 5)
 			for _, run := range invocation.runs {
 				requireWorkerRun(t, run, kind, namespace, queue)
 			}
 			t.Run("UnheldCancelScope", func(t *testing.T) {
-				_, run := invocationRun(t, invocation, 4)
+				_, run := invocationRun(t, invocation, seeds["UnheldCancelScope"])
 				require.True(t, isUnheldCancelScopeRefusal(run), "verdict: %v", run.GetVerdict())
 				require.Equal(t, uint64(2), run.GetEvents()[run.GetVerdict().GetRefused().GetEvent()].GetRequest())
 				require.Empty(t, explainedSteps(run), "the refusal precedes the first open-activity action")
@@ -438,18 +547,18 @@ func TestTestpilotModelSliceThroughUmpire(t *testing.T) {
 				}
 			})
 			t.Run("Complete", func(t *testing.T) {
-				path, run := invocationRun(t, invocation, 3)
+				path, run := invocationRun(t, invocation, seeds["Complete"])
 				require.Contains(t, explainedSteps(run), "Worker::RespondCompleted Accepted")
 				if kind == "raw" {
 					replayPath, replayRun = path, run
 				}
 			})
 			t.Run("Fail", func(t *testing.T) {
-				_, run := invocationRun(t, invocation, 1)
+				_, run := invocationRun(t, invocation, seeds["Fail"])
 				require.Contains(t, explainedSteps(run), "Worker::RespondFailed { retryable: false } Accepted")
 			})
 			t.Run("RetryThenComplete", func(t *testing.T) {
-				_, run := invocationRun(t, invocation, 21)
+				_, run := invocationRun(t, invocation, seeds["RetryThenComplete"])
 				steps := explainedSteps(run)
 				failed := slices.Index(steps, "Worker::RespondFailed { retryable: true } Accepted")
 				require.GreaterOrEqual(t, failed, 0)
@@ -457,7 +566,7 @@ func TestTestpilotModelSliceThroughUmpire(t *testing.T) {
 				require.Contains(t, steps[failed+1:], "Worker::RespondCompleted Accepted")
 			})
 			t.Run("CancelBeforeWorkerStart", func(t *testing.T) {
-				_, run := invocationRun(t, invocation, 19)
+				_, run := invocationRun(t, invocation, seeds["CancelBeforeWorkerStart"])
 				instruction := new(temporalv1.TemporalInstruction)
 				require.NoError(t, run.GetEvents()[3].GetProposal().GetResponse().GetRequest().UnmarshalTo(instruction))
 				require.True(t, instruction.GetHoldWorkerPolls())
@@ -467,7 +576,7 @@ func TestTestpilotModelSliceThroughUmpire(t *testing.T) {
 				}
 			})
 			t.Run("CancelAfterCompletion", func(t *testing.T) {
-				_, run := invocationRun(t, invocation, 3)
+				_, run := invocationRun(t, invocation, seeds["Complete"])
 				steps := explainedSteps(run)
 				completed := slices.Index(steps, "Worker::RespondCompleted Accepted")
 				require.GreaterOrEqual(t, completed, 0)
@@ -476,7 +585,7 @@ func TestTestpilotModelSliceThroughUmpire(t *testing.T) {
 			if kind == "raw" {
 				raw = invocation
 			} else {
-				for _, seed := range []uint64{1, 3, 4, 19, 21} {
+				for _, seed := range seeds {
 					_, rawRun := invocationRun(t, raw, seed)
 					_, sdkRun := invocationRun(t, invocation, seed)
 					require.Equal(t, explainedSteps(rawRun), explainedSteps(sdkRun), "seed %d has identical judgments", seed)
@@ -519,8 +628,15 @@ func TestTestpilotModelSliceThroughUmpire(t *testing.T) {
 				queue := "umpire-control-" + uuid.NewString()
 				world := s.world(namespace, queue, "application-input", 2)
 				driverEnv := s.driverEnv(namespace, queue)
-				driverEnv[act.EnvExecutorKind], driverEnv[act.EnvProgram] = "raw", s.mutateProgram(s.program(world), control.name)
-				invocation := s.run(driverEnv, "explore", "--world", world, "--seed", "3", "--budget", "7")
+				original := s.program(world)
+				seeds := sliceWitnessSeeds(t, original)
+				label := "Complete"
+				if control.name == "complete-instead-of-fail" {
+					label = "Fail"
+				}
+				seed := strconv.FormatUint(seeds[label], 10)
+				driverEnv[act.EnvExecutorKind], driverEnv[act.EnvProgram] = "raw", s.mutateProgram(original, control.name)
+				invocation := s.run(driverEnv, "explore", "--world", world, "--first-seed", seed, "--seed", seed, "--budget", "7")
 				require.Equal(t, control.code, invocation.code, "%s%s", invocation.stdout, invocation.stderr)
 				detected := false
 				for _, run := range invocation.runs {
@@ -601,9 +717,11 @@ func TestTestpilotModelSliceThroughUmpire(t *testing.T) {
 				}
 			}
 		}
-		invocation := s.runObserved(driverEnv, observer, "explore", "--world", world, "--seed", "21", "--budget", "7", "--event-timeout", "60s", "--run-timeout", "2m")
+		seeds := sliceWitnessSeeds(t, driverEnv[act.EnvProgram])
+		seed := strconv.FormatUint(seeds["Complete"], 10)
+		invocation := s.runObserved(driverEnv, observer, "explore", "--world", world, "--first-seed", seed, "--seed", seed, "--budget", "7", "--event-timeout", "60s", "--run-timeout", "2m")
 		requireSupportedActivityRuns(t, invocation)
-		require.Len(t, invocation.runs, 21)
+		require.Len(t, invocation.runs, 1)
 		for _, run := range invocation.runs {
 			requireWorkerRun(t, run, "raw", provisioned, queue)
 		}

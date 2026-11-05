@@ -31,6 +31,7 @@ import (
 	"google.golang.org/protobuf/types/known/anypb"
 	"google.golang.org/protobuf/types/known/durationpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
+	"umpire.local/temporal/internal/programfixture"
 	"umpire.local/temporal/reference/worker"
 	temporalv1 "umpire.local/temporal/umpire/temporal/v1"
 )
@@ -1129,4 +1130,96 @@ func TestShutdownCancellationRetainsJoinedValidationFailure(t *testing.T) {
 	validation := errors.New("terminal acknowledgment validation failed")
 	require.False(t, shutdownCancellation(run, run, errors.Join(context.Canceled, validation)))
 	require.True(t, shutdownCancellation(run, run, errors.Join(context.Canceled, context.DeadlineExceeded)))
+}
+
+func TestProductionSDKIssuedManifestHeartbeatPaths(t *testing.T) {
+	for _, test := range []struct {
+		bit      bool
+		terminal string
+	}{{false, "completed"}, {false, "failed"}, {true, "completed"}, {true, "failed"}, {true, "canceled"}} {
+		t.Run(fmt.Sprintf("%v-%s", test.bit, test.terminal), func(t *testing.T) {
+			data := programfixture.Issue(t, heartbeatNamespace, "production-queue", "heartbeat-proof")
+			require.NoError(t, Validate(data))
+			name := programfixture.Select(t, data, test.bit, test.terminal)
+			task := productionTask(heartbeatToken, 1, "issued-run")
+			task.Header.Fields[worker.ScenarioHeader].Data = []byte(name)
+			fixture := startSDKContinuation(t, data, nil, nil, sdkContinuationOptions{tasks: []*workflowservice.PollActivityTaskQueueResponse{task}})
+			call := heartbeatReceive(fixture.ctx, t, fixture.service.heartbeats)
+			require.Equal(t, heartbeatToken, call.request.GetTaskToken())
+			require.Nil(t, call.request.GetDetails())
+			call.reply <- heartbeatReply{response: &workflowservice.RecordActivityTaskHeartbeatResponse{CancelRequested: test.bit}}
+			terminal := heartbeatReceive(fixture.ctx, t, fixture.service.terminal)
+			switch response := terminal.(type) {
+			case *workflowservice.RespondActivityTaskCompletedRequest:
+				require.Equal(t, "completed", test.terminal)
+				require.Equal(t, []byte("Complete"), response.GetResult().GetPayloads()[0].GetData())
+			case *workflowservice.RespondActivityTaskFailedRequest:
+				require.Equal(t, "failed", test.terminal)
+				require.Equal(t, "Fail", response.GetFailure().GetMessage())
+			case *workflowservice.RespondActivityTaskCanceledRequest:
+				require.Equal(t, "canceled", test.terminal)
+				require.Nil(t, response.GetDetails())
+			default:
+				t.Fatalf("unexpected issued terminal %T", terminal)
+			}
+			fixture.stop()
+			require.NoError(t, fixture.err)
+			require.NoError(t, fixture.closeErr)
+		})
+	}
+}
+
+func TestProductionSDKIssuedManifestActualHeartbeatValidation(t *testing.T) {
+	for _, bad := range []string{"paused", "reset", "unknown", "malformed"} {
+		t.Run(bad, func(t *testing.T) {
+			data := programfixture.Issue(t, heartbeatNamespace, "production-queue", "heartbeat-proof")
+			name := programfixture.Select(t, data, false, "completed")
+			task := productionTask(heartbeatToken, 1, "issued-run")
+			task.Header.Fields[worker.ScenarioHeader].Data = []byte(name)
+			fixture := startSDKContinuation(t, data, nil, nil, sdkContinuationOptions{tasks: []*workflowservice.PollActivityTaskQueueResponse{task}})
+			call := heartbeatReceive(fixture.ctx, t, fixture.service.heartbeats)
+			response := &workflowservice.RecordActivityTaskHeartbeatResponse{}
+			switch bad {
+			case "paused":
+				response.ActivityPaused = true
+			case "reset":
+				response.ActivityReset = true
+			case "unknown":
+				response.ProtoReflect().SetUnknown([]byte{0x20, 1})
+			case "malformed":
+				response.ProtoReflect().SetUnknown([]byte{0xff})
+			}
+			call.reply <- heartbeatReply{response: response}
+			heartbeatReceive(fixture.ctx, t, fixture.done)
+			require.Error(t, fixture.err)
+			fixture.stop()
+			requireNoCompletedTerminal(t, fixture)
+		})
+	}
+}
+
+func TestProductionSDKIssuedManifestRejectsActualTerminalMutation(t *testing.T) {
+	for _, mutation := range []string{"token", "payload"} {
+		t.Run(mutation, func(t *testing.T) {
+			data := programfixture.Issue(t, heartbeatNamespace, "production-queue", "heartbeat-proof")
+			name := programfixture.Select(t, data, false, "completed")
+			task := productionTask(heartbeatToken, 1, "issued-run")
+			task.Header.Fields[worker.ScenarioHeader].Data = []byte(name)
+			fixture := startSDKContinuation(t, data, func(_ string, message proto.Message) {
+				if response, ok := message.(*workflowservice.RespondActivityTaskCompletedRequest); ok {
+					if mutation == "token" {
+						response.TaskToken = []byte("crossed-token")
+					} else {
+						response.Result.Payloads[0].Data = []byte("Different")
+					}
+				}
+			}, nil, sdkContinuationOptions{tasks: []*workflowservice.PollActivityTaskQueueResponse{task}})
+			call := heartbeatReceive(fixture.ctx, t, fixture.service.heartbeats)
+			call.reply <- heartbeatReply{response: &workflowservice.RecordActivityTaskHeartbeatResponse{}}
+			heartbeatReceive(fixture.ctx, t, fixture.service.terminal)
+			heartbeatReceive(fixture.ctx, t, fixture.done)
+			require.Error(t, fixture.err)
+			fixture.stop()
+		})
+	}
 }

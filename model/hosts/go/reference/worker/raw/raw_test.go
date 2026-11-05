@@ -21,6 +21,7 @@ import (
 	"google.golang.org/protobuf/types/known/anypb"
 	"google.golang.org/protobuf/types/known/durationpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
+	"umpire.local/temporal/internal/programfixture"
 	"umpire.local/temporal/reference/worker"
 	temporalv1 "umpire.local/temporal/umpire/temporal/v1"
 )
@@ -35,6 +36,7 @@ type rawService struct {
 	badHeartbeat     string
 	failedValidation bool
 	mutateTerminal   bool
+	mutateToken      bool
 	mutateHeartbeat  bool
 	holdHeartbeat    bool
 	holdPublication  bool
@@ -177,6 +179,11 @@ func newRawFixture(t *testing.T, program []byte, configure func(*rawService)) *r
 				heartbeat.Details.Payloads[0].Data = []byte("mutated")
 			}
 		}
+		if f.service.mutateToken {
+			if completed, ok := request.(*workflowservice.RespondActivityTaskCompletedRequest); ok {
+				completed.TaskToken = []byte("crossed-token")
+			}
+		}
 		if f.service.mutateTerminal {
 			if completed, ok := request.(*workflowservice.RespondActivityTaskCompletedRequest); ok {
 				completed.Result.Payloads[0].Data = []byte("mutated")
@@ -193,6 +200,7 @@ func newRawFixture(t *testing.T, program []byte, configure func(*rawService)) *r
 		observeErr := f.bridge.Observe(callCtx, worker.RPC{Invocation: id, Sequence: sequence, Stage: worker.RPCStarted, Method: method, Request: actualRequest})
 		if observeErr != nil {
 			f.observeErr = observeErr
+			return observeErr
 		}
 		callErr := invoke(callCtx, method, request, response, cc, opts...)
 		sequence++
@@ -480,4 +488,101 @@ func TestFollowOriginalBinaryOneHeartbeatSubset(t *testing.T) {
 			require.Equal(t, 2, f.service.polls)
 		})
 	}
+}
+
+func TestFollowIssuedManifestHeartbeatPaths(t *testing.T) {
+	for _, test := range []struct {
+		bit      bool
+		terminal string
+	}{{false, "completed"}, {false, "failed"}, {true, "completed"}, {true, "failed"}, {true, "canceled"}} {
+		t.Run(fmt.Sprintf("%v-%s", test.bit, test.terminal), func(t *testing.T) {
+			data := programfixture.Issue(t, "ns", "q", "activity")
+			name := programfixture.Select(t, data, test.bit, test.terminal)
+			f := newRawFixture(t, data, func(service *rawService) {
+				service.bits = []bool{test.bit}
+				service.task.Attempt = 1
+				service.task.Header.Fields[worker.ScenarioHeader].Data = []byte(name)
+			})
+			require.NoError(t, f.wait(t))
+			f.service.mu.Lock()
+			defer f.service.mu.Unlock()
+			require.Len(t, f.service.heartbeats, 1)
+			require.Len(t, f.service.terminals, 1)
+			require.Nil(t, f.service.heartbeats[0].GetDetails())
+			require.Equal(t, []byte("opaque-token"), f.service.heartbeats[0].GetTaskToken())
+			switch response := f.service.terminals[0].(type) {
+			case *workflowservice.RespondActivityTaskCompletedRequest:
+				require.Equal(t, "completed", test.terminal)
+				require.Equal(t, []byte("Complete"), response.GetResult().GetPayloads()[0].GetData())
+			case *workflowservice.RespondActivityTaskFailedRequest:
+				require.Equal(t, "failed", test.terminal)
+				require.Equal(t, "Fail", response.GetFailure().GetMessage())
+			case *workflowservice.RespondActivityTaskCanceledRequest:
+				require.Equal(t, "canceled", test.terminal)
+				require.Nil(t, response.GetDetails())
+			default:
+				t.Fatalf("unexpected terminal %T", response)
+			}
+		})
+	}
+}
+
+func TestFollowIssuedManifestRejectsBadActualHeartbeat(t *testing.T) {
+	for _, bad := range []string{"transport", "paused", "reset", "unknown", "malformed"} {
+		t.Run(bad, func(t *testing.T) {
+			data := programfixture.Issue(t, "ns", "q", "activity")
+			name := programfixture.Select(t, data, false, "completed")
+			f := newRawFixture(t, data, func(service *rawService) {
+				service.badHeartbeat = bad
+				service.task.Attempt = 1
+				service.task.Header.Fields[worker.ScenarioHeader].Data = []byte(name)
+			})
+			require.Error(t, f.wait(t))
+			f.service.mu.Lock()
+			defer f.service.mu.Unlock()
+			require.Len(t, f.service.heartbeats, 1)
+			require.Empty(t, f.service.terminals)
+		})
+	}
+}
+
+func TestFollowIssuedManifestRejectsActualTerminalMutation(t *testing.T) {
+	for _, mutation := range []string{"token", "payload"} {
+		t.Run(mutation, func(t *testing.T) {
+			data := programfixture.Issue(t, "ns", "q", "activity")
+			name := programfixture.Select(t, data, false, "completed")
+			fixture := newRawFixture(t, data, func(service *rawService) {
+				service.task.Attempt = 1
+				service.task.Header.Fields[worker.ScenarioHeader].Data = []byte(name)
+				service.mutateToken = mutation == "token"
+				service.mutateTerminal = mutation == "payload"
+			})
+			require.Error(t, fixture.wait(t))
+			fixture.service.mu.Lock()
+			defer fixture.service.mu.Unlock()
+			require.Len(t, fixture.service.heartbeats, 1)
+			if mutation == "token" {
+				require.Empty(t, fixture.service.terminals)
+			} else {
+				require.Len(t, fixture.service.terminals, 1)
+			}
+		})
+	}
+}
+
+func TestFollowIssuedManifestDoesNotAliasAttempts(t *testing.T) {
+	data := programfixture.Issue(t, "ns", "q", "activity")
+	name := programfixture.Select(t, data, false, "completed")
+	fixture := newRawFixture(t, data, func(service *rawService) {
+		service.task.Attempt = 2
+		service.task.Header.Fields[worker.ScenarioHeader].Data = []byte(name)
+	})
+	require.NoError(t, fixture.wait(t))
+	fixture.service.mu.Lock()
+	defer fixture.service.mu.Unlock()
+	require.Empty(t, fixture.service.heartbeats)
+	require.Len(t, fixture.service.terminals, 1)
+	failed, ok := fixture.service.terminals[0].(*workflowservice.RespondActivityTaskFailedRequest)
+	require.True(t, ok)
+	require.Equal(t, worker.Unprogrammed, failed.GetFailure().GetApplicationFailureInfo().GetType())
 }
