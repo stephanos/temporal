@@ -1,5 +1,6 @@
 ---
 source: realization/macros/src/lib.rs
+assertion_line: 451
 expression: render(authored)
 ---
 impl Realization {
@@ -214,48 +215,35 @@ impl Realization {
         }
         observed.map(content) == expected.map(content)
     }
-    fn select_response(scenario: &str, attempt: i32) -> Result<Worker, Refusal> {
-        match scenario {
-            "RetryThenComplete" if attempt == 1 => {
-                Ok(Worker::RespondFailed {
-                    retryable: true,
-                })
-            }
-            "Complete" | "RetryThenComplete" => Ok(Worker::RespondCompleted),
-            "Fail" => {
-                Ok(Worker::RespondFailed {
-                    retryable: false,
-                })
-            }
-            _ => Err(Refusal::unsupported("unsupported worker scenario")),
-        }
-    }
-    pub(crate) fn response(
+    pub(crate) fn resolve_response(
         &self,
-        world: &activity::World,
         scenario: &str,
-        attempt: i32,
-    ) -> Result<(Worker, Any), Refusal> {
-        let action = Self::select_response(scenario, attempt)?;
+        key: &policy::TaskKey,
+    ) -> Result<Option<(Worker, Any)>, Refusal> {
+        let manifest = self
+            .manifest
+            .as_ref()
+            .ok_or_else(|| Refusal::unsupported(
+                "admitted policy manifest is required",
+            ))?;
+        manifest.admit_name(scenario)?;
+        if !(1..=manifest.world().maximum_attempts).contains(&key.attempt) {
+            return Err(
+                Refusal::unsupported("worker attempt exceeds World.maximum_attempts"),
+            );
+        }
+        let Some(choice) = manifest.resolve(scenario, key) else {
+            return Ok(None);
+        };
         let context = self
             .context
             .as_ref()
             .ok_or_else(|| Refusal::unsupported("proposal configuration required"))?;
-        let identity = umpire_runtime::capability::Identity::identify(
-            self,
-            &Any::pack(&context.start),
-        )?;
-        let request = umpire_runtime::capability::Fill::fill(
-            self,
-            &Action::from(action),
-            world,
-            &Self::program_inputs(
-                action,
-                u8::try_from(attempt)
-                    .map_err(|_| Refusal::unsupported("worker attempt is out of range"))?,
-            )?,
-            &identity,
-        )?;
-        Ok((action, umpire_runtime::capability::Request::pack_request(&request)))
+        Ok(
+            Some((
+                choice.action(key.attempt),
+                choice.fill(manifest.world(), &context.start, key)?,
+            )),
+        )
     }
 }
