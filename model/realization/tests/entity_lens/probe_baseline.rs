@@ -6,6 +6,7 @@ use umpire_temporal_api::temporal::api::{
         ActivityFailureInfo, ChildWorkflowExecutionFailureInfo, NexusHandlerFailureInfo,
         TimeoutFailureInfo,
     },
+    taskqueue::v1::TaskQueue,
     workflowservice::v1::{
         DescribeActivityExecutionRequest, PollActivityExecutionRequest,
         PollActivityTaskQueueRequest, RequestCancelActivityExecutionRequest,
@@ -145,8 +146,8 @@ fn registered_probe_baselines_preserve_every_contextual_case() -> Result<()> {
     };
     for entry in inventory()? {
         assert_eq!(
-            baseline(entry.method, &slots, entry.context)?,
-            super::baseline(entry.method, &slots, entry.context)?,
+            baseline(bare_method(&entry.metadata().method)?, &slots, entry.context())?,
+            super::baseline(bare_method(&entry.metadata().method)?, &slots, entry.context())?,
             "{}",
             entry.id()
         );

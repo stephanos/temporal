@@ -31,8 +31,8 @@ pub(super) fn classify(
         }
         let actual = observation_result(observation);
         let mut row =
-            GapEntry::checked(entry.target.violation.clone(), actual)?.metadata(&entry.target);
-        dispositions.apply(&entry.id(), &mut row);
+            GapEntry::checked(entry.target().violation.clone(), actual)?.metadata(entry.target());
+        dispositions.apply(entry.id(), &mut row);
         fails |= row.fails();
         let outcome = match &row.outcome {
             GapOutcome::Confirmed => 0,
@@ -45,7 +45,7 @@ pub(super) fn classify(
         };
         outcomes[outcome] += 1;
         let expectation = match &entry
-            .target
+            .target()
             .violation
             .expected
             .as_ref()
@@ -67,7 +67,7 @@ pub(super) fn classify(
             entry.id(),
             GapReport { entries: vec![row] }
         )?;
-        for companion in entry.companions()? {
+        for companion in entry.companions() {
             writeln!(
                 text,
                 "Companion: {companion} (Accepts; UUID syntax and excessive request-ID length cannot coexist)"

@@ -1,37 +1,29 @@
 //! Stateless typed witnesses and value-free classification for activity RPCs.
 
-use umpire_runtime::annotations::ProbeCase;
-use umpire_runtime::annotations::ProbeResponse;
-use umpire_runtime::probe_recipe as recipe;
-
+use crate::activity_api::{catalog, worker_failure_presence};
 use crate::foundation::dc::Limits;
-
-use crate::activity_api::{
-    cancel_request_id_intent, catalog, start_request_id_intent, worker_failure_presence,
-};
 use prost::Message;
 use std::{collections::BTreeSet, sync::OnceLock};
-use umpire_catalog::{
-    Catalog, FieldDescriptor, FieldValue, Kind, ProbeCase as Target, Rng, Violation, validate,
-};
+use umpire_catalog::contextual_probe::{Entry, Registry, StrictSystem};
+use umpire_catalog::{FieldDescriptor, Kind, Rng, Violation, validate};
+use umpire_runtime::annotations::ProbeResponse;
+use umpire_runtime::probe_recipe as recipe;
 use umpire_runtime::prost_types::Duration;
-use umpire_temporal_api::{
-    temporal::api::{
-        common::v1::{Payload, Payloads},
-        failure::v1::{ApplicationFailureInfo, Failure, failure::FailureInfo},
-        taskqueue::v1::TaskQueue,
-        workflowservice::v1::{RespondActivityTaskFailedRequest, StartActivityExecutionRequest},
-    },
-    umpire::temporal::v1::{ProbeRequest, probe_request::Operation},
+use umpire_temporal_api::temporal::api::{
+    common::v1::{Payload, Payloads},
+    failure::v1::{ApplicationFailureInfo, Failure, failure::FailureInfo},
+    workflowservice::v1::{DescribeActivityExecutionRequest, StartActivityExecutionRequest},
 };
+use umpire_temporal_api::umpire::temporal::v1::{ProbeRequest, probe_request::Operation};
 
+#[path = "../../feature/activity/probe_bindings.rs"]
+mod bindings;
 mod dispositions;
 mod generic;
 mod report;
 
 pub(crate) type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 pub(crate) const UUID: &str = "12345678-1234-4234-8234-123456789abc";
-
 fn cached<T>(cache: &OnceLock<T>, initialize: impl FnOnce() -> Result<T>) -> Result<&T> {
     if let Some(value) = cache.get() {
         return Ok(value);
@@ -40,259 +32,49 @@ fn cached<T>(cache: &OnceLock<T>, initialize: impl FnOnce() -> Result<T>) -> Res
     Ok(cache.get_or_init(|| value))
 }
 
-struct Entry {
-    context: &'static str,
-    method: &'static str,
-    prerequisite: &'static str,
-    target: Target,
-    field: Option<FieldDescriptor>,
+fn strict_registry() -> Result<&'static Registry> {
+    static REGISTRY: OnceLock<Registry> = OnceLock::new();
+    cached(&REGISTRY, build_inventory)
 }
-
 fn inventory() -> Result<&'static [Entry]> {
-    static ENTRIES: OnceLock<Vec<Entry>> = OnceLock::new();
-    Ok(cached(&ENTRIES, build_inventory)?.as_slice())
+    Ok(strict_registry()?.entries())
 }
-
-fn add<M: 'static>(
-    entries: &mut Vec<Entry>,
-    context: &'static str,
-    method: &'static str,
-    prerequisite: &'static str,
-    catalog: &Catalog<M>,
-) {
-    for target in catalog.probe_cases() {
-        let field = catalog.fields().find(|field| field.path == target.violation.path).cloned();
-        entries.push(Entry { context, method, prerequisite, target, field });
-    }
+fn build_inventory() -> Result<Registry> {
+    let registry = bindings::registry()?;
+    verify_methods(
+        &registry
+            .entries()
+            .iter()
+            .map(|entry| bare_method(&entry.metadata().method))
+            .collect::<Result<BTreeSet<_>>>()?,
+    )?;
+    Ok(registry)
 }
-
-#[allow(
-    clippy::too_many_lines,
-    reason = "The contextual probe registry is one auditable inventory"
-)]
-fn build_inventory() -> Result<Vec<Entry>> {
-    let mut entries = Vec::new();
-    macro_rules! register {
-        ($context:literal, $method:literal, $prerequisite:literal, $catalog:expr) => {
-            add(&mut entries, $context, $method, $prerequisite, &$catalog?);
-        };
-    }
-    register!(
-        "start",
-        "StartActivityExecution",
-        "start",
-        catalog::start_activity_execution_request(&Limits::default())
-    );
-    register!(
-        "start.type",
-        "StartActivityExecution",
-        "start",
-        catalog::activity_type(&Limits::default())
-    );
-    register!(
-        "start.queue",
-        "StartActivityExecution",
-        "start",
-        catalog::task_queue(&Limits::default())
-    );
-    register!(
-        "start.retry_order",
-        "StartActivityExecution",
-        "start",
-        crate::activity_api::start_retry_order(&Limits::default())
-    );
-    register!(
-        "start.retry",
-        "StartActivityExecution",
-        "start",
-        catalog::retry_policy(&Limits::default())
-    );
-    register!(
-        "start.request_id",
-        "StartActivityExecution",
-        "start",
-        start_request_id_intent(&Limits::default())
-    );
-    register!(
-        "describe",
-        "DescribeActivityExecution",
-        "scheduled",
-        catalog::describe_activity_execution_request(&Limits::default())
-    );
-    register!(
-        "poll_execution",
-        "PollActivityExecution",
-        "completed",
-        catalog::poll_activity_execution_request(&Limits::default())
-    );
-    register!(
-        "cancel",
-        "RequestCancelActivityExecution",
-        "scheduled",
-        catalog::request_cancel_activity_execution_request(&Limits::default())
-    );
-    register!(
-        "cancel.request_id",
-        "RequestCancelActivityExecution",
-        "scheduled",
-        cancel_request_id_intent(&Limits::default())
-    );
-    register!(
-        "poll_queue",
-        "PollActivityTaskQueue",
-        "poll",
-        catalog::poll_activity_task_queue_request(&Limits::default())
-    );
-    register!(
-        "poll_queue.normal_name",
-        "PollActivityTaskQueue",
-        "poll",
-        crate::activity_api::poll_normal_name(&Limits::default())
-    );
-    register!(
-        "poll_queue.queue",
-        "PollActivityTaskQueue",
-        "poll",
-        catalog::task_queue(&Limits::default())
-    );
-    register!(
-        "completed",
-        "RespondActivityTaskCompleted",
-        "token",
-        catalog::respond_activity_task_completed_request(&Limits::default())
-    );
-    register!(
-        "failed",
-        "RespondActivityTaskFailed",
-        "token",
-        catalog::respond_activity_task_failed_request(&Limits::default())
-    );
-    register!(
-        "failed.application",
-        "RespondActivityTaskFailed",
-        "token",
-        catalog::application_failure_info(&Limits::default())
-    );
-    register!(
-        "failed.presence",
-        "RespondActivityTaskFailed",
-        "token",
-        worker_failure_presence(&Limits::default())
-    );
-    register!(
-        "failed.cause.activity",
-        "RespondActivityTaskFailed",
-        "token",
-        catalog::activity_failure_info(&Limits::default())
-    );
-    register!(
-        "failed.cause.child",
-        "RespondActivityTaskFailed",
-        "token",
-        catalog::child_workflow_execution_failure_info(&Limits::default())
-    );
-    register!(
-        "failed.cause.timeout",
-        "RespondActivityTaskFailed",
-        "token",
-        catalog::timeout_failure_info(&Limits::default())
-    );
-    register!(
-        "failed.cause.nexus",
-        "RespondActivityTaskFailed",
-        "token",
-        catalog::nexus_handler_failure_info(&Limits::default())
-    );
-    register!(
-        "canceled",
-        "RespondActivityTaskCanceled",
-        "canceled_token",
-        catalog::respond_activity_task_canceled_request(&Limits::default())
-    );
-    entries.sort_by_key(Entry::id);
-    verify_inventory(&entries)?;
-    Ok(entries)
-}
-
-fn verify_inventory(entries: &[Entry]) -> Result<()> {
-    let ids: BTreeSet<_> = entries.iter().map(Entry::id).collect();
-    if ids.len() != entries.len() {
-        return Err("duplicate contextual probe identity".into());
-    }
-    let mut declared = catalog::expected_probe_cases(&Limits::default())?;
-    declared.extend(worker_failure_presence(&Limits::default())?.probe_cases());
-    let methods: BTreeSet<_> = entries.iter().map(|entry| entry.method).collect();
+fn verify_methods(methods: &BTreeSet<&str>) -> Result<()> {
     if !methods.is_subset(&crate::activity_probe_fillers::methods()?)
-        || !crate::activity_probe_fillers::baseline_methods()?.is_subset(&methods)
+        || !crate::activity_probe_fillers::baseline_methods()?.is_subset(methods)
     {
         return Err("probe inventory methods differ from registered baseline fillers".into());
     }
-    let registered: BTreeSet<_> = entries.iter().map(|entry| entry.target.id.clone()).collect();
-    umpire_catalog::verify_probe_coverage(&declared, &registered.into_iter().collect::<Vec<_>>())?;
     Ok(())
 }
-
-impl Entry {
-    fn id(&self) -> String {
-        format!("{}::{}", self.context, self.target.id)
+fn bare_method(method: &str) -> Result<&str> {
+    let name = method
+        .strip_prefix("/temporal.api.workflowservice.v1.WorkflowService/")
+        .ok_or("unknown request method")?;
+    umpire_temporal_api::WorkflowServiceMethod::parse(name).ok_or("unknown request method")?;
+    Ok(name)
+}
+struct ActivityStrict;
+impl StrictSystem for ActivityStrict {
+    type Slots = ProbeRequest;
+    fn baseline(&self, method: &str, context: &str, slots: &ProbeRequest) -> Result<Vec<u8>> {
+        baseline(bare_method(method)?, slots, context)
     }
-    fn companions(&self) -> Result<Vec<Violation>> {
-        if self.target.violation.constraint != "string.max_bytes"
-            || !self.target.violation.path.ends_with(".request_id")
-        {
-            return Ok(Vec::new());
-        }
-        let targets = match self.context {
-            "start" => start_request_id_intent(&Limits::default())?.probe_cases(),
-            "cancel" => cancel_request_id_intent(&Limits::default())?.probe_cases(),
-            _ => return Ok(Vec::new()),
-        };
-        Ok(targets.into_iter().map(|case| case.violation).collect())
-    }
-    fn metadata(&self) -> Result<ProbeCase> {
-        let expected = self.target.violation.expected.as_ref().ok_or("missing expectation")?;
-        let mut case = ProbeCase {
-            id: self.id(),
-            method: method(self.method),
-            prerequisite: self.prerequisite.into(),
-            ..Default::default()
-        };
-        let prediction =
-            umpire_catalog::generic_probe::expectation(case.id.clone(), &expected.expectation)?;
-        case.accepts = prediction.accepts;
-        case.code = prediction.code;
-        case.message_pattern = prediction.message_pattern;
-        case.details_type = prediction.details_type;
-        Ok(case)
-    }
-    fn negative<T: FieldValue>(&self, value: &T) -> Result<T> {
-        let field = self.field.as_ref().ok_or("missing field descriptor")?;
-        Ok(value.negative(
-            &field.kind,
-            field.repeated.as_ref(),
-            &self.target.violation.constraint,
-            &mut Rng::new(217),
-        )?)
-    }
-    fn negative_text(&self, value: &String) -> Result<String> {
-        if self.target.violation.constraint == "string.max_bytes" {
-            let field = self.field.as_ref().ok_or("missing field descriptor")?;
-            if let Kind::Text(rules) | Kind::Identifier(rules) = &field.kind {
-                let size = rules
-                    .max_bytes
-                    .ok_or("missing byte maximum")?
-                    .checked_add(1)
-                    .ok_or("byte maximum overflow")?;
-                if size > 16 * 1024 * 1024 {
-                    return Err("string witness exceeds probe budget".into());
-                }
-                return Ok("x".repeat(size));
-            }
-        }
-        self.negative(value)
+    fn findings(&self, method: &str, bytes: &[u8]) -> Result<Vec<Violation>> {
+        request_findings(bare_method(method)?, bytes)
     }
 }
-
 fn method(name: &str) -> String {
     format!("/temporal.api.workflowservice.v1.WorkflowService/{name}")
 }
@@ -345,250 +127,87 @@ fn request_findings(name: &str, bytes: &[u8]) -> Result<Vec<Violation>> {
     umpire_temporal_api::workflow_request_findings!(method, bytes, &Limits::default(), supplemental)
 }
 
-fn bad_duration(entry: &Entry) -> Duration {
-    if entry.target.violation.constraint == "duration.valid" {
-        Duration { seconds: 1, nanos: -1 }
-    } else {
-        Duration { seconds: -1, nanos: 0 }
-    }
+fn exceptional(entry: &Entry) -> bool {
+    let target = entry.target();
+    (target.violation.constraint == "required"
+        && target
+            .omitted_field
+            .as_ref()
+            .is_some_and(|p| p.starts_with("temporal.api.workflowservice.v1.")))
+        || target.violation.path.ends_with(".namespace")
+        || (entry.context() == "start"
+            && target.violation.path
+                == "temporal.api.workflowservice.v1.StartActivityExecutionRequest.input")
+        || (entry.context() == "describe" && target.violation.constraint == "requires")
 }
-
-fn mutate(bytes: &[u8], entry: &Entry) -> Result<Vec<u8>> {
+fn mutate_exception(bytes: &[u8], entry: &Entry) -> Result<Vec<u8>> {
     use umpire_catalog::WireMutation;
     use umpire_temporal_api::{WorkflowServiceMethod, mutate_workflow_request};
-    let method = WorkflowServiceMethod::parse(entry.method).ok_or("unknown request method")?;
-    let field = entry.target.violation.path.rsplit('.').next().ok_or("missing field path")?;
-    if let Some(path) = &entry.target.omitted_field
-        && entry.target.violation.constraint == "required"
-        && path.starts_with("temporal.api.workflowservice.v1.")
+    let name = bare_method(&entry.metadata().method)?;
+    let method = WorkflowServiceMethod::parse(name).ok_or("unknown request method")?;
+    let target = entry.target();
+    if let Some(path) = &target.omitted_field
+        && target.violation.constraint == "required"
     {
         return Ok(mutate_workflow_request(method, bytes, path, &WireMutation::Absent)?);
     }
-    if field == "namespace" {
-        let Some(FieldDescriptor { kind: Kind::Text(rules), .. }) = &entry.field else {
+    if target.violation.path.ends_with(".namespace") {
+        macro_rules! limit {
+            ($($variant:ident => $factory:ident),* $(,)?) => { match method {
+                $(WorkflowServiceMethod::$variant => catalog::$factory(&Limits::default())?.fields().find(|f| f.path == target.violation.path).cloned(),)*
+                _ => None,
+            }};
+        }
+        let field = limit! {
+            StartActivityExecution => start_activity_execution_request,
+            DescribeActivityExecution => describe_activity_execution_request,
+            PollActivityExecution => poll_activity_execution_request,
+            RequestCancelActivityExecution => request_cancel_activity_execution_request,
+            PollActivityTaskQueue => poll_activity_task_queue_request,
+            RespondActivityTaskCompleted => respond_activity_task_completed_request,
+            RespondActivityTaskFailed => respond_activity_task_failed_request,
+            RespondActivityTaskCanceled => respond_activity_task_canceled_request,
+        };
+        let Some(FieldDescriptor { kind: Kind::Text(rules), .. }) = field else {
             return Err("namespace kind missing".into());
         };
         let limit = rules.max_bytes.ok_or("namespace byte maximum missing")?;
-        let path = format!("temporal.api.workflowservice.v1.{}Request.namespace", method.name());
         return Ok(mutate_workflow_request(
             method,
             bytes,
-            &path,
+            &target.violation.path,
             &WireMutation::LimitPlusOne { limit: limit.try_into()? },
         )?);
     }
-    macro_rules! text {
-        ($value:expr) => {
-            $value = entry.negative_text(&$value)?
-        };
+    if entry.context() == "describe" {
+        let mut message = DescribeActivityExecutionRequest::decode(bytes)?;
+        message.long_poll_token = vec![1];
+        message.run_id.clear();
+        return Ok(message.encode_to_vec());
     }
-    macro_rules! mutate_typed {
-        (StartActivityExecution, $message:ident, $entry:ident, $field:ident) => {{
-            mutate_start(&mut $message, $field, $entry)?;
-            Ok($message.encode_to_vec())
-        }};
-        (DescribeActivityExecution, $message:ident, $entry:ident, $field:ident) => {{
-            match $field {
-                "activity_id" => text!($message.activity_id),
-                "run_id" => text!($message.run_id),
-                "DescribeActivityExecutionRequest" => {
-                    $message.long_poll_token = vec![1];
-                    $message.run_id.clear();
-                }
-                _ => return Err("unsupported describe field".into()),
-            };
-            Ok($message.encode_to_vec())
-        }};
-        (PollActivityExecution, $message:ident, $entry:ident, $field:ident) => {{
-            match $field {
-                "activity_id" => text!($message.activity_id),
-                "run_id" => text!($message.run_id),
-                _ => return Err("unsupported poll field".into()),
-            };
-            Ok($message.encode_to_vec())
-        }};
-        (RequestCancelActivityExecution, $message:ident, $entry:ident, $field:ident) => {{
-            match $field {
-                "activity_id" => text!($message.activity_id),
-                "run_id" => text!($message.run_id),
-                "request_id" => text!($message.request_id),
-                "identity" => text!($message.identity),
-                "reason" => text!($message.reason),
-                _ => return Err("unsupported cancel field".into()),
-            };
-            Ok($message.encode_to_vec())
-        }};
-        (PollActivityTaskQueue, $message:ident, $entry:ident, $field:ident) => {{
-            if $entry.context == "poll_queue.normal_name" {
-                let queue = $message.task_queue.as_mut().ok_or("missing queue")?;
-                queue.normal_name = $entry.negative_text(&queue.normal_name)?;
-            } else if $entry.context == "poll_queue.queue" {
-                mutate_queue($message.task_queue.as_mut().ok_or("missing queue")?, $field, $entry)?;
-            } else {
-                match $field {
-                    "identity" => text!($message.identity),
-                    _ => return Err("unsupported queue field".into()),
-                }
-            }
-            Ok($message.encode_to_vec())
-        }};
-        (RespondActivityTaskCompleted, $message:ident, $entry:ident, $field:ident) => {{
-            text!($message.identity);
-            Ok($message.encode_to_vec())
-        }};
-        (RespondActivityTaskCanceled, $message:ident, $entry:ident, $field:ident) => {{
-            text!($message.identity);
-            Ok($message.encode_to_vec())
-        }};
-        (RespondActivityTaskFailed, $message:ident, $entry:ident, $field:ident) => {{
-            mutate_failed(&mut $message, $field, $entry)?;
-            Ok($message.encode_to_vec())
-        }};
-        ($method:ident, $message:ident, $entry:ident, $field:ident) => {{ Err("unsupported contextual mutation".into()) }};
+    let mut message = StartActivityExecutionRequest::decode(bytes)?;
+    let catalog = catalog::start_activity_execution_request(&Limits::default())?;
+    let field = catalog.fields().find(|f| f.path == target.violation.path);
+    let Some(FieldDescriptor { kind: Kind::Bytes(rules), .. }) = field else {
+        return Err("input kind missing".into());
+    };
+    let size = rules
+        .max_len
+        .ok_or("input maximum missing")?
+        .checked_add(1)
+        .filter(|s| *s <= 16 * 1024 * 1024)
+        .ok_or("input witness exceeds probe budget")?;
+    let data_size = size.checked_sub(10).ok_or("input bound too small for payload witness")?;
+    let mut payloads =
+        Payloads { payloads: vec![Payload { data: vec![b'x'; data_size], ..Default::default() }] };
+    let padding = size.checked_sub(payloads.encoded_len()).ok_or("payload overhead")?;
+    payloads.payloads[0].data.extend(std::iter::repeat_n(b'x', padding));
+    if payloads.encoded_len() != size {
+        return Err("payload exact size mismatch".into());
     }
-    umpire_temporal_api::dispatch_workflow_request!(method, bytes, mutate_typed, entry, field)
+    message.input = Some(payloads);
+    Ok(message.encode_to_vec())
 }
-
-fn mutate_failed(
-    m: &mut RespondActivityTaskFailedRequest,
-    field: &str,
-    entry: &Entry,
-) -> Result<()> {
-    match entry.context {
-        "failed" => match field {
-            "identity" => m.identity = entry.negative_text(&m.identity)?,
-            "cause" => m.cause = entry.negative(&m.cause)?,
-            _ => return Err("unsupported failed field".into()),
-        },
-        "failed.presence" => m.failure.as_mut().ok_or("missing failure")?.failure_info = None,
-        "failed.application" => {
-            let Some(FailureInfo::ApplicationFailureInfo(v)) =
-                &mut m.failure.as_mut().ok_or("missing failure")?.failure_info
-            else {
-                return Err("missing application info".into());
-            };
-            match field {
-                "next_retry_delay" => v.next_retry_delay = Some(bad_duration(entry)),
-                "category" => v.category = entry.negative(&v.category)?,
-                _ => return Err("unsupported application field".into()),
-            }
-        }
-        _ => {
-            let info = &mut m
-                .failure
-                .as_mut()
-                .ok_or("missing failure")?
-                .cause
-                .as_mut()
-                .ok_or("missing cause")?
-                .failure_info;
-            match info {
-                Some(FailureInfo::ActivityFailureInfo(v)) => {
-                    v.retry_state = entry.negative(&v.retry_state)?;
-                }
-                Some(FailureInfo::ChildWorkflowExecutionFailureInfo(v)) => {
-                    v.retry_state = entry.negative(&v.retry_state)?;
-                }
-                Some(FailureInfo::TimeoutFailureInfo(v)) => {
-                    v.timeout_type = entry.negative(&v.timeout_type)?;
-                }
-                Some(FailureInfo::NexusHandlerFailureInfo(v)) => {
-                    v.retry_behavior = entry.negative(&v.retry_behavior)?;
-                }
-                _ => return Err("missing nested failure variant".into()),
-            }
-        }
-    }
-    Ok(())
-}
-
-fn mutate_start(m: &mut StartActivityExecutionRequest, field: &str, entry: &Entry) -> Result<()> {
-    macro_rules! text {
-        ($value:expr) => {
-            $value = entry.negative_text(&$value)?
-        };
-    }
-    match entry.context {
-        "start.type" => {
-            let v = m.activity_type.as_mut().ok_or("missing type")?;
-            text!(v.name);
-        }
-        "start.queue" => {
-            mutate_queue(m.task_queue.as_mut().ok_or("missing queue")?, field, entry)?;
-        }
-        "start.retry_order" => {
-            crate::foundation::views::start_retry_order::set(m, 0)?;
-        }
-        "start.retry" => {
-            let v = m.retry_policy.as_mut().ok_or("missing retry")?;
-            match field {
-                "initial_interval" => v.initial_interval = Some(bad_duration(entry)),
-                "maximum_interval" => v.maximum_interval = Some(bad_duration(entry)),
-                "backoff_coefficient" => v.backoff_coefficient = 0.5,
-                "maximum_attempts" => {
-                    v.maximum_attempts = entry.negative(&v.maximum_attempts)?;
-                }
-                _ => return Err("unsupported retry field".into()),
-            }
-        }
-        "start.request_id" => text!(m.request_id),
-        _ => match field {
-            "identity" => text!(m.identity),
-            "request_id" => text!(m.request_id),
-            "activity_id" => text!(m.activity_id),
-            "schedule_to_close_timeout" => m.schedule_to_close_timeout = Some(bad_duration(entry)),
-            "schedule_to_start_timeout" => m.schedule_to_start_timeout = Some(bad_duration(entry)),
-            "start_to_close_timeout" => m.start_to_close_timeout = Some(bad_duration(entry)),
-            "heartbeat_timeout" => m.heartbeat_timeout = Some(bad_duration(entry)),
-            "start_delay" => m.start_delay = Some(bad_duration(entry)),
-            "id_reuse_policy" => m.id_reuse_policy = entry.negative(&m.id_reuse_policy)?,
-            "id_conflict_policy" => {
-                m.id_conflict_policy = entry.negative(&m.id_conflict_policy)?;
-            }
-            "input" => {
-                let Some(FieldDescriptor { kind: Kind::Bytes(rules), .. }) = &entry.field else {
-                    return Err("input kind missing".into());
-                };
-                let size = rules
-                    .max_len
-                    .ok_or("input maximum missing")?
-                    .checked_add(1)
-                    .filter(|size| *size <= 16 * 1024 * 1024)
-                    .ok_or("input witness exceeds probe budget")?;
-                let data_size =
-                    size.checked_sub(10).ok_or("input bound too small for payload witness")?;
-                let mut payloads = Payloads {
-                    payloads: vec![Payload { data: vec![b'x'; data_size], ..Default::default() }],
-                };
-                let padding = size.checked_sub(payloads.encoded_len()).ok_or("payload overhead")?;
-                payloads.payloads[0].data.extend(std::iter::repeat_n(b'x', padding));
-                if payloads.encoded_len() != size {
-                    return Err("payload exact size mismatch".into());
-                }
-                m.input = Some(payloads);
-            }
-            "StartActivityExecutionRequest" => match entry.target.violation.constraint.as_str() {
-                "any_of" => {
-                    m.schedule_to_close_timeout = None;
-                    m.start_to_close_timeout = None;
-                }
-                _ => return Err("unsupported start rule".into()),
-            },
-            _ => return Err("unsupported start field".into()),
-        },
-    }
-    Ok(())
-}
-
-fn mutate_queue(queue: &mut TaskQueue, field: &str, entry: &Entry) -> Result<()> {
-    match field {
-        "name" => queue.name = entry.negative(&queue.name)?,
-        "kind" => queue.kind = entry.negative(&queue.kind)?,
-        _ => return Err("unsupported task queue field".into()),
-    }
-    Ok(())
-}
-
 /// Enumerates, prepares and classifies activity probes independently of Model state.
 ///
 /// # Errors
@@ -622,45 +241,32 @@ pub fn probe(request: &ProbeRequest) -> Result<ProbeResponse> {
 
 fn prepare_strict(request: &ProbeRequest, entries: &[Entry]) -> Result<ProbeResponse> {
     let entry = entries.iter().find(|entry| entry.id() == request.case_id);
-    let selector = if request.case_id.is_empty() {
-        "StartActivityExecution"
-    } else {
-        request.case_id.as_str()
+    let Some(entry) = entry.filter(|entry| !request.baseline && exceptional(entry)) else {
+        return strict_registry()?.prepare(
+            &ActivityStrict,
+            &request.case_id,
+            request.baseline,
+            request,
+            &mut Rng::new(217),
+        );
     };
-    let (name, context) = if let Some(entry) = entry {
-        (entry.method, entry.context)
-    } else if request.baseline
-        && matches!(
-            selector,
-            "StartActivityExecution"
-                | "RespondActivityTaskCompleted"
-                | "RespondActivityTaskCanceled"
-                | "RequestCancelActivityExecution"
-        )
-    {
-        (selector, "")
-    } else {
-        return Err("unknown probe case".into());
-    };
-    let mut bytes = baseline(name, request, context)?;
+    let name = bare_method(&entry.metadata().method)?;
+    let bytes = baseline(name, request, entry.context())?;
     if !request_findings(name, &bytes)?.is_empty() {
         return Err("invalid baseline".into());
     }
-    if !request.baseline {
-        let entry = entry.ok_or("missing target")?;
-        bytes = mutate(&bytes, entry)?;
-        let mut findings = request_findings(name, &bytes)?;
-        let mut expected = entry.companions()?;
-        expected.push(entry.target.violation.clone());
-        findings.sort_by_key(|finding| (finding.path.clone(), finding.constraint.clone()));
-        expected.sort_by_key(|finding| (finding.path.clone(), finding.constraint.clone()));
-        if findings != expected {
-            return Err(format!(
-                "{}: witness does not isolate declared target: {findings:?}",
-                entry.id()
-            )
-            .into());
-        }
+    let bytes = mutate_exception(&bytes, entry)?;
+    let mut findings = request_findings(name, &bytes)?;
+    let mut expected = entry.companions().to_vec();
+    expected.push(entry.target().violation.clone());
+    findings.sort_by_key(|f| (f.path.clone(), f.constraint.clone()));
+    expected.sort_by_key(|f| (f.path.clone(), f.constraint.clone()));
+    if findings != expected {
+        return Err(format!(
+            "{}: witness does not isolate declared target: {findings:?}",
+            entry.id()
+        )
+        .into());
     }
     let mut response = ProbeResponse { method: method(name), ..Default::default() };
     if bytes.len() > 512 * 1024 {
@@ -678,41 +284,99 @@ mod tests {
 
     #[test]
     fn inventory_method_set_must_equal_registered_baseline_fillers() -> Result<()> {
-        use super::{Entry, verify_inventory};
-        let copy = |entry: &Entry, context, method| Entry {
-            context,
-            method,
-            prerequisite: entry.prerequisite,
-            target: entry.target.clone(),
-            field: entry.field.clone(),
-        };
+        use super::{bare_method, verify_methods};
         let current = inventory()?;
-        let full: Vec<_> = current.iter().map(|e| copy(e, e.context, e.method)).collect();
-        verify_inventory(&full)?;
-        let guard = "probe inventory methods differ from registered baseline fillers";
-        let truncated: Vec<_> = current
+        let full = current
             .iter()
-            .filter(|e| e.method != "PollActivityExecution")
-            .map(|e| copy(e, e.context, e.method))
-            .collect();
-        assert!(truncated.len() < full.len());
-        assert_eq!(verify_inventory(&truncated).map_err(|e| e.to_string()), Err(guard.into()));
+            .map(|entry| bare_method(&entry.metadata().method))
+            .collect::<Result<std::collections::BTreeSet<_>>>()?;
+        verify_methods(&full)?;
+        let guard = "probe inventory methods differ from registered baseline fillers";
+        let truncated =
+            full.iter().copied().filter(|method| *method != "PollActivityExecution").collect();
+        assert_eq!(verify_methods(&truncated).map_err(|e| e.to_string()), Err(guard.into()));
         let mut extra = full;
-        extra.push(copy(&current[0], "extra", "UnregisteredMethod"));
-        assert_eq!(verify_inventory(&extra).map_err(|e| e.to_string()), Err(guard.into()));
+        extra.insert("UnregisteredMethod");
+        assert_eq!(verify_methods(&extra).map_err(|e| e.to_string()), Err(guard.into()));
+        Ok(())
+    }
+
+    #[test]
+    fn contextual_witnesses_preserve_exact_duration_ascii_and_queue_policy() -> Result<()> {
+        use super::{prepare_strict, request_findings};
+        use prost::Message;
+        use umpire_temporal_api::temporal::api::workflowservice::v1::StartActivityExecutionRequest;
+        let entries = inventory()?;
+        let slots = super::ProbeRequest {
+            namespace: "namespace".into(),
+            activity_id: "activity".into(),
+            task_queue: "queue".into(),
+            run_id: super::UUID.into(),
+            task_token: vec![1],
+            ..Default::default()
+        };
+        let leaf = |context: &str,
+                    path: &str,
+                    constraint: &str|
+         -> Result<&umpire_catalog::contextual_probe::Entry> {
+            entries
+                .iter()
+                .find(|entry| {
+                    entry.context() == context
+                        && entry.target().violation.path.ends_with(path)
+                        && entry.target().violation.constraint == constraint
+                })
+                .ok_or_else(|| "missing exact contextual target".into())
+        };
+        for (constraint, seconds, nanos) in [("duration.valid", 1, -1), ("duration.gte", -1, 0)] {
+            let entry = leaf("start", ".heartbeat_timeout", constraint)?;
+            let response = prepare_strict(
+                &super::ProbeRequest { case_id: entry.id().into(), ..slots.clone() },
+                entries,
+            )?;
+            let actual = StartActivityExecutionRequest::decode(response.message.as_slice())?;
+            assert_eq!(actual.heartbeat_timeout, Some(super::Duration { seconds, nanos }));
+            assert_eq!(
+                request_findings("StartActivityExecution", &response.message)?,
+                vec![entry.target().violation.clone()]
+            );
+        }
+        let entry = leaf("start.type", ".name", "string.max_bytes")?;
+        let response = prepare_strict(
+            &super::ProbeRequest { case_id: entry.id().into(), ..slots.clone() },
+            entries,
+        )?;
+        let actual = StartActivityExecutionRequest::decode(response.message.as_slice())?;
+        assert_eq!(actual.activity_type.ok_or("missing type")?.name, "x".repeat(1001));
+        let entry = leaf("start.queue", ".name", "string.max_bytes")?;
+        let response = prepare_strict(
+            &super::ProbeRequest { case_id: entry.id().into(), ..slots.clone() },
+            entries,
+        )?;
+        let actual = StartActivityExecutionRequest::decode(response.message.as_slice())?;
+        let baseline = super::baseline("StartActivityExecution", &slots, entry.context())?;
+        let baseline = StartActivityExecutionRequest::decode(baseline.as_slice())?;
+        let expected = super::catalog::task_queue(&super::Limits::default())?.probe(
+            baseline.task_queue.as_ref().ok_or("missing queue")?,
+            entry.target(),
+            &mut umpire_catalog::Rng::new(217),
+        )?;
+        assert_eq!(actual.task_queue, Some(expected.message));
         Ok(())
     }
 
     #[test]
     fn generated_findings_preserve_contextual_intents_and_recursive_checks() -> Result<()> {
         use super::{
-            Failure, FailureInfo, ProbeRequest, RespondActivityTaskFailedRequest,
-            StartActivityExecutionRequest, UUID, application, baseline, duration, request_findings,
+            Failure, FailureInfo, ProbeRequest, StartActivityExecutionRequest, UUID, application,
+            baseline, duration, request_findings,
         };
         use prost::Message;
         use umpire_temporal_api::temporal::api::{
             failure::v1::TimeoutFailureInfo,
-            workflowservice::v1::RequestCancelActivityExecutionRequest,
+            workflowservice::v1::{
+                RequestCancelActivityExecutionRequest, RespondActivityTaskFailedRequest,
+            },
         };
         let slots = ProbeRequest {
             namespace: "namespace".into(),
@@ -837,7 +501,7 @@ mod tests {
                             barrier.wait();
                             Ok(entries)
                         })
-                        .map(|entries| entries.as_ptr() as usize)
+                        .map(|entries| entries.entries().as_ptr() as usize)
                         .map_err(|error| error.to_string())
                     })
                 })
@@ -852,7 +516,7 @@ mod tests {
                 })
                 .collect::<Result<Vec<_>>>()?;
             assert!(addresses.iter().all(|address| *address == addresses[0]));
-            assert!(!cache.get().ok_or("missing complete inventory")?.is_empty());
+            assert!(!cache.get().ok_or("missing complete inventory")?.entries().is_empty());
             Ok(())
         })
     }

@@ -132,9 +132,9 @@ tlc_launches = "not-applicable"
 tlc_configurations = "not-applicable"
 
 [stages."temporal/tests"]
-reason = "Temporal workspace tests; observed 943.2 s required, 293 discovered, 286 executed, 7 ignored, 0 skipped; TLC (fn-263 paired required run) 924 confirmed launches, 779 distinct configurations; fn-246.5 adds 17 native test identities over qualified 339 discovered/332 executed (13 activity_policy, 2 registry, 2 program; one rename net zero); root 1259a1c/5645ac2235 observes 356 discovered, 349 passed, 7 ignored, 0 skipped; discovered ceiling renewed to 356 only"
+reason = "Temporal workspace tests; observed 943.2 s required, 293 discovered, 286 executed, 7 ignored, 0 skipped; TLC (fn-263 paired required run) 924 confirmed launches, 779 distinct configurations; fn-246.5 adds 17 native test identities over qualified 339 discovered/332 executed (13 activity_policy, 2 registry, 2 program; one rename net zero); root 1259a1c/5645ac2235 observes 356 discovered, 349 passed, 7 ignored, 0 skipped; discovered ceiling renewed to 356 only; fn-246.6 adds one contextual witness-profile native identity; actual owning workspace discovery357 with7 ignored, no new doctests, projects350 executed; discovered ceiling renewed to357 only, executed350 and all other ceilings and timings unchanged"
 warm_seconds = { check = 1200.0, validate = 1200.0 }
-discovered = 356
+discovered = 357
 executed = 350
 ignored = 15
 skipped = 0

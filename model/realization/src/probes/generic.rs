@@ -114,9 +114,10 @@ impl ProbeSystem for Activity {
         self.strict
             .iter()
             .find(|entry| {
-                entry.method == method.name() && same_violation(&entry.target.violation, &finding)
+                entry.metadata().method == super::method(method.name())
+                    && same_violation(&entry.target().violation, &finding)
             })
-            .map(|entry| entry.target.violation.clone())
+            .map(|entry| entry.target().violation.clone())
             .ok_or_else(|| "generic mutation predicts an unregistered catalog claim".into())
     }
     fn prediction_key(&self, finding: &Violation, _index: usize) -> String {
@@ -130,7 +131,7 @@ impl ProbeSystem for Activity {
         true
     }
     fn additional_cases(&self) -> Result<Vec<ProbeCase>> {
-        self.strict.iter().map(Entry::metadata).collect()
+        Ok(self.strict.iter().map(|entry| entry.metadata().clone()).collect())
     }
     fn prepare_additional(
         &self,
@@ -170,7 +171,12 @@ impl ProbeSystem for Activity {
             .iter()
             .filter(|entry| {
                 matches!(
-                    entry.target.violation.expected.as_ref().map(|expected| &expected.expectation),
+                    entry
+                        .target()
+                        .violation
+                        .expected
+                        .as_ref()
+                        .map(|expected| &expected.expectation),
                     Some(Expectation::RejectsCode(_) | Expectation::RejectsAnyStatus)
                 )
             })
