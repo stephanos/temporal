@@ -90,8 +90,7 @@ if [[ " $* " == *' cargo build '* ]]; then
     previous="$argument"
   done
   mkdir -p "$bootstrap/debug"
-  printf '%s\n' '#!/bin/bash' 'printf "%s\n" wrapper-entered >> "$CONTROL_PHASE_LOG"' 'export UMPIRE_TOOL_ROOT="$CONTROL_FRAMEWORK"' 'exec "$CONTROL_NATIVE" "$@"' > "$bootstrap/debug/xtask"
-  chmod 755 "$bootstrap/debug/xtask"
+  ln -sf "$CONTROL_NATIVE" "$bootstrap/debug/xtask"
   cp "$(type -P true)" "$bootstrap/debug/umpire-guest-driver"
   printf '%s\n' bootstrap-returning >> "$CONTROL_PHASE_LOG"
   exit 0
@@ -118,7 +117,7 @@ exit "$CONTROL_STATUS"
             .env("PATH", format!("{}:/usr/bin:/bin", f.root.join("bin").display()))
             .env("CARGO_HOME", f.root.join("cargo home"))
             .env("CARGO_TARGET_DIR", f.root.join("target"))
-            .env("CONTROL_FRAMEWORK", &f.model)
+            .env("CONTROL_FRAMEWORK", framework_root().canonicalize().unwrap())
             .env("CONTROL_NATIVE", &native)
             .env("CONTROL_LOG", f.root.join("fmt-calls"))
             .env("CONTROL_PHASE_LOG", &phases)
