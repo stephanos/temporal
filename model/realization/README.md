@@ -8,6 +8,108 @@ inside the shared stateless annotation wrapper.
 Generated `prost::Name` implementations supply canonical Any URLs through the
 generic `Any::pack`/`unpack` helpers; no hand-maintained type URL registry is needed.
 
+## Extending a realization
+
+Use the current [action registry](../feature/activity/registry.rs) as the typed
+extension point. Keep the independent [Model](../feature/activity/model.rs) and
+its laws separate from request construction and observation interpretation. A
+system disagreement is evidence to investigate, not permission to fit the Model.
+
+| Author-owned declaration | Source and responsibility |
+| --- | --- |
+| Action/RPC binding | Action metadata and `#[registry(inputs = FillInputs)]` select the actual descriptor method, typed request filler and evidence predicate. Environmental actions need an explicit reason. |
+| Identity and receipt | `#[entity]` binds bootstrap request/result admission, immutable receipt creation and correlation. Reuse `shared/lens/config.rs::Entity`; actual invocation association comes from capture, not matching strings alone. |
+| Reads | `#[read]` supplies typed request construction, actual request/response correlation, claimed response fields, observable target projection, finality and continuation. It does not add a Model action just to read. |
+| Independent refinement | `#[refines]` supplies protocol state/action/outcome/Fact/view maps. `Refines`/`Refined` in `src/registry.rs` connect the declaration to native full-state refinement tests. |
+| Worker requests | `FillInputs` and `Fill` construct the typed request from the selected World, policy inputs and admitted identity. Program assembly uses those same constructors; worker choices depend on actual observable history. |
+
+For a new action, declare its semantic transition first, then add its registry row,
+field claims, filler and positive evidence predicate. For a new read, extend the
+typed read hooks rather than constructing a full Model state from the response.
+Unknown fields, omitted claimed oneof arms, incompatible descriptor request/result
+types and missing action registrations must retain their existing refusals. Avoid
+a second method/type-URL table or an Activity-specific branch in shared orchestration.
+
+`Snapshot` returns an observable compatibility target. `Reach` searches actual
+checked edges and retains compatible full-state continuations, including latent
+global/local countdowns and evidence-consumption cursors. A current status cannot
+fabricate Remaining values, authorize a worker step or identify an expiry cause.
+Typed expiry Facts, outcomes and every prior observation constrain the complete
+witness. Search `Scope` limits are resource bounds, separate from Model budgets;
+unresolved work refuses. A published canonical witness is one explanation of its
+prefix. It does not erase alternatives or make earlier reports mutable.
+
+Add controls with the change: actual requests differing from filler defaults,
+crossed receipt/attempt, absent versus present fields, wrong oneof, earlier-prefix
+contradictions, missing/wrong expiry Fact, resource exhaustion and failed
+publication followed by retry. Keep the native protocol-to-feature refinement
+checks independent from protocol TLC own-invariant/state-set checks. Neither is
+a completed TLC refinement mapping or an actual live SUT witness. The runtime and
+host retain whole-prefix current-format replay and exact guest/contract identity;
+checking only the latest projected state is insufficient.
+
+### Adding a contextual probe
+
+Declare the field expectation in its owning catalog, including supplementary
+intent, before adding a strict probe occurrence. The current example is
+[`probe_bindings.rs`](../feature/activity/probe_bindings.rs), consumed by the
+shared [`StrictSystem` adapter](src/probes.rs). Build a `TypedBinding<Root,Leaf>`
+with the exact catalog constructor, projector, replacement and mutation selector,
+then register it with `Context::typed`. Use `TypedBinding::identity` for roots.
+For nested messages and oneofs, both callbacks must refuse missing ancestors or
+the wrong arm; never manufacture an ancestor or choose a path by suffix.
+
+Use `Mutation::Default` unless the transport requires a declared supported witness
+policy. `Mutation::Profile(WitnessProfile::...)` explicitly selects such policies
+as ASCII overflow or a duration counterexample; `Mutation::Custom` still goes
+through the catalog's checked typed mutation. A profile changes witness bytes,
+not the expectation or the baseline constraints. Keep semantic leaf views and
+normalization authoritative. Unsupported profile/carrier pairs refuse, and legacy
+generation retains its existing behavior.
+
+Register all primary and supplemental cases in `Registry::new`, with explicit
+prerequisite/baseline selectors and exact companion findings. For example,
+request-ID overflow can also violate its independent UUID intent; declare that
+specific companion rather than tolerating arbitrary extra findings. Preparation
+validates the whole baseline, mutates privately, reprojects the selected occurrence,
+encodes/decodes and checks the exact whole-root findings before publishing. A no-op
+or misdirected setter must fail even when another occurrence has a similar error.
+RNG advancement commits only after validation and bounded recipe construction.
+Retain case/phase/expected/actual diagnostic evidence without Secret bytes.
+
+### Generate and qualify
+
+Run `make model-check` from the Temporal repository root with its sibling Umpire
+checkout. API build scripts and realization macros generate descriptor-checked
+catalog/registry metadata; existing coverage and snapshot tests check it. Use
+`make model-update` only for a reviewed intended golden change, not to bless a
+failed refusal control. Framework public API changes use `mise run api:snapshot`
+in the sibling checkout, retaining simplified and complete views.
+
+Build the concrete guest with `make umpire-guest`, then run the owning
+`cargo xtask guest-freshness umpire-temporal-guest <guest-path>` from `model/`
+through pinned mise tools before using it for host/live evidence. Follow
+[GUEST_BUILDS.md](../GUEST_BUILDS.md) for artifact identity and
+[the paired setup](../docs/paired-checkout.md) for paths. Agent builds additionally
+use the managed launcher; these commands do not authorize concurrent build lanes.
+Final required-mode validation is `make model-validate`; report actual TLC and
+opt-in Apalache modes and current timings separately from historical receipts.
+
+The generic relation syntax/admission contract is available, but production
+generic Echo/BoundedBy checking/filling, per-declaration mutation manifests and
+general response novelty projection remain separate fn-267 work. Metadata alone
+does not replace the current correlated runtime checks. Final mapping remeasurement
+and mandatory current raw/SDK evidence are still required: the last retained
+5617/446 mapping-to-Model measurement misses the 2x gate by 4725 lines. Moving
+feature semantics to shared code does not remove that charge. Workflow is the
+next feature's enforced remeasurement gate, not a result demonstrated here.
+
+## Retained mini-slice handler and transport contracts
+
+The detailed mini-slice evidence below retains its earlier checkpoint's live
+scope. Current registry authoring is described above; dated guest/SDK results
+below do not establish fresh qualification of a changed binding.
+
 The activity action metadata and entity/read registry declare RPCs, typed fillers,
 claimed response fields and evidence predicates. `#[reach]` routes Describe and Cancel
 through `Projection::Reach`. Describe decodes an `ActivityTarget` without constructing
@@ -34,7 +136,10 @@ request type and returns `Reply<A> { delivery, action, request }`. `request` is 
 typed request packed with `Any::pack(&request)`. Generated code validates its declared
 field presence and wraps it in the shared `umpire.realization.v1.Reply` envelope exactly once. These are
 partial SDK requests: the macro does not run whole-request catalog constraints or require
-SDK-filled task tokens. `#[propose]` is reserved and refuses compilation.
+SDK-filled task tokens. `#[propose]` selects one typed proposal handler; optional
+`matches` and `continue_polling` hooks delegate correlation and polling policy.
+Omitted hooks keep the runtime's fail-closed/default behavior. Activity's current
+registry and entity/read hooks provide its proposal inputs and correlation.
 
 Field paths and RPC edges come from the existing admitted catalog declarations and
 linked upstream descriptors. Unknown and overlapping paths, empty ignore reasons,

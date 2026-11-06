@@ -695,7 +695,7 @@ steps. [Retained source receipts](../.flow/tasks/fn-227-parameterized-models-dec
 | Activity: maximum_attempts=1 | 6 | 6 | Closure laws Verified; no retry in the negative control. |
 | Activity: maximum_attempts=3 | 18 | 18 | Closure laws Verified; retry-payload counterexample replayed. |
 
-### Retry-era activity World and state
+### Historical retry-era activity World and state
 
 | Item | Current meaning |
 | --- | --- |
@@ -733,7 +733,7 @@ sides of the refinement check. Raw Start timeout defaults apply only at the
 protocol's separate `RawStart` admission boundary; live Worlds still carry absent
 timeouts.
 
-### Live admission and retained verification
+### Historical live admission and retained verification
 
 The Temporal realization transports optional actual `Observation.request` at tag 4 with its
 same-invocation successful Start result. It binds namespace/activity/request/run identity and
@@ -761,6 +761,96 @@ These are previous shared-host observations, not isolated performance measuremen
 record its own required model-time run and unchanged-production/guest reuse proof. Historical
 fn-232 failure evidence and later fn-232/fn-239 certifications remain; the current guest is
 not claimed freshly cross-OS certified. fn-238.5 delivered the interpreter as a differential check; fn-238.6 kept the compiled default (see the front end section).
+
+## Realization as a checked refinement
+
+The current authoring route separates the independent
+[Activity Model](feature/activity/model.rs), its
+[registry](feature/activity/registry.rs), the shared
+[entity/read lens](shared/lens/config.rs) and the framework runtime. Actions carry
+RPC or environmental declarations. The registry binds descriptor methods, typed
+fillers, evidence predicates and claimed fields; `#[entity]` declares bootstrap
+admission/receipt hooks, `#[read]` declares correlation/projection/finality, and
+`#[refines]` declares state/action/outcome/Fact/view maps. These are mapping, not
+semantic Model declarations. Shared code may know Temporal API concepts but must
+not import an Activity feature to supply its lifecycle policy.
+
+The [independent protocol](shared/protocol/activity/README.md) owns its own
+transitions and full-state budget accounting. Native
+[refinement checks](feature/activity/refinement_checks.rs) compare complete
+reachable protocol states and every emitted edge with feature state, action,
+outcome and ordered Facts, then check the declared observable view. Erasing a
+heartbeat budget or treating a visible-equal Tick as a stutter must fail. Protocol
+TLC checks its own invariants and reached-set agreement; that is distinct from
+this native cross-Model refinement. A TLC refinement mapping remains a later
+gate, not a result supplied by the protocol's own-law run.
+
+### Latent budgets, expiry and whole-prefix evidence
+
+The current Model retains spanning ScheduleToClose and local ScheduleToStart,
+StartToClose and Heartbeat budgets in complete state. Absence differs from an
+armed countdown; configured durations and elapsed wall time do not measure the
+remaining counter. A Describe target therefore retains unobserved budget fields
+as unobserved. The bounded runtime frontier preserves alternatives consistent
+with all previous observations and evidence cursors. For example, global three
+and heartbeat two can have visible-equal hidden Tick/Heartbeat prefixes with
+different valid continuations. Choosing the shortest report witness cannot prune
+the other prefix. `Scope` limits search depth/work/retention; it does not set
+these semantic budgets, and a cut refuses rather than declaring conformance.
+
+Expiry evidence uses the Model's typed Fact and its exact checked edge. A terminal
+timeout status alone does not identify which timer expired. Retry rearming,
+global-budget preservation, expiry priority and cooperative cancellation remain
+independent semantic obligations; a projector cannot synthesize counters or Facts
+to obtain a desired outcome. Cancellation is cooperative in the current Model;
+the atomic checkpoint above is retained history, not an alternative live mode.
+
+Explanations cover the complete retained prefix from the admitted Reset, including
+delivery, outcomes and typed Facts. A later compatible observation can require a
+different canonical past; earlier published reports remain immutable existential
+claims for their own prefixes. Exact replay validates each complete report, not
+just its latest state. State/frontier/cursor/pending changes commit only after
+successful publication. Current-format Run replay also pins the guest hash and
+contract and performs no external calls. These mechanisms require discriminating
+prefix, expiry, wrong-contract and publication controls; their availability is
+not a substitute for current raw/SDK evidence.
+
+### Extending the binding and qualifying the result
+
+Start with a Model variation and independent laws. Extend the action registry's
+typed filler/evidence declaration and claimed fields, or the entity/read hooks
+for a new bootstrap/read. Reuse one `Fill` definition for proposals and worker
+program rows; policy choices depend on observable histories, never hidden Model
+state at the same executor key. Enumeration under finite limits must be complete,
+and independent edge coverage and actual executor validation are separate checks.
+The [realization guide](realization/README.md#extending-a-realization) gives the
+concrete source route, including contextual probes and witness profiles. Generic
+relation admission is available, but production generic relation checking/filling
+and canonical response novelty integration are still separate fn-267 delivery;
+do not replace existing correlated checks with an unconnected metadata table.
+
+Use the owning commands in [README](README.md) and [guest builds](GUEST_BUILDS.md):
+`make model-check` checks the current paired source; `make umpire-guest` rebuilds
+the concrete guest; the owning guest-freshness command pins that artifact before
+host/live evidence. API/registry metadata is generated by its build scripts and
+macros. After intended framework API changes, run the sibling's
+`mise run api:snapshot` and review both views. `make model-update` is an explicit
+golden overwrite mode, not evidence that a changed semantic result is acceptable.
+Finalization uses `make model-validate` for the required-TLC gate and inner-loop
+measurement, with Apalache independently opt-in; report actual backend modes,
+source/guest identities and soft-budget overruns. Default checks and dated timings
+above cannot stand in for that current required-mode receipt.
+
+The mapping-size gate remains **unmet**. The last retained measurement is 5617
+charged mapping lines against 446 semantic Model lines: the 2x ceiling is 892,
+leaving a 4725-line gap. This is a previous checkpoint, not a remeasurement of this
+documentation edit or a final ratio. Registry metadata, typed fillers, evidence
+predicates and any feature semantics moved into shared files remain honestly
+charged; generated, generic shared and independent protocol lines are reported
+separately. No unwritten exception or smaller substitute feature closes the gap.
+Workflow remeasurement is the next feature's enforced ratio gate, not a measured
+result here. Final counts, required-mode timings and mandatory current raw/SDK
+slice/gaps/explore/replay evidence remain fn-246.6 finalization dependencies.
 
 ## Historical authoring options
 
@@ -1032,7 +1122,10 @@ ignores(path = "reason")))]` handlers. The independent Model carries no system a
 Observation input is a response or `Result<Response, i32>` for raw gRPC status handling. Handlers return `Result<_, Refusal>`. `Projection<Action>` is used directly;
 `Step<Actor> { action, expected }` proposes one converted action with its expected outcome.
 A state-valued return requires `project(Self::mapping)`. Activity's mapping returns Current for equal phases, proposes only Completed or Failed, and leaves other changes unexplained.
-Answer returns `Reply<Actor> { delivery, action, request }`; the raw packed request is checked then wrapped once. SDK-filled fields remain partial. `#[propose]` is reserved.
+Answer returns `Reply<Actor> { delivery, action, request }`; the raw packed request is checked then wrapped once. SDK-filled fields remain partial.
+`#[propose]` selects one typed proposal handler; optional `matches` and
+`continue_polling` hooks delegate correlation and polling policy. Omitted hooks
+keep the runtime's fail-closed/default behavior.
 
 `feature/activity/expected/realization.txt.snap` names canonical RPCs/messages for each observed response, incoming callback and outgoing request.
 Descriptor-ordered paths are `mapped`, `ignored` with a reason, or `unsupported`; outgoing mapped paths mean produced fields.
