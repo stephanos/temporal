@@ -13,7 +13,13 @@ pub struct Entity<B: Identity, R, Q, S> {
     pub receipt: fn(&B, &B::Id, &Q, &S) -> Result<R, Refusal>,
     /// Check the receipt against the actual request and response.
     pub correlate: fn(&B, &R, &Q, &S) -> Result<(), Refusal>,
+    /// Optional generated bootstrap checks, executed after the receipt is established.
+    pub relations: Option<Relations<B, R, Q, S>>,
 }
+
+/// A generated relation check over one actual invocation and its admitted receipt.
+pub type Relations<B, R, Q, S> =
+    fn(&B, &R, &Q, &S) -> Result<crate::registry::relations::CheckedRelations, Refusal>;
 
 /// Pure read construction, projection and continuation hooks outside the action graph.
 pub struct Read<B, W, R, Q, S, T> {

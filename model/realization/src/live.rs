@@ -203,61 +203,7 @@ impl EntityBinding for ActivityEntity {
         Ok(raw)
     }
     fn admit(&self, actual: &Any) -> Result<Admission<Self>, Refusal> {
-        let observation: Observation = actual.unpack()?;
-        let raw_request = observation
-            .request
-            .as_ref()
-            .ok_or_else(|| Refusal::malformed("Start actual request is missing"))?;
-        let request: StartActivityExecutionRequest = raw_request.unpack()?;
-        let Some(ResultValue::Response(raw_response)) = &observation.result else {
-            return Err(Refusal::malformed("successful Start response is required"));
-        };
-        let response: StartActivityExecutionResponse = raw_response.unpack()?;
-        let (binding, entity) = (Realization::default(), Realization::entity());
-        let identity = (entity.admit)(&binding, &request, &response)?;
-        let mut receipt = Receipt {
-            request: raw_request.clone(),
-            response: raw_response.clone(),
-            entity: (entity.receipt)(&binding, &identity, &request, &response)?,
-            manifest: None,
-        };
-        let Some(_) = receipt.entity.maximum_attempts() else {
-            let refusal =
-                Refusal::unsupported("retry_policy.maximum_attempts must be explicitly in 1..=3");
-            return Ok(Admission::Frozen { receipt, refusal });
-        };
-        let manifest = std::rc::Rc::new(crate::policy::Manifest::production(&request)?);
-        let _ = manifest.issued(&request)?;
-        let selected = request
-            .header
-            .as_ref()
-            .and_then(|header| header.fields.get(crate::SCENARIO_HEADER))
-            .and_then(|payload| std::str::from_utf8(&payload.data).ok())
-            .ok_or_else(|| Refusal::malformed("Start canonical policy header is missing"))?;
-        manifest.admit_name(selected)?;
-        let world = manifest.world().clone();
-        receipt.manifest = Some(manifest);
-        let starts = world.starts();
-        let [initial] = starts.as_slice() else {
-            return Err(state("admitted World requires exactly one start"));
-        };
-        let mut model = Runtime::with_initial(
-            world,
-            LiveRealization { inner: Realization::default(), receipt: Some(receipt.clone()) },
-            initial.clone(),
-        )?;
-        let (response, transaction) = model.prepare(
-            protocol::Method::Judge as u32,
-            &protocol::JudgeRequest { observation: Some(actual.clone()) }.encode_to_vec(),
-        );
-        let outcome = response.outcome.ok_or_else(|| state("Start judgment is missing"))?;
-        if let Outcome::Refusal(refusal) = outcome {
-            return Err(refusal);
-        }
-        if let Some(transaction) = transaction {
-            model.commit(transaction);
-        }
-        Ok(Admission::Admitted { model, receipt, outcome })
+        Self::admit_with_observer(actual, |_| {})
     }
     fn replay(&self, receipt: &Receipt, actual: &Any) -> Result<(), Refusal> {
         let observation: Observation = actual.unpack()?;
@@ -334,6 +280,72 @@ impl EntityBinding for ActivityEntity {
     }
     fn missing_receipt(&self) -> Refusal {
         state("live Start admission is required")
+    }
+}
+
+impl ActivityEntity {
+    fn admit_with_observer(
+        actual: &Any,
+        mut checked: impl FnMut(&crate::registry::relations::CheckedRelations),
+    ) -> Result<Admission<Self>, Refusal> {
+        let observation: Observation = actual.unpack()?;
+        let raw_request = observation
+            .request
+            .as_ref()
+            .ok_or_else(|| Refusal::malformed("Start actual request is missing"))?;
+        let request: StartActivityExecutionRequest = raw_request.unpack()?;
+        let Some(ResultValue::Response(raw_response)) = &observation.result else {
+            return Err(Refusal::malformed("successful Start response is required"));
+        };
+        let response: StartActivityExecutionResponse = raw_response.unpack()?;
+        let (binding, entity) = (Realization::default(), Realization::entity());
+        let identity = (entity.admit)(&binding, &request, &response)?;
+        let mut receipt = Receipt {
+            request: raw_request.clone(),
+            response: raw_response.clone(),
+            entity: (entity.receipt)(&binding, &identity, &request, &response)?,
+            manifest: None,
+        };
+        if let Some(relations) = entity.relations {
+            checked(&relations(&binding, &receipt.entity, &request, &response)?);
+        }
+        let Some(_) = receipt.entity.maximum_attempts() else {
+            let refusal =
+                Refusal::unsupported("retry_policy.maximum_attempts must be explicitly in 1..=3");
+            return Ok(Admission::Frozen { receipt, refusal });
+        };
+        let manifest = std::rc::Rc::new(crate::policy::Manifest::production(&request)?);
+        let _ = manifest.issued(&request)?;
+        let selected = request
+            .header
+            .as_ref()
+            .and_then(|header| header.fields.get(crate::SCENARIO_HEADER))
+            .and_then(|payload| std::str::from_utf8(&payload.data).ok())
+            .ok_or_else(|| Refusal::malformed("Start canonical policy header is missing"))?;
+        manifest.admit_name(selected)?;
+        let world = manifest.world().clone();
+        receipt.manifest = Some(manifest);
+        let starts = world.starts();
+        let [initial] = starts.as_slice() else {
+            return Err(state("admitted World requires exactly one start"));
+        };
+        let mut model = Runtime::with_initial(
+            world,
+            LiveRealization { inner: Realization::default(), receipt: Some(receipt.clone()) },
+            initial.clone(),
+        )?;
+        let (response, transaction) = model.prepare(
+            protocol::Method::Judge as u32,
+            &protocol::JudgeRequest { observation: Some(actual.clone()) }.encode_to_vec(),
+        );
+        let outcome = response.outcome.ok_or_else(|| state("Start judgment is missing"))?;
+        if let Outcome::Refusal(refusal) = outcome {
+            return Err(refusal);
+        }
+        if let Some(transaction) = transaction {
+            model.commit(transaction);
+        }
+        Ok(Admission::Admitted { model, receipt, outcome })
     }
 }
 

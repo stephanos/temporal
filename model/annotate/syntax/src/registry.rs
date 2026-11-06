@@ -328,6 +328,53 @@ fn take(item: &mut ItemImpl, name: &str) -> syn::Result<Option<Options>> {
     Ok(result)
 }
 
+fn relations(item: &mut ItemImpl, schema: &Schema) -> syn::Result<Vec<TokenStream>> {
+    let mut checks = Vec::new();
+    let mut seen = BTreeSet::new();
+    for attribute in item.attrs.iter().filter(|attribute| attribute.path().is_ident("relations")) {
+        let options: Options = attribute.parse_args()?;
+        options.admit(&["rpc", "check"], attribute.span())?;
+        let (path, service, method) = method_path(&options, schema, attribute.span())?;
+        let node = schema
+            .method(&service, &method)
+            .map_err(|error| syn::Error::new(path.span(), error))?;
+        let request: Type = syn::parse_str(
+            &schema
+                .message(&node.input)
+                .map_err(|error| syn::Error::new(path.span(), error))?
+                .rust_type,
+        )?;
+        let response: Type = syn::parse_str(
+            &schema
+                .message(&node.output)
+                .map_err(|error| syn::Error::new(path.span(), error))?
+                .rust_type,
+        )?;
+        let method = format!("/{service}/{method}");
+        if !seen.insert(method.clone()) {
+            return Err(syn::Error::new(path.span(), "duplicate RPC relation hook"));
+        }
+        let check = if options.values.contains_key("check") {
+            let name: Ident = options.required("check", attribute.span())?;
+            quote_spanned!(Span::call_site().located_at(name.span())=> {
+                let __check: fn(&Self, &#request, &#response) -> Result<(), ::umpire_runtime::protocol::Refusal> = Self::#name;
+                __check(self, &__request, &__response)?;
+            })
+        } else {
+            quote!(return Err(::umpire_runtime::protocol::Refusal::unsupported("missing required registered relation hook"));)
+        };
+        checks.push(quote! {
+            if __observed.method == #method && __observed.code()?.is_none() {
+                let __request: #request = __observed.request()?.ok_or_else(|| ::umpire_runtime::protocol::Refusal::malformed("registered RPC evidence requires its actual request"))?;
+                let __response: #response = __observed.response()?;
+                #check
+            }
+        });
+    }
+    item.attrs.retain(|attribute| !attribute.path().is_ident("relations"));
+    Ok(checks)
+}
+
 fn pattern(model: &Path, row: &Row) -> TokenStream {
     let actor = &row.actor;
     let variant = &row.variant.ident;
@@ -411,7 +458,7 @@ fn expand_scoped(
     let entity = take(item, "entity")?;
     let read = take(item, "read")?;
     let refines = take(item, "refines")?;
-    let observed = observed(item, schema)?;
+    let (observed, relations) = (observed(item, schema)?, relations(item, schema)?);
     let refinement = refinement(item, model, runtime, read.as_ref(), refines.as_ref())?;
     let configuration =
         configurations(item, model, runtime, schema, entity.as_ref(), read.as_ref())?;
@@ -477,6 +524,7 @@ fn expand_scoped(
             fn check_registered(&self, observation: &::umpire_runtime::prost_types::Any, path: &[&::umpire_runtime::Evidence<#model::World>]) -> Result<::umpire_runtime::EvidenceMatch, ::umpire_runtime::protocol::Refusal> {
                 let __observed = #runtime::support::Observed::new(observation)?;
                 #(#admission)*
+                #(#relations)*
                 let __predicates: &[fn(&Self, &#runtime::support::Observed, &[&::umpire_runtime::Evidence<#model::World>]) -> Result<::umpire_runtime::EvidenceMatch, ::umpire_runtime::protocol::Refusal>] = &[#(#predicates),*];
                 let Some(__edge) = path.last() else {
                     let mut __root = ::umpire_runtime::EvidenceMatch::Reject;
@@ -557,6 +605,7 @@ fn hook_contracts(
                 "admit",
                 "make_receipt",
                 "correlate",
+                "relations",
                 "project",
                 "finality",
                 "continue_polling",
@@ -696,6 +745,26 @@ fn hook(name: &Ident) -> TokenStream {
     quote_spanned!(Span::call_site().located_at(name.span())=> Self::#name)
 }
 
+fn correlation_hook(
+    options: &Options,
+    runtime: &Path,
+    correlate: &TokenStream,
+    span: Span,
+) -> syn::Result<TokenStream> {
+    if !options.values.contains_key("relations") {
+        return Ok(correlate.clone());
+    }
+    let check: Ident = options.required("relations", span)?;
+    Ok(quote_spanned!(Span::call_site().located_at(check.span())=>
+        |binding, receipt, request, response| {
+            #runtime::registry::relations::reconcile(
+                Self::#check(binding, receipt, request, response),
+                (#correlate)(binding, receipt, request, response),
+            )
+        }
+    ))
+}
+
 fn configurations(
     item: &ItemImpl,
     model: &Path,
@@ -715,7 +784,16 @@ fn configurations(
     };
     let span = item.span();
     entity.admit(
-        &["rpc", "request", "response", "receipt", "admit", "make_receipt", "correlate"],
+        &[
+            "rpc",
+            "request",
+            "response",
+            "receipt",
+            "admit",
+            "make_receipt",
+            "correlate",
+            "relations",
+        ],
         span,
     )?;
     let ty = &item.self_ty;
@@ -726,13 +804,25 @@ fn configurations(
     let admit = hook(&admit);
     let make_receipt = hook(&make_receipt);
     let correlate = hook(&correlate);
+    let correlate = correlation_hook(entity, runtime, &correlate, span)?;
+    let relations = entity
+        .values
+        .get("relations")
+        .map(|(_, tokens)| {
+            syn::parse2::<Ident>(tokens.clone()).map(|name| {
+                let hook = hook(&name);
+                quote!(Some(#hook))
+            })
+        })
+        .transpose()?
+        .unwrap_or_else(|| quote!(None));
     let entity_rpc = rpc(entity, schema, span)?;
     let request = &entity_rpc.request;
     let response = &entity_rpc.response;
     let witnesses = entity_rpc.witnesses();
     let value = entity_rpc.configuration(runtime);
     let read = read.map(|options| -> syn::Result<_> {
-        options.admit(&["rpc", "request", "response", "target", "fill", "correlate", "project", "finality", "continue_polling", "response_reads"], span)?;
+        options.admit(&["rpc", "request", "response", "target", "fill", "correlate", "relations", "project", "finality", "continue_polling", "response_reads"], span)?;
         let rpc = rpc(options, schema, span)?;
         let request = &rpc.request;
         let response = &rpc.response;
@@ -744,6 +834,7 @@ fn configurations(
         let polling: Ident = options.required("continue_polling", span)?;
         let fill = hook(&fill);
         let correlate = hook(&correlate);
+        let correlate = correlation_hook(options, runtime, &correlate, span)?;
         let project = hook(&project);
         let finality = hook(&finality);
         let polling = hook(&polling);
@@ -764,7 +855,7 @@ fn configurations(
             /// The declared entity bootstrap: admission, receipt and correlation hooks.
             pub fn entity() -> #runtime::registry::Entity<Self, #receipt, #request, #response> {
                 #witnesses
-                #runtime::registry::Entity { bootstrap: #value, admit: #admit, receipt: #make_receipt, correlate: #correlate }
+                #runtime::registry::Entity { bootstrap: #value, admit: #admit, receipt: #make_receipt, correlate: #correlate, relations: #relations }
             }
             #read
         }

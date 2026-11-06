@@ -12,3 +12,7 @@ mod generated {
 }
 
 pub use generated::*;
+
+/// The exact linked descriptor input used to generate these API catalogs.
+pub const RELATION_DESCRIPTOR_BYTES: &[u8] =
+    include_bytes!(concat!(env!("OUT_DIR"), "/annotation-api.binpb"));

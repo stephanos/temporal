@@ -1,6 +1,8 @@
 //! The activity action registry: typed fillers, evidence predicates and entity/read hooks.
 
 use super::{Action, ActivityTarget, ProposalContext, Realization, activity};
+#[path = "relations.rs"]
+mod relations;
 use crate::support::{ApplicationFailure, rejection};
 use crate::{
     activity_api::catalog,
@@ -126,13 +128,15 @@ activity::action_metadata!(crate::registry; activity; {
     #[entity(rpc = WorkflowService::StartActivityExecution,
         request = StartActivityExecutionRequest, response = StartActivityExecutionResponse,
         receipt = ProposalContext, admit = admit_start, make_receipt = start_receipt,
-        correlate = correlate_start)]
+        correlate = correlate_start, relations = start_relations)]
     #[read(rpc = WorkflowService::DescribeActivityExecution,
         request = DescribeActivityExecutionRequest, response = DescribeActivityExecutionResponse,
         target = ActivityTarget, fill = describe_request, project = describe_target,
         finality = is_final, continue_polling = polls, correlate = correlate_describe,
+        relations = describe_relations,
         response_reads(info.status, info.run_state, info.attempt, info.last_failure, outcome))]
     #[observed(rpc = WorkflowService::PollActivityExecution, reason = "SDK activity handle outcome")]
+    #[relations(rpc = WorkflowService::RequestCancelActivityExecution, check = cancel_relations)]
     #[refines(protocol = crate::activity_protocol::protocol, state = refined_state,
         action = refined_action, outcome = refined_outcome, fact = refined_fact,
         view = refined_view)]
@@ -141,6 +145,39 @@ activity::action_metadata!(crate::registry; activity; {
         reason = "registry fillers receive the actual action by reference"
     )]
     impl Realization {
+        fn start_relations(
+            &self,
+            receipt: &ProposalContext,
+            request: &StartActivityExecutionRequest,
+            response: &StartActivityExecutionResponse,
+        ) -> Result<crate::registry::relations::CheckedRelations, Refusal> {
+            relations::check(&*relations::start()?, receipt, request, response)
+        }
+
+        fn describe_relations(
+            &self,
+            receipt: &ProposalContext,
+            request: &DescribeActivityExecutionRequest,
+            response: &DescribeActivityExecutionResponse,
+        ) -> Result<crate::registry::relations::CheckedRelations, Refusal> {
+            relations::check(&*relations::describe()?, receipt, request, response)
+        }
+
+        fn cancel_relations(
+            &self,
+            request: &RequestCancelActivityExecutionRequest,
+            response: &RequestCancelActivityExecutionResponse,
+        ) -> Result<(), Refusal> {
+            let legacy = self.correlated(&request.namespace, Some(&request.activity_id), Some(&request.run_id));
+            let Some(receipt) = &self.context else {
+                return legacy;
+            };
+            crate::registry::relations::reconcile(
+                relations::check(&*relations::cancel()?, receipt, request, response),
+                legacy,
+            )
+        }
+
         fn admit_start(
             &self,
             request: &StartActivityExecutionRequest,
@@ -188,14 +225,15 @@ activity::action_metadata!(crate::registry; activity; {
             _: &activity::World,
             receipt: &ProposalContext,
         ) -> Result<DescribeActivityExecutionRequest, Refusal> {
-            Ok(DescribeActivityExecutionRequest {
+            let mut request = DescribeActivityExecutionRequest {
                 namespace: receipt.start.namespace.clone(),
                 activity_id: receipt.start.activity_id.clone(),
-                run_id: receipt.run_id.clone(),
                 include_outcome: true,
                 include_last_failure: true,
                 ..Default::default()
-            })
+            };
+            relations::fill_request(&*relations::describe()?, receipt, &mut request)?;
+            Ok(request)
         }
 
         fn correlate_describe(

@@ -6,6 +6,9 @@ use umpire_runtime::{
     Evidence, EvidenceMatch, ReachTarget, capability::Fill, prost_types::Any, protocol::Refusal,
 };
 
+/// Checked relation evaluation and protocol refusal conversion.
+pub mod relations;
+
 /// The caller responsible for an RPC action.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Direction {

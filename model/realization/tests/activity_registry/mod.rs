@@ -21,7 +21,7 @@ use umpire_temporal_api::temporal::api::common::v1::{ActivityType, RetryPolicy};
 use umpire_temporal_api::temporal::api::workflowservice::v1::StartActivityExecutionRequest;
 
 const SERVICE: &str = "/temporal.api.workflowservice.v1.WorkflowService/";
-const RUN: &str = "run";
+const RUN: &str = "22222222-2222-4222-8222-222222222222";
 
 fn start() -> StartActivityExecutionRequest {
     StartActivityExecutionRequest {
