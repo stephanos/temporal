@@ -821,7 +821,7 @@ with the whole-prefix contract, as the framework
 [protocol contract](../../umpire/protocol/proto/README.md) records. Every Temporal
 guest's ordinary Reset response must declare `ResetResponse.proof_contract =
 WHOLE_PREFIX_V1`. Each Explanation then carries the complete witness from the
-accepted Reset, and the latest complete witness replaces delta concatenation. Host
+accepted Reset; each complete witness stands alone and witnesses are never concatenated as deltas. Host
 validates the actual response before Driver creation and refuses an absent, zero or
 unknown contract. Runs record `protocol_version = 2` with that exact Reset call and
 response. Admission requires the loaded guest's exact model hash and the current
@@ -911,7 +911,7 @@ at framework `23e6e7f` and Temporal `dbc0682ea9`. Apalache was skipped
 sha256 `8a0f4f71aee5a27f816a5831326d475f4f28bee3a02c1c1bd435012bec93ad4c`. The fn-254 R6
 soft targets come from `dev/xtask/src/gate/budgets.toml`: check tier 180 s, validate tier
 600 s, quick/inner loop 60 s. They replace R30's earlier 30/60 s gate and 10 s inner-loop
-targets. A soft overrun is reported, not failed. A per-stage budget breach is a gate failure.
+targets. A soft overrun is reported, not failed. A per-stage breach beyond warm x 1.25, after the one drain-and-retry, is a gate failure.
 
 | Measurement | Result | Soft target |
 | --- | ---: | ---: |
