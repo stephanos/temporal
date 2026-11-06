@@ -41,6 +41,8 @@ const OWNERS: &[(&str, Owner)] = &[
     ("realization/src/probes/", Owner::Mapping),
     ("realization/src/lib.rs", Owner::Shared),
     ("realization/src/registry.rs", Owner::Shared),
+    // Generic relation refusal mapping and reconciliation behind the typed registry.
+    ("realization/src/registry/", Owner::Shared),
     ("realization/macros/", Owner::Shared),
     ("realization/tests/", Owner::Proof),
     ("shared/", Owner::Shared),
