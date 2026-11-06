@@ -172,10 +172,7 @@ activity::action_metadata!(crate::registry; activity; {
             let Some(receipt) = &self.context else {
                 return legacy;
             };
-            crate::registry::relations::reconcile(
-                relations::check(&*relations::cancel()?, receipt, request, response),
-                legacy,
-            )
+            Self::checked_cancel(receipt, request, response, legacy)
         }
 
         fn admit_start(
@@ -547,6 +544,24 @@ const DESCRIBE: &str = "/temporal.api.workflowservice.v1.WorkflowService/Describ
 /// Worker RPC predicates stay declared but off this path: the guest receives no worker RPC
 /// observations, and no receipt holds the polled task token they would need to correlate.
 impl Realization {
+    /// Check an actual successful Cancel against the admitted Start receipt, reconciled with the
+    /// established identity correlation so its refusal class is preserved.
+    #[expect(
+        clippy::trivially_copy_pass_by_ref,
+        reason = "generated checks borrow the actual response like every other RPC"
+    )]
+    pub(crate) fn checked_cancel(
+        receipt: &ProposalContext,
+        request: &RequestCancelActivityExecutionRequest,
+        response: &RequestCancelActivityExecutionResponse,
+        legacy: Result<(), Refusal>,
+    ) -> Result<(), Refusal> {
+        crate::registry::relations::reconcile(
+            relations::check(&*relations::cancel()?, receipt, request, response),
+            legacy,
+        )
+    }
+
     /// Methods this realization projects through Reach, in coverage order.
     pub const REACH: [&'static str; 2] = [CANCEL, DESCRIBE];
 
