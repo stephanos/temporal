@@ -14,7 +14,7 @@ pub use registry::{ActivityIdentity, FillInputs};
 pub use included::activity;
 
 use activity::{Client, Phase, Worker};
-use umpire_dsl::{Machine, Outcome};
+use umpire_dsl::Machine;
 use umpire_runtime::{Proposal, prost_types::Any, protocol::Refusal};
 use umpire_temporal_api::temporal::api::{
     failure::v1::Failure,
@@ -282,142 +282,6 @@ impl Realization {
 }
 
 impl Realization {
-    /// Derives successful next heartbeat bits from complete compatible Model histories.
-    ///
-    /// # Errors
-    /// Refuses invalid attempts, impossible histories, Model errors or exhausted search bounds.
-    pub fn heartbeat_successors(
-        world: &activity::World,
-        attempt: u8,
-        history: &[bool],
-        max_depth: usize,
-        max_work: usize,
-    ) -> Result<Vec<bool>, Refusal> {
-        use std::{
-            collections::{HashSet, hash_map::DefaultHasher},
-            hash::BuildHasherDefault,
-        };
-        use umpire_checker::search::Traversal;
-        Self::heartbeat_world(world, attempt)?;
-        let catalog = world
-            .checked_catalog(umpire_dsl::CATALOG_LIMIT)
-            .map_err(|error| Refusal::unsupported(format!("heartbeat Model catalog: {error}")))?;
-        let mut search = Traversal::<_, ()>::new(max_depth, max_work);
-        let mut visited = HashSet::<_, BuildHasherDefault<DefaultHasher>>::default();
-        for state in world.starts() {
-            let position = (state, 0_usize, false);
-            visited
-                .try_reserve(1)
-                .map_err(|_| Refusal::unsupported("heartbeat successor allocation bound"))?;
-            if visited.insert(position.clone()) {
-                search.root(position).map_err(Self::heartbeat_search_limit)?;
-            }
-        }
-        let mut bits = [false; 2];
-        while let Some(parent) = search.next() {
-            let (state, cursor, assigned) = search.label(parent).position.clone();
-            if assigned && cursor > history.len() {
-                bits[usize::from(state.cancel_requested)] = true;
-                continue;
-            }
-            if state.attempt > attempt || umpire_dsl::Phase::closed(&state.phase) {
-                continue;
-            }
-            for action in catalog.actions() {
-                let heartbeat = *action == Action::from(Worker::Heartbeat);
-                if assigned && matches!(action, Action::Worker(_)) && !heartbeat {
-                    continue;
-                }
-                search.charge().map_err(Self::heartbeat_search_limit)?;
-                let choices = world.checked_step(&state, action.clone()).map_err(|error| {
-                    Refusal::unsupported(format!("heartbeat Model step: {error}"))
-                })?;
-                for (outcome, _, next) in choices {
-                    if outcome != Outcome::Accepted {
-                        continue;
-                    }
-                    if assigned && (next.phase != Phase::Started || next.attempt != attempt) {
-                        continue;
-                    }
-                    let mut next_cursor = cursor;
-                    if assigned && heartbeat {
-                        if cursor < history.len() && history[cursor] != next.cancel_requested {
-                            continue;
-                        }
-                        next_cursor += 1;
-                    }
-                    let next_assigned = assigned
-                        || (*action == Action::from(Worker::Poll(attempt))
-                            && next.phase == Phase::Started
-                            && next.attempt == attempt);
-                    let position = (next, next_cursor, next_assigned);
-                    if visited.contains(&position) {
-                        continue;
-                    }
-                    visited.try_reserve(1).map_err(|_| {
-                        Refusal::unsupported("heartbeat successor allocation bound")
-                    })?;
-                    visited.insert(position.clone());
-                    search
-                        .push(parent, position, Some(()))
-                        .map_err(Self::heartbeat_search_limit)?;
-                }
-            }
-        }
-        let successors: Vec<_> =
-            [false, true].into_iter().filter(|bit| bits[usize::from(*bit)]).collect();
-        if successors.is_empty() {
-            return Err(Refusal::unsupported(
-                "heartbeat_history has no successful Model continuation",
-            ));
-        }
-        Ok(successors)
-    }
-
-    /// Checks a supplied observable successor declaration independently of its response rows.
-    ///
-    /// # Errors
-    /// Refuses malformed keys, missing/duplicate/impossible bits, or incomplete Model search.
-    pub fn validate_heartbeat_successors(
-        world: &activity::World,
-        declaration: &Any,
-        max_depth: usize,
-        max_work: usize,
-    ) -> Result<(), Refusal> {
-        let declaration: umpire_temporal_api::umpire::temporal::v1::ActivityTaskSuccessors =
-            declaration.unpack()?;
-        let key = declaration
-            .key
-            .as_ref()
-            .ok_or_else(|| Refusal::malformed("heartbeat successor key is missing"))?;
-        if key.scenario.is_empty() || key.activity_type.is_empty() {
-            return Err(Refusal::malformed("heartbeat successor key identity is missing"));
-        }
-        let bits = &declaration.cancel_requested;
-        if bits.is_empty() || bits.len() > 2 || (bits.len() == 2 && bits[0] == bits[1]) {
-            return Err(Refusal::malformed(
-                "heartbeat successor domain requires unique observable bits",
-            ));
-        }
-        let attempt = u8::try_from(key.attempt)
-            .map_err(|_| Refusal::unsupported("heartbeat attempt is outside World"))?;
-        let expected = Self::heartbeat_successors(
-            world,
-            attempt,
-            &key.heartbeat_history,
-            max_depth,
-            max_work,
-        )?;
-        let mut actual = declaration.cancel_requested.clone();
-        actual.sort_unstable();
-        if actual != expected {
-            return Err(Refusal::unsupported(
-                "observable successor domain differs from checked Model histories",
-            ));
-        }
-        Ok(())
-    }
-
     fn heartbeat_world(world: &activity::World, attempt: u8) -> Result<(), Refusal> {
         if !(1..=3).contains(&world.maximum_attempts)
             || !(1..=world.maximum_attempts).contains(&attempt)
@@ -439,9 +303,5 @@ impl Realization {
             }
         }
         Ok(())
-    }
-
-    fn heartbeat_search_limit(error: umpire_checker::search::SearchLimit) -> Refusal {
-        Refusal::unsupported(format!("heartbeat successor {error}"))
     }
 }

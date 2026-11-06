@@ -6,7 +6,7 @@ use umpire_runtime::{AnyMessage as _, Evidence};
 use umpire_temporal::{
     activity::{self, Client, Deadline, Phase, Ticks, Worker},
     policy::{
-        AssemblyLimits, Choice, Domain, History, Inventory, Manifest, OperationalRole, TaskKey,
+        AssemblyLimits, Choice, Domain, History, Manifest, OperationalRole, TaskKey,
         operational_role,
     },
 };
@@ -19,6 +19,12 @@ use umpire_temporal_api::temporal::api::workflowservice::v1::{
     reason = "shared fixture module also supplies Describe fixtures to other targets"
 )]
 mod common;
+#[allow(
+    dead_code,
+    reason = "shared oracle module also supplies heartbeat oracles to other targets"
+)]
+mod oracles;
+use oracles::Inventory;
 
 fn edge(
     world: &activity::World,
@@ -364,7 +370,7 @@ fn retry_and_timer_world_matrix_keeps_independent_required_coverage() {
                 .coverage(enumeration.policies(), limits.work)
                 .unwrap_or_else(|e| panic!("{e}"));
             assert!(coverage.complete());
-            let aliases = manifest.task_reset_aliases().unwrap_or_else(|e| panic!("{e:?}"));
+            let aliases = oracles::task_reset_aliases(&world).unwrap_or_else(|e| panic!("{e:?}"));
             assert_eq!(aliases.len(), usize::from(maximum - 1));
             for alias in aliases {
                 assert_ne!(alias.prior_histories[0], alias.prior_histories[1]);

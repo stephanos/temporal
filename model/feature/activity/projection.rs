@@ -7,7 +7,7 @@ use super::activity::{self, Phase, Remaining, Ticks};
 use crate::activity_protocol::{
     parameters::{ParameterError, Parameters},
     protocol,
-    view::{Observed, RetainedFailure, RunState, Snapshot, Status, TerminalOutcome, View},
+    view::{Observed, RetainedFailure, RunState, Snapshot, Status, View},
 };
 use umpire_runtime::{ReachTarget, protocol::Refusal};
 use umpire_temporal_api::temporal::api::{
@@ -132,13 +132,6 @@ impl ActivityTarget {
             u8::try_from(info.attempt).ok().filter(|attempt| *attempt >= 1).ok_or_else(|| {
                 Refusal::malformed("Describe attempt is outside the admitted attempts")
             })?;
-        let terminal_outcome = match status {
-            Status::Running => TerminalOutcome::None,
-            Status::Completed => TerminalOutcome::Completed,
-            Status::Failed => TerminalOutcome::Failed,
-            Status::Canceled => TerminalOutcome::Canceled,
-            Status::TimedOut => TerminalOutcome::TimedOut,
-        };
         let retained_failure = match info.last_failure.as_ref() {
             // A failure kind the protocol view does not classify stays unknown: the feature
             // does not represent retained failure, so it cannot refuse the snapshot.
@@ -149,7 +142,7 @@ impl ActivityTarget {
             status: Observed::Known(status),
             run_state: Observed::Known(run_state),
             attempt: Observed::Known(attempt),
-            terminal_outcome: Observed::Known(terminal_outcome),
+            terminal_outcome: Observed::Known(status.into()),
             retained_failure,
             cancellation_pending: Observed::Known(run_state == Some(RunState::CancelRequested)),
         }))
@@ -187,26 +180,12 @@ impl ActivityTarget {
 
     /// A target that observes no field, for an observation without a snapshot.
     pub fn unobserved() -> Self {
-        Self(Snapshot {
-            status: Observed::Unknown,
-            run_state: Observed::Unknown,
-            attempt: Observed::Unknown,
-            terminal_outcome: Observed::Unknown,
-            retained_failure: Observed::Unknown,
-            cancellation_pending: Observed::Unknown,
-        })
+        Self(Snapshot::default())
     }
 
     /// Every fact of a complete protocol view, as the commuting offline control uses it.
     pub fn observe(view: &View) -> Self {
-        Self(Snapshot {
-            status: Observed::Known(view.status),
-            run_state: Observed::Known(view.run_state),
-            attempt: Observed::Known(view.attempt),
-            terminal_outcome: Observed::Known(view.terminal_outcome),
-            retained_failure: Observed::Known(view.retained_failure),
-            cancellation_pending: Observed::Known(view.cancellation_pending),
-        })
+        Self(Snapshot::from(*view))
     }
 
     /// Whether the observed status is terminal.
@@ -217,12 +196,12 @@ impl ActivityTarget {
 
 /// The public view of a feature state; the feature does not represent retained failure.
 fn visible(state: &activity::Model, retained_failure: RetainedFailure) -> View {
-    let (status, terminal_outcome) = match state.phase {
-        Phase::Scheduled | Phase::Started => (Status::Running, TerminalOutcome::None),
-        Phase::Completed => (Status::Completed, TerminalOutcome::Completed),
-        Phase::Failed => (Status::Failed, TerminalOutcome::Failed),
-        Phase::Canceled => (Status::Canceled, TerminalOutcome::Canceled),
-        Phase::TimedOut => (Status::TimedOut, TerminalOutcome::TimedOut),
+    let status = match state.phase {
+        Phase::Scheduled | Phase::Started => Status::Running,
+        Phase::Completed => Status::Completed,
+        Phase::Failed => Status::Failed,
+        Phase::Canceled => Status::Canceled,
+        Phase::TimedOut => Status::TimedOut,
     };
     View {
         status,
@@ -233,7 +212,7 @@ fn visible(state: &activity::Model, retained_failure: RetainedFailure) -> View {
             _ => None,
         },
         attempt: state.attempt,
-        terminal_outcome,
+        terminal_outcome: status.into(),
         retained_failure,
         cancellation_pending: state.cancel_requested,
     }

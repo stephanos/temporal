@@ -2,7 +2,7 @@
 
 use super::{Action, Realization, activity};
 use activity::{Phase, Worker};
-use umpire_dsl::{Machine, Outcome};
+use umpire_dsl::Outcome;
 use umpire_runtime::{AnyMessage as _, Evidence, prost_types::Any, protocol::Refusal};
 
 /// An executor-visible key before a canonical policy name is stamped.
@@ -243,69 +243,8 @@ impl umpire_runtime::policy::Adapter<activity::World> for Domain {
     }
 }
 
-/// One independent full-state checked-step inventory, before policy filtering.
-pub struct Inventory {
-    /// Every reached full state in canonical breadth-first order.
-    pub states: Vec<activity::Model>,
-    /// Every emitted action/outcome/fact/choice, including accepted stays and rejections.
-    pub edges: Vec<Evidence<activity::World>>,
-}
-
-impl Inventory {
-    /// Exhausts the Model's emitted graph under explicit traversal bounds.
-    ///
-    /// # Errors
-    /// Refuses catalog/step errors, allocation or incomplete depth/work search.
-    pub fn derive(world: &activity::World, depth: usize, work: usize) -> Result<Self, Refusal> {
-        Realization::heartbeat_world(world, 1)?;
-        let catalog = world
-            .checked_catalog(umpire_dsl::CATALOG_LIMIT)
-            .map_err(|error| Refusal::unsupported(format!("policy inventory catalog: {error}")))?;
-        let mut search = umpire_checker::search::Traversal::<_, ()>::new(depth, work);
-        let mut states = Vec::new();
-        let mut edges = Vec::new();
-        for state in world.starts() {
-            if !states.contains(&state) {
-                states.try_reserve(1).map_err(|_| allocation())?;
-                search.root(state.clone()).map_err(search_limit)?;
-                states.push(state);
-            }
-        }
-        while let Some(parent) = search.next() {
-            let source = search.label(parent).position.clone();
-            for action in catalog.actions() {
-                search.charge().map_err(search_limit)?;
-                let steps = world.checked_step(&source, action.clone()).map_err(|error| {
-                    Refusal::unsupported(format!("policy inventory step: {error}"))
-                })?;
-                for (choice, (outcome, facts, target)) in steps.into_iter().enumerate() {
-                    if !states.contains(&target) {
-                        states.try_reserve(1).map_err(|_| allocation())?;
-                        search.push(parent, target.clone(), Some(())).map_err(search_limit)?;
-                        states.push(target.clone());
-                    }
-                    edges.try_reserve(1).map_err(|_| allocation())?;
-                    edges.push(Evidence {
-                        source: source.clone(),
-                        action: action.clone(),
-                        choice,
-                        outcome,
-                        facts,
-                        target,
-                    });
-                }
-            }
-        }
-        Ok(Self { states, edges })
-    }
-}
-
 fn allocation() -> Refusal {
     Refusal::unsupported("policy inventory allocation failed")
-}
-
-fn search_limit(error: umpire_checker::search::SearchLimit) -> Refusal {
-    Refusal::unsupported(format!("policy inventory {error}"))
 }
 
 /// A checked canonical policy and its independently replayed heartbeat domains.
@@ -664,86 +603,6 @@ pub struct AssemblyLimits {
     pub rows: usize,
     /// Maximum total independent heartbeat continuation domains.
     pub continuations: usize,
-}
-
-/// A raw history policy collision caused by the executor's deliberate per-task reset.
-pub struct TaskResetAlias {
-    /// Complete typed checked edges witnessing both aliased task suffixes.
-    pub paths: [Vec<Evidence<activity::World>>; 2],
-    /// Different prior-task observations, before a successful retry and fresh delivery.
-    pub prior_histories: [Vec<bool>; 2],
-    /// The single actual next-task key shared by both histories.
-    pub next_key: TaskKey,
-    /// An example pair of incompatible raw-history assignments at that key.
-    pub incompatible_choices: [Choice; 2],
-}
-
-impl Manifest {
-    /// Reports exact cross-task memory collisions independently of stamped policy names.
-    ///
-    /// # Errors
-    /// Refuses if the declared checked World cannot supply either concrete alias path.
-    pub fn task_reset_aliases(&self) -> Result<Vec<TaskResetAlias>, Refusal> {
-        let mut aliases = Vec::new();
-        let mut state = self
-            .world
-            .starts()
-            .into_iter()
-            .next()
-            .ok_or_else(|| Refusal::unsupported("policy World has no start"))?;
-        for next_attempt in 2..=self.world.maximum_attempts {
-            let delivery = alias_edge(&self.world, &state, Worker::Poll(next_attempt - 1))?;
-            let owned = History::default().advance(&delivery)?;
-            let heartbeat = alias_edge(&self.world, &delivery.target, Worker::Heartbeat)?;
-            let observed = owned.advance(&heartbeat)?;
-            let retry = Worker::RespondFailed { retryable: true };
-            let direct_retry = alias_edge(&self.world, &delivery.target, retry)?;
-            let heartbeat_retry = alias_edge(&self.world, &heartbeat.target, retry)?;
-            let direct_delivery =
-                alias_edge(&self.world, &direct_retry.target, Worker::Poll(next_attempt))?;
-            let heartbeat_delivery =
-                alias_edge(&self.world, &heartbeat_retry.target, Worker::Poll(next_attempt))?;
-            let left = owned.advance(&direct_retry)?.advance(&direct_delivery)?.task;
-            let right = observed.advance(&heartbeat_retry)?.advance(&heartbeat_delivery)?.task;
-            if left != right {
-                return Err(Refusal::unsupported(
-                    "retry delivery did not share an exact observable key",
-                ));
-            }
-            let next_key =
-                left.ok_or_else(|| Refusal::unsupported("retry delivery has no owned task"))?;
-            aliases.try_reserve(1).map_err(|_| allocation())?;
-            state = direct_retry.target.clone();
-            let second_delivery =
-                alias_edge(&self.world, &delivery.source, Worker::Poll(next_attempt - 1))?;
-            aliases.push(TaskResetAlias {
-                paths: [
-                    vec![delivery, direct_retry, direct_delivery],
-                    vec![second_delivery, heartbeat, heartbeat_retry, heartbeat_delivery],
-                ],
-                prior_histories: [vec![], vec![false]],
-                next_key,
-                incompatible_choices: [Choice::Complete, Choice::Fail],
-            });
-        }
-        Ok(aliases)
-    }
-}
-
-fn alias_edge(
-    world: &activity::World,
-    source: &activity::Model,
-    worker: Worker,
-) -> Result<Evidence<activity::World>, Refusal> {
-    let action = Action::from(worker);
-    let (choice, (outcome, facts, target)) = world
-        .checked_step(source, action.clone())
-        .map_err(|error| Refusal::unsupported(format!("task-reset alias Model step: {error}")))?
-        .into_iter()
-        .enumerate()
-        .find(|(_, (outcome, _, _))| *outcome == Outcome::Accepted)
-        .ok_or_else(|| Refusal::unsupported("task-reset alias path is disabled"))?;
-    Ok(Evidence { source: source.clone(), action, choice, outcome, facts, target })
 }
 
 fn canonical_name(

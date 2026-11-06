@@ -63,6 +63,19 @@ pub enum TerminalOutcome {
     TimedOut,
 }
 
+impl From<Status> for TerminalOutcome {
+    /// The execution outcome a public status implies; only a closed status has one.
+    fn from(status: Status) -> Self {
+        match status {
+            Status::Running => Self::None,
+            Status::Completed => Self::Completed,
+            Status::Failed => Self::Failed,
+            Status::Canceled => Self::Canceled,
+            Status::TimedOut => Self::TimedOut,
+        }
+    }
+}
+
 /// Abstract failure classification when the response supplies sufficient detail.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum RetainedFailure {
@@ -155,6 +168,20 @@ pub struct Snapshot {
     pub retained_failure: Observed<RetainedFailure>,
     /// Observed pending cancellation state.
     pub cancellation_pending: Observed<bool>,
+}
+
+impl From<View> for Snapshot {
+    /// Every field of a complete view, as known.
+    fn from(view: View) -> Self {
+        Self {
+            status: Observed::Known(view.status),
+            run_state: Observed::Known(view.run_state),
+            attempt: Observed::Known(view.attempt),
+            terminal_outcome: Observed::Known(view.terminal_outcome),
+            retained_failure: Observed::Known(view.retained_failure),
+            cancellation_pending: Observed::Known(view.cancellation_pending),
+        }
+    }
 }
 
 impl Snapshot {

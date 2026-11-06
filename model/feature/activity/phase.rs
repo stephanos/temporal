@@ -58,15 +58,13 @@ impl TryFrom<ActivityExecutionInfo> for Phase {
         Ok(match lifecycle(&info)? {
             (_, Some(RunState::Scheduled)) => Self::Scheduled,
             (_, Some(RunState::Started)) => Self::Started,
-            (_, Some(RunState::CancelRequested)) => {
+            (Visible::Completed, _) => Self::Completed,
+            (Visible::Failed, _) => Self::Failed,
+            (Visible::Canceled, _) => Self::Canceled,
+            (Visible::TimedOut, _) => Self::TimedOut,
+            // `lifecycle` gives every running status a run state; only CancelRequested remains.
+            (Visible::Running, _) => {
                 return Err(Refusal::unsupported("unsupported running activity state"));
-            }
-            (Visible::Completed, None) => Self::Completed,
-            (Visible::Failed, None) => Self::Failed,
-            (Visible::Canceled, None) => Self::Canceled,
-            (Visible::TimedOut, None) => Self::TimedOut,
-            (Visible::Running, None) => {
-                return Err(Refusal::malformed("running activity run state is missing"));
             }
         })
     }
