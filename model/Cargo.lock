@@ -793,6 +793,7 @@ name = "umpire-catalog"
 version = "0.0.1"
 dependencies = [
  "prost",
+ "sha2",
  "thiserror",
  "umpire-catalog-macros",
  "umpire-catalog-schema",
