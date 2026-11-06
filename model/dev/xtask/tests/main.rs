@@ -83,25 +83,31 @@ fn public_fmt_finishes_while_host_lease_is_held() {
         r#"#!/bin/bash
 set -euo pipefail
 if [[ " $* " == *' cargo build '* ]]; then
+  printf '%s\n' bootstrap-entered >> "$CONTROL_PHASE_LOG"
   previous=""
   for argument in "$@"; do
     [[ "$previous" != --target-dir ]] || bootstrap="$argument"
     previous="$argument"
   done
   mkdir -p "$bootstrap/debug"
-  printf '%s\n' '#!/bin/bash' 'export UMPIRE_TOOL_ROOT="$CONTROL_FRAMEWORK"' 'exec "$CONTROL_NATIVE" "$@"' > "$bootstrap/debug/xtask"
+  printf '%s\n' '#!/bin/bash' 'printf "%s\n" wrapper-entered >> "$CONTROL_PHASE_LOG"' 'export UMPIRE_TOOL_ROOT="$CONTROL_FRAMEWORK"' 'exec "$CONTROL_NATIVE" "$@"' > "$bootstrap/debug/xtask"
   chmod 755 "$bootstrap/debug/xtask"
   cp "$(type -P true)" "$bootstrap/debug/umpire-guest-driver"
+  printf '%s\n' bootstrap-returning >> "$CONTROL_PHASE_LOG"
   exit 0
 fi
 [[ "$PWD" = "$CONTROL_FRAMEWORK" ]]
 [[ "$*" = 'exec -- cargo fmt --all' ]]
+printf '%s\n' fmt-entered >> "$CONTROL_PHASE_LOG"
 printf '%s\n' "$*" >> "$CONTROL_LOG"
+printf '%s\n' fmt-returning >> "$CONTROL_PHASE_LOG"
 exit "$CONTROL_STATUS"
 "#,
     );
     let _lease = xtask::gate::lease::JvmLease::inherited_or_acquire().unwrap();
     for expected in [0, 37] {
+        let phases = f.root.join(format!("fmt-phases-{expected}"));
+        fs::write(&phases, b"").unwrap();
         let mut child = Command::new(env!("CARGO_BIN_EXE_temporal-xtask"))
             .arg("fmt")
             .current_dir(&f.model)
@@ -115,6 +121,7 @@ exit "$CONTROL_STATUS"
             .env("CONTROL_FRAMEWORK", &f.model)
             .env("CONTROL_NATIVE", &native)
             .env("CONTROL_LOG", f.root.join("fmt-calls"))
+            .env("CONTROL_PHASE_LOG", &phases)
             .env("CONTROL_STATUS", expected.to_string())
             .stdout(std::process::Stdio::piped())
             .stderr(std::process::Stdio::piped())
@@ -132,8 +139,16 @@ exit "$CONTROL_STATUS"
             std::thread::sleep(std::time::Duration::from_millis(10));
         };
         let output = child.wait_with_output().unwrap();
-        assert!(completed, "public bridge fmt waited for the unrelated host lease: {output:?}");
-        assert_eq!(output.status.code(), Some(expected), "{output:?}");
+        let phases = fs::read_to_string(phases).unwrap();
+        assert!(
+            completed,
+            "public bridge fmt waited for the unrelated host lease: {output:?}; expected={expected}; public_exit_before_deadline={completed}; phases={phases:?}"
+        );
+        assert_eq!(
+            output.status.code(),
+            Some(expected),
+            "{output:?}; expected={expected}; public_exit_before_deadline={completed}; phases={phases:?}"
+        );
     }
     assert_eq!(
         fs::read_to_string(f.root.join("fmt-calls")).unwrap(),
