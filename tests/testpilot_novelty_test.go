@@ -4,7 +4,10 @@ package tests
 
 import (
 	"bytes"
+	"compress/gzip"
 	"encoding/json"
+	"errors"
+	"io"
 	"os"
 	"path/filepath"
 	"testing"
@@ -45,7 +48,9 @@ func newNoveltyCollector(t *testing.T, harness string) *activityrelations.Collec
 
 // TestNoveltyCorpusCounts recomputes a frozen corpus's counts with the same functions and inputs
 // and requires the frozen report exactly. UMPIRE_NOVELTY_CORPUS names a captured corpus directory
-// and its harness; without it the committed control corpus is used.
+// (such as the committed fn-267.5 checkpoint, testdata/checkpoint-fn2675) and
+// UMPIRE_NOVELTY_HARNESS its harness; without them the committed control corpus is used. The
+// checkpoint is opt-in because new declarations legitimately change its projected counts.
 func TestNoveltyCorpusCounts(t *testing.T) {
 	collector, err := activityrelations.NewCollector()
 	require.NoError(t, err)
@@ -57,10 +62,23 @@ func TestNoveltyCorpusCounts(t *testing.T) {
 		corpusPath = filepath.Join(directory, harness+"-corpus.jsonl")
 		reportPath = filepath.Join(directory, harness+"-report.json")
 	}
+	var corpus io.Reader
 	file, err := os.Open(corpusPath)
-	require.NoError(t, err)
-	defer func() { require.NoError(t, file.Close()) }()
-	rows, sum, err := activityrelations.ReadCorpus(file)
+	if errors.Is(err, os.ErrNotExist) {
+		// Large captured corpora are kept gzip-compressed; the digest covers the plain corpus.
+		file, err = os.Open(corpusPath + ".gz")
+		require.NoError(t, err)
+		defer func() { require.NoError(t, file.Close()) }()
+		unzipped, err := gzip.NewReader(file)
+		require.NoError(t, err)
+		defer func() { require.NoError(t, unzipped.Close()) }()
+		corpus = unzipped
+	} else {
+		require.NoError(t, err)
+		defer func() { require.NoError(t, file.Close()) }()
+		corpus = file
+	}
+	rows, sum, err := activityrelations.ReadCorpus(corpus)
 	require.NoError(t, err)
 	require.NotEmpty(t, rows)
 	recomputed, err := json.MarshalIndent(collector.Count(rows, sum), "", "  ")
