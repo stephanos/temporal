@@ -959,6 +959,7 @@ dependencies = [
  "prost",
  "trybuild",
  "umpire-catalog",
+ "umpire-catalog-build",
  "umpire-checker",
  "umpire-dsl",
  "umpire-runtime",

@@ -24,6 +24,7 @@ import (
 	"google.golang.org/protobuf/types/known/anypb"
 	"google.golang.org/protobuf/types/known/durationpb"
 	temporalmodel "umpire.local/temporal"
+	"umpire.local/temporal/activityrelations"
 	temporalv1 "umpire.local/temporal/umpire/temporal/v1"
 )
 
@@ -55,6 +56,7 @@ func modelSliceProgrammedTransport(t *testing.T) {
 	conn, err := grpc.NewClient(env.FrontendGRPCAddress(), grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithChainUnaryInterceptor(intercept))
 	require.NoError(t, err)
 	defer func() { require.NoError(t, conn.Close()) }()
+	novelty := newNoveltyCollector(t, "slice")
 	for _, kind := range []string{"raw", "sdk"} {
 		for _, label := range []string{"Complete", "Fail", "CancelBeforeWorkerStart"} {
 			start := &workflowservice.StartActivityExecutionRequest{
@@ -77,7 +79,12 @@ func modelSliceProgrammedTransport(t *testing.T) {
 			require.NoError(t, err)
 			var run *runner.Run
 			var recorded uint64
-			_, err = runner.New(temporalmodel.Guest(), factory.New).Run(t.Context(), runner.ModeExplore, runner.Options{World: world, FirstSeed: seed, Seed: seed, Budget: 7, RunTimeout: time.Minute, Record: func(_ context.Context, current *runner.Run) error {
+			_, err = runner.New(temporalmodel.Guest(), factory.New).Run(t.Context(), runner.ModeExplore, runner.Options{World: world, FirstSeed: seed, Seed: seed, Budget: 7, RunTimeout: time.Minute, Observe: func(_ context.Context, judged runner.ObservedJudgment) error {
+				// The host check runs after the guest's non-refused Judge on the unredacted actual
+				// bytes; a guest-explained invocation the host refuses fails the Run.
+				return novelty.Observe(activityrelations.Judged{Harness: "explore", Case: kind + "/" + label, Seed: judged.Seed,
+					Observation: judged.Observation, Explained: judged.Judgment.GetExplained() != nil})
+			}, Record: func(_ context.Context, current *runner.Run) error {
 				recorded++
 				if current.GetVerdict().GetRefused() != nil {
 					require.True(t, isUnheldCancelScopeRefusal(current), "unexpected transport refusal: %v", current.GetVerdict())

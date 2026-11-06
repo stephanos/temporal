@@ -34,6 +34,7 @@ import (
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/durationpb"
 	temporalmodel "umpire.local/temporal"
+	"umpire.local/temporal/activityrelations"
 	temporalv1 "umpire.local/temporal/umpire/temporal/v1"
 )
 
@@ -161,14 +162,14 @@ func TestTestpilotModelGapContextBudget(t *testing.T) {
 	modelGapTestContext(t)
 }
 
-func newModelGapConnection(t *testing.T) (string, *grpc.ClientConn) {
+func newModelGapConnection(t *testing.T, options ...grpc.DialOption) (string, *grpc.ClientConn) {
 	t.Helper()
 	env := newTestpilotTestEnvironment(t,
 		testcore.WithLogger(newModelGapLogger(t)),
 		testcore.WithDynamicConfig(dynamicconfig.EnableChasm, true),
 		testcore.WithDynamicConfig(activity.Enabled, true),
 		testcore.WithDynamicConfig(activity.EnableStandaloneActivityOperatorCommands, true))
-	connection, err := grpc.NewClient(env.FrontendGRPCAddress(), grpc.WithTransportCredentials(insecure.NewCredentials()))
+	connection, err := grpc.NewClient(env.FrontendGRPCAddress(), append([]grpc.DialOption{grpc.WithTransportCredentials(insecure.NewCredentials())}, options...)...)
 	require.NoError(t, err)
 	t.Cleanup(func() { require.NoError(t, connection.Close()) })
 	return env.Namespace().String(), connection
@@ -345,7 +346,10 @@ func TestTestpilotModelGaps(t *testing.T) {
 		require.False(t, identities[testCase.Id], "duplicate probe identity")
 		identities[testCase.Id] = true
 	}
-	namespace, connection := newModelGapConnection(t)
+	// The interceptor records every actual call, including prerequisites, the direct Poll and
+	// baselines, before any early return; status observation and classification are unchanged.
+	novelty := newNoveltyCollector(t, "gaps")
+	namespace, connection := newModelGapConnection(t, grpc.WithChainUnaryInterceptor(novelty.Intercept))
 	checkModelGapScopeBoundaries(t, namespace, connection)
 	service := workflowservice.NewWorkflowServiceClient(connection)
 	var observations []*annotationsv1.ProbeObservation
@@ -361,6 +365,7 @@ func TestTestpilotModelGaps(t *testing.T) {
 				func() {
 					ctx, cancel := context.WithTimeout(t.Context(), 30*time.Second)
 					defer cancel()
+					ctx = activityrelations.WithCase(ctx, "probe", fmt.Sprintf("%s/baseline=%t", testCase.Id, baseline), 0)
 					request := isolatedProbeRequest(testCase.Id, namespace, baseline)
 					prepare := func(selector string) *annotationsv1.ProbeResponse {
 						preparedRequest := proto.Clone(request).(*temporalv1.ProbeRequest)

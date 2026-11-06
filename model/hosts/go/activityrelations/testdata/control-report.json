@@ -1,0 +1,80 @@
+{
+  "format": "umpire.temporal.novelty-report.v1",
+  "corpus_sha256": "5ce522d434a0c488d01472120fde92713b8233136276c663260d9a6fe5205a8a",
+  "methods": {
+    "temporal.api.workflowservice.v1.WorkflowService/DescribeActivityExecution": {
+      "attempted": 6,
+      "excluded": 1,
+      "rpc_error": 0,
+      "not_applicable": 0,
+      "refused_correlation": 2,
+      "refused_projection": 0,
+      "success": 3,
+      "raw_distinct": 3,
+      "projected_distinct": 2,
+      "reasons": {
+        "correlation:State/EchoMismatch": 1,
+        "correlation:Unsupported/MissingReceipt": 1,
+        "excluded:unlabelled": 1
+      }
+    },
+    "temporal.api.workflowservice.v1.WorkflowService/PollActivityTaskQueue": {
+      "attempted": 1,
+      "excluded": 0,
+      "rpc_error": 0,
+      "not_applicable": 1,
+      "refused_correlation": 0,
+      "refused_projection": 0,
+      "success": 0,
+      "raw_distinct": 0,
+      "projected_distinct": 0
+    },
+    "temporal.api.workflowservice.v1.WorkflowService/RequestCancelActivityExecution": {
+      "attempted": 1,
+      "excluded": 0,
+      "rpc_error": 0,
+      "not_applicable": 0,
+      "refused_correlation": 0,
+      "refused_projection": 0,
+      "success": 1,
+      "raw_distinct": 1,
+      "projected_distinct": 1
+    },
+    "temporal.api.workflowservice.v1.WorkflowService/StartActivityExecution": {
+      "attempted": 3,
+      "excluded": 0,
+      "rpc_error": 1,
+      "not_applicable": 0,
+      "refused_correlation": 0,
+      "refused_projection": 0,
+      "success": 2,
+      "raw_distinct": 2,
+      "projected_distinct": 1
+    },
+    "temporal.api.workflowservice.v1.WorkflowService/TerminateActivityExecution": {
+      "attempted": 1,
+      "excluded": 1,
+      "rpc_error": 0,
+      "not_applicable": 0,
+      "refused_correlation": 0,
+      "refused_projection": 0,
+      "success": 0,
+      "raw_distinct": 0,
+      "projected_distinct": 0,
+      "reasons": {
+        "excluded:cleanup": 1
+      }
+    }
+  },
+  "total": {
+    "attempted": 12,
+    "excluded": 2,
+    "rpc_error": 1,
+    "not_applicable": 1,
+    "refused_correlation": 2,
+    "refused_projection": 0,
+    "success": 6,
+    "raw_distinct": 6,
+    "projected_distinct": 4
+  }
+}

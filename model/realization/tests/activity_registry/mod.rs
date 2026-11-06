@@ -20,6 +20,8 @@ use umpire_runtime::{
 use umpire_temporal_api::temporal::api::common::v1::{ActivityType, RetryPolicy};
 use umpire_temporal_api::temporal::api::workflowservice::v1::StartActivityExecutionRequest;
 
+mod relation_plans;
+
 const SERVICE: &str = "/temporal.api.workflowservice.v1.WorkflowService/";
 // Generated relation checks validate the whole actual request against its catalog, where
 // `run_id` is a UUID; a non-UUID fixture is refused as malformed before any correlation.
