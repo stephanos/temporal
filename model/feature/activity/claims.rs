@@ -218,8 +218,9 @@ pub struct StartActivityExecutionRequest {
 /// The assigned run identifier is observed; execution links remain outside this Model.
 #[derive(Catalog)]
 #[rule(required(run_id))]
-#[mirror(response = "temporal.api.workflowservice.v1.StartActivityExecutionResponse")]
+#[mirror(response = "temporal.api.workflowservice.v1.StartActivityExecutionResponse", pairs = StartActivityExecutionRequest)]
 pub struct StartActivityExecutionResponse {
+    #[mirror(echo = receipt.run_id)]
     run_id: Uuid,
     started: Flag,
     #[mirror(decided)]
@@ -236,6 +237,7 @@ pub struct DescribeActivityExecutionRequest {
     #[rule(max_bytes = dc::MAX_ID_LENGTH, rejects = "activity[Ii][Dd]|activity ID")]
     activity_id: Identifier,
     #[rule(rejects = "invalid run id")]
+    #[mirror(echo = receipt.run_id)]
     run_id: Uuid,
     include_outcome: Flag,
     include_last_failure: Flag,
@@ -244,8 +246,9 @@ pub struct DescribeActivityExecutionRequest {
 /// Lifecycle metadata is required; optional external payloads remain Decided.
 #[derive(Catalog)]
 #[rule(required(info))]
-#[mirror(response = "temporal.api.workflowservice.v1.DescribeActivityExecutionResponse")]
+#[mirror(response = "temporal.api.workflowservice.v1.DescribeActivityExecutionResponse", pairs = DescribeActivityExecutionRequest)]
 pub struct DescribeActivityExecutionResponse {
+    #[mirror(echo = request.run_id)]
     run_id: Uuid,
     #[mirror(decided)]
     info: Message<a::ActivityExecutionInfo>,
@@ -285,6 +288,7 @@ pub struct RequestCancelActivityExecutionRequest {
     #[rule(max_bytes = dc::MAX_ID_LENGTH, rejects = "activity[Ii][Dd]|activity ID")]
     activity_id: Identifier,
     #[rule(rejects = "invalid run id")]
+    #[mirror(echo = receipt.run_id)]
     run_id: Uuid,
     #[rule(max_bytes = dc::MAX_ID_LENGTH, rejects = "identity|Identity")]
     identity: Text,
@@ -296,5 +300,5 @@ pub struct RequestCancelActivityExecutionRequest {
 }
 /// Cancellation intent acknowledgement carries no additional lifecycle evidence.
 #[derive(Catalog)]
-#[mirror(response = "temporal.api.workflowservice.v1.RequestCancelActivityExecutionResponse")]
+#[mirror(response = "temporal.api.workflowservice.v1.RequestCancelActivityExecutionResponse", pairs = RequestCancelActivityExecutionRequest)]
 pub struct RequestCancelActivityExecutionResponse {}

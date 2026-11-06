@@ -72,6 +72,11 @@ pub mod catalog {
         => request_cancel_activity_execution_response,];
     }
 }
+
+pub(crate) fn relation_descriptors()
+-> Result<umpire_catalog::RelationDescriptors, umpire_catalog::RelationAdmission> {
+    umpire_catalog::RelationDescriptors::decode(umpire_temporal_api::RELATION_DESCRIPTOR_BYTES)
+}
 /// UUID intent for request IDs accepted without UUID syntax by the server.
 pub fn start_request_id_intent(
     limits: &dc::Limits,

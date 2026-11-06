@@ -17,11 +17,32 @@ mod baseline;
 mod common;
 #[path = "frozen.rs"]
 mod frozen;
+#[path = "registry_relations.rs"]
+mod registry_relations;
 
 struct Pair {
     before: Guest<baseline::LiveRuntime>,
     after: Guest<super::LiveRuntime>,
 }
+/// Generated run-identity relations now refuse a crossed run ID before the frozen legacy
+/// correlation does; the refusal class is unchanged and only its diagnostic is generated.
+fn generated_run_identity(
+    before: Option<&protocol::Response>,
+    after: Option<&protocol::Response>,
+) -> bool {
+    let refusal = |response: Option<&protocol::Response>| match response?.outcome.as_ref()? {
+        Outcome::Refusal(refusal) => Some(refusal.clone()),
+        _ => None,
+    };
+    let (Some(before), Some(after)) = (refusal(before), refusal(after)) else {
+        return false;
+    };
+    before.code == after.code
+        && before.message == "evidence run_id does not match Start receipt"
+        && after.message.contains(" State/Compare EchoMismatch declaration=")
+        && after.message.contains("/run_id:Echo:")
+}
+
 impl Pair {
     fn new() -> Self {
         Self {
@@ -43,7 +64,9 @@ impl Pair {
             publish
         });
         assert_eq!(before_published, after_published);
-        assert_eq!(before, after, "method {method}, published {publish}");
+        if !generated_run_identity(before.as_ref(), after.as_ref()) {
+            assert_eq!(before, after, "method {method}, published {publish}");
+        }
         after.unwrap_or_else(|| panic!("response must reach the publisher"))
     }
     fn judge(&mut self, observation: &Observation, publish: bool) -> protocol::Response {

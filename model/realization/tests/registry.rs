@@ -2,6 +2,8 @@
 #![forbid(unsafe_code)]
 
 mod compiler;
+#[path = "registry/missing_relations.rs"]
+mod missing_relations;
 
 use umpire_dsl::Machine;
 use umpire_runtime::Realize;

@@ -1,0 +1,51 @@
+error[E0308]: mismatched types
+  --> tests/ui/registry_relations_entity_signature.rs:10:97
+   |
+10 |         receipt = (), admit = admit, make_receipt = receipt, correlate = correlate, relations = relations)]
+   |                                                                                                 ^^^^^^^^^ expected `Result<CheckedRelations, Refusal>`, found `Result<(), Refusal>`
+   |
+   = note: expected enum `Result<CheckedRelations, Refusal>`
+              found enum `Result<(), Refusal>`
+note: function defined here
+  --> src/registry/relations.rs
+   |
+   | pub fn reconcile<T>(
+   |        ^^^^^^^^^
+   = note: this error originates in the macro `umpire_temporal::registry` which comes from the expansion of the macro `specimen::action_metadata` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0308]: mismatched types
+  --> tests/ui/registry_relations_entity_signature.rs:10:97
+   |
+10 |         receipt = (), admit = admit, make_receipt = receipt, correlate = correlate, relations = relations)]
+   |                                                                                                 ^^^^^^^^^ expected fn pointer, found fn item
+   |
+  ::: tests/ui/../registry/signature_model.rs
+   |
+   | #[umpire_dsl::machine]
+   | ---------------------- arguments to this enum variant are incorrect
+   |
+   = note: expected fn pointer `for<'a, 'b, 'c, 'd> fn(&'a Binding, &'b (), &'c StartActivityExecutionRequest, &'d StartActivityExecutionResponse) -> Result<CheckedRelations, Refusal>`
+                 found fn item `for<'a, 'b, 'c, 'd> fn(&'a Binding, &'b (), &'c StartActivityExecutionRequest, &'d StartActivityExecutionResponse) -> Result<(), Refusal> {<impl Binding>::relations}`
+help: the type constructed contains `for<'a, 'b, 'c, 'd> fn(&'a Binding, &'b (), &'c umpire_temporal_api::temporal::api::workflowservice::v1::StartActivityExecutionRequest, &'d umpire_temporal_api::temporal::api::workflowservice::v1::StartActivityExecutionResponse) -> std::result::Result<(), umpire_runtime::protocol::Refusal> {<impl Binding>::relations}` due to the type of the argument passed
+  --> tests/ui/../registry/signature_model.rs
+   |
+   |   #[umpire_dsl::machine]
+   |   ^^^^^^^^^^^^^^^^^^^^^^
+   |
+  ::: tests/ui/registry_relations_entity_signature.rs:6:1
+   |
+ 6 | / specimen::action_metadata!(umpire_temporal::registry; specimen; {
+ 7 | |     #[registry(inputs = ())]
+ 8 | |     #[entity(rpc = WorkflowService::StartActivityExecution,
+ 9 | |         request = StartActivityExecutionRequest, response = StartActivityExecutionResponse,
+10 | |         receipt = (), admit = admit, make_receipt = receipt, correlate = correlate, relations = relations)]
+   | |                                                                                                 --------- this argument influences the type of `Some`
+...  |
+28 | | });
+   | |__- in this macro invocation
+note: tuple variant defined here
+  --> $RUST/core/src/option.rs
+   |
+   |     Some(#[stable(feature = "rust1", since = "1.0.0")] T),
+   |     ^^^^
+   = note: this error originates in the macro `umpire_temporal::registry` which comes from the expansion of the macro `specimen::action_metadata` (in Nightly builds, run with -Z macro-backtrace for more info)
