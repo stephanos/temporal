@@ -13,6 +13,6 @@ mod generated {
 
 pub use generated::*;
 
-/// The exact linked descriptor input used to generate these API catalogs.
+/// The linked descriptor entries reachable from RPCs with relation bindings, byte for byte.
 pub const RELATION_DESCRIPTOR_BYTES: &[u8] =
-    include_bytes!(concat!(env!("OUT_DIR"), "/annotation-api.binpb"));
+    include_bytes!(concat!(env!("OUT_DIR"), "/relation-api.binpb"));

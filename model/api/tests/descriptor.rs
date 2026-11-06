@@ -262,3 +262,54 @@ fn stale_duplicates_and_empty_dispositions_are_refused() -> Result<(), Box<dyn s
     assert!(check(b"invalid", &original).is_err());
     Ok(())
 }
+
+#[path = "../relations.rs"]
+mod relations;
+
+#[test]
+fn relation_subset_retains_exact_entries_for_bound_methods()
+-> Result<(), Box<dyn std::error::Error>> {
+    let linked = include_bytes!(concat!(env!("OUT_DIR"), "/annotation-api.binpb"));
+    let subset = relations::subset(linked)?;
+    assert_eq!(subset, umpire_temporal_api::RELATION_DESCRIPTOR_BYTES);
+    assert!(subset.len() * 4 < linked.len(), "{} of {}", subset.len(), linked.len());
+    let full = FileDescriptorSet::decode(linked.as_slice())?;
+    let kept = FileDescriptorSet::decode(subset.as_slice())?;
+    let mut methods = Vec::new();
+    for file in &kept.file {
+        let original = full
+            .file
+            .iter()
+            .find(|candidate| candidate.name == file.name)
+            .ok_or("subset invented a file")?;
+        assert_eq!(
+            (&file.package, &file.dependency, &file.enum_type, &file.options, &file.syntax),
+            (
+                &original.package,
+                &original.dependency,
+                &original.enum_type,
+                &original.options,
+                &original.syntax
+            ),
+        );
+        assert!(file.message_type.iter().all(|message| original.message_type.contains(message)));
+        for service in &file.service {
+            let source = original
+                .service
+                .iter()
+                .find(|candidate| candidate.name == service.name)
+                .ok_or("subset invented a service")?;
+            assert_eq!(service.options, source.options);
+            for method in &service.method {
+                assert!(source.method.contains(method));
+                methods.extend(method.name.clone());
+            }
+        }
+    }
+    methods.sort();
+    assert_eq!(
+        methods,
+        ["DescribeActivityExecution", "RequestCancelActivityExecution", "StartActivityExecution"]
+    );
+    Ok(())
+}

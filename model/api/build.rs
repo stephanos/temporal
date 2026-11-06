@@ -7,6 +7,7 @@ use std::{
     path::{Path, PathBuf},
 };
 
+mod relations;
 mod system;
 
 fn main() -> io::Result<()> {
@@ -24,6 +25,7 @@ fn main() -> io::Result<()> {
     println!("cargo:rerun-if-changed=../proto/umpire/temporal/v1/activity.proto");
     let linked = out.join("annotation-api.binpb");
     system::link_descriptors(&repository, &linked)?;
+    std::fs::write(out.join("relation-api.binpb"), relations::subset(&std::fs::read(&linked)?)?)?;
     system::system(&repository).generate(&linked, &out)?;
     let mut config = prost_build::Config::new();
     config

@@ -5,8 +5,8 @@ use crate::foundation::dc::Limits;
 use std::{cell::OnceCell, rc::Rc, thread::LocalKey};
 use umpire_catalog::{
     BindingBuilder, BoundRpc, DeclarationId, EchoPolicies, Observed, Raw, ReceiptSchema,
-    RelationAdmission, RelationRoot, RelationSemanticKind, RpcContext, ScalarReceiptSlot, Source,
-    Target, ValueWitness,
+    RelationAdmission, RelationDescriptors, RelationRoot, RelationSemanticKind, RpcContext,
+    ScalarReceiptSlot, Source, Target, ValueWitness,
 };
 use umpire_runtime::protocol::Refusal;
 use umpire_temporal_api::temporal::api::workflowservice::v1::{
@@ -37,6 +37,12 @@ thread_local! {
     static START: OnceCell<Rc<Start>> = const { OnceCell::new() };
     static DESCRIBE: OnceCell<Rc<Describe>> = const { OnceCell::new() };
     static CANCEL: OnceCell<Rc<Cancel>> = const { OnceCell::new() };
+    static DESCRIPTORS: OnceCell<Rc<RelationDescriptors>> = const { OnceCell::new() };
+}
+
+/// Every binding admits against one decoded descriptor set per guest thread.
+fn descriptors() -> Result<Rc<RelationDescriptors>, Refusal> {
+    cached(&DESCRIPTORS, |_| crate::activity_api::relation_descriptors().map_err(admission))
 }
 
 /// Admission decodes the linked descriptor set once per guest thread, not per observation.
@@ -86,7 +92,7 @@ macro_rules! builder {
     ($limits:expr, $method:literal, $request:ident, $response:ident, $q:ty, $s:ty) => {{
         let (receipt, slot) = receipt().map_err(admission)?;
         let builder = BindingBuilder::<$q, $s, ProposalContext, ()>::for_rpc(
-            &crate::activity_api::relation_descriptors().map_err(admission)?,
+            &*descriptors()?,
             concat!("temporal.api.workflowservice.v1.WorkflowService/", $method),
             catalog::$request($limits).map_err(admission)?,
             catalog::$response($limits).map_err(admission)?,
