@@ -8,7 +8,9 @@ guest/build logic runs in Rust.
 Current guests declare WHOLE_PREFIX_V1 in their ordinary Reset response. All current
 native and wasm producers use the same runtime contract; Host refuses a missing or
 unknown declaration before Driver creation. This wire-format change requires rebuilding
-guests and current records together; historical guest bytes are not preserved.
+guests and current records together; historical guest bytes are not preserved. See
+[DESIGN](DESIGN.md#latent-budgets-expiry-and-whole-prefix-evidence) for the current-format break
+and the framework [protocol contract](../../umpire/protocol/proto/README.md) for the wire fields.
 The model hash binds an owned copy of the exact loaded guest bytes independently of
 the Reset declaration.
 The minimal `scripts/xtask.sh` bootstrap builds the current native front door and
@@ -155,8 +157,11 @@ It forces TLC-required mode through conflicting environment and Make assignments
 `UMPIRE_APALACHE=require` to require Apalache independently in the same run. Required timings
 are separate from historical default-mode receipts below. Legacy `model-check` (gate only) and
 `model-time` (gate plus benchmark) retain default/skip and explicit required-mode selection.
-The 60 s full-gate (raised from 30 s on 2026-10-21) and 10 s inner-loop budgets are soft targets; observed overruns
-must be reported. Temporal embeds the committed `hosts/go/umpire_temporal_guest.wasm`
+The soft targets come from `dev/xtask/src/gate/budgets.toml` (fn-254 R6): 180 s for the default
+check-tier gate, 600 s for the required validate-tier gate and 60 s for the inner loop. They replace
+the earlier 30 s, then 60 s (2026-10-21) full-gate and 10 s inner-loop targets cited by the
+historical receipts below. Observed overruns must be reported; per-stage budget breaches fail the gate.
+Temporal embeds the committed `hosts/go/umpire_temporal_guest.wasm`
 through `temporal.Guest()`. Its Go consumers use no Rust or guest-path environment override.
 
 `make umpire-guest` refreshes only that asset through the native guest command.

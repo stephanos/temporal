@@ -98,11 +98,14 @@ opt-in Apalache modes and current timings separately from historical receipts.
 The generic relation syntax/admission contract is available, but production
 generic Echo/BoundedBy checking/filling, per-declaration mutation manifests and
 general response novelty projection remain separate fn-267 work. Metadata alone
-does not replace the current correlated runtime checks. Final mapping remeasurement
-and mandatory current raw/SDK evidence are still required: the last retained
-5617/446 mapping-to-Model measurement misses the 2x gate by 4725 lines. Moving
-feature semantics to shared code does not remove that charge. Workflow is the
-next feature's enforced remeasurement gate, not a result demonstrated here.
+does not replace the current correlated runtime checks. Mandatory current raw/SDK
+evidence is still required. The 2x mapping gate is not met: the final count at
+Temporal `dbc0682ea9` is 5920 mapping lines against 446 semantic Model lines (13.27x).
+A written owner exception (2026-11-06) sets a non-regression ceiling of 5920, and
+fn-268 reductions lower it; see
+[DESIGN](../DESIGN.md#mapping-size-under-the-written-r7-exception). Moving feature
+semantics to shared code does not remove that charge. Workflow is the next
+feature's enforced remeasurement gate, not a result demonstrated here.
 
 ## Retained mini-slice handler and transport contracts
 

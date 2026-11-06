@@ -64,7 +64,7 @@ of the deleted record registrations and enum arms. Existing expansion and semant
 remain byte-identical; a scratch oracle compares old and derived constructor tokens for
 26 Models, including admitted trees and located refusals.
 The required-TLC full gate took 532.677 s and the inner loop 9.272 s. The gate
-exceeded the 60 s soft target; the inner loop met 10 s. A first attempt timed out
+exceeded the then 60 s soft target; the inner loop met the then 10 s target. A first attempt timed out
 at 600 s during cold guest compilation, after rebuilding trybuild closures.
 The completed run still includes guest/host fixture compilation and is not a
 steady-state comparison with the earlier default-gate timings.
@@ -107,7 +107,8 @@ closure (`xtask guest-lock`), and a control shows an unrelated crate leaves both
 identical. .3 and .4 refreshed it because the macros and `umpire-dsl` gained front/ir dependencies.
 fn-239 renewed Linux/macOS certification at `a96a4c6550`; all twelve byte comparisons and both host suites passed.
 
-**Timing.** Warm `make model-time` receipts (soft targets 60 s gate, 10 s inner loop):
+**Timing (historical, default mode).** Warm `make model-time` receipts against the soft targets
+of that time (60 s gate, 10 s inner loop; current targets are in `dev/xtask/src/gate/budgets.toml`):
 
 | Receipt | Gate total | Inner loop | Log under `.flow/tmp/` |
 | --- | ---: | ---: | --- |
@@ -755,7 +756,7 @@ and Complete. This is request/server/SDK evidence, not a Testpilot Case or gener
 At this recorded checkpoint, the guest SHA-256 was `f832a33c3024a8752976d146be839b62a95afde4790fa0db60f1dac9004b4e7e`.
 The .5 slice passed in 21.547 s; gaps/private-output controls passed at that guest in
 361.572 s Go time (367.085 s outer). Its required model-time passed all 17 stages: 581.229 s
-against the 60 s soft gate target (missed), inner 6.084 s against 10 s (met), outer 587.528 s.
+against the then 60 s soft gate target (missed), inner 6.084 s against the then 10 s target (met), outer 587.528 s.
 These are previous shared-host observations, not isolated performance measurements.
 [This task's final output and timings](../.flow/artifacts/fn-227-parameterized-models-declared-worlds/task6-final-verification.json)
 record its own required model-time run and unchanged-production/guest reuse proof. Historical
@@ -815,6 +816,21 @@ contract and performs no external calls. These mechanisms require discriminating
 prefix, expiry, wrong-contract and publication controls; their availability is
 not a substitute for current raw/SDK evidence.
 
+**Current-format break.** The guest, wire and recording formats changed together
+with the whole-prefix contract, as the framework
+[protocol contract](../../umpire/protocol/proto/README.md) records. Every Temporal
+guest's ordinary Reset response must declare `ResetResponse.proof_contract =
+WHOLE_PREFIX_V1`. Each Explanation then carries the complete witness from the
+accepted Reset, and the latest complete witness replaces delta concatenation. Host
+validates the actual response before Driver creation and refuses an absent, zero or
+unknown contract. Runs record `protocol_version = 2` with that exact Reset call and
+response. Admission requires the loaded guest's exact model hash and the current
+contract before any Driver effect. Delta guests, their records, legacy readers and
+legacy refusal normalization are unsupported. The committed guest, the generated Go
+bindings and the current recordings are therefore rebuilt together
+([guest builds](GUEST_BUILDS.md)). Historical guest bytes and recordings remain
+historical evidence only; no old-byte comparison or legacy guest loading is a gate.
+
 ### Extending the binding and qualifying the result
 
 Start with a Model variation and independent laws. Extend the action registry's
@@ -841,16 +857,75 @@ measurement, with Apalache independently opt-in; report actual backend modes,
 source/guest identities and soft-budget overruns. Default checks and dated timings
 above cannot stand in for that current required-mode receipt.
 
-The mapping-size gate remains **unmet**. The last retained measurement is 5617
-charged mapping lines against 446 semantic Model lines: the 2x ceiling is 892,
-leaving a 4725-line gap. This is a previous checkpoint, not a remeasurement of this
-documentation edit or a final ratio. Registry metadata, typed fillers, evidence
-predicates and any feature semantics moved into shared files remain honestly
-charged; generated, generic shared and independent protocol lines are reported
-separately. No unwritten exception or smaller substitute feature closes the gap.
-Workflow remeasurement is the next feature's enforced ratio gate, not a measured
-result here. Final counts, required-mode timings and mandatory current raw/SDK
-slice/gaps/explore/replay evidence remain fn-246.6 finalization dependencies.
+### Mapping size under the written R7 exception
+
+The `<=2x` mapping target is **not met**. With 446 semantic Model lines the
+allowance would be 892. The owner approved a written exception under R7's
+exception clause on 2026-11-06
+([decision and enactment](../.flow/artifacts/goal-20261106/fn-246.6/owner-decision-proposal.md)).
+The fresh owning count on the integrated pair becomes a non-regression ceiling of
+**Mapping <= 5920**. The counter still exits 1 above 2x, and the exception
+accepts that exit. A change that adds feature mapping must offset it in the same
+integration or record a justified ceiling amendment in the decision file. Each
+reduction in the follow-on spec fn-268 lowers the ceiling by its measured saving.
+Reductions R1 (test-only oracles moved to tests, -248) and R13 (projection/phase
+deduplication, -24) landed before the ceiling measurement and are already inside it.
+
+`cargo xtask mapping-count [MODEL_DIR]` (`dev/xtask/src/mapping_count.rs`, sha256
+`4ac70cba3f80180b…`) counted both source snapshots with the same classifier
+([counts and script](../.flow/artifacts/goal-20261106/fn-246.6/counts/README.md)):
+
+| Snapshot | Semantic | Mapping | Ratio | Shared | Protocol | Proof |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| Baseline Temporal `3c2461d3c6` | 446 | 4619 | 10.35 | 3893 | 927 | 13018 |
+| Final Temporal `dbc0682ea9` (framework `23e6e7f`) | 446 | 5920 | 13.27 | 4411 | 950 | 16865 |
+
+The counter classified every baseline root and refused none. The older 2,935-line
+"before" log used an earlier classifier and stays historical. Generated code is not
+counted: descriptor-generated Rust lives only in the build `OUT_DIR`, and committed Go
+bindings are excluded. Registry metadata, typed fillers, evidence predicates, the
+activity worker executors and any feature semantics in shared files stay charged as
+Mapping. Generic shared, independent protocol and proof lines are reported separately.
+
+For transparency only (no credit), the Mapping lines split by whole file into the
+kinds of the [reduction study](../.flow/artifacts/goal-20261106/fn-246.6/mapping-reduction-study.md):
+
+| Class | Baseline | Final | Final per semantic line |
+| --- | ---: | ---: | ---: |
+| Binding (registry, reconciliation, claims/views, live lens, realization glue, projection, metadata) | 1960 | 2997 | 6.72 |
+| Probes | 1117 | 1121 | 2.51 |
+| Worker policy (`policy.rs`) | 0 | 541 | 1.21 |
+| Go worker executors | 1542 | 1261 | 2.83 |
+
+The baseline has no separate policy file. Its strategy code sat in the 855-line
+`temporal.rs`, which this split counts as binding, so only the probe and executor rows
+compare directly. Workflow remeasurement is the next feature's enforced ratio gate, not
+a result measured here. For that gate the owner must still state whether 2x applies
+to the whole numerator or only to the binding sub-total.
+
+### Required-mode finalization timing
+
+`make model-validate` ran one TLC-required full gate and one edited-checker inner loop
+at framework `23e6e7f` and Temporal `dbc0682ea9`. Apalache was skipped
+(`UMPIRE_APALACHE=skip`). The committed guest was `hosts/go/umpire_temporal_guest.wasm`,
+sha256 `8a0f4f71aee5a27f816a5831326d475f4f28bee3a02c1c1bd435012bec93ad4c`. The fn-254 R6
+soft targets come from `dev/xtask/src/gate/budgets.toml`: check tier 180 s, validate tier
+600 s, quick/inner loop 60 s. They replace R30's earlier 30/60 s gate and 10 s inner-loop
+targets. A soft overrun is reported, not failed. A per-stage budget breach is a gate failure.
+
+| Measurement | Result | Soft target |
+| --- | ---: | ---: |
+| Gate total (validate tier) | **[FN2466-PENDING: gate total s]** | 600 s |
+| Inner loop (edit+test) | **[FN2466-PENDING: inner loop s]** | 60 s |
+| Overrun status | **[FN2466-PENDING: over/within soft target]** | — |
+| Per-stage budget outcomes | **[FN2466-PENDING: stages passed / breaches]** | warm x 1.25 |
+| TLC launches / configurations (`framework/tests`, `temporal/tests`) | **[FN2466-PENDING: nonzero counts]** | — |
+
+Receipt: **[FN2466-PENDING: `.flow/artifacts/goal-20261106/fn-246.6/final/` model-validate
+receipt and log path, exit status]**. The dated timings elsewhere in this file are
+historical default-mode or earlier required-mode observations. They do not stand in
+for this receipt. The mandatory fn-237.4 cooperative/live/journal/gate and fn-243.5
+unheld/raw/SDK proof obligations stay open; this closure does not discharge them.
 
 ## Historical authoring options
 
@@ -1064,7 +1139,8 @@ code reduction.
 ### Live evidence, timing and remaining obligation
 
 The committed [fn-243.2 verification](../.flow/artifacts/fn-243-programmed-workers-the-model-issues/task-2-verification.md)
-records actual exit-0 gates at source `fad276dfc399766a28b51d4262829f90be6e73b6`:
+records historical actual exit-0 gates at source `fad276dfc399766a28b51d4262829f90be6e73b6`,
+measured against the soft targets of that time:
 
 | Command / stage | Measurement | Result |
 | --- | ---: | --- |

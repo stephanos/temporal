@@ -59,6 +59,7 @@ package-named directories under crates; native tools and provisioning live under
 | `crates/umpire-catalog-syntax` | `umpire-catalog-syntax` | Admit catalog declarations and descriptor coverage. | No; catalog compiler support. |
 | `crates/umpire-catalog-macros` | `umpire-catalog-macros` | Generate exhaustive catalogs and inspection. | Through catalog or facade. |
 | `crates/umpire-catalog-build` | `umpire-catalog-build` | Generate descriptor-checked API dispatch and wire mutations. | In API consumers' build scripts. |
+| `crates/umpire-catalog-schema` | `umpire-catalog-schema` | Shared descriptor authority, relation metadata and admission, independent of macros and native values. | No; catalog compiler support. |
 | `crates/umpire-testing` | `umpire-testing` | Discover fixtures and compare deterministic golden outputs. | For fixture harnesses. |
 | `fixtures/umpire-fixtures` | `umpire-fixtures` | Shared end-to-end Models, authored tests and goldens. | Reference examples and regression inputs. |
 | `reference/kettle` | `umpire-reference-kettle` | Independent reference Model and realization, with its own Go server/tests. | Reference integration example. |
@@ -267,7 +268,8 @@ unknown mutants and transport failures cannot count as detection. Select a serve
 mutation with `kettle.Options{Mutant: name}`; `kettle.Mutants()` lists the supported names.
 These controls run in `make model-check`. The focused differential run took 20.546 s;
 the full Go host and Kettle suites took 39.087 s and `make model-check` took 546.668 s, exceeding
-R30's 60 s soft target.
+R30's 60 s soft target of that time. This is historical; the current fn-254 R6 targets
+are 180 s check, 600 s validate and 60 s inner loop.
 
 ## Writing a Model
 
@@ -660,14 +662,15 @@ lifecycle admits Explained cases plus only exact audited scope refusals, not 21 
 Runs. [Non-Go execution remains unproven](../.flow/artifacts/fn-243-programmed-workers-the-model-issues/non-go-offline-gap.md)
 in the offline environment. Both fn-228 and fn-243 remain open.
 
-Predecessor .3's final dedicated run took 381.104 ms including cleanup, with Answer
+Historical fn-216 measurements follow. Predecessor .3's final dedicated run took 381.104 ms
+including cleanup, with Answer
 calls of 55.417 µs Complete, 48.750 µs Fail and 31.166 µs HostRefusal. Its full/inner
 model gate took 9.746/1.819 s. Task .4's pre-edit warm gate measured 8.061/1.738 s
-against the 30/10 s soft targets; its dedicated real run took 269.983 ms. These are
+against the then 30/10 s soft targets; its dedicated real run took 269.983 ms. These are
 individual observations on linux/arm64, Go 1.27.0, Rust 1.99.1 and SDK 1.48.0,
 excluding compilation from the live test timer, not percentiles or idle-host claims.
 The post-change warm gate measured 11.856 s full and 2.526 s inner while clean-build
-and live verification were also active; both stay below the soft targets. Fresh
+and live verification were also active; both stay below those historical targets. Fresh
 descriptor generation produced the same 57 file descriptors, equal by file name;
 raw descriptor-set byte order differs because getproto iterates a Go map. Its ignored
 cache is not a canonical wire artifact. The original descriptor/cache was preserved.
