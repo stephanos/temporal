@@ -65,3 +65,39 @@ pub fn refusal(error: &RelationCheckError) -> Refusal {
     };
     Refusal::new(code, error.to_string())
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn checked() -> CheckedRelations {
+        CheckedRelations { rpc: "rpc".into(), declarations: vec!["declaration".into()] }
+    }
+
+    fn state(message: &str) -> Refusal {
+        Refusal::new(RefusalCode::State, message)
+    }
+
+    #[test]
+    fn reconcile_keeps_established_classes_and_generated_only_refusals() {
+        assert_eq!(reconcile(Ok(checked()), Ok(1)), Ok(1));
+        assert_eq!(reconcile(Ok(checked()), Err::<(), _>(state("legacy"))), Err(state("legacy")));
+        assert_eq!(reconcile(Err(state("generated")), Ok(())), Err(state("generated")));
+        assert_eq!(
+            reconcile(Err(state("generated")), Err::<(), _>(state("legacy"))),
+            Err(state("generated")),
+            "a matching class surfaces the generated diagnostic",
+        );
+        for legacy in [Refusal::malformed("legacy"), Refusal::unsupported("legacy")] {
+            assert_eq!(
+                reconcile(Err(state("generated")), Err::<(), _>(legacy.clone())),
+                Err(legacy),
+                "a differing established class wins",
+            );
+        }
+        assert_eq!(
+            reconcile(Err(Refusal::malformed("generated")), Err::<(), _>(state("legacy"))),
+            Err(state("legacy")),
+        );
+    }
+}

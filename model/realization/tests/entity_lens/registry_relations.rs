@@ -153,3 +153,49 @@ fn refused<T>(result: Result<T, Refusal>, context: &str) -> Refusal {
         Err(refusal) => refusal,
     }
 }
+
+#[test]
+fn activity_cancel_live_validate_hook() {
+    let receipt = receipt();
+    let judge = |request: &RequestCancelActivityExecutionRequest, ok: bool| {
+        let result = if ok {
+            ResultValue::Response(Any::pack(&RequestCancelActivityExecutionResponse::default()))
+        } else {
+            ResultValue::Error(umpire_runtime::realization::Error {
+                code: 5,
+                message: String::new(),
+            })
+        };
+        let observation = Observation {
+            method: CANCEL.into(),
+            request: Some(Any::pack(request)),
+            result: Some(result),
+        };
+        let observed = crate::support::Observed::new(&Any::pack(&observation))
+            .unwrap_or_else(|error| panic!("{error:?}"));
+        ActivityEntity.validate(Some(&receipt), &observed)
+    };
+    let mut request = RequestCancelActivityExecutionRequest {
+        namespace: receipt.entity.start.namespace.clone(),
+        activity_id: receipt.entity.start.activity_id.clone(),
+        run_id: common::RUN.into(),
+        ..Default::default()
+    };
+    assert!(judge(&request, true).is_ok());
+    assert!(judge(&request, false).is_ok());
+    request.run_id = OTHER.into();
+    assert_generated(
+        &refused(judge(&request, true), "generated live Cancel check"),
+        "RequestCancelActivityExecution",
+        "Request",
+        "Receipt",
+    );
+    let refusal =
+        refused(judge(&request, false), "non-OK Cancel keeps the established correlation");
+    assert_eq!(refusal.code(), RefusalCode::State);
+    assert!(!refusal.message.contains("EchoMismatch"));
+    request.run_id = "not-a-uuid".into();
+    let refusal = refused(judge(&request, true), "a differing generated class defers");
+    assert_eq!(refusal.code(), RefusalCode::State);
+    assert!(!refusal.message.contains("declaration="), "{}", refusal.message);
+}

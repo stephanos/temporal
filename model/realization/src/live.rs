@@ -242,16 +242,27 @@ impl EntityBinding for ActivityEntity {
                 )?;
             }
             CANCEL => {
-                if observed.code()?.is_none() {
-                    let _: RequestCancelActivityExecutionResponse =
-                        observed.response().map_err(|error| Refusal::malformed(error.message))?;
-                }
+                let response: Option<RequestCancelActivityExecutionResponse> = if observed
+                    .code()?
+                    .is_none()
+                {
+                    Some(observed.response().map_err(|error| Refusal::malformed(error.message))?)
+                } else {
+                    None
+                };
                 let request: RequestCancelActivityExecutionRequest = required_request(observation)?;
-                receipt.ok_or_else(|| self.missing_receipt())?.entity.matches(
+                let receipt = receipt.ok_or_else(|| self.missing_receipt())?;
+                let legacy = receipt.entity.matches(
                     &request.namespace,
                     &request.activity_id,
                     &request.run_id,
-                )?;
+                );
+                match &response {
+                    Some(response) => {
+                        Realization::checked_cancel(&receipt.entity, &request, response, legacy)?;
+                    }
+                    None => legacy?,
+                }
             }
             _ => return Err(Refusal::unsupported("observation RPC is not supported")),
         }

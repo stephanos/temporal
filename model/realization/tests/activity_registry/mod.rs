@@ -21,6 +21,8 @@ use umpire_temporal_api::temporal::api::common::v1::{ActivityType, RetryPolicy};
 use umpire_temporal_api::temporal::api::workflowservice::v1::StartActivityExecutionRequest;
 
 const SERVICE: &str = "/temporal.api.workflowservice.v1.WorkflowService/";
+// Generated relation checks validate the whole actual request against its catalog, where
+// `run_id` is a UUID; a non-UUID fixture is refused as malformed before any correlation.
 const RUN: &str = "22222222-2222-4222-8222-222222222222";
 
 fn start() -> StartActivityExecutionRequest {
