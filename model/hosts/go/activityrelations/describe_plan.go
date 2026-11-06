@@ -20,8 +20,10 @@ var DescribePlan = relation.RPCRelationPlan{Method: "temporal.api.workflowservic
 	{Message: "temporal.api.failure.v1.NexusOperationFailureInfo", Number: 5},
 	{Message: "temporal.api.failure.v1.NexusOperationFailureInfo", Number: 6},
 	{Message: "temporal.api.workflowservice.v1.DescribeActivityExecutionResponse", Number: 5},
+}, RequestSecret: []relation.RelationSecret{
+	{Message: "temporal.api.workflowservice.v1.DescribeActivityExecutionRequest", Number: 6},
 }}
 
 func init() {
-	DescribePlan.BindingSHA256 = "236b5491e009bb21f887340cd34ffb8a20ae24dca50ce77b8c0c4a6ab651cf03"
+	DescribePlan.BindingSHA256 = "97ba0d031b30c2132bb3d46504a89a97122fabc977034367d2c6d0d45242d083"
 }

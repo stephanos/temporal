@@ -10,8 +10,8 @@ var CancelPlan = relation.RPCRelationPlan{Method: "temporal.api.workflowservice.
 	{Operation: "Compare", Index: 0},
 }, ReceiptSlots: []relation.RelationReceiptSlot{
 	{Name: "run_id", Carrier: "String", SemanticKind: "Uuid", Catalog: "", RepeatedDepth: 0, Optional: false},
-}, Secret: []relation.RelationSecret{}}
+}, Secret: []relation.RelationSecret{}, RequestSecret: []relation.RelationSecret{}}
 
 func init() {
-	CancelPlan.BindingSHA256 = "2238977c31f7f4567d726a831fac3f799592afec589719e3950b35398d1ab52d"
+	CancelPlan.BindingSHA256 = "e391350c6442c99296928b863a515cc79b682740824efe3723069fe6b46c6648"
 }

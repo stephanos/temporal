@@ -6,6 +6,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
+	"slices"
 
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
@@ -20,12 +21,12 @@ type secretField struct {
 	number  protoreflect.FieldNumber
 }
 
-// secrets is every Secret claim of every bound plan; a claim names a message type, so it applies
-// wherever that type appears, in requests as well as responses.
+// secrets is every request- and response-side Secret claim of every bound plan; a claim names a
+// message type, so it applies wherever that type appears.
 func secrets() map[secretField]bool {
 	set := map[secretField]bool{}
 	for _, plan := range Plans() {
-		for _, field := range plan.Secret {
+		for _, field := range slices.Concat(plan.Secret, plan.RequestSecret) {
 			set[secretField{protoreflect.FullName(field.Message), protoreflect.FieldNumber(field.Number)}] = true
 		}
 	}

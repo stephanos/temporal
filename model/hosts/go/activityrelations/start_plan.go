@@ -10,8 +10,11 @@ var StartPlan = relation.RPCRelationPlan{Method: "temporal.api.workflowservice.v
 	{Operation: "Compare", Index: 0},
 }, ReceiptSlots: []relation.RelationReceiptSlot{
 	{Name: "run_id", Carrier: "String", SemanticKind: "Uuid", Catalog: "", RepeatedDepth: 0, Optional: false},
-}, Secret: []relation.RelationSecret{}}
+}, Secret: []relation.RelationSecret{}, RequestSecret: []relation.RelationSecret{
+	{Message: "temporal.api.common.v1.Payload", Number: 2},
+	{Message: "temporal.api.common.v1.Payload.MetadataEntry", Number: 2},
+}}
 
 func init() {
-	StartPlan.BindingSHA256 = "95cbe7dd571eed12db1aeae0ad94aedcb01d4b193ee49fef61944c36d92b5ddb"
+	StartPlan.BindingSHA256 = "eede713e0388b3f28c3173187db943921d4495bfaa4b0ed7b91be195780425f7"
 }

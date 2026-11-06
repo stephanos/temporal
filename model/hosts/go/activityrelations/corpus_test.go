@@ -290,7 +290,8 @@ func TestStoredCorpusAndReportNeverHoldSecretValues(t *testing.T) {
 	}
 	start := &workflowservice.StartActivityExecutionRequest{Namespace: "ns", ActivityId: "activity",
 		Input: &commonpb.Payloads{Payloads: []*commonpb.Payload{{Data: []byte(alpha + "-input")}}}}
-	describe := &workflowservice.DescribeActivityExecutionRequest{Namespace: "ns", ActivityId: "activity", RunId: runA}
+	describe := &workflowservice.DescribeActivityExecutionRequest{Namespace: "ns", ActivityId: "activity", RunId: runA,
+		LongPollToken: []byte(alpha + "-long-poll")}
 	capture(t, collector, []call{
 		{"s", "StartActivityExecution", start, &workflowservice.StartActivityExecutionResponse{RunId: runA, Started: true}, nil},
 		{"s", "DescribeActivityExecution", describe, secretDescribe(runA, alpha), nil},
@@ -322,5 +323,33 @@ func TestStoredCorpusAndReportNeverHoldSecretValues(t *testing.T) {
 	// response without them stays distinct; raw distinctness survives through the HMAC.
 	if counts.Success != 3 || counts.RawDistinct != 3 || counts.ProjectedDistinct != 2 {
 		t.Fatalf("describe counts %+v", counts)
+	}
+}
+
+// The first successful Start of a scope holds the receipt; a later Start of another run in the
+// same scope is checked against it, and an empty Cancel acknowledgment still gets the live check.
+func TestFirstStartHoldsTheReceiptAndEmptyAcknowledgmentsAreChecked(t *testing.T) {
+	collector, err := activityrelations.NewCollector()
+	if err != nil {
+		t.Fatal(err)
+	}
+	start := &workflowservice.StartActivityExecutionRequest{Namespace: "ns", ActivityId: "activity"}
+	capture(t, collector, []call{
+		{"a", "StartActivityExecution", start, &workflowservice.StartActivityExecutionResponse{RunId: runA, Started: true}, nil},
+		{"a", "StartActivityExecution", start, &workflowservice.StartActivityExecutionResponse{RunId: runB, Started: true}, nil},
+	})
+	counts := collector.Count(collector.Rows(), "control").Methods["temporal.api.workflowservice.v1.WorkflowService/StartActivityExecution"]
+	if counts.Success != 1 || counts.Refused != 1 {
+		t.Fatalf("start counts %+v", counts)
+	}
+	judge := func(observation *anypb.Any) error {
+		return collector.Observe(activityrelations.Judged{Harness: "explore", Case: "cancel", Seed: 1, Observation: observation, Explained: true})
+	}
+	if err := judge(observed(t, "StartActivityExecution", start, &workflowservice.StartActivityExecutionResponse{RunId: runA, Started: true})); err != nil {
+		t.Fatal(err)
+	}
+	crossed := &workflowservice.RequestCancelActivityExecutionRequest{Namespace: "ns", ActivityId: "activity", RunId: runB}
+	if err := judge(observed(t, "RequestCancelActivityExecution", crossed, &workflowservice.RequestCancelActivityExecutionResponse{})); err == nil {
+		t.Fatal("a guest-explained empty acknowledgment skipped the host check")
 	}
 }

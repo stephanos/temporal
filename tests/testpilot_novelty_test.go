@@ -48,9 +48,8 @@ func newNoveltyCollector(t *testing.T, harness string) *activityrelations.Collec
 
 // TestNoveltyCorpusCounts recomputes a frozen corpus's counts with the same functions and inputs
 // and requires the frozen report exactly. UMPIRE_NOVELTY_CORPUS names a captured corpus directory
-// (such as the committed fn-267.5 checkpoint, testdata/checkpoint-fn2675) and
-// UMPIRE_NOVELTY_HARNESS its harness; without them the committed control corpus is used. The
-// checkpoint is opt-in because new declarations legitimately change its projected counts.
+// (live checkpoints are retained as Flow evidence, not in this repository) and
+// UMPIRE_NOVELTY_HARNESS its harness; without them the committed control corpus is used.
 func TestNoveltyCorpusCounts(t *testing.T) {
 	collector, err := activityrelations.NewCollector()
 	require.NoError(t, err)

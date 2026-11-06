@@ -200,21 +200,30 @@ func (c *Collector) Observe(judged Judged) error {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	c.rows = append(c.rows, stored)
-	if label.Code != 0 || label.Response == "" {
+	// An empty acknowledgment encodes to no bytes but is still a response to check.
+	if _, bound := c.bindings.For(method); !bound || label.Code != 0 || observation.GetResponse() == nil {
 		return nil
 	}
-	scope := [3]string{label.Harness, label.Case, fmt.Sprint(label.Seed)}
-	if method == startMethod {
-		if run, ok := startRun(label.Response); ok {
-			c.receipts[scope] = run
-		}
-	}
-	var receipt relation.Receipt
-	if run, ok := c.receipts[scope]; ok {
-		receipt = Receipt(run)
-	}
+	receipt := custody(c.receipts, label)
 	if result := c.classify(label, receipt); judged.Explained && result.correlation != "" {
 		return fmt.Errorf("guest explained %s but the host refused: %s", method, result.correlation)
+	}
+	return nil
+}
+
+// custody returns the receipt a row is checked under. The first successful Start of a harness
+// case and seed establishes the run and holds the receipt for every later row of that scope,
+// later Starts included; that first Start is checked against the run it established, so its
+// run_id Echo only proves a nonempty identity. A bound row with no receipt refuses.
+func custody(receipts map[[3]string]string, row Row) relation.Receipt {
+	scope := [3]string{row.Harness, row.Case, fmt.Sprint(row.Seed)}
+	if _, held := receipts[scope]; !held && row.Method == startMethod {
+		if run, ok := startRun(row.Response); ok {
+			receipts[scope] = run
+		}
+	}
+	if run, ok := receipts[scope]; ok {
+		return Receipt(run)
 	}
 	return nil
 }
@@ -307,10 +316,8 @@ type Report struct {
 	Total   MethodCounts             `json:"total"`
 }
 
-// Count classifies every row in order. Receipt custody is per harness case and seed: each
-// successful Start is checked as an initial Start and then holds the receipt for later rows; a
-// bound row with no receipt refuses. Raw and projected distinct counts share one denominator,
-// the successfully projected rows.
+// Count classifies every row in order under the receipt custody of custody. Raw and projected
+// distinct counts share one denominator, the successfully projected rows.
 func (c *Collector) Count(rows []Row, corpusSHA256 string) Report {
 	report := Report{Format: "umpire.temporal.novelty-report.v1", Corpus: corpusSHA256, Methods: map[string]*MethodCounts{}}
 	receipts := map[[3]string]string{}
@@ -324,7 +331,6 @@ func (c *Collector) Count(rows []Row, corpusSHA256 string) Report {
 			raw[row.Method], projected[row.Method] = map[string]bool{}, map[string]bool{}
 		}
 		counts.Attempted++
-		scope := [3]string{row.Harness, row.Case, fmt.Sprint(row.Seed)}
 		_, bound := c.bindings.For(row.Method)
 		switch {
 		case row.Excluded != "":
@@ -338,16 +344,7 @@ func (c *Collector) Count(rows []Row, corpusSHA256 string) Report {
 			counts.NotApplicable++
 			continue
 		}
-		var receipt relation.Receipt
-		if row.Method == startMethod {
-			if run, ok := startRun(row.Response); ok {
-				receipts[scope] = run
-			}
-		}
-		if run, ok := receipts[scope]; ok {
-			receipt = Receipt(run)
-		}
-		result := c.classify(row, receipt)
+		result := c.classify(row, custody(receipts, row))
 		switch {
 		case result.correlation != "":
 			counts.Refused++
