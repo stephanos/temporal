@@ -795,6 +795,7 @@ dependencies = [
  "prost",
  "thiserror",
  "umpire-catalog-macros",
+ "umpire-catalog-schema",
  "umpire-checker",
  "umpire-runtime",
 ]
@@ -809,7 +810,9 @@ dependencies = [
  "prost",
  "prost-build",
  "quote",
+ "sha2",
  "syn 3.0.9",
+ "umpire-catalog-schema",
  "umpire-catalog-syntax",
  "umpire-runtime",
 ]
@@ -826,6 +829,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "umpire-catalog-schema"
+version = "0.0.1"
+dependencies = [
+ "prost",
+ "prost-types",
+]
+
+[[package]]
 name = "umpire-catalog-syntax"
 version = "0.0.1"
 dependencies = [
@@ -835,6 +846,7 @@ dependencies = [
  "prost",
  "quote",
  "syn 3.0.9",
+ "umpire-catalog-schema",
  "umpire-runtime",
 ]
 
