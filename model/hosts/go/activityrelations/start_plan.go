@@ -3,14 +3,15 @@ package activityrelations
 
 import "github.com/temporalio/umpire/hosts/go/relation"
 
-var StartPlan = relation.RPCRelationPlan{Method:"temporal.api.workflowservice.v1.WorkflowService/StartActivityExecution", Input:"temporal.api.workflowservice.v1.StartActivityExecutionRequest", Output:"temporal.api.workflowservice.v1.StartActivityExecutionResponse", ReceiptScope:"temporal.activity.ProposalContext", DescriptorSHA256:"650f326ec03865e96d563794d5a48f48420b8af3c576faa6f156c4809b65b0e3", Profile:"", Relations:[]relation.RelationDeclaration{
-{Identity:"temporal.api.workflowservice.v1.WorkflowService/StartActivityExecution/response:temporal.activity.ProposalContext/run_id:Echo:receipt.run_id", Kind:"Echo", Target:relation.RelationPath{Root:"response", Message:"temporal.api.workflowservice.v1.StartActivityExecutionResponse", Path:"run_id", Carrier:"String", SemanticKind:"Uuid", ReceiptSlot:"", Numbers:[]int32{1}, Optional:false, Repeated:false, RepeatedDepth:0, Arms:[]string{}}, Source:relation.RelationPath{Root:"receipt", Message:"temporal.activity.ProposalContext", Path:"run_id", Carrier:"String", SemanticKind:"Uuid", ReceiptSlot:"run_id", Numbers:[]int32{}, Optional:false, Repeated:false, RepeatedDepth:0, Arms:[]string{}}, Presence:"", Oneof:"", Minimum:"", Normalized:"", Default:"", DefaultWhen:"", DefaultSource:"", BoundPolicy:"", When:"", Dependencies:[]string{}, Children:[]int{}, MaterializedSource:-1, MaterializesParent:false},
-}, Adapters:[]relation.RelationAdapter{
-}, Phases:[]relation.RelationPhase{
-{Operation:"Expect", Index:0},
-{Operation:"Compare", Index:0},
-}, ReceiptSlots:[]relation.RelationReceiptSlot{
-{Name:"run_id", Carrier:"String", SemanticKind:"Uuid", Catalog:"", RepeatedDepth:0, Optional:false},
-}, Secret:[]relation.RelationSecret{
-}}
-func init() { StartPlan.BindingSHA256 = "edcb997d17fd208f050218a519bc6a9110eb501f906765d8c3c54b1ecbd87c0a" }
+var StartPlan = relation.RPCRelationPlan{Method: "temporal.api.workflowservice.v1.WorkflowService/StartActivityExecution", Input: "temporal.api.workflowservice.v1.StartActivityExecutionRequest", Output: "temporal.api.workflowservice.v1.StartActivityExecutionResponse", ReceiptScope: "temporal.activity.ProposalContext", DescriptorSHA256: "650f326ec03865e96d563794d5a48f48420b8af3c576faa6f156c4809b65b0e3", Profile: "", Relations: []relation.RelationDeclaration{
+	{Identity: "temporal.api.workflowservice.v1.WorkflowService/StartActivityExecution/response:temporal.activity.ProposalContext/run_id:Echo:receipt.run_id", Kind: "Echo", Target: relation.RelationPath{Root: "response", Message: "temporal.api.workflowservice.v1.StartActivityExecutionResponse", Path: "run_id", Carrier: "String", SemanticKind: "Uuid", ReceiptSlot: "", Numbers: []int32{1}, Optional: false, Repeated: false, RepeatedDepth: 0, Arms: []string{}}, Source: relation.RelationPath{Root: "receipt", Message: "temporal.activity.ProposalContext", Path: "run_id", Carrier: "String", SemanticKind: "Uuid", ReceiptSlot: "run_id", Numbers: []int32{}, Optional: false, Repeated: false, RepeatedDepth: 0, Arms: []string{}}, Presence: "", Oneof: "", Minimum: "", Normalized: "", Default: "", DefaultWhen: "", DefaultSource: "", BoundPolicy: "", When: "", Dependencies: []string{}, Children: []int{}, MaterializedSource: -1, MaterializesParent: false},
+}, Adapters: []relation.RelationAdapter{}, Phases: []relation.RelationPhase{
+	{Operation: "Expect", Index: 0},
+	{Operation: "Compare", Index: 0},
+}, ReceiptSlots: []relation.RelationReceiptSlot{
+	{Name: "run_id", Carrier: "String", SemanticKind: "Uuid", Catalog: "", RepeatedDepth: 0, Optional: false},
+}, Secret: []relation.RelationSecret{}}
+
+func init() {
+	StartPlan.BindingSHA256 = "95cbe7dd571eed12db1aeae0ad94aedcb01d4b193ee49fef61944c36d92b5ddb"
+}

@@ -26,18 +26,20 @@ import (
 )
 
 // Row is one actual invocation in capture order. Request and response bytes are kept only for
-// bound RPCs; every other row keeps its method, status and raw response digest, so worker task
-// tokens never reach a stored corpus.
+// bound RPCs, re-encoded with every Secret-claimed value replaced by a placeholder of the same
+// presence; every other row keeps only its method and status, so worker task tokens never reach
+// a stored corpus. RawHMAC digests the unmodified response under a key discarded with the
+// Collector, so raw distinctness survives without a recoverable or confirmable Secret.
 type Row struct {
-	Harness   string `json:"harness"`
-	Case      string `json:"case"`
-	Seed      uint64 `json:"seed,omitempty"`
-	Method    string `json:"method"`
-	Code      uint32 `json:"code"`
-	Request   string `json:"request_hex,omitempty"`
-	Response  string `json:"response_hex,omitempty"`
-	RawSHA256 string `json:"raw_sha256,omitempty"`
-	Excluded  string `json:"excluded,omitempty"`
+	Harness  string `json:"harness"`
+	Case     string `json:"case"`
+	Seed     uint64 `json:"seed,omitempty"`
+	Method   string `json:"method"`
+	Code     uint32 `json:"code"`
+	Request  string `json:"request_hex,omitempty"`
+	Response string `json:"response_hex,omitempty"`
+	RawHMAC  string `json:"raw_hmac,omitempty"`
+	Excluded string `json:"excluded,omitempty"`
 }
 
 const startMethod = "temporal.api.workflowservice.v1.WorkflowService/StartActivityExecution"
@@ -53,6 +55,8 @@ func WithCase(ctx context.Context, harness, label string, seed uint64) context.C
 // Collector records rows from a gRPC interceptor and from judged explore Observations.
 type Collector struct {
 	bindings Bindings
+	claims   map[secretField]bool
+	digest   rawDigest
 	mu       sync.Mutex
 	rows     []Row
 	receipts map[[3]string]string
@@ -64,7 +68,11 @@ func NewCollector() (*Collector, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &Collector{bindings: bindings, receipts: map[[3]string]string{}}, nil
+	digest, err := newRawDigest()
+	if err != nil {
+		return nil, err
+	}
+	return &Collector{bindings: bindings, claims: secrets(), digest: digest, receipts: map[[3]string]string{}}, nil
 }
 
 // Rows returns a copy of the rows captured so far.
@@ -78,19 +86,22 @@ func (c *Collector) add(label Row, method string, request, response proto.Messag
 	row := label
 	row.Method = trimSlash(method)
 	row.Code = code
+	_, bound := c.bindings.For(row.Method)
 	if code == 0 && response != nil {
 		data, err := proto.MarshalOptions{Deterministic: true}.Marshal(response)
 		if err != nil {
 			return err
 		}
-		sum := sha256.Sum256(data)
-		row.RawSHA256 = hex.EncodeToString(sum[:])
-		if _, bound := c.bindings.For(row.Method); bound {
+		row.RawHMAC = c.digest.of(data)
+		if bound {
+			if data, err = sanitize(response, c.claims); err != nil {
+				return err
+			}
 			row.Response = hex.EncodeToString(data)
 		}
 	}
-	if _, bound := c.bindings.For(row.Method); bound && request != nil {
-		data, err := proto.MarshalOptions{Deterministic: true}.Marshal(request)
+	if bound && request != nil {
+		data, err := sanitize(request, c.claims)
 		if err != nil {
 			return err
 		}
@@ -160,18 +171,35 @@ func (c *Collector) Observe(judged Judged) error {
 	if failure := observation.GetError(); failure != nil {
 		label.Code = uint32(failure.GetCode())
 	}
+	// The host check reads the actual bytes; only the sanitized row is stored.
+	stored := label
 	if response := observation.GetResponse(); response != nil {
 		data := response.GetValue()
-		sum := sha256.Sum256(data)
-		label.RawSHA256 = hex.EncodeToString(sum[:])
-		if _, bound := c.bindings.For(method); bound {
+		label.RawHMAC = c.digest.of(data)
+		stored.RawHMAC = label.RawHMAC
+		if novelty, bound := c.bindings.For(method); bound {
 			label.Response = hex.EncodeToString(data)
 			label.Request = hex.EncodeToString(observation.GetRequest().GetValue())
+			plan := novelty.Evaluator().Plan()
+			for _, part := range []struct {
+				name, data string
+				out        *string
+			}{{plan.Input, label.Request, &stored.Request}, {plan.Output, label.Response, &stored.Response}} {
+				message, err := decode(part.name, part.data)
+				if err != nil {
+					return fmt.Errorf("observation %s: %w", part.name, err)
+				}
+				clean, err := sanitize(message, c.claims)
+				if err != nil {
+					return err
+				}
+				*part.out = hex.EncodeToString(clean)
+			}
 		}
 	}
 	c.mu.Lock()
 	defer c.mu.Unlock()
-	c.rows = append(c.rows, label)
+	c.rows = append(c.rows, stored)
 	if label.Code != 0 || label.Response == "" {
 		return nil
 	}
@@ -329,7 +357,7 @@ func (c *Collector) Count(rows []Row, corpusSHA256 string) Report {
 			counts.Reasons["projection:"+result.projection]++
 		default:
 			counts.Success++
-			raw[row.Method][row.RawSHA256] = true
+			raw[row.Method][row.RawHMAC] = true
 			projected[row.Method][result.key] = true
 		}
 	}

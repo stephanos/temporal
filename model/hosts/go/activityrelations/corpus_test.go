@@ -3,6 +3,8 @@ package activityrelations_test
 import (
 	"bytes"
 	"context"
+	"encoding/base64"
+	"encoding/hex"
 	"encoding/json"
 	"os"
 	"path/filepath"
@@ -11,6 +13,8 @@ import (
 
 	realizationv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/realization/v1"
 	activitypb "go.temporal.io/api/activity/v1"
+	commonpb "go.temporal.io/api/common/v1"
+	failurepb "go.temporal.io/api/failure/v1"
 	"go.temporal.io/api/workflowservice/v1"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -263,5 +267,60 @@ func TestObserveKeepsReconciledInvocationsApart(t *testing.T) {
 		if counts := report.Methods["temporal.api.workflowservice.v1.WorkflowService/"+method]; counts == nil || counts.Success != 1 {
 			t.Fatalf("%s counts %+v", method, counts)
 		}
+	}
+}
+
+// secretDescribe carries synthetic tokens in every Secret-claimed field of a Describe response:
+// payload data and metadata values in input and outcome, and a failure's stack trace.
+func secretDescribe(run, token string) *workflowservice.DescribeActivityExecutionResponse {
+	payload := &commonpb.Payload{Metadata: map[string][]byte{"encoding": []byte(token + "-metadata")}, Data: []byte(token + "-data")}
+	response := describeResponse(run, 1)
+	response.Input = &commonpb.Payloads{Payloads: []*commonpb.Payload{payload}}
+	response.Outcome = &activitypb.ActivityExecutionOutcome{Value: &activitypb.ActivityExecutionOutcome_Result{
+		Result: &commonpb.Payloads{Payloads: []*commonpb.Payload{payload}}}}
+	response.Info.LastFailure = &failurepb.Failure{Message: "failed", StackTrace: token + "-stack"}
+	return response
+}
+
+func TestStoredCorpusAndReportNeverHoldSecretValues(t *testing.T) {
+	const alpha, beta = "synthetic-secret-alpha", "synthetic-secret-beta"
+	collector, err := activityrelations.NewCollector()
+	if err != nil {
+		t.Fatal(err)
+	}
+	start := &workflowservice.StartActivityExecutionRequest{Namespace: "ns", ActivityId: "activity",
+		Input: &commonpb.Payloads{Payloads: []*commonpb.Payload{{Data: []byte(alpha + "-input")}}}}
+	describe := &workflowservice.DescribeActivityExecutionRequest{Namespace: "ns", ActivityId: "activity", RunId: runA}
+	capture(t, collector, []call{
+		{"s", "StartActivityExecution", start, &workflowservice.StartActivityExecutionResponse{RunId: runA, Started: true}, nil},
+		{"s", "DescribeActivityExecution", describe, secretDescribe(runA, alpha), nil},
+		{"s", "DescribeActivityExecution", describe, secretDescribe(runA, beta), nil},
+		{"s", "DescribeActivityExecution", describe, describeResponse(runA, 1), nil},
+	})
+	if err := collector.Observe(activityrelations.Judged{Harness: "explore", Case: "secret", Seed: 1, Explained: false,
+		Observation: observed(t, "DescribeActivityExecution", describe, secretDescribe(runA, alpha))}); err != nil {
+		t.Fatal(err)
+	}
+	var corpus bytes.Buffer
+	sum, err := activityrelations.WriteCorpus(&corpus, collector.Rows())
+	if err != nil {
+		t.Fatal(err)
+	}
+	report, err := json.Marshal(collector.Count(collector.Rows(), sum))
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, token := range []string{alpha, beta, "synthetic-secret"} {
+		for _, encoded := range []string{token, hex.EncodeToString([]byte(token)), base64.StdEncoding.EncodeToString([]byte(token))} {
+			if bytes.Contains(corpus.Bytes(), []byte(encoded)) || bytes.Contains(report, []byte(encoded)) {
+				t.Fatalf("a Secret value reached the stored corpus or report")
+			}
+		}
+	}
+	counts := collector.Count(collector.Rows(), sum).Methods["temporal.api.workflowservice.v1.WorkflowService/DescribeActivityExecution"]
+	// Placeholders keep presence, so tokens differing only in value share one key while the
+	// response without them stays distinct; raw distinctness survives through the HMAC.
+	if counts.Success != 3 || counts.RawDistinct != 3 || counts.ProjectedDistinct != 2 {
+		t.Fatalf("describe counts %+v", counts)
 	}
 }

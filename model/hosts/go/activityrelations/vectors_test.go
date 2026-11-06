@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"go/format"
 	"os"
 	"path/filepath"
 	"testing"
@@ -109,6 +110,30 @@ func TestEveryPlanAdmitsWithItsEmbeddedDescriptors(t *testing.T) {
 		}
 		if _, ok := bindings.For("/" + plan.Method); !ok {
 			t.Fatalf("%s: not bound", plan.Method)
+		}
+	}
+}
+
+// The generator emits gofmt-stable Go, so the committed plans need no formatter.
+func TestGeneratedPlansAreGofmtClean(t *testing.T) {
+	files, err := filepath.Glob("*_plan.go")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(files) != len(activityrelations.Plans()) {
+		t.Fatalf("found %d plan files for %d plans", len(files), len(activityrelations.Plans()))
+	}
+	for _, name := range files {
+		source, err := os.ReadFile(name)
+		if err != nil {
+			t.Fatal(err)
+		}
+		formatted, err := format.Source(source)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if string(formatted) != string(source) {
+			t.Errorf("%s is not gofmt-clean", name)
 		}
 	}
 }
