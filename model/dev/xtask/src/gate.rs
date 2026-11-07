@@ -730,13 +730,21 @@ mod tests {
         }
         assert_eq!(depends("model:temporal-go-host"), ["model:temporal-guest-freshness"]);
         let all = depends("model:all");
-        for stage in ["gate:all", "model:retired-names", "model:fmt", "model:temporal-go-host"] {
+        for stage in [
+            "gate:all",
+            "model:retired-names",
+            "model:fmt",
+            "model:wasm-guest",
+            "model:temporal-go-host",
+        ] {
             assert!(all.iter().any(|name| name == stage), "model:all omits {stage}");
         }
-        let mut reached = predecessors("model:wasm-guest");
-        reached.extend(predecessors("model:temporal-go-host"));
-        reached.extend(["model:wasm-guest".into(), "model:temporal-go-host".into()]);
-        reached.extend(["model:retired-names".into(), "model:fmt".into()]);
+        // What `mise run model:all` selects: every Temporal stage must be reachable from it.
+        let mut reached = BTreeSet::new();
+        for root in all.iter().filter(|name| name.starts_with("model:")) {
+            reached.insert(root.clone());
+            reached.extend(predecessors(root));
+        }
         let stages: BTreeSet<_> = tasks
             .iter()
             .filter(|(_, task)| {

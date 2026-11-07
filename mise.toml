@@ -19,7 +19,13 @@ includes = ["../umpire/tools/xtask/src/gate/tasks.toml"]
 # leave the Cargo chain and wait only for the inputs they read.
 [tasks."model:all"]
 description = "Admitted combined framework and Temporal gate"
-depends = ["gate:all", "model:retired-names", "model:fmt", "model:temporal-go-host"]
+depends = [
+  "gate:all",
+  "model:retired-names",
+  "model:fmt",
+  "model:wasm-guest",
+  "model:temporal-go-host",
+]
 
 [tasks."model:temporal-prerequisites"]
 env.UMPIRE_GATE_STAGE = "temporal-prerequisites"
