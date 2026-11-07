@@ -657,9 +657,94 @@ mod tests {
     #[test]
     fn paired_gate_waits_for_primary_framework_without_implicit_isolation() {
         let config: toml::Value = toml::from_str(include_str!("../../../../mise.toml")).unwrap();
-        let dependencies = config["tasks"]["model:temporal-go-host"]["depends"].as_array().unwrap();
+        let dependencies = config["tasks"]["model:all"]["depends"].as_array().unwrap();
         assert!(dependencies.iter().any(|value| value.as_str() == Some("gate:all")));
         assert!(!include_str!("../../../../mise.toml").contains("gate:standalone"));
+    }
+
+    /// The paired graph's own edges: Temporal stages never wait for framework stages (the
+    /// workspaces build in separate Cargo targets and share no generated inputs), every
+    /// Temporal Cargo-target user is ordered with every other, and the Go host follows only
+    /// the freshness check of the committed guest it embeds.
+    #[test]
+    fn paired_graph_runs_workspace_chains_concurrently_with_target_barriers() {
+        use std::collections::BTreeSet;
+        let config: toml::Value = toml::from_str(include_str!("../../../../mise.toml")).unwrap();
+        let tasks = config["tasks"].as_table().unwrap();
+        let depends = |name: &str| -> Vec<String> {
+            tasks[name]
+                .get("depends")
+                .and_then(toml::Value::as_array)
+                .map_or_else(Vec::new, |values| {
+                    values.iter().map(|value| value.as_str().unwrap().to_owned()).collect()
+                })
+        };
+        let predecessors = |name: &str| {
+            let mut result = BTreeSet::new();
+            let mut pending = vec![name.to_owned()];
+            while let Some(name) = pending.pop() {
+                for dependency in depends(&name) {
+                    assert!(dependency.starts_with("model:"), "{name} waits for {dependency}");
+                    if result.insert(dependency.clone()) {
+                        pending.push(dependency);
+                    }
+                }
+            }
+            result
+        };
+        for (name, task) in tasks {
+            assert!(task.get("wait_for").is_none(), "{name} keeps a cross-workspace wait");
+            if name != "model:all" {
+                assert!(!predecessors(name).contains(name), "cycle at {name}");
+            }
+        }
+        let target = [
+            "temporal-guest-freshness",
+            "timing-controls",
+            "source-boundary",
+            "protobuf-controls",
+            "clippy",
+            "docs",
+            "tests",
+            "wasm-guest",
+        ];
+        for (index, left) in target.iter().enumerate() {
+            for right in &target[index + 1..] {
+                let (left, right) = (format!("model:{left}"), format!("model:{right}"));
+                assert!(
+                    predecessors(&left).contains(&right) || predecessors(&right).contains(&left),
+                    "Temporal target users may overlap: {left}, {right}"
+                );
+            }
+        }
+        for (consumer, producer) in [
+            ("temporal-guest-freshness", "temporal-prerequisites"),
+            ("temporal-protobuf-freshness", "temporal-prerequisites"),
+            ("clippy", "temporal-protobuf-freshness"),
+            ("temporal-go-host", "temporal-guest-freshness"),
+        ] {
+            assert!(
+                predecessors(&format!("model:{consumer}")).contains(&format!("model:{producer}")),
+                "{consumer} can precede {producer}"
+            );
+        }
+        assert_eq!(depends("model:temporal-go-host"), ["model:temporal-guest-freshness"]);
+        let all = depends("model:all");
+        for stage in ["gate:all", "model:retired-names", "model:fmt", "model:temporal-go-host"] {
+            assert!(all.iter().any(|name| name == stage), "model:all omits {stage}");
+        }
+        let mut reached = predecessors("model:wasm-guest");
+        reached.extend(predecessors("model:temporal-go-host"));
+        reached.extend(["model:wasm-guest".into(), "model:temporal-go-host".into()]);
+        reached.extend(["model:retired-names".into(), "model:fmt".into()]);
+        let stages: BTreeSet<_> = tasks
+            .iter()
+            .filter(|(_, task)| {
+                task.get("env").and_then(|env| env.get("UMPIRE_GATE_STAGE")).is_some()
+            })
+            .map(|(name, _)| name.clone())
+            .collect();
+        assert_eq!(reached, stages, "model:all must reach every Temporal stage");
     }
 
     #[test]

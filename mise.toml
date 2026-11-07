@@ -14,12 +14,14 @@ rust = "1.99.1"
 includes = ["../umpire/tools/xtask/src/gate/tasks.toml"]
 
 # Temporal imports the framework graph once and adds only its own stages and resource edges.
+# The framework and Temporal workspaces build in separate Cargo targets, so their chains run
+# concurrently; each chain serializes only its own target users. Go hosts and native freshness
+# leave the Cargo chain and wait only for the inputs they read.
 [tasks."model:all"]
 description = "Admitted combined framework and Temporal gate"
 depends = ["gate:all", "model:retired-names", "model:fmt", "model:temporal-go-host"]
 
 [tasks."model:temporal-prerequisites"]
-depends = ["gate:wasm-guest"]
 env.UMPIRE_GATE_STAGE = "temporal-prerequisites"
 env.UMPIRE_GATE_ORDER = "0"
 env.UMPIRE_GATE_SCOPE = "temporal"
@@ -66,7 +68,7 @@ dir = "{{env.UMPIRE_TEMPORAL_ROOT}}"
 run = 'exec "$UMPIRE_TEMPORAL_GATE_EXECUTABLE" gate --scheduled-stage protobuf-controls'
 
 [tasks."model:temporal-protobuf-freshness"]
-depends = ["model:protobuf-controls"]
+depends = ["model:temporal-prerequisites"]
 env.UMPIRE_GATE_STAGE = "temporal-protobuf-freshness"
 env.UMPIRE_GATE_ORDER = "6"
 env.UMPIRE_GATE_SCOPE = "temporal"
@@ -81,7 +83,7 @@ dir = "{{env.UMPIRE_TEMPORAL_ROOT}}"
 run = 'exec "$UMPIRE_TEMPORAL_GATE_EXECUTABLE" gate --scheduled-stage fmt'
 
 [tasks."model:clippy"]
-depends = ["model:temporal-protobuf-freshness"]
+depends = ["model:protobuf-controls", "model:temporal-protobuf-freshness"]
 env.UMPIRE_GATE_STAGE = "clippy"
 env.UMPIRE_GATE_ORDER = "8"
 env.UMPIRE_GATE_SCOPE = "temporal"
@@ -112,14 +114,11 @@ env.UMPIRE_GATE_SCOPE = "temporal"
 dir = "{{env.UMPIRE_TEMPORAL_ROOT}}"
 run = 'exec "$UMPIRE_TEMPORAL_GATE_EXECUTABLE" gate --scheduled-stage wasm-guest'
 
+# The Go host embeds the committed guest that freshness compares, not the wasm-guest output.
 [tasks."model:temporal-go-host"]
-depends = ["model:wasm-guest", "gate:all"]
+depends = ["model:temporal-guest-freshness"]
 env.UMPIRE_GATE_STAGE = "temporal-go-host"
 env.UMPIRE_GATE_ORDER = "12"
 env.UMPIRE_GATE_SCOPE = "temporal"
 dir = "{{env.UMPIRE_TEMPORAL_ROOT}}"
 run = 'exec "$UMPIRE_TEMPORAL_GATE_EXECUTABLE" gate --scheduled-stage temporal-go-host'
-
-# The shared target is released before either Go host phase.
-[tasks."gate:go-host"]
-wait_for = ["model:wasm-guest"]
