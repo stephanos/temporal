@@ -1052,7 +1052,7 @@ if [ "$*" = "tasks ls --json" ]; then
   printf '%s\n' '{inventory}'
   exit 0
 fi
-if [ "$*" = "run --force --skip-tools --task-cache off --jobs 4 model:all" ]; then
+if [ "$*" = "run --force --skip-tools --task-cache off --jobs 8 model:all" ]; then
   label=graph
   BODY
   UMPIRE_GATE_STAGE=retired-names UMPIRE_GATE_CONTROL_STAGE=retired-names "$UMPIRE_TEMPORAL_GATE_EXECUTABLE" --exact gate::tests::run_control_child --nocapture
@@ -1159,7 +1159,7 @@ if [ "$*" = "tasks ls --json" ]; then
   printf '%s\n' '{inventory}'
   exit 0
 fi
-if [ "$*" = "run --force --skip-tools --task-cache off --jobs 4 model:all" ]; then
+if [ "$*" = "run --force --skip-tools --task-cache off --jobs 8 model:all" ]; then
   for stage_name in {names}; do
     UMPIRE_GATE_STAGE=$stage_name UMPIRE_GATE_CONTROL_STAGE=$stage_name "$UMPIRE_TEMPORAL_GATE_EXECUTABLE" --exact gate::tests::run_control_child --nocapture || exit $?
   done
@@ -1259,7 +1259,7 @@ if [ "$*" = "tasks ls --json" ]; then
   printf '%s\n' '{inventory}'
   exit 0
 fi
-if [ "$*" = "run --force --skip-tools --task-cache off --jobs 4 model:all" ]; then
+if [ "$*" = "run --force --skip-tools --task-cache off --jobs 8 model:all" ]; then
   UMPIRE_GATE_STAGE={stage} UMPIRE_GATE_CONTROL_STAGE={stage} "$UMPIRE_TEMPORAL_GATE_EXECUTABLE" --exact gate::tests::run_control_child --nocapture || exit $?
   exit 0
 fi
