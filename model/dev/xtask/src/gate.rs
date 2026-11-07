@@ -173,12 +173,26 @@ pub(crate) fn run(root: &Path) -> io::Result<i32> {
         },
     );
     let records = scheduler::directory(&target.join("gate-receipts"))?;
-    let framework = framework_stage_executable(root, &target, framework)?;
+    let managed = umpire_guest_driver::managed::enabled();
+    let explicit = std::env::var_os("CARGO_TARGET_DIR").is_some().then_some(target.as_path());
+    let (temporal_target, framework_target) = paired_targets(explicit, managed);
+    let framework =
+        framework_stage_executable(root, &target, framework, framework_target.as_deref())?;
+    scheduler::prepare_source_roots(
+        &[&root.join("../../umpire").canonicalize()?, root],
+        &[temporal_target.as_deref(), framework_target.as_deref()]
+            .into_iter()
+            .flatten()
+            .collect::<Vec<_>>(),
+    )?;
     let mut command = mise(root)?;
     command
         .env("UMPIRE_TEMPORAL_GATE_EXECUTABLE", std::env::current_exe()?)
         .env("UMPIRE_GATE_CONTROLLER_EXECUTABLE", std::env::current_exe()?)
         .env("UMPIRE_GATE_EXECUTABLE", &framework);
+    if let Some(temporal_target) = &temporal_target {
+        command.env("CARGO_TARGET_DIR", temporal_target);
+    }
     // Delegated framework stages are budgeted by the framework's own table.
     let mut tables = Vec::new();
     if expected.iter().any(|stage| stage.starts_with("framework/")) {
@@ -203,10 +217,41 @@ pub(crate) fn run(root: &Path) -> io::Result<i32> {
         &tables.iter().map(String::as_str).collect::<Vec<_>>(),
         Some(tier),
     );
-    if umpire_guest_driver::managed::enabled() {
+    if managed || framework_target.is_some() {
         remove_if_present(Path::new(&framework))?;
     }
     result
+}
+
+/// The concurrent workspace chains must never share one Cargo target. Managed launches and
+/// default targets are already per workspace; an explicit caller target gives each workspace
+/// its own subdirectory: `temporal/` for Temporal stages and `framework/` for framework ones.
+fn paired_targets(
+    explicit: Option<&Path>,
+    managed: bool,
+) -> (Option<std::path::PathBuf>, Option<std::path::PathBuf>) {
+    match explicit {
+        Some(target) if !managed => (Some(target.join("temporal")), Some(target.join("framework"))),
+        _ => (None, None),
+    }
+}
+
+fn quote_shell(value: &std::ffi::OsStr) -> io::Result<String> {
+    let value =
+        value.to_str().ok_or_else(|| io::Error::other("framework stage path is not UTF-8"))?;
+    Ok(format!("'{}'", value.replace('\'', r"'\''")))
+}
+
+/// An unmanaged framework stage launcher that selects the framework's own target.
+fn unmanaged_framework_script(
+    framework: &std::ffi::OsStr,
+    framework_target: &Path,
+) -> io::Result<String> {
+    Ok(format!(
+        "#!/bin/bash\nexport CARGO_TARGET_DIR={}\nexec {} \"$@\"\n",
+        quote_shell(framework_target.as_os_str())?,
+        quote_shell(framework)?,
+    ))
 }
 
 fn remove_if_present(path: &Path) -> io::Result<()> {
@@ -222,10 +267,18 @@ fn framework_stage_executable(
     root: &Path,
     target: &Path,
     framework: std::ffi::OsString,
+    framework_target: Option<&Path>,
 ) -> io::Result<std::ffi::OsString> {
     use std::os::unix::fs::PermissionsExt;
     if !umpire_guest_driver::managed::enabled() {
-        return Ok(framework);
+        let Some(framework_target) = framework_target else { return Ok(framework) };
+        let directory = target.join("framework-stages");
+        std::fs::create_dir_all(&directory)?;
+        let executable = directory.join(format!("gate-{}", std::process::id()));
+        remove_if_present(&executable)?;
+        std::fs::write(&executable, unmanaged_framework_script(&framework, framework_target)?)?;
+        std::fs::set_permissions(&executable, std::fs::Permissions::from_mode(0o555))?;
+        return Ok(executable.into_os_string());
     }
     let quote = |value: &std::ffi::OsStr| {
         let value = value
@@ -491,6 +544,7 @@ mod tests {
             &root,
             &target,
             std::env::current_exe().unwrap().into_os_string(),
+            None,
         )
         .unwrap();
         let output = Command::new(&wrapper)
@@ -519,6 +573,7 @@ mod tests {
                 &root,
                 &root.join("target"),
                 executable.into_os_string(),
+                None,
             )
             .unwrap();
             let output = Command::new(wrapper)
@@ -652,6 +707,27 @@ mod tests {
         .unwrap_err()
         .to_string();
         assert!(error.contains("unscoped"), "{error}");
+    }
+
+    #[test]
+    fn explicit_paired_target_gives_each_workspace_its_own_subdirectory() {
+        let explicit = Path::new("/explicit/target");
+        assert_eq!(
+            paired_targets(Some(explicit), false),
+            (Some(explicit.join("temporal")), Some(explicit.join("framework")))
+        );
+        // Managed launches and default per-workspace targets are already separate.
+        assert_eq!(paired_targets(Some(explicit), true), (None, None));
+        assert_eq!(paired_targets(None, false), (None, None));
+        let script = unmanaged_framework_script(
+            std::ffi::OsStr::new("/bin/frame'work"),
+            &explicit.join("framework"),
+        )
+        .unwrap();
+        assert_eq!(
+            script,
+            "#!/bin/bash\nexport CARGO_TARGET_DIR='/explicit/target/framework'\nexec '/bin/frame'\\''work' \"$@\"\n"
+        );
     }
 
     #[test]
@@ -1271,6 +1347,12 @@ if [ "$*" = "run --force --skip-tools --task-cache off --jobs 8 model:all" ]; th
   UMPIRE_GATE_STAGE={stage} UMPIRE_GATE_CONTROL_STAGE={stage} "$UMPIRE_TEMPORAL_GATE_EXECUTABLE" --exact gate::tests::run_control_child --nocapture || exit $?
   exit 0
 fi
+# The slow first attempt deferred its retry, which the invocation runs alone afterwards.
+if [ "$*" = "run --force --skip-tools --task-cache off --skip-deps --jobs 1 model:{stage}" ]; then
+  [ "$UMPIRE_GATE_DEFERRED_RETRY" = {stage} ] || exit 96
+  UMPIRE_GATE_STAGE={stage} UMPIRE_GATE_CONTROL_STAGE={stage} "$UMPIRE_TEMPORAL_GATE_EXECUTABLE" --exact gate::tests::run_control_child --nocapture || exit $?
+  exit 0
+fi
 "#
             );
             let mise = root.join("bin/mise");
@@ -1307,6 +1389,11 @@ fi
             );
             assert!(output.status.success(), "{stage}: {text}");
             assert!(text.contains(expected), "{stage}: {text}");
+            if key == "warm_seconds" {
+                // The slow first attempt succeeded; only its deferred retry failed the gate.
+                assert!(text.contains("deferred budget retry: fmt"), "{text}");
+                assert!(text.contains("deferred budget retry of stage fmt failed"), "{text}");
+            }
             fs::remove_dir_all(root.parent().unwrap().parent().unwrap()).unwrap();
         }
     }
