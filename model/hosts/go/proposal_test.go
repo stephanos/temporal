@@ -3,6 +3,7 @@ package temporal_test
 import (
 	"context"
 	"errors"
+	"fmt"
 	"slices"
 	"testing"
 
@@ -17,35 +18,80 @@ import (
 	temporalv1 "umpire.local/temporal/umpire/temporal/v1"
 )
 
+// configuredBootstrap is the bootstrap proposal and issued program of a configured guest
+// template; callers receive copies.
+type configuredBootstrap struct {
+	bootstrap *modelv1.ProposeResponse
+	program   *temporalv1.WorkerProgram
+}
+
 func configuredGuest(t *testing.T, seed uint64) (*model.Host, *modelv1.ProposeResponse, *temporalv1.WorkerProgram) {
 	t.Helper()
+	h, value := templateClone(t, fmt.Sprintf("configured:%d", seed), prepareConfigured(t, seed))
+	prepared := value.(*configuredBootstrap)
+	return h, proto.CloneOf(prepared.bootstrap), proto.CloneOf(prepared.program)
+}
+
+// freshConfiguredGuest configures a newly instantiated guest through the production path.
+func freshConfiguredGuest(t *testing.T, seed uint64) (*model.Host, *configuredBootstrap) {
+	t.Helper()
 	h := unboundGuest(t)
+	value, err := prepareConfigured(t, seed)(context.Background(), h)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return h, value.(*configuredBootstrap)
+}
+
+func prepareConfigured(t *testing.T, seed uint64) func(context.Context, *model.Host) (any, error) {
+	t.Helper()
+	label := []string{"Complete", "RetryThenComplete", "Fail"}[seed]
 	captured := new(realizationv1.Observation)
 	if err := startObservation(t, 3).UnmarshalTo(captured); err != nil {
 		t.Fatal(err)
 	}
-	reset, err := h.Reset(context.Background(), &modelv1.ResetRequest{Configuration: captured.GetRequest()})
-	if err != nil {
-		t.Fatal(err)
+	return func(ctx context.Context, h *model.Host) (any, error) {
+		reset, err := h.Reset(ctx, &modelv1.ResetRequest{Configuration: captured.GetRequest()})
+		if err != nil {
+			return nil, err
+		}
+		program := new(temporalv1.WorkerProgram)
+		if err := reset.GetProgram().UnmarshalTo(program); err != nil {
+			return nil, err
+		}
+		var names []string
+		for _, rule := range program.GetRules() {
+			key := new(temporalv1.ActivityTaskKey)
+			if err := rule.GetKey().UnmarshalTo(key); err != nil {
+				return nil, err
+			}
+			if !slices.Contains(names, key.GetScenario()) {
+				names = append(names, key.GetScenario())
+			}
+		}
+		index := slices.Index(names, witnessName(label))
+		if index < 0 {
+			return nil, fmt.Errorf("missing witness %s", label)
+		}
+		bootstrap, err := h.Propose(ctx, &modelv1.ProposeRequest{Seed: uint64(index)})
+		if err != nil || bootstrap.GetKind() != modelv1.ProposalKind_PROPOSAL_KIND_BOOTSTRAP || bootstrap.GetAction() != "" {
+			return nil, fmt.Errorf("bootstrap: %v %v", bootstrap, err)
+		}
+		bound := proto.Clone(captured).(*realizationv1.Observation)
+		bound.Request = bootstrap.GetRequest()
+		packed, err := anypb.New(bound)
+		if err != nil {
+			return nil, err
+		}
+		response, err := h.Judge(ctx, &modelv1.JudgeRequest{Observation: packed})
+		if err != nil {
+			return nil, err
+		}
+		if explained := response.GetExplained(); explained == nil || len(explained.Steps) != 0 || len(explained.Outcomes) != 0 {
+			return nil, fmt.Errorf("bootstrap judgment = %v, want an empty Explanation", response)
+		}
+		return &configuredBootstrap{bootstrap: bootstrap, program: program}, nil
 	}
-	program := new(temporalv1.WorkerProgram)
-	if err := reset.GetProgram().UnmarshalTo(program); err != nil {
-		t.Fatal(err)
-	}
-	label := []string{"Complete", "RetryThenComplete", "Fail"}[seed]
-	names := programPolicyNames(t, program)
-	index := slices.Index(names, witnessName(label))
-	if index < 0 {
-		t.Fatalf("missing witness %s", label)
-	}
-	seed = uint64(index)
-	bootstrap, err := h.Propose(context.Background(), &modelv1.ProposeRequest{Seed: seed})
-	if err != nil || bootstrap.GetKind() != modelv1.ProposalKind_PROPOSAL_KIND_BOOTSTRAP || bootstrap.GetAction() != "" {
-		t.Fatalf("bootstrap: %v %v", bootstrap, err)
-	}
-	captured.Request = bootstrap.GetRequest()
-	explained(t, judge(t, h, pack(t, captured)))
-	return h, bootstrap, program
 }
 
 func programResponse(t *testing.T, program *temporalv1.WorkerProgram, scenario string, attempt int32) *anypb.Any {
@@ -97,6 +143,27 @@ func configuredObservation(t *testing.T, request *anypb.Any, value *anypb.Any, p
 }
 
 func TestConfiguredProposalNativeWasmParity(t *testing.T) {
+	t.Parallel()
+	// Each configured template's clone answers exactly as a freshly configured guest.
+	for _, seed := range []uint64{0, 1} {
+		t.Run(fmt.Sprintf("clone seed %d", seed), func(t *testing.T) {
+			t.Parallel()
+			cloned, bootstrap, program := configuredGuest(t, seed)
+			fresh, want := freshConfiguredGuest(t, seed)
+			if !proto.Equal(bootstrap, want.bootstrap) || !proto.Equal(program, want.program) {
+				t.Fatal("configured template bootstrap or program differs from a fresh configuration")
+			}
+			propose := func(seed uint64) func(*model.Host) (proto.Message, error) {
+				return func(h *model.Host) (proto.Message, error) {
+					return h.Propose(context.Background(), &modelv1.ProposeRequest{Seed: seed})
+				}
+			}
+			read := pack(t, &workflowservice.DescribeActivityExecutionRequest{Namespace: receiptNamespace, ActivityId: receiptActivity, RunId: receiptRun, IncludeOutcome: true, IncludeLastFailure: true})
+			sameGuestAnswers(t, cloned, fresh,
+				propose(1), propose(1), judgeCall(configuredObservation(t, read, scheduled(t), program, "Complete", 1)),
+				judgeCall(configuredObservation(t, read, started(t), program, "Complete", 1)), propose(2), exploreCall)
+		})
+	}
 	ctx := context.Background()
 	h, bootstrap, program := configuredGuest(t, 0)
 	seed := &modelv1.ProposeRequest{Seed: 1}
@@ -160,8 +227,10 @@ func TestConfiguredProposalNativeWasmParity(t *testing.T) {
 }
 
 func TestProposalReviewedRaces(t *testing.T) {
+	t.Parallel()
 	for _, scenario := range []string{"retry before first Started read", "Describe cannot finish Cancel"} {
 		t.Run(scenario, func(t *testing.T) {
+			t.Parallel()
 			ctx := context.Background()
 			bootstrapSeed := uint64(0)
 			if scenario == "retry before first Started read" {
@@ -219,6 +288,7 @@ func TestProposalReviewedRaces(t *testing.T) {
 }
 
 func TestOpenCancellationRequiresPollContainment(t *testing.T) {
+	t.Parallel()
 	for _, seed := range []uint64{0, 2} {
 		h, _, _ := configuredGuest(t, 0)
 		proposal, err := h.Propose(context.Background(), &modelv1.ProposeRequest{Seed: seed})

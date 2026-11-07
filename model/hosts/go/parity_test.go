@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"fmt"
 	"slices"
 	"testing"
 	"time"
@@ -43,6 +44,7 @@ func cancelObservation(t *testing.T, code int32) *anypb.Any {
 }
 
 func TestCancelSuccessAndRejectedSelfLoop(t *testing.T) {
+	t.Parallel()
 	for _, tc := range []struct {
 		policy string
 		status enumspb.ActivityExecutionStatus
@@ -52,6 +54,7 @@ func TestCancelSuccessAndRejectedSelfLoop(t *testing.T) {
 		{"", enumspb.ACTIVITY_EXECUTION_STATUS_CANCELED},
 	} {
 		t.Run(tc.status.String(), func(t *testing.T) {
+			t.Parallel()
 			label := tc.policy
 			if label == "" {
 				label = "Complete"
@@ -92,6 +95,7 @@ func TestCancelSuccessAndRejectedSelfLoop(t *testing.T) {
 }
 
 func TestCancelStatusContradictionFreezesAndMalformedEnvelopeRefuses(t *testing.T) {
+	t.Parallel()
 	for _, closed := range []bool{false, true} {
 		for _, code := range []int32{5, 6, 9, 3, 7, 14} {
 			if closed && code == 5 {
@@ -134,6 +138,7 @@ func TestCancelStatusContradictionFreezesAndMalformedEnvelopeRefuses(t *testing.
 }
 
 func TestObservationResultWireCompatibility(t *testing.T) {
+	t.Parallel()
 	for _, tc := range []struct {
 		value *realizationv1.Observation
 		wire  []byte
@@ -163,6 +168,7 @@ func TestObservationResultWireCompatibility(t *testing.T) {
 }
 
 func TestActualRequestIsRequiredForLiveBinding(t *testing.T) {
+	t.Parallel()
 	h := guest(t)
 	value := scheduled(t)
 	observation := new(realizationv1.Observation)
@@ -205,11 +211,64 @@ func unboundGuest(t *testing.T) *model.Host {
 	return h
 }
 
-func guest(t *testing.T, labels ...string) *model.Host {
+// freshGuest binds a newly instantiated guest through the production path.
+func freshGuest(t *testing.T, labels ...string) *model.Host {
 	t.Helper()
 	h := unboundGuest(t)
 	explained(t, judge(t, h, startObservation(t, 3, labels...)))
 	return h
+}
+
+// guest returns a clone of a guest bound by the three-attempt start observation, as
+// freshGuest binds it.
+func guest(t *testing.T, labels ...string) *model.Host {
+	t.Helper()
+	label := "Complete"
+	if len(labels) > 0 {
+		label = labels[0]
+	}
+	h, _ := templateClone(t, "start:"+label, prepareStart(startObservation(t, 3, label)))
+	return h
+}
+
+func prepareStart(start *anypb.Any) func(context.Context, *model.Host) (any, error) {
+	return func(ctx context.Context, h *model.Host) (any, error) {
+		response, err := h.Judge(ctx, &modelv1.JudgeRequest{Observation: start})
+		if err != nil {
+			return nil, err
+		}
+		if explained := response.GetExplained(); explained == nil || len(explained.Steps) != 0 || len(explained.Outcomes) != 0 {
+			return nil, fmt.Errorf("start judgment = %v, want an empty Explanation", response)
+		}
+		return nil, nil
+	}
+}
+
+// sameGuestAnswers requires two guests to answer every call identically, including refusals
+// and memory pages.
+func sameGuestAnswers(t *testing.T, cloned, fresh *model.Host, calls ...func(*model.Host) (proto.Message, error)) {
+	t.Helper()
+	for index, call := range calls {
+		want, wantErr := call(fresh)
+		got, gotErr := call(cloned)
+		if !proto.Equal(want, got) || fmt.Sprint(wantErr) != fmt.Sprint(gotErr) || cloned.Pages() != fresh.Pages() {
+			t.Fatalf("call %d: clone answered %v, %v (%d pages); fresh guest answered %v, %v (%d pages)", index, got, gotErr, cloned.Pages(), want, wantErr, fresh.Pages())
+		}
+	}
+}
+
+func judgeCall(value *anypb.Any) func(*model.Host) (proto.Message, error) {
+	return func(h *model.Host) (proto.Message, error) {
+		return h.Judge(context.Background(), &modelv1.JudgeRequest{Observation: value})
+	}
+}
+
+func resetCall(h *model.Host) (proto.Message, error) {
+	return h.Reset(context.Background(), &modelv1.ResetRequest{})
+}
+
+func exploreCall(h *model.Host) (proto.Message, error) {
+	return h.Explore(context.Background(), &modelv1.ExploreRequest{Budget: 64})
 }
 
 func pack(t *testing.T, message proto.Message) *anypb.Any {
@@ -306,6 +365,7 @@ func reset(t *testing.T, h *model.Host) {
 }
 
 func TestObservedDeliveryAndTerminal(t *testing.T) {
+	t.Parallel()
 	for _, tc := range []struct {
 		name   string
 		status enumspb.ActivityExecutionStatus
@@ -315,6 +375,7 @@ func TestObservedDeliveryAndTerminal(t *testing.T) {
 		{"Fail", enumspb.ACTIVITY_EXECUTION_STATUS_FAILED, "Worker::RespondFailed { retryable: false }"},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 			for _, skipStarted := range []bool{false, true} {
 				h := guest(t, tc.name)
 				explained(t, judge(t, h, scheduled(t)))
@@ -332,6 +393,7 @@ func TestObservedDeliveryAndTerminal(t *testing.T) {
 }
 
 func TestImpossibleObservationFreezesUntilReset(t *testing.T) {
+	t.Parallel()
 	for _, tc := range []struct {
 		name     string
 		before   func(*testing.T, *model.Host)
@@ -345,6 +407,7 @@ func TestImpossibleObservationFreezesUntilReset(t *testing.T) {
 		}, func(t *testing.T) *anypb.Any { return observation(t, enumspb.ACTIVITY_EXECUTION_STATUS_FAILED, 0) }, []string{"Client::Cancel"}},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 			h := guest(t)
 			if tc.before != nil {
 				tc.before(t, h)
@@ -365,6 +428,7 @@ func TestImpossibleObservationFreezesUntilReset(t *testing.T) {
 }
 
 func TestObservationRefusalPreservesScheduled(t *testing.T) {
+	t.Parallel()
 	for _, tc := range []struct {
 		name  string
 		value func(*testing.T) *anypb.Any
@@ -411,6 +475,7 @@ func TestObservationRefusalPreservesScheduled(t *testing.T) {
 		}, modelv1.RefusalCode_REFUSAL_CODE_MALFORMED_REQUEST},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 			h := guest(t)
 			_, err := h.Judge(context.Background(), &modelv1.JudgeRequest{Observation: tc.value(t)})
 			refusal(t, err, tc.code)
@@ -422,6 +487,7 @@ func TestObservationRefusalPreservesScheduled(t *testing.T) {
 }
 
 func TestCancelAndTimeoutDoNotInventEvidence(t *testing.T) {
+	t.Parallel()
 	for _, tc := range []struct {
 		name      string
 		delivered bool
@@ -433,6 +499,7 @@ func TestCancelAndTimeoutDoNotInventEvidence(t *testing.T) {
 		{"start to close timeout", true, enumspb.ACTIVITY_EXECUTION_STATUS_TIMED_OUT},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 			h := guest(t)
 			if tc.delivered {
 				deliver(t, h)
@@ -449,7 +516,21 @@ func TestCancelAndTimeoutDoNotInventEvidence(t *testing.T) {
 }
 
 func TestRepeatedDeliveryAndInstanceIsolation(t *testing.T) {
-	first, second := guest(t), guest(t, "Fail")
+	t.Parallel()
+	first, second := freshGuest(t), freshGuest(t, "Fail")
+	// Each start template's clone answers exactly as a freshly bound guest.
+	for _, label := range []string{"Complete", "Fail"} {
+		t.Run("clone "+label, func(t *testing.T) {
+			t.Parallel()
+			terminal := enumspb.ACTIVITY_EXECUTION_STATUS_COMPLETED
+			if label == "Fail" {
+				terminal = enumspb.ACTIVITY_EXECUTION_STATUS_FAILED
+			}
+			sameGuestAnswers(t, guest(t, label), freshGuest(t, label),
+				judgeCall(scheduled(t)), judgeCall(started(t)), judgeCall(observation(t, terminal, 0)),
+				judgeCall(cancelObservation(t, 5)), judgeCall(scheduled(t)), resetCall, exploreCall)
+		})
+	}
 	deliver(t, first)
 	_, err := first.Answer(context.Background(), &modelv1.AnswerRequest{Callback: callback(t, "Fail")})
 	refusal(t, err, modelv1.RefusalCode_REFUSAL_CODE_UNSUPPORTED)
@@ -465,6 +546,7 @@ func TestRepeatedDeliveryAndInstanceIsolation(t *testing.T) {
 }
 
 func TestStartReceiptBindsExactCapturedBytesAndRunInWasm(t *testing.T) {
+	t.Parallel()
 	h := unboundGuest(t)
 	ctx := context.Background()
 	captured := startObservation(t, 2)
@@ -524,6 +606,7 @@ func TestStartReceiptBindsExactCapturedBytesAndRunInWasm(t *testing.T) {
 }
 
 func TestTemporalAnswerUnsupported(t *testing.T) {
+	t.Parallel()
 	h := guest(t)
 	_, err := h.Answer(context.Background(), &modelv1.AnswerRequest{Callback: callback(t, "Complete")})
 	refusal(t, err, modelv1.RefusalCode_REFUSAL_CODE_UNSUPPORTED)

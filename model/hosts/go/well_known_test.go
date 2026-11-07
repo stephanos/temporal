@@ -13,6 +13,7 @@ import (
 
 // These current wire values are also checked by the Rust native-type controls.
 func TestNativeWellKnownPresence(t *testing.T) {
+	t.Parallel()
 	t.Run("Empty oneof", func(t *testing.T) {
 		present := &workflowpb.PendingActivityInfo{
 			AssignedBuildId: &workflowpb.PendingActivityInfo_UseWorkflowBuildId{
