@@ -101,6 +101,11 @@ print_stderr = "warn"
 debug = "line-tables-only"
 overflow-checks = true
 
+# Gate custody hashes every admitted source file and the resolved mise binary in each
+# stage controller; unoptimized SHA-256 made that the bulk of per-stage start-up.
+[profile.dev.package.sha2]
+opt-level = 3
+
 [profile.test]
 debug = "line-tables-only"
 overflow-checks = true
