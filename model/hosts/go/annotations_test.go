@@ -15,6 +15,7 @@ import (
 )
 
 func TestAnnotationsPreserveFrozenModelAndActualResponseBytes(t *testing.T) {
+	t.Parallel()
 	h := guest(t)
 	frozen := judge(t, h, observation(t, enumspb.ACTIVITY_EXECUTION_STATUS_CANCELED, 0))
 	unexplained(t, frozen, "Client::Cancel", "Worker::Poll(1)", "Worker::Poll(2)", "Worker::Poll(3)", "Worker::RespondCanceled(2)", "Worker::RespondCanceled(3)")
@@ -46,6 +47,7 @@ func TestAnnotationsPreserveFrozenModelAndActualResponseBytes(t *testing.T) {
 }
 
 func TestAnnotationRefusalsLeaveWasmHostUsable(t *testing.T) {
+	t.Parallel()
 	h := guest(t)
 	for _, tc := range []struct {
 		method string

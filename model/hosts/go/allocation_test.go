@@ -2,6 +2,7 @@ package temporal_test
 
 import (
 	"context"
+	"sync"
 	"testing"
 
 	annotationsv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/annotations/v1"
@@ -20,24 +21,41 @@ type rawGuest struct {
 	module api.Module
 }
 
-func newRawGuest(t *testing.T) *rawGuest {
-	t.Helper()
+// rawRuntime compiles the guest once per test process beside the full WASI module; each raw
+// guest is an independent anonymous instance of that compiled module.
+var rawRuntime = sync.OnceValues(func() (rawCompilation, error) {
 	ctx := context.Background()
 	runtime := wazero.NewRuntimeWithConfig(ctx, wazero.NewRuntimeConfigInterpreter().
 		WithCoreFeatures(api.CoreFeaturesV2|experimental.CoreFeaturesExceptionHandling).
 		WithMemoryLimitPages(1024))
-	t.Cleanup(func() {
-		if err := runtime.Close(ctx); err != nil {
-			t.Error(err)
-		}
-	})
 	if _, err := wasi_snapshot_preview1.Instantiate(ctx, runtime); err != nil {
-		t.Fatal(err)
+		return rawCompilation{}, err
 	}
-	module, err := runtime.InstantiateWithConfig(ctx, temporalmodel.Guest(), wazero.NewModuleConfig().WithStartFunctions())
+	compiled, err := runtime.CompileModule(ctx, temporalmodel.Guest())
+	return rawCompilation{runtime, compiled}, err
+})
+
+type rawCompilation struct {
+	runtime  wazero.Runtime
+	compiled wazero.CompiledModule
+}
+
+func newRawGuest(t *testing.T) *rawGuest {
+	t.Helper()
+	ctx := context.Background()
+	raw, err := rawRuntime()
 	if err != nil {
 		t.Fatal(err)
 	}
+	module, err := raw.runtime.InstantiateModule(ctx, raw.compiled, wazero.NewModuleConfig().WithName("").WithStartFunctions())
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() {
+		if err := module.Close(ctx); err != nil {
+			t.Error(err)
+		}
+	})
 	return &rawGuest{module: module}
 }
 
@@ -137,6 +155,7 @@ func (g *rawGuest) judge(t *testing.T, observation *anypb.Any) *modelv1.JudgeRes
 }
 
 func TestTemporalResponseExhaustionRollsBackState(t *testing.T) {
+	t.Parallel()
 	for _, tc := range []struct {
 		name              string
 		delivered, frozen bool
@@ -158,6 +177,7 @@ func TestTemporalResponseExhaustionRollsBackState(t *testing.T) {
 		{"annotate frozen", true, true, modelv1.Method_METHOD_ANNOTATE, annotationPoll},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 			g := newRawGuest(t)
 			g.judge(t, startObservation(t, 3))
 			matching := scheduled(t)
@@ -193,8 +213,10 @@ func annotationPoll(t *testing.T) proto.Message {
 }
 
 func TestTemporalWorldTransactionsSurviveActualResponseExhaustion(t *testing.T) {
+	t.Parallel()
 	for _, operation := range []string{"success", "freeze", "reset live", "reset freeze"} {
 		t.Run(operation, func(t *testing.T) {
+			t.Parallel()
 			g := newRawGuest(t)
 			attempts := int32(1)
 			if operation == "freeze" || operation == "reset freeze" {

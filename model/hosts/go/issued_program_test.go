@@ -14,6 +14,7 @@ import (
 )
 
 func TestIssuedProgramAdmissionControls(t *testing.T) {
+	t.Parallel()
 	original := programfixture.Issue(t, receiptNamespace, "queue", "ModelSlice")
 	for _, control := range []string{"missing-heartbeat-child", "zero-attempt", "malformed-key", "multiple-payloads"} {
 		t.Run(control, func(t *testing.T) {

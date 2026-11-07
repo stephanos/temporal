@@ -23,6 +23,7 @@ import (
 )
 
 func TestEmbeddedProbeContextsSurviveResetAndIndependentHosts(t *testing.T) {
+	t.Parallel()
 	hosts := []*model.Host{guest(t), guest(t)}
 	coldPages := hosts[1].Pages()
 	seen := make(map[[2]int]*annotationsv1.ProbeResponse)
@@ -119,6 +120,7 @@ func (*probeConnection) NewStream(context.Context, *grpc.StreamDesc, string, ...
 }
 
 func TestProbeLocalRefusalNeverBecomesServerObservation(t *testing.T) {
+	t.Parallel()
 	connection := new(probeConnection)
 	response, err := temporalmodel.DispatchProbe(context.Background(), connection, &annotationsv1.ProbeResponse{
 		Method: workflowservice.WorkflowService_StartActivityExecution_FullMethodName,
@@ -130,6 +132,7 @@ func TestProbeLocalRefusalNeverBecomesServerObservation(t *testing.T) {
 }
 
 func TestProbeRecipeExpansionAndRefusals(t *testing.T) {
+	t.Parallel()
 	large := bytes.Repeat([]byte{'x'}, 2<<20+1)
 	hash := fnv.New64a()
 	_, _ = hash.Write(large)
@@ -164,6 +167,7 @@ func TestProbeRecipeExpansionAndRefusals(t *testing.T) {
 }
 
 func TestProbeObservationPatternAndDetails(t *testing.T) {
+	t.Parallel()
 	testCase := &annotationsv1.ProbeCase{Id: "case", Code: 3, MessagePattern: "too long|invalid"}
 	for _, tc := range []struct {
 		pattern string
@@ -203,6 +207,7 @@ func TestProbeObservationPatternAndDetails(t *testing.T) {
 }
 
 func TestGenericProbeObservationMatchesEachPredictionWithoutValues(t *testing.T) {
+	t.Parallel()
 	const private = "private-request-token-error"
 	testCase := &annotationsv1.ProbeCase{
 		Id: "generic-case", Generic: true,
@@ -229,6 +234,7 @@ func TestGenericProbeObservationMatchesEachPredictionWithoutValues(t *testing.T)
 }
 
 func TestProbeMetadataAdmissionAndRetiredWireFields(t *testing.T) {
+	t.Parallel()
 	valid := &annotationsv1.ProbeCase{Id: "generic-case", Generic: true, Predictions: []*annotationsv1.ProbeExpectation{{Id: "generic-case::prediction:claim"}}}
 	for _, change := range []func(*annotationsv1.ProbeCase){
 		func(c *annotationsv1.ProbeCase) { c.Applicability = 99 },

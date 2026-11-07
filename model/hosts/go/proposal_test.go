@@ -3,7 +3,9 @@ package temporal_test
 import (
 	"context"
 	"errors"
+	"fmt"
 	"slices"
+	"sync"
 	"testing"
 
 	modelv1 "github.com/temporalio/umpire/hosts/go/gen/umpire/model/v1"
@@ -17,35 +19,68 @@ import (
 	temporalv1 "umpire.local/temporal/umpire/temporal/v1"
 )
 
+// configuredBootstrap is the bootstrap proposal and issued program of a configured guest
+// template; callers receive copies.
+type configuredBootstrap struct {
+	bootstrap *modelv1.ProposeResponse
+	program   *temporalv1.WorkerProgram
+}
+
+var configuredBootstraps sync.Map // uint64 -> *configuredBootstrap
+
 func configuredGuest(t *testing.T, seed uint64) (*model.Host, *modelv1.ProposeResponse, *temporalv1.WorkerProgram) {
 	t.Helper()
-	h := unboundGuest(t)
+	label := []string{"Complete", "RetryThenComplete", "Fail"}[seed]
 	captured := new(realizationv1.Observation)
 	if err := startObservation(t, 3).UnmarshalTo(captured); err != nil {
 		t.Fatal(err)
 	}
-	reset, err := h.Reset(context.Background(), &modelv1.ResetRequest{Configuration: captured.GetRequest()})
-	if err != nil {
-		t.Fatal(err)
-	}
-	program := new(temporalv1.WorkerProgram)
-	if err := reset.GetProgram().UnmarshalTo(program); err != nil {
-		t.Fatal(err)
-	}
-	label := []string{"Complete", "RetryThenComplete", "Fail"}[seed]
-	names := programPolicyNames(t, program)
-	index := slices.Index(names, witnessName(label))
-	if index < 0 {
-		t.Fatalf("missing witness %s", label)
-	}
-	seed = uint64(index)
-	bootstrap, err := h.Propose(context.Background(), &modelv1.ProposeRequest{Seed: seed})
-	if err != nil || bootstrap.GetKind() != modelv1.ProposalKind_PROPOSAL_KIND_BOOTSTRAP || bootstrap.GetAction() != "" {
-		t.Fatalf("bootstrap: %v %v", bootstrap, err)
-	}
-	captured.Request = bootstrap.GetRequest()
-	explained(t, judge(t, h, pack(t, captured)))
-	return h, bootstrap, program
+	entry, _ := configuredBootstraps.LoadOrStore(seed, new(configuredBootstrap))
+	prepared := entry.(*configuredBootstrap)
+	h := templateClone(t, fmt.Sprintf("configured:%d", seed), func(ctx context.Context, h *model.Host) error {
+		reset, err := h.Reset(ctx, &modelv1.ResetRequest{Configuration: captured.GetRequest()})
+		if err != nil {
+			return err
+		}
+		program := new(temporalv1.WorkerProgram)
+		if err := reset.GetProgram().UnmarshalTo(program); err != nil {
+			return err
+		}
+		var names []string
+		for _, rule := range program.GetRules() {
+			key := new(temporalv1.ActivityTaskKey)
+			if err := rule.GetKey().UnmarshalTo(key); err != nil {
+				return err
+			}
+			if !slices.Contains(names, key.GetScenario()) {
+				names = append(names, key.GetScenario())
+			}
+		}
+		index := slices.Index(names, witnessName(label))
+		if index < 0 {
+			return fmt.Errorf("missing witness %s", label)
+		}
+		bootstrap, err := h.Propose(ctx, &modelv1.ProposeRequest{Seed: uint64(index)})
+		if err != nil || bootstrap.GetKind() != modelv1.ProposalKind_PROPOSAL_KIND_BOOTSTRAP || bootstrap.GetAction() != "" {
+			return fmt.Errorf("bootstrap: %v %v", bootstrap, err)
+		}
+		bound := proto.Clone(captured).(*realizationv1.Observation)
+		bound.Request = bootstrap.GetRequest()
+		packed, err := anypb.New(bound)
+		if err != nil {
+			return err
+		}
+		response, err := h.Judge(ctx, &modelv1.JudgeRequest{Observation: packed})
+		if err != nil {
+			return err
+		}
+		if explained := response.GetExplained(); explained == nil || len(explained.Steps) != 0 || len(explained.Outcomes) != 0 {
+			return fmt.Errorf("bootstrap judgment = %v, want an empty Explanation", response)
+		}
+		prepared.bootstrap, prepared.program = bootstrap, program
+		return nil
+	})
+	return h, proto.CloneOf(prepared.bootstrap), proto.CloneOf(prepared.program)
 }
 
 func programResponse(t *testing.T, program *temporalv1.WorkerProgram, scenario string, attempt int32) *anypb.Any {
@@ -97,6 +132,7 @@ func configuredObservation(t *testing.T, request *anypb.Any, value *anypb.Any, p
 }
 
 func TestConfiguredProposalNativeWasmParity(t *testing.T) {
+	t.Parallel()
 	ctx := context.Background()
 	h, bootstrap, program := configuredGuest(t, 0)
 	seed := &modelv1.ProposeRequest{Seed: 1}
@@ -160,8 +196,10 @@ func TestConfiguredProposalNativeWasmParity(t *testing.T) {
 }
 
 func TestProposalReviewedRaces(t *testing.T) {
+	t.Parallel()
 	for _, scenario := range []string{"retry before first Started read", "Describe cannot finish Cancel"} {
 		t.Run(scenario, func(t *testing.T) {
+			t.Parallel()
 			ctx := context.Background()
 			bootstrapSeed := uint64(0)
 			if scenario == "retry before first Started read" {
@@ -219,6 +257,7 @@ func TestProposalReviewedRaces(t *testing.T) {
 }
 
 func TestOpenCancellationRequiresPollContainment(t *testing.T) {
+	t.Parallel()
 	for _, seed := range []uint64{0, 2} {
 		h, _, _ := configuredGuest(t, 0)
 		proposal, err := h.Propose(context.Background(), &modelv1.ProposeRequest{Seed: seed})

@@ -20,6 +20,7 @@ import (
 )
 
 func TestResetProgramRowsAndScenarioHeader(t *testing.T) {
+	t.Parallel()
 	ctx := context.Background()
 	for attempts := int32(1); attempts <= 3; attempts++ {
 		h := unboundGuest(t)
