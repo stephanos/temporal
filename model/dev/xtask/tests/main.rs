@@ -103,10 +103,11 @@ printf '%s\n' fmt-returning >> "$CONTROL_PHASE_LOG"
 exit "$CONTROL_STATUS"
 "#,
     );
-    let _lease = xtask::gate::lease::JvmLease::inherited_or_acquire().unwrap();
-    for expected in [0, 37] {
-        let phases = f.root.join(format!("fmt-phases-{expected}"));
+    // Returns whether the child exited before `deadline`, its output, phases and elapsed time.
+    let run = |label: &str, expected: i32, log: &Path, deadline: std::time::Duration| {
+        let phases = f.root.join(format!("fmt-phases-{label}"));
         fs::write(&phases, b"").unwrap();
+        let started = std::time::Instant::now();
         let mut child = Command::new(env!("CARGO_BIN_EXE_temporal-xtask"))
             .arg("fmt")
             .current_dir(&f.model)
@@ -119,29 +120,42 @@ exit "$CONTROL_STATUS"
             .env("CARGO_TARGET_DIR", f.root.join("target"))
             .env("CONTROL_FRAMEWORK", framework_root().canonicalize().unwrap())
             .env("CONTROL_NATIVE", &native)
-            .env("CONTROL_LOG", f.root.join("fmt-calls"))
+            .env("CONTROL_LOG", log)
             .env("CONTROL_PHASE_LOG", &phases)
             .env("CONTROL_STATUS", expected.to_string())
             .stdout(std::process::Stdio::piped())
             .stderr(std::process::Stdio::piped())
             .spawn()
             .unwrap();
-        let deadline = std::time::Instant::now() + std::time::Duration::from_secs(5);
         let completed = loop {
             if child.try_wait().unwrap().is_some() {
                 break true;
             }
-            if std::time::Instant::now() >= deadline {
+            if started.elapsed() >= deadline {
                 child.kill().unwrap();
                 break false;
             }
             std::thread::sleep(std::time::Duration::from_millis(10));
         };
+        let elapsed = started.elapsed();
         let output = child.wait_with_output().unwrap();
-        let phases = fs::read_to_string(phases).unwrap();
+        (completed, output, fs::read_to_string(phases).unwrap(), elapsed)
+    };
+    // A lease wait never ends while this test holds the lease, so any bound separates it from
+    // completion. Scale the bound from the same command run without the held lease, so host
+    // load slows both alike; a healthy run returns as soon as it exits.
+    let unbounded = std::time::Duration::from_secs(300);
+    let (completed, output, phases, reference) =
+        run("reference", 0, &f.root.join("reference-calls"), unbounded);
+    assert!(completed && output.status.code() == Some(0), "{output:?}; phases={phases:?}");
+    let deadline = std::time::Duration::from_secs(30) + reference * 4;
+    let _lease = xtask::gate::lease::JvmLease::inherited_or_acquire().unwrap();
+    for expected in [0, 37] {
+        let (completed, output, phases, elapsed) =
+            run(&expected.to_string(), expected, &f.root.join("fmt-calls"), deadline);
         assert!(
             completed,
-            "public bridge fmt waited for the unrelated host lease: {output:?}; expected={expected}; public_exit_before_deadline={completed}; phases={phases:?}"
+            "public bridge fmt waited for the unrelated host lease: {output:?}; expected={expected}; public_exit_before_deadline={completed}; elapsed={elapsed:?}; unleased_reference={reference:?}; phases={phases:?}"
         );
         assert_eq!(
             output.status.code(),
