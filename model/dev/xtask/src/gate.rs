@@ -784,6 +784,19 @@ mod tests {
             "tests",
             "wasm-guest",
         ];
+        // Exactly the Temporal target users declare the Cargo resource that small hosts
+        // serialize host-wide with the framework's.
+        let declared: BTreeSet<_> = tasks
+            .iter()
+            .filter(|(_, task)| {
+                task.get("env")
+                    .and_then(|env| env.get("UMPIRE_GATE_RESOURCE"))
+                    .and_then(toml::Value::as_str)
+                    == Some("cargo")
+            })
+            .map(|(name, _)| name.trim_start_matches("model:").to_owned())
+            .collect();
+        assert_eq!(declared, target.iter().map(|stage| (*stage).to_owned()).collect());
         for (index, left) in target.iter().enumerate() {
             for right in &target[index + 1..] {
                 let (left, right) = (format!("model:{left}"), format!("model:{right}"));

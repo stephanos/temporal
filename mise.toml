@@ -37,6 +37,7 @@ run = 'exec "$UMPIRE_TEMPORAL_GATE_EXECUTABLE" gate --scheduled-stage temporal-p
 [tasks."model:temporal-guest-freshness"]
 depends = ["model:temporal-prerequisites"]
 env.UMPIRE_GATE_STAGE = "temporal-guest-freshness"
+env.UMPIRE_GATE_RESOURCE = "cargo"
 env.UMPIRE_GATE_ORDER = "1"
 env.UMPIRE_GATE_SCOPE = "temporal"
 dir = "{{env.UMPIRE_TEMPORAL_ROOT}}"
@@ -52,6 +53,7 @@ run = 'exec "$UMPIRE_TEMPORAL_GATE_EXECUTABLE" gate --scheduled-stage retired-na
 [tasks."model:timing-controls"]
 depends = ["model:temporal-guest-freshness"]
 env.UMPIRE_GATE_STAGE = "timing-controls"
+env.UMPIRE_GATE_RESOURCE = "cargo"
 env.UMPIRE_GATE_ORDER = "3"
 env.UMPIRE_GATE_SCOPE = "temporal"
 dir = "{{env.UMPIRE_TEMPORAL_ROOT}}"
@@ -60,6 +62,7 @@ run = 'exec "$UMPIRE_TEMPORAL_GATE_EXECUTABLE" gate --scheduled-stage timing-con
 [tasks."model:source-boundary"]
 depends = ["model:timing-controls"]
 env.UMPIRE_GATE_STAGE = "source-boundary"
+env.UMPIRE_GATE_RESOURCE = "cargo"
 env.UMPIRE_GATE_ORDER = "4"
 env.UMPIRE_GATE_SCOPE = "temporal"
 dir = "{{env.UMPIRE_TEMPORAL_ROOT}}"
@@ -68,6 +71,7 @@ run = 'exec "$UMPIRE_TEMPORAL_GATE_EXECUTABLE" gate --scheduled-stage source-bou
 [tasks."model:protobuf-controls"]
 depends = ["model:source-boundary"]
 env.UMPIRE_GATE_STAGE = "protobuf-controls"
+env.UMPIRE_GATE_RESOURCE = "cargo"
 env.UMPIRE_GATE_ORDER = "5"
 env.UMPIRE_GATE_SCOPE = "temporal"
 dir = "{{env.UMPIRE_TEMPORAL_ROOT}}"
@@ -91,6 +95,7 @@ run = 'exec "$UMPIRE_TEMPORAL_GATE_EXECUTABLE" gate --scheduled-stage fmt'
 [tasks."model:clippy"]
 depends = ["model:protobuf-controls", "model:temporal-protobuf-freshness"]
 env.UMPIRE_GATE_STAGE = "clippy"
+env.UMPIRE_GATE_RESOURCE = "cargo"
 env.UMPIRE_GATE_ORDER = "8"
 env.UMPIRE_GATE_SCOPE = "temporal"
 dir = "{{env.UMPIRE_TEMPORAL_ROOT}}"
@@ -99,6 +104,7 @@ run = 'exec "$UMPIRE_TEMPORAL_GATE_EXECUTABLE" gate --scheduled-stage clippy'
 [tasks."model:docs"]
 depends = ["model:clippy"]
 env.UMPIRE_GATE_STAGE = "docs"
+env.UMPIRE_GATE_RESOURCE = "cargo"
 env.UMPIRE_GATE_ORDER = "9"
 env.UMPIRE_GATE_SCOPE = "temporal"
 dir = "{{env.UMPIRE_TEMPORAL_ROOT}}"
@@ -107,6 +113,7 @@ run = 'exec "$UMPIRE_TEMPORAL_GATE_EXECUTABLE" gate --scheduled-stage docs'
 [tasks."model:tests"]
 depends = ["model:docs"]
 env.UMPIRE_GATE_STAGE = "tests"
+env.UMPIRE_GATE_RESOURCE = "cargo"
 env.UMPIRE_GATE_ORDER = "10"
 env.UMPIRE_GATE_SCOPE = "temporal"
 dir = "{{env.UMPIRE_TEMPORAL_ROOT}}"
@@ -115,6 +122,7 @@ run = 'exec "$UMPIRE_TEMPORAL_GATE_EXECUTABLE" gate --scheduled-stage tests'
 [tasks."model:wasm-guest"]
 depends = ["model:tests"]
 env.UMPIRE_GATE_STAGE = "wasm-guest"
+env.UMPIRE_GATE_RESOURCE = "cargo"
 env.UMPIRE_GATE_ORDER = "11"
 env.UMPIRE_GATE_SCOPE = "temporal"
 dir = "{{env.UMPIRE_TEMPORAL_ROOT}}"
