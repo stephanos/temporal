@@ -26,4 +26,4 @@ empty::action_metadata!(umpire_temporal::registry; empty; {
     #[registry(inputs = ())]
     impl Empty {}
 });
-fn main() {}
+pub(crate) fn main() {}

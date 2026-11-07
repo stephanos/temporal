@@ -1,4 +1,8 @@
-mod foundation { pub(crate) mod dc { pub(crate) struct Limits; } }
+mod foundation {
+    pub(crate) mod dc {
+        pub(crate) struct Limits;
+    }
+}
 use umpire_catalog::{Catalog, kinds::*};
 use umpire_temporal_api::temporal::api::common::v1::WorkflowExecution;
 #[derive(Catalog)]
@@ -7,7 +11,7 @@ struct Execution {
     workflow_id: Identifier,
     run_id: Uuid,
 }
-fn main() -> Result<(), Box<dyn std::error::Error>> {
+pub(crate) fn main() -> Result<(), Box<dyn std::error::Error>> {
     let catalog = Execution::catalog(&foundation::dc::Limits)?;
     let message = WorkflowExecution {
         workflow_id: "workflow".into(),
@@ -17,5 +21,5 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
-type CatalogContext = foundation::dc::Limits;
+pub(crate) type CatalogContext = foundation::dc::Limits;
 pub use umpire_temporal_api::temporal;

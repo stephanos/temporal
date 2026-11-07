@@ -302,12 +302,30 @@ fn registry_admission_uses_actual_inventory_descriptor_edges_and_rust_types() {
     );
 }
 
+#[path = "ui-pass/registry_empty.rs"]
+#[allow(
+    dead_code,
+    unreachable_pub,
+    clippy::all,
+    clippy::pedantic,
+    reason = "valid consumer shapes follow the macro contracts and were never linted as trybuild cases"
+)]
+mod registry_empty;
+#[path = "ui-pass/registry_refines.rs"]
+#[allow(
+    dead_code,
+    unreachable_pub,
+    clippy::all,
+    clippy::pedantic,
+    reason = "valid consumer shapes follow the macro contracts and were never linted as trybuild cases"
+)]
+mod registry_refines;
+
+/// The valid consumers compile as modules of this binary; running them repeats their checks.
 #[test]
 fn registry_admission_accepts_valid_consumers() {
-    compiler::run("registry::registry_admission_accepts_valid_consumers", || {
-        let tests = trybuild::TestCases::new();
-        tests.pass("tests/ui-pass/registry_*.rs");
-    });
+    registry_empty::main();
+    registry_refines::main();
 }
 
 #[path = "registry/reach.rs"]

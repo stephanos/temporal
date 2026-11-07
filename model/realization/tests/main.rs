@@ -14,6 +14,7 @@ mod annotations;
 mod catalog;
 #[allow(
     dead_code,
+    unreachable_pub,
     reason = "each former test binary uses a different subset of the shared fixtures"
 )]
 mod common;
@@ -22,6 +23,7 @@ mod compiler;
 mod declarative;
 #[allow(
     dead_code,
+    unreachable_pub,
     reason = "each former test binary uses a different subset of the shared oracles"
 )]
 mod oracles;
@@ -49,3 +51,15 @@ mod start_mirror;
 mod supplemental_admission;
 #[path = "support.rs"]
 mod support;
+
+// The generated API consumer's `Catalog` derive resolves its defaults at the crate root.
+#[path = "ui-pass/generated_api.rs"]
+#[allow(
+    dead_code,
+    unreachable_pub,
+    clippy::all,
+    clippy::pedantic,
+    reason = "valid consumer shapes follow the macro contracts and were never linted as trybuild cases"
+)]
+mod generated_api;
+use generated_api::{CatalogContext, temporal};
