@@ -152,8 +152,8 @@ tlc_launches = "not-applicable"
 tlc_configurations = "not-applicable"
 
 [stages."temporal/temporal-go-host"]
-reason = "Temporal Go host tests; observed 79.0 s, 92 executed; fn-267.5 adds 9 top-level Go tests (activityrelations plans, sanitizer, corpus, gofmt): renew discovered/executed 110->119 only (go test -list census)"
-warm_seconds = { check = 120.0, validate = 120.0 }
+reason = "Temporal Go host tests; observed 79.0 s, 92 executed; fn-267.5 adds 9 top-level Go tests (activityrelations plans, sanitizer, corpus, gofmt): renew discovered/executed 110->119 only (go test -list census); required (validate) tier renewed 120->135 warm only: fn-246.6 model-validate observed 171.7/171.2 s before and 158.9/154.6 s after shared guest compilation (check tier 148.5 s, unchanged 120); receipts goal-20261106/fn-246.6/validate-01, validate-02"
+warm_seconds = { check = 120.0, validate = 135.0 }
 discovered = 119
 executed = 119
 ignored = 5
