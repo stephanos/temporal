@@ -13,7 +13,7 @@ use umpire_runtime::{
 use umpire_temporal::annotation_runtime;
 use umpire_temporal_api::temporal::api::workflowservice::v1::StartActivityExecutionRequest;
 
-mod common;
+use crate::common;
 
 fn admission_judge(
     guest: &mut Guest<impl Dispatch>,

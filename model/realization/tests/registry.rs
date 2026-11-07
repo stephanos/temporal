@@ -1,7 +1,7 @@
 //! Synthetic consumers of the descriptor-admitted typed variant registry.
 #![forbid(unsafe_code)]
 
-mod compiler;
+use crate::compiler;
 #[path = "registry/missing_relations.rs"]
 mod missing_relations;
 
@@ -293,7 +293,7 @@ fn typed_bootstrap_and_read_hooks_keep_correlation_outside_the_action_graph() ->
 #[test]
 fn registry_admission_uses_actual_inventory_descriptor_edges_and_rust_types() {
     compiler::run(
-        "registry_admission_uses_actual_inventory_descriptor_edges_and_rust_types",
+        "registry::registry_admission_uses_actual_inventory_descriptor_edges_and_rust_types",
         || {
             let tests = trybuild::TestCases::new();
             // A pass case in this TestCases would disable trybuild's batched compile-fail check.
@@ -304,7 +304,7 @@ fn registry_admission_uses_actual_inventory_descriptor_edges_and_rust_types() {
 
 #[test]
 fn registry_admission_accepts_valid_consumers() {
-    compiler::run("registry_admission_accepts_valid_consumers", || {
+    compiler::run("registry::registry_admission_accepts_valid_consumers", || {
         let tests = trybuild::TestCases::new();
         tests.pass("tests/ui-pass/registry_*.rs");
     });

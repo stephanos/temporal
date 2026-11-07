@@ -19,7 +19,7 @@ use umpire_temporal_api::temporal::api::workflowservice::v1::{
     StartActivityExecutionRequest, StartActivityExecutionResponse,
 };
 
-mod common;
+use crate::common;
 use common::{RUN, describe, start};
 
 fn explained(response: protocol::Response) {

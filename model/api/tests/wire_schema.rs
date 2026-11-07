@@ -9,9 +9,7 @@ use umpire_temporal_api::{
     WorkflowServiceMethod, mutate_workflow_request, workflow_request_fields,
 };
 
-#[path = "../system.rs"]
-#[allow(dead_code, reason = "tests read only the system identity")]
-mod system;
+use crate::system;
 
 fn workflow() -> umpire_catalog_build::System<'static> {
     system::system(&std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../.."))

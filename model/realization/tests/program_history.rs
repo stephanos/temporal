@@ -1,6 +1,8 @@
 //! Programmed worker judgments use server result and failure evidence.
 #![forbid(unsafe_code)]
 
+use crate::common;
+use crate::oracles;
 use prost::Message;
 use umpire_runtime::AnyMessage as _;
 use umpire_runtime::{
@@ -20,9 +22,6 @@ use umpire_temporal_api::{
     },
     umpire::temporal::v1::{ActivityTaskKey, ObserveActivity, WorkerProgram},
 };
-mod common;
-#[allow(dead_code, reason = "shared oracle module also supplies policy oracles to other targets")]
-mod oracles;
 fn invoke(runtime: &mut impl Dispatch, method: u32, request: &impl Message) -> Outcome {
     let (response, transaction) = runtime.prepare(method, &request.encode_to_vec());
     if let Some(transaction) = transaction {
