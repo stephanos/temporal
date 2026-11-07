@@ -13,11 +13,10 @@ fn main() -> io::Result<()> {
             .ok_or_else(|| io::Error::other("CARGO_MANIFEST_DIR is missing"))?,
     )
     .join("../../..");
-    let catalogs = umpire_temporal_annotate_syntax::realization::catalog_inputs(
-        &system::system(&repository).catalog_root,
-    )
-    .map_err(io::Error::other)?;
-    for input in catalogs.directories.iter().chain(&catalogs.files) {
+    let root = system::system(&repository).catalog_root;
+    let catalogs = umpire_temporal_annotate_syntax::realization::catalog_inputs(&root)
+        .map_err(io::Error::other)?;
+    for input in catalogs.watched(&root)? {
         println!("cargo:rerun-if-changed={}", input.display());
     }
     system::link_descriptors(
