@@ -906,7 +906,7 @@ to the whole numerator or only to the binding sub-total.
 ### Required-mode finalization timing
 
 `make model-validate` ran one TLC-required full gate and one edited-checker inner loop
-at framework `23e6e7f` and Temporal `dbc0682ea9`. Apalache was skipped
+at framework `7be1190` and Temporal `e6c8e329b3` (this documentation commit follows them). Apalache was skipped
 (`UMPIRE_APALACHE=skip`). The committed guest was `hosts/go/umpire_temporal_guest.wasm`,
 sha256 `8a0f4f71aee5a27f816a5831326d475f4f28bee3a02c1c1bd435012bec93ad4c`. The fn-254 R6
 soft targets come from `dev/xtask/src/gate/budgets.toml`: check tier 180 s, validate tier
@@ -915,14 +915,13 @@ targets. A soft overrun is reported, not failed. A per-stage breach beyond warm 
 
 | Measurement | Result | Soft target |
 | --- | ---: | ---: |
-| Gate total (validate tier) | **[FN2466-PENDING: gate total s]** | 600 s |
-| Inner loop (edit+test) | **[FN2466-PENDING: inner loop s]** | 60 s |
-| Overrun status | **[FN2466-PENDING: over/within soft target]** | — |
-| Per-stage budget outcomes | **[FN2466-PENDING: stages passed / breaches]** | warm x 1.25 |
-| TLC launches / configurations (`framework/tests`, `temporal/tests`) | **[FN2466-PENDING: nonzero counts]** | — |
+| Gate total (validate tier) | 1708.1 s (validate tier invocation 1704.2 s) | 600 s |
+| Inner loop (edit+test) | 44.8 s | 60 s |
+| Overrun status | gate over soft target by 1104 s (reported, not failed); inner loop within | — |
+| Per-stage budget outcomes | 31/31 within budget; temporal-go-host 157.0 s under its renewed validate-tier warm budget (135 s x 1.25) | warm x 1.25 |
+| TLC launches / configurations (`framework/tests`, `temporal/tests`) | framework/tests >= 913 launches / >= 469 configurations; temporal/tests >= 677 / >= 494 | — |
 
-Receipt: **[FN2466-PENDING: `.flow/artifacts/goal-20261106/fn-246.6/final/` model-validate
-receipt and log path, exit status]**. The dated timings elsewhere in this file are
+Receipt: `.flow/artifacts/goal-20261106/fn-246.6/validate-03/` (`receipt.json` exit 0, 1783 s; `model-validate.log`); live slice and gaps rows passed in `.flow/artifacts/goal-20261106/fn-246.6/live-01/`. The dated timings elsewhere in this file are
 historical default-mode or earlier required-mode observations. They do not stand in
 for this receipt. The mandatory fn-237.4 cooperative/live/journal/gate and fn-243.5
 unheld/raw/SDK proof obligations stay open; this closure does not discharge them.
