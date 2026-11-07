@@ -11,7 +11,8 @@ slow-timeout = { period = "30s" }
 
 # Only fixtures tests that launch TLC under UMPIRE_BACKENDS=require join the group, so the
 # rest of the binary keeps CPU defaults. The list is the required-mode TLC execution census
-# (fn-254.32); a new TLC-launching fixtures test must be added here.
+# (fn-254.32); a new TLC-launching fixtures test must be added here, because required TLC
+# launches refuse outside the `jvm` group (umpire-tlc `test_group`).
 [[profile.default.overrides]]
 filter = '''
 package(=umpire-temporal-tests) & binary(=fixtures) & (
