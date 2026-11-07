@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"slices"
-	"sync"
 	"testing"
 	"time"
 
@@ -220,49 +219,6 @@ func freshGuest(t *testing.T, labels ...string) *model.Host {
 	return h
 }
 
-// guestTemplate is a guest prepared once per test process; tests receive clones of it.
-type guestTemplate struct {
-	once sync.Once
-	host *model.Host
-	err  error
-}
-
-var guestTemplates sync.Map // string -> *guestTemplate
-
-// templateClone clones the process-wide guest prepared under key. The first admission of
-// a three-attempt start computes its World inside the guest and dominates a fresh guest's
-// cost; a clone copies that state instead of recomputing it.
-func templateClone(t *testing.T, key string, prepare func(context.Context, *model.Host) error) *model.Host {
-	t.Helper()
-	entry, _ := guestTemplates.LoadOrStore(key, new(guestTemplate))
-	template := entry.(*guestTemplate)
-	template.once.Do(func() {
-		ctx := context.Background()
-		h, err := model.New(ctx, temporalmodel.Guest())
-		if err == nil {
-			err = prepare(ctx, h)
-		}
-		if err != nil {
-			template.err = fmt.Errorf("prepare guest template %s: %w", key, err)
-			return
-		}
-		template.host = h
-	})
-	if template.err != nil {
-		t.Fatal(template.err)
-	}
-	h, err := template.host.Clone(context.Background())
-	if err != nil {
-		t.Fatal(err)
-	}
-	t.Cleanup(func() {
-		if err := h.Close(context.Background()); err != nil {
-			t.Error(err)
-		}
-	})
-	return h
-}
-
 // guest returns a clone of a guest bound by the three-attempt start observation, as
 // freshGuest binds it.
 func guest(t *testing.T, labels ...string) *model.Host {
@@ -271,17 +227,48 @@ func guest(t *testing.T, labels ...string) *model.Host {
 	if len(labels) > 0 {
 		label = labels[0]
 	}
-	start := startObservation(t, 3, label)
-	return templateClone(t, "start:"+label, func(ctx context.Context, h *model.Host) error {
+	h, _ := templateClone(t, "start:"+label, prepareStart(startObservation(t, 3, label)))
+	return h
+}
+
+func prepareStart(start *anypb.Any) func(context.Context, *model.Host) (any, error) {
+	return func(ctx context.Context, h *model.Host) (any, error) {
 		response, err := h.Judge(ctx, &modelv1.JudgeRequest{Observation: start})
 		if err != nil {
-			return err
+			return nil, err
 		}
 		if explained := response.GetExplained(); explained == nil || len(explained.Steps) != 0 || len(explained.Outcomes) != 0 {
-			return fmt.Errorf("start judgment = %v, want an empty Explanation", response)
+			return nil, fmt.Errorf("start judgment = %v, want an empty Explanation", response)
 		}
-		return nil
-	})
+		return nil, nil
+	}
+}
+
+// sameGuestAnswers requires two guests to answer every call identically, including refusals
+// and memory pages.
+func sameGuestAnswers(t *testing.T, cloned, fresh *model.Host, calls ...func(*model.Host) (proto.Message, error)) {
+	t.Helper()
+	for index, call := range calls {
+		want, wantErr := call(fresh)
+		got, gotErr := call(cloned)
+		if !proto.Equal(want, got) || fmt.Sprint(wantErr) != fmt.Sprint(gotErr) || cloned.Pages() != fresh.Pages() {
+			t.Fatalf("call %d: clone answered %v, %v (%d pages); fresh guest answered %v, %v (%d pages)", index, got, gotErr, cloned.Pages(), want, wantErr, fresh.Pages())
+		}
+	}
+}
+
+func judgeCall(value *anypb.Any) func(*model.Host) (proto.Message, error) {
+	return func(h *model.Host) (proto.Message, error) {
+		return h.Judge(context.Background(), &modelv1.JudgeRequest{Observation: value})
+	}
+}
+
+func resetCall(h *model.Host) (proto.Message, error) {
+	return h.Reset(context.Background(), &modelv1.ResetRequest{})
+}
+
+func exploreCall(h *model.Host) (proto.Message, error) {
+	return h.Explore(context.Background(), &modelv1.ExploreRequest{Budget: 64})
 }
 
 func pack(t *testing.T, message proto.Message) *anypb.Any {
@@ -531,25 +518,18 @@ func TestCancelAndTimeoutDoNotInventEvidence(t *testing.T) {
 func TestRepeatedDeliveryAndInstanceIsolation(t *testing.T) {
 	t.Parallel()
 	first, second := freshGuest(t), freshGuest(t, "Fail")
-	// A template clone answers exactly as a freshly bound guest.
-	cloned, fresh := guest(t), freshGuest(t)
-	if cloned.Pages() != fresh.Pages() {
-		t.Fatalf("clone pages = %d, want %d", cloned.Pages(), fresh.Pages())
-	}
-	for _, value := range []*anypb.Any{scheduled(t), started(t), observation(t, enumspb.ACTIVITY_EXECUTION_STATUS_COMPLETED, 0), cancelObservation(t, 5), scheduled(t)} {
-		want, wantErr := fresh.Judge(context.Background(), &modelv1.JudgeRequest{Observation: value})
-		got, gotErr := cloned.Judge(context.Background(), &modelv1.JudgeRequest{Observation: value})
-		if !proto.Equal(want, got) || fmt.Sprint(wantErr) != fmt.Sprint(gotErr) {
-			t.Fatalf("clone judged %v, %v; fresh guest judged %v, %v", got, gotErr, want, wantErr)
-		}
-	}
-	for _, h := range []*model.Host{fresh, cloned} {
-		reset(t, h)
-	}
-	want, wantErr := fresh.Explore(context.Background(), &modelv1.ExploreRequest{Budget: 64})
-	got, gotErr := cloned.Explore(context.Background(), &modelv1.ExploreRequest{Budget: 64})
-	if wantErr != nil || gotErr != nil || !proto.Equal(want, got) || cloned.Pages() != fresh.Pages() {
-		t.Fatalf("clone explored %v, %v; fresh guest explored %v, %v", got, gotErr, want, wantErr)
+	// Each start template's clone answers exactly as a freshly bound guest.
+	for _, label := range []string{"Complete", "Fail"} {
+		t.Run("clone "+label, func(t *testing.T) {
+			t.Parallel()
+			terminal := enumspb.ACTIVITY_EXECUTION_STATUS_COMPLETED
+			if label == "Fail" {
+				terminal = enumspb.ACTIVITY_EXECUTION_STATUS_FAILED
+			}
+			sameGuestAnswers(t, guest(t, label), freshGuest(t, label),
+				judgeCall(scheduled(t)), judgeCall(started(t)), judgeCall(observation(t, terminal, 0)),
+				judgeCall(cancelObservation(t, 5)), judgeCall(scheduled(t)), resetCall, exploreCall)
+		})
 	}
 	deliver(t, first)
 	_, err := first.Answer(context.Background(), &modelv1.AnswerRequest{Callback: callback(t, "Fail")})
