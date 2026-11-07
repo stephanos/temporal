@@ -9,8 +9,34 @@ jvm = { max-threads = 2 }
 test-threads = "num-cpus"
 slow-timeout = { period = "30s" }
 
+# Only fixtures tests that launch TLC under UMPIRE_BACKENDS=require join the group, so the
+# rest of the binary keeps CPU defaults. The list is the required-mode TLC execution census
+# (fn-254.32); a new TLC-launching fixtures test must be added here, because required TLC
+# launches refuse outside the `jvm` group (umpire-tlc `test_group`).
 [[profile.default.overrides]]
-filter = 'package(=umpire-temporal-tests) & binary(=fixtures)'
+filter = '''
+package(=umpire-temporal-tests) & binary(=fixtures) & (
+    test(=fixtures)
+    | test(=standalone_activity_protocol_fixtures)
+    | test(=activity_tests::actual_tlc_agrees_and_replays_retry_payload_counterexamples)
+    | test(=activity_tests::actual_tlc_rejected_outcome_counterexample_replays_in_the_activity_model)
+    | test(=activity_tests::tlc_refutes_closure_law_mutants_of_this_source)
+    | test(/^activity_tests::policy_checks::deadline_worlds_agree_compiled_interpreted_and_required_tlc::slice_[0-9]+$/)
+    | test(=activity_tests::policy_checks::required_tlc_fact_only_mutants_fail_replay_on_the_same_pending_tick)
+    | test(=activity_tests::policy_checks::required_tlc_nonexpiring_tick_fact_leak_fails_exact_replay)
+    | test(=activity_tests::policy_checks::required_tlc_refutes_source_only_boundary_policy_mutants)
+    | test(=activity_tests::policy_checks::required_tlc_replays_both_pending_attempt_expiry_facts)
+    | test(=activity_tests::policy_checks::required_tlc_replays_both_pending_failure_payloads_at_every_attempt)
+    | test(=activity_tests::policy_checks::required_tlc_replays_timeout_retries_with_exact_cause_and_budget)
+    | test(=activity_tests::proof_checks::actual_tlc_global_tick_law_bundle_on_selected_worlds)
+    | test(=activity_tests::proof_checks::actual_tlc_selected_fairness_and_starvation_lassos)
+    | test(=activity_tests::proof_checks::source_only_atomic_started_cancel_is_refuted_natively_and_by_tlc)
+    | test(=activity_tests::proof_checks::source_only_global_budget_controls_keep_laws_and_discriminate)
+    | test(=activity_tests::proof_checks::source_only_timeout_retry_controls_discriminate_exact_edges)
+    | test(=protocol_fixtures::activity_tests::mutants::required_tlc_fact_counterexample_replays_and_refuses_changed_expiry_fact)
+    | test(=protocol_fixtures::activity_tests::selected_worlds_are_complete_compiled_interpreted_and_required_tlc_scopes)
+)
+'''
 test-group = "jvm"
 
 # Required-backend gates and standalone children select this profile. Four global

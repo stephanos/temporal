@@ -890,18 +890,76 @@ fn only_property(mut module: umpire_tla::Module, operator: &str) -> umpire_tla::
     module
 }
 
-#[test]
-fn selected_deadline_worlds_agree_compiled_interpreted_and_required_tlc() -> TestResult {
-    selected_deadline_worlds(0)
+/// Each slice takes every `SLICES`-th World, so slices run as independent (JVM-group) tests.
+/// Identity: the former `selected_deadline_worlds_…` (even World indices) is slices 0, 2, 4
+/// and 6; the former `remaining_deadline_worlds_…` (odd indices) is slices 1, 3, 5 and 7.
+mod deadline_worlds_agree_compiled_interpreted_and_required_tlc {
+    use super::{TestResult, deadline_world_selections, deadline_worlds};
+
+    pub(super) const SLICES: usize = 8;
+
+    #[test]
+    fn slice_0() -> TestResult {
+        deadline_worlds(0)
+    }
+
+    #[test]
+    fn slice_1() -> TestResult {
+        deadline_worlds(1)
+    }
+
+    #[test]
+    fn slice_2() -> TestResult {
+        deadline_worlds(2)
+    }
+
+    #[test]
+    fn slice_3() -> TestResult {
+        deadline_worlds(3)
+    }
+
+    #[test]
+    fn slice_4() -> TestResult {
+        deadline_worlds(4)
+    }
+
+    #[test]
+    fn slice_5() -> TestResult {
+        deadline_worlds(5)
+    }
+
+    #[test]
+    fn slice_6() -> TestResult {
+        deadline_worlds(6)
+    }
+
+    #[test]
+    fn slice_7() -> TestResult {
+        deadline_worlds(7)
+    }
+
+    #[test]
+    fn slices_partition_every_selected_world_once() {
+        let selections = deadline_world_selections();
+        assert_eq!(selections.len(), 33);
+        let mut covered = vec![0_usize; selections.len()];
+        for slice in 0..SLICES {
+            for index in super::slice_indices(slice, selections.len()) {
+                covered[index] += 1;
+            }
+        }
+        assert!(covered.iter().all(|count| *count == 1), "{covered:?}");
+        for (index, selection) in selections.iter().enumerate() {
+            assert_eq!(selections.iter().filter(|other| *other == selection).count(), 1, "{index}");
+        }
+    }
 }
 
-#[test]
-fn remaining_deadline_worlds_agree_compiled_interpreted_and_required_tlc() -> TestResult {
-    selected_deadline_worlds(1)
+fn slice_indices(slice: usize, len: usize) -> impl Iterator<Item = usize> {
+    (0..len).skip(slice).step_by(deadline_worlds_agree_compiled_interpreted_and_required_tlc::SLICES)
 }
 
-#[allow(clippy::print_stderr)]
-fn selected_deadline_worlds(partition: usize) -> TestResult {
+fn deadline_world_selections() -> Vec<(u8, [Option<u8>; 4])> {
     let mut selections = vec![(1, [None; 4]), (3, [None; 4])];
     for (maximum, ticks) in [(1, 1), (3, 3)] {
         for index in [0, 2] {
@@ -927,7 +985,14 @@ fn selected_deadline_worlds(partition: usize) -> TestResult {
         (3, [None, Some(3), None, None]),
         (3, [None, None, None, Some(3)]),
     ]);
-    for (maximum, deadlines) in selections.into_iter().skip(partition).step_by(2) {
+    selections
+}
+
+#[allow(clippy::print_stderr)]
+fn deadline_worlds(slice: usize) -> TestResult {
+    let selections = deadline_world_selections();
+    for index in slice_indices(slice, selections.len()) {
+        let (maximum, deadlines) = selections[index];
         let world = configured(maximum, deadlines);
         let graph = umpire_testing::Checker::explore(&world, 4096)?;
         assert!(!graph.counts.cut);
