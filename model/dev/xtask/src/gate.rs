@@ -1362,7 +1362,7 @@ if [ "$*" = "run --force --skip-tools --task-cache off --jobs 8 model:all" ]; th
 fi
 # The slow first attempt deferred its retry, which the invocation runs alone afterwards.
 if [ "$*" = "run --force --skip-tools --task-cache off --skip-deps --jobs 1 model:{stage}" ]; then
-  [ "$UMPIRE_GATE_DEFERRED_RETRY" = {stage} ] || exit 96
+  [ "$UMPIRE_GATE_DEFERRED_RETRY" = "$UMPIRE_GATE_RECEIPTS/{stage}" ] || exit 96
   UMPIRE_GATE_STAGE={stage} UMPIRE_GATE_CONTROL_STAGE={stage} "$UMPIRE_TEMPORAL_GATE_EXECUTABLE" --exact gate::tests::run_control_child --nocapture || exit $?
   exit 0
 fi
