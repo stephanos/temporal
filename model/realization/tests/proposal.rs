@@ -1,6 +1,7 @@
 //! Configured bootstrap, read correlation, and completion polling controls.
 #![forbid(unsafe_code)]
 
+use crate::common;
 use prost::Message;
 use umpire_runtime::AnyMessage as _;
 use umpire_runtime::protocol::{Method, RefusalCode};
@@ -16,7 +17,6 @@ use umpire_temporal_api::{
     temporal::api::workflowservice::v1::DescribeActivityExecutionRequest,
     umpire::temporal::v1::{ObserveActivity, TemporalInstruction},
 };
-mod common;
 
 fn configure(guest: &mut Guest<impl Dispatch>) -> protocol::ResetRequest {
     let request = protocol::ResetRequest { configuration: common::start(3).request };

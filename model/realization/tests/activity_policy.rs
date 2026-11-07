@@ -14,16 +14,8 @@ use umpire_temporal_api::temporal::api::workflowservice::v1::{
     RecordActivityTaskHeartbeatRequest, RespondActivityTaskCanceledRequest,
 };
 
-#[allow(
-    dead_code,
-    reason = "shared fixture module also supplies Describe fixtures to other targets"
-)]
-mod common;
-#[allow(
-    dead_code,
-    reason = "shared oracle module also supplies heartbeat oracles to other targets"
-)]
-mod oracles;
+use crate::common;
+use crate::oracles;
 use oracles::Inventory;
 
 fn edge(
@@ -374,7 +366,7 @@ fn retry_and_timer_world_matrix_keeps_independent_required_coverage() {
             assert_eq!(aliases.len(), usize::from(maximum - 1));
             for alias in aliases {
                 assert_ne!(alias.prior_histories[0], alias.prior_histories[1]);
-                assert_eq!(alias.next_key.heartbeat_history, []);
+                assert_eq!(alias.next_key.heartbeat_history, [false; 0]);
                 assert_ne!(alias.incompatible_choices[0], alias.incompatible_choices[1]);
                 let left = alias.paths[0].last().unwrap_or_else(|| panic!("left alias path"));
                 let right = alias.paths[1].last().unwrap_or_else(|| panic!("right alias path"));

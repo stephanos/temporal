@@ -2,11 +2,14 @@
 
 #![forbid(unsafe_code)]
 
-mod compiler;
+use crate::compiler;
 
 #[test]
 fn phase_conversion_requires_each_generated_enum_variant() {
-    compiler::run("phase_conversion_requires_each_generated_enum_variant", || {
-        trybuild::TestCases::new().compile_fail("tests/ui/phase_enum_addition.rs");
-    });
+    compiler::run(
+        "phase_exhaustiveness::phase_conversion_requires_each_generated_enum_variant",
+        || {
+            trybuild::TestCases::new().compile_fail("tests/ui/phase_enum_addition.rs");
+        },
+    );
 }

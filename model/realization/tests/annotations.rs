@@ -9,7 +9,7 @@ use umpire_runtime::annotations::AnnotationRequest;
 use umpire_runtime::annotations::AnnotationResponse;
 use umpire_runtime::annotations::ProbeResponse;
 
-mod common;
+use crate::common;
 
 use prost::Message;
 use umpire_runtime::{Dispatch, Guest, prost_types::Any, protocol};
@@ -25,7 +25,7 @@ use umpire_temporal_api::{
 fn annotation_route_admits_empty_successful_worker_polls() {
     let mut guest = Guest::new(annotation_runtime());
     let output = annotate(&mut guest, "PollActivityTaskQueue", true, &[]);
-    assert_eq!(output.message, []);
+    assert_eq!(output.message, [0_u8; 0]);
     assert_eq!(output.violations, Vec::<String>::new());
     assert_eq!(output.out_of_scope, "");
 }

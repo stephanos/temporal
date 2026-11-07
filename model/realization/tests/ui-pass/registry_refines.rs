@@ -35,6 +35,6 @@ specimen::action_metadata!(umpire_temporal::registry; specimen; {
     }
 });
 fn refined<B: umpire_temporal::registry::Refined>() {}
-fn main() {
+pub(crate) fn main() {
     refined::<Binding>();
 }
