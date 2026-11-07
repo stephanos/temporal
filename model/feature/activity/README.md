@@ -173,6 +173,8 @@ UMPIRE_BACKENDS=require mise exec -- cargo test -p umpire-temporal-tests --test 
 mise exec -- cargo test -p umpire-temporal --test realization named_guest_adapter_preserves_the_independent_report_and_ordered_rows
 ```
 
+Since fn-254.32, required TLC launches refuse outside the nextest `jvm` test group; run this through `cargo nextest run --profile required` or set `UMPIRE_TLC_UNGROUPED=1`.
+
 TLC uses the pinned `tla2tools` 1.7.4 artifact (TLC 2.19), SHA-256
 `936a262061c914694dfd669a543be24573c45d5aa0ff20a8b96b23d01e050e88`.
 Apalache is opt-in and provides no required correction evidence. Joined guest
